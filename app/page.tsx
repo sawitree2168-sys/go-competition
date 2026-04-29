@@ -1,79 +1,147 @@
-"use client";
-import Image from "next/image";
-import { supabase } from "../lib/supabase";
 export default function Home() {
-async function addData() {
-  const { data, error } = await supabase
-    .from('test')
-    .insert([
-      { name: 'ทดลอง', score: 100 }
-    ])
-
-  console.log(data, error)
-}
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <button onClick={addData}>
-                       เพิ่มข้อมูล
-        </button>
+    <main style={{ minHeight: "100vh", background: "#f4f6f9", fontFamily: "sans-serif" }}>
+      <header style={headerStyle}>
+        <h1 style={{ fontSize: "22px", fontWeight: "bold" }}>Go Tournament</h1>
 
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <nav style={{ display: "flex", gap: "14px", fontSize: "14px" }}>
+          <a href="#news" style={navStyle}>ข่าวสาร</a>
+          <a href="#certificate" style={navStyle}>ดาวน์โหลดใบประกาศ</a>
+          <a href="#register" style={navStyle}>สมัครแข่งขัน</a>
+        </nav>
+      </header>
+
+      <section style={{ textAlign: "center", padding: "55px 20px" }}>
+        <h2 style={{ fontSize: "38px", fontWeight: "bold", marginBottom: "12px" }}>
+          Go Tournament
+        </h2>
+        <p style={{ fontSize: "20px", color: "#444", marginBottom: "10px" }}>
+          แพลตฟอร์มกลางสำหรับการแข่งขันหมากล้อม
+        </p>
+        <p style={{ fontSize: "16px", color: "#666" }}>
+          สมัครแข่งขัน • ดูตาราง • เช็คผล • จัดอันดับ • ข่าวสาร • ดาวน์โหลดใบประกาศ
+        </p>
+      </section>
+
+      <section style={gridStyle}>
+        {card("📢 ประกาศการแข่งขัน", "รายละเอียดวัน เวลา สถานที่ และกติกาการแข่งขัน")}
+        {card("📰 ข่าวสาร", "ติดตามข่าวล่าสุดเกี่ยวกับการแข่งขันหมากล้อม")}
+        {card("👥 รายชื่อนักแข่ง", "ตรวจสอบรายชื่อผู้สมัครแข่งขันทั้งหมด")}
+        {card("📅 ตารางแข่งขัน", "ดูรอบการแข่งขัน คู่แข่งขัน และเวลาแข่ง")}
+        {card("🏆 ผลการแข่งขัน", "บันทึกและดูผลการแข่งขัน")}
+        {card("⭐ อันดับคะแนน", "ดูอันดับคะแนนสะสมของผู้เล่น")}
+        {card("📄 ใบประกาศ", "ดาวน์โหลดใบประกาศหลังจบการแข่งขัน")}
+        {card("📝 สมัครแข่งขัน", "สมัครเข้าร่วมการแข่งขันออนไลน์")}
+      </section>
+
+      <section id="news" style={sectionStyle}>
+        <h2 style={titleStyle}>ข่าวสารการแข่งขัน</h2>
+
+        <div style={listBoxStyle}>
+          <h3>เปิดรับสมัครการแข่งขันหมากล้อมรายการใหม่</h3>
+          <p>ผู้เล่นสามารถติดตามรายละเอียดและสมัครเข้าร่วมการแข่งขันได้ผ่านระบบ Go Tournament</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div style={listBoxStyle}>
+          <h3>ประกาศตารางแข่งขัน</h3>
+          <p>ระบบจะแสดงรอบการแข่งขัน คู่แข่งขัน และผลการแข่งขันในหน้าเดียวกัน</p>
         </div>
-      </main>
+      </section>
+
+      <section id="certificate" style={sectionStyle}>
+        <h2 style={titleStyle}>ดาวน์โหลดใบประกาศ</h2>
+
+        <div style={listBoxStyle}>
+          <p>กรอกชื่อผู้เข้าแข่งขัน หรือค้นหาจากรายการแข่งขัน เพื่อดาวน์โหลดใบประกาศ</p>
+
+          <button style={buttonStyle}>
+            ดาวน์โหลดใบประกาศ
+          </button>
+        </div>
+      </section>
+
+      <section id="register" style={sectionStyle}>
+        <h2 style={titleStyle}>สมัครแข่งขัน</h2>
+
+        <div style={listBoxStyle}>
+          <p>ระบบสมัครแข่งขันจะเชื่อมต่อกับ Supabase ในขั้นตอนถัดไป</p>
+
+          <button style={buttonStyle}>
+            สมัครแข่งขัน
+          </button>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function card(title: string, desc: string) {
+  return (
+    <div style={cardStyle}>
+      <h3 style={{ fontSize: "20px", marginBottom: "10px" }}>{title}</h3>
+      <p style={{ color: "#666", lineHeight: "1.6" }}>{desc}</p>
     </div>
   );
 }
+
+const headerStyle = {
+  background: "#1e3a8a",
+  color: "white",
+  padding: "16px 24px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "20px",
+  flexWrap: "wrap" as const,
+};
+
+const navStyle = {
+  color: "white",
+  textDecoration: "none",
+};
+
+const gridStyle = {
+  maxWidth: "1100px",
+  margin: "0 auto",
+  padding: "20px",
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+  gap: "20px",
+};
+
+const cardStyle = {
+  background: "white",
+  padding: "24px",
+  borderRadius: "16px",
+  boxShadow: "0 6px 15px rgba(0,0,0,0.08)",
+};
+
+const sectionStyle = {
+  maxWidth: "900px",
+  margin: "30px auto",
+  padding: "20px",
+};
+
+const titleStyle = {
+  fontSize: "28px",
+  marginBottom: "16px",
+};
+
+const listBoxStyle = {
+  background: "white",
+  padding: "22px",
+  borderRadius: "16px",
+  marginBottom: "14px",
+  boxShadow: "0 5px 14px rgba(0,0,0,0.07)",
+};
+
+const buttonStyle = {
+  marginTop: "12px",
+  background: "#1e3a8a",
+  color: "white",
+  padding: "12px 22px",
+  borderRadius: "10px",
+  border: "none",
+  cursor: "pointer",
+  fontWeight: "bold",
+};
