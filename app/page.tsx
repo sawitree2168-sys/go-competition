@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function Home() {
   const menuItems = [
     { icon: "📅", title: "ปฏิทินการแข่งขัน", desc: "ดูรายการแข่งขันทั้งหมด" },
@@ -8,10 +10,10 @@ export default function Home() {
   ];
 
   const events = [
-    { title: "การแข่งขันหมากล้อมเยาวชนชิงแชมป์ภาคเหนือ 2567", fee: "400", status: "เปิดรับสมัคร" },
-    { title: "ชิงชนะเลิศแห่งประเทศไทย 2567", fee: "500", status: "เปิดรับสมัคร" },
-    { title: "การแข่งขันหมากล้อมเยาวชนภาคตะวันออกเฉียงเหนือ 2567", fee: "400", status: "เปิดรับสมัคร" },
-    { title: "การแข่งขันหมากล้อมเยาวชนภาคใต้ 2567", fee: "400", status: "เปิดรับสมัคร" },
+    { title: "การแข่งขันหมากล้อมเยาวชนชิงแชมป์ภาคเหนือ 2567", fee: "400" },
+    { title: "ชิงชนะเลิศแห่งประเทศไทย 2567", fee: "500" },
+    { title: "การแข่งขันหมากล้อมเยาวชนภาคตะวันออกเฉียงเหนือ 2567", fee: "400" },
+    { title: "การแข่งขันหมากล้อมเยาวชนภาคใต้ 2567", fee: "400" },
   ];
 
   const news = [
@@ -30,7 +32,7 @@ export default function Home() {
             </div>
             <div>
               <div className="text-xl font-black text-[#0b5bd3]">GO</div>
-              <div className="-mt-1 text-xs font-bold tracking-widest text-[#111827]">
+              <div className="-mt-1 text-xs font-bold tracking-widest">
                 TOURNAMENT
               </div>
             </div>
@@ -59,7 +61,7 @@ export default function Home() {
               การแข่งขันหมากล้อม
             </p>
 
-            <h1 className="text-4xl font-black leading-tight text-[#111827] md:text-5xl">
+            <h1 className="text-4xl font-black leading-tight md:text-5xl">
               การแข่งขันหมากล้อม
               <br />
               ชิงชนะเลิศแห่งประเทศไทย 2567
@@ -80,15 +82,23 @@ export default function Home() {
           </div>
 
           <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
-            <img
+            <Image
               src="/go-poster.jpg"
               alt="Go Tournament Poster"
+              width={1200}
+              height={650}
+              quality={100}
+              priority
               className="h-[360px] w-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-white/70 via-white/20 to-transparent" />
+
+            <div className="absolute inset-0 bg-gradient-to-r from-white/65 via-white/20 to-transparent" />
+
             <div className="absolute bottom-6 left-6 rounded-2xl bg-[#0b5bd3] px-6 py-4 text-white shadow-lg">
               <p className="text-sm font-bold">GO CUP 2026</p>
-              <p className="text-xl font-black">เงินรางวัลรวมกว่า 100,000 บาท</p>
+              <p className="text-xl font-black">
+                เงินรางวัลรวมกว่า 100,000 บาท
+              </p>
             </div>
           </div>
         </div>
@@ -99,7 +109,7 @@ export default function Home() {
           {menuItems.map((item) => (
             <div
               key={item.title}
-              className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm"
+              className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
             >
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-3xl">
                 {item.icon}
@@ -123,16 +133,20 @@ export default function Home() {
           {events.map((event) => (
             <article
               key={event.title}
-              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md"
+              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="relative h-40 overflow-hidden">
-                <img
+                <Image
                   src="/go-poster.jpg"
                   alt={event.title}
+                  width={500}
+                  height={300}
+                  quality={100}
                   className="h-full w-full object-cover"
                 />
+
                 <div className="absolute right-3 top-3 rounded-full bg-green-600 px-3 py-1 text-xs font-bold text-white">
-                  {event.status}
+                  เปิดรับสมัคร
                 </div>
               </div>
 
@@ -166,11 +180,15 @@ export default function Home() {
               key={item.title}
               className="grid grid-cols-[120px_1fr] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
             >
-              <img
+              <Image
                 src="/go-poster.jpg"
                 alt={item.title}
+                width={300}
+                height={200}
+                quality={100}
                 className="h-full min-h-[120px] w-full object-cover"
               />
+
               <div className="p-4">
                 <span className="rounded-md border border-slate-200 px-3 py-1 text-xs font-bold text-[#0b5bd3]">
                   {item.tag}
