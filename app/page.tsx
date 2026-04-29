@@ -8,10 +8,30 @@ export default function Home() {
   ];
 
   const events = [
-    "การแข่งขันหมากล้อมเยาวชนชิงแชมป์ภาคเหนือ 2567",
-    "ชิงชนะเลิศแห่งประเทศไทย 2567",
-    "การแข่งขันหมากล้อมเยาวชนภาคตะวันออกเฉียงเหนือ 2567",
-    "การแข่งขันหมากล้อมเยาวชนภาคใต้ 2567",
+    {
+      title: "การแข่งขันหมากล้อมเยาวชนชิงแชมป์ภาคเหนือ 2567",
+      fee: "400",
+      status: "เปิดรับสมัคร",
+      color: "green",
+    },
+    {
+      title: "ชิงชนะเลิศแห่งประเทศไทย 2567",
+      fee: "500",
+      status: "ใกล้ปิดรับสมัคร",
+      color: "orange",
+    },
+    {
+      title: "การแข่งขันหมากล้อมเยาวชนภาคตะวันออกเฉียงเหนือ 2567",
+      fee: "400",
+      status: "เปิดรับสมัคร",
+      color: "green",
+    },
+    {
+      title: "การแข่งขันหมากล้อมเยาวชนภาคใต้ 2567",
+      fee: "400",
+      status: "เปิดรับสมัคร",
+      color: "green",
+    },
   ];
 
   return (
@@ -80,7 +100,7 @@ export default function Home() {
               className="h-[360px] w-full object-cover"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/30 to-transparent" />
 
             <div className="absolute bottom-8 left-8 text-white">
               <p className="text-sm font-bold opacity-80">GO TOURNAMENT</p>
@@ -110,7 +130,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-12">
+      <section className="mx-auto max-w-7xl px-5 py-14">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-black">
             รายการแข่งขันที่เปิดรับสมัคร
@@ -120,26 +140,28 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-4">
-          {events.map((event, index) => (
+        <div className="grid gap-6 md:grid-cols-4">
+          {events.map((event) => (
             <article
-              key={event}
+              key={event.title}
               className="overflow-hidden rounded-2xl bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-2xl"
             >
-              <div className="relative h-40 overflow-hidden">
+              <div className="relative h-44 overflow-hidden">
                 <img
                   src="/go-poster.jpg"
-                  alt={event}
-                  className="h-full w-full object-cover"
+                  alt={event.title}
+                  className="h-full w-full object-cover scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/25 to-transparent" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,200,100,0.25),transparent_60%)]" />
 
                 <div className="absolute right-3 top-3 rounded-full bg-white/25 px-3 py-1 text-xs font-bold text-white backdrop-blur">
-                  เปิดรับสมัคร
+                  {event.status}
                 </div>
 
                 <h3 className="absolute bottom-4 left-4 right-4 text-sm font-black leading-snug text-white">
-                  {event}
+                  {event.title}
                 </h3>
               </div>
 
@@ -147,14 +169,14 @@ export default function Home() {
                 <p>📅 25 - 26 พ.ค. 2567</p>
                 <p>📍 กรุงเทพมหานคร</p>
                 <p>👥 7 รุ่นการแข่งขัน</p>
-                <p>💰 ค่าสมัคร {index === 1 ? "500" : "400"} บาท</p>
+                <p>💰 ค่าสมัคร {event.fee} บาท</p>
 
                 <button
                   className={`mt-3 w-full rounded-lg py-2 font-black text-white shadow ${
-                    index === 1 ? "bg-orange-500" : "bg-green-600"
+                    event.color === "orange" ? "bg-orange-500" : "bg-green-600"
                   }`}
                 >
-                  {index === 1 ? "ใกล้ปิดรับสมัคร" : "เปิดรับสมัคร"}
+                  {event.status}
                 </button>
               </div>
             </article>
