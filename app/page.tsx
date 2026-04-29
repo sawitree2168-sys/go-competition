@@ -23,6 +23,7 @@ export default function Home() {
               <div className="absolute left-2 top-3 h-6 w-6 rounded-full bg-black" />
               <div className="absolute right-2 top-3 h-6 w-6 rounded-full border border-black bg-white" />
             </div>
+
             <div className="leading-tight">
               <div className="text-xl font-black">GO</div>
               <div className="text-xs font-bold tracking-widest text-slate-300">
@@ -72,33 +73,21 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#d89a2e] via-[#b87822] to-[#111827] p-5 shadow-2xl">
-            <div className="absolute inset-0 rounded-3xl bg-black/10" />
-            <div className="relative h-[330px] overflow-hidden rounded-2xl bg-[#cf8c2c] p-6">
-              <div className="absolute inset-6 grid grid-cols-9 grid-rows-7 opacity-35">
-                {Array.from({ length: 63 }).map((_, i) => (
-                  <div key={i} className="border border-black/40" />
-                ))}
-              </div>
+          <div className="relative overflow-hidden rounded-3xl shadow-2xl">
+            <img
+              src="/go-poster.jpg"
+              alt="Go Tournament Poster"
+              className="h-[360px] w-full object-cover"
+            />
 
-              <div className="absolute left-16 top-16 h-12 w-12 rounded-full bg-black shadow-xl" />
-              <div className="absolute left-28 top-24 h-12 w-12 rounded-full bg-white shadow-xl" />
-              <div className="absolute left-44 top-32 h-12 w-12 rounded-full bg-black shadow-xl" />
-              <div className="absolute left-60 top-24 h-12 w-12 rounded-full bg-white shadow-xl" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
 
-              <div className="absolute bottom-10 left-10">
-                <p className="text-sm font-black text-white/90">GO TOURNAMENT</p>
-                <h2 className="mt-1 text-4xl font-black text-white">
-                  GO CUP 2026
-                </h2>
-                <p className="mt-1 font-bold text-white/85">
-                  เงินรางวัลรวมกว่า 100,000 บาท
-                </p>
-              </div>
-
-              <div className="absolute bottom-12 right-12 text-7xl drop-shadow-lg">
-                🏆
-              </div>
+            <div className="absolute bottom-8 left-8 text-white">
+              <p className="text-sm font-bold opacity-80">GO TOURNAMENT</p>
+              <h2 className="mt-1 text-4xl font-black">GO CUP 2026</h2>
+              <p className="mt-1 font-bold opacity-90">
+                เงินรางวัลรวมกว่า 100,000 บาท
+              </p>
             </div>
           </div>
         </div>
@@ -111,7 +100,7 @@ export default function Home() {
               key={item.title}
               className="rounded-2xl border border-slate-100 bg-gradient-to-b from-white to-[#f7fbff] p-5 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
             >
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eaf2ff] text-3xl text-blue-600">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eaf2ff] text-3xl">
                 {item.icon}
               </div>
               <h3 className="mt-3 font-black">{item.title}</h3>
@@ -137,18 +126,18 @@ export default function Home() {
               key={event}
               className="overflow-hidden rounded-2xl bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-2xl"
             >
-              <div className="relative h-40 overflow-hidden bg-[#07162f]">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#06152c] via-[#123760] to-[#d69a35]" />
-                <div className="absolute inset-0 opacity-30">
-                  <div className="grid h-full grid-cols-7 grid-rows-5">
-                    {Array.from({ length: 35 }).map((_, i) => (
-                      <div key={i} className="border border-white/20" />
-                    ))}
-                  </div>
-                </div>
-                <div className="absolute right-3 top-3 rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white">
+              <div className="relative h-40 overflow-hidden">
+                <img
+                  src="/go-poster.jpg"
+                  alt={event}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+
+                <div className="absolute right-3 top-3 rounded-full bg-white/25 px-3 py-1 text-xs font-bold text-white backdrop-blur">
                   เปิดรับสมัคร
                 </div>
+
                 <h3 className="absolute bottom-4 left-4 right-4 text-sm font-black leading-snug text-white">
                   {event}
                 </h3>
