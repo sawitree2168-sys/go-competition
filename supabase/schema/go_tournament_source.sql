@@ -109,7 +109,6 @@ create table public.competition_series (
   code text not null unique,
   name_th text not null,
   name_en text,
-  requires_high_or_open_dan boolean not null default false,
   is_published boolean not null default true
 );
 
@@ -125,7 +124,6 @@ create table public.series_seasons (
 create table public.series_event_memberships (
   season_id uuid not null references public.series_seasons(id) on delete cascade,
   event_id uuid not null references public.events(id) on delete cascade,
-  qualifying_division_id uuid not null references public.divisions(id) on delete restrict,
   eligibility_status text not null default 'PENDING'
     check (eligibility_status in ('PENDING', 'ELIGIBLE', 'APPROVED', 'REJECTED')),
   reviewed_at timestamptz,
@@ -306,10 +304,9 @@ create policy "published kyu ledger is public"
 on public.kyu_rating_ledger for select to anon, authenticated
 using (is_published);
 
--- Super Series validation rule:
--- before eligibility_status becomes APPROVED, the qualifying division must belong
--- to the same event and its category must be HIGH_DAN or OPEN_DAN.
--- Enforce this in the authenticated review transaction/server action.
+-- HIGH_DAN and OPEN_DAN remain available as division categories for reporting,
+-- but they are not automatic eligibility requirements for Super Series membership.
+-- Exceptional events can be approved without either category.
 --
 -- competition_year is only for yearly filtering and yearly statistics.
 -- kyu_rating_accounts and kyu_rating_ledger intentionally continue across years.
