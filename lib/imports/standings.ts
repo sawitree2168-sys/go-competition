@@ -128,7 +128,7 @@ export function convertStandingsToMatches(rows: StandingSourceRow[]): {
         const aFirst = (player.sourcePlayerId || player.playerName).localeCompare(opponent.sourcePlayerId || opponent.playerName) <= 0;
         const a = aFirst ? player : opponent;
         const b = aFirst ? opponent : player;
-        const aParsed = aFirst ? parsed : opponentParsed;
+        const aParsed = aFirst ? parsed : opponentParsed!;
         const key = pairKey(division, round, a.sourcePlayerId || a.playerName, b.sourcePlayerId || b.playerName);
 
         matches.set(key, {
