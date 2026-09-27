@@ -1,23 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { athletes, getAthlete } from "@/lib/athletes";
+import { getPublicAthlete, listPublicAthletes } from "@/lib/data/athletes";
 
 type Props = { params: Promise<{ id: string }> };
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const athletes = await listPublicAthletes();
   return athletes.map((athlete) => ({ id: athlete.id }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const athlete = getAthlete(decodeURIComponent(id));
+  const athlete = await getPublicAthlete(decodeURIComponent(id));
   return { title: athlete ? `${athlete.displayName} | ข้อมูลนักกีฬา` : "ไม่พบนักกีฬา" };
 }
 
 export default async function AthleteProfilePage({ params }: Props) {
   const { id } = await params;
-  const athlete = getAthlete(decodeURIComponent(id));
+  const athlete = await getPublicAthlete(decodeURIComponent(id));
   if (!athlete) notFound();
 
   const totalWins = athlete.events.reduce((sum, event) => sum + event.wins, 0);
