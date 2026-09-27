@@ -1,22 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-
-type Athlete = {
-  id: string;
-  displayName: string;
-  institute: string;
-  level: string;
-  events: number;
-  bestResult: string;
-};
-
-const athletes: Athlete[] = [
-  { id: "GT-0001", displayName: "นักกีฬา A", institute: "สถาบันตัวอย่าง 1", level: "1 Dan", events: 12, bestResult: "อันดับ 1" },
-  { id: "GT-0002", displayName: "นักกีฬา B", institute: "สถาบันตัวอย่าง 2", level: "3 Kyu", events: 8, bestResult: "อันดับ 3" },
-  { id: "GT-0003", displayName: "นักกีฬา C", institute: "สถาบันตัวอย่าง 1", level: "5 Kyu", events: 5, bestResult: "Top 8" },
-  { id: "GT-0004", displayName: "นักกีฬา D", institute: "อิสระ", level: "2 Dan", events: 19, bestResult: "อันดับ 2" },
-];
+import { athletes } from "@/lib/athletes";
 
 const levels = ["ทั้งหมด", "Dan", "Kyu", "Beginner"];
 
@@ -35,9 +21,9 @@ export default function AthletesPage() {
           .includes(normalizedQuery);
       const matchesLevel =
         level === "ทั้งหมด" ||
-        (level === "Dan" && athlete.level.includes("Dan")) ||
-        (level === "Kyu" && athlete.level.includes("Kyu")) ||
-        (level === "Beginner" && athlete.level.includes("Beginner"));
+        (level === "Dan" && athlete.rankType === "DAN") ||
+        (level === "Kyu" && athlete.rankType === "KYU") ||
+        (level === "Beginner" && athlete.rankType === "BEGINNER");
       return matchesText && matchesLevel;
     });
   }, [level, query]);
@@ -47,7 +33,7 @@ export default function AthletesPage() {
       <div className="page-title">
         <span className="eyebrow">ATHLETE DIRECTORY</span>
         <h1>ค้นหาข้อมูลนักกีฬา</h1>
-        <p>ค้นหาจากชื่อ รหัสนักกีฬา สถาบัน หรือระดับฝีมือ เพื่อดูผลงานการแข่งขันที่เผยแพร่สาธารณะ</p>
+        <p>ค้นหาจากชื่อ รหัสนักกีฬา สถาบัน หรือระดับฝีมือ แล้วกดดูประวัติการแข่งขันและคะแนน</p>
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:p-6">
@@ -87,7 +73,11 @@ export default function AthletesPage() {
 
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         {results.map((athlete) => (
-          <article className="grid grid-cols-[72px_1fr] gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900" key={athlete.id}>
+          <Link
+            className="grid grid-cols-[72px_1fr] gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-900"
+            href={`/athletes/${encodeURIComponent(athlete.id)}`}
+            key={athlete.id}
+          >
             <div className="grid h-[90px] w-[72px] place-items-center rounded-xl bg-gradient-to-br from-blue-100 to-slate-200 text-2xl font-black text-blue-700 dark:from-blue-950 dark:to-slate-800">
               {athlete.displayName.slice(-1)}
             </div>
@@ -97,9 +87,10 @@ export default function AthletesPage() {
                 <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-200">{athlete.level}</span>
               </div>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{athlete.institute}</p>
-              <div className="mt-3 flex gap-5 text-sm"><span><b>{athlete.events}</b> รายการ</span><span>ผลงานดีที่สุด <b>{athlete.bestResult}</b></span></div>
+              <div className="mt-3 flex flex-wrap gap-5 text-sm"><span><b>{athlete.events.length}</b> รายการ</span><span>ผลงานดีที่สุด <b>{athlete.bestResult}</b></span></div>
+              <span className="mt-3 inline-block text-sm font-bold text-blue-700 dark:text-blue-300">ดูข้อมูลนักกีฬา →</span>
             </div>
-          </article>
+          </Link>
         ))}
       </div>
 
