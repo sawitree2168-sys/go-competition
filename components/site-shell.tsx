@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const navigation = [
-  { href: "/", th: "หน้าหลัก", en: "Home" },
-  { href: "/tournaments", th: "รายการแข่งขัน", en: "Tournaments" },
-  { href: "/live", th: "ผลสด", en: "Live" },
-  { href: "/pairing", th: "จับคู่", en: "Pairing" },
+  { href: "/", th: "หน้าหลัก", en: "Home", icon: "⌂" },
+  { href: "/tournaments", th: "รายการแข่งขัน", en: "Tournaments", icon: "▦" },
+  { href: "/athletes", th: "ค้นหานักกีฬา", en: "Athletes", icon: "◎" },
+  { href: "/live", th: "ผลสด", en: "Live", icon: "●" },
+  { href: "/pairing", th: "จับคู่", en: "Pairing", icon: "⌘" },
 ];
 
 export default function SiteShell({ children }: { children: React.ReactNode }) {
@@ -74,15 +75,12 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
       <nav className="mobile-nav" aria-label="เมนูมือถือ">
-        {navigation.map((item, index) => (
+        {navigation.map((item) => (
           <Link className={pathname === item.href ? "active" : ""} href={item.href} key={item.href}>
-            <span>{["⌂", "▦", "●", "⌘"][index]}</span>
-            {language === "th" ? item.th : item.en}
+            <span>{item.icon}</span>
+            {language === "th" ? item.th.replace("ค้นหา", "") : item.en}
           </Link>
         ))}
-        <Link className={pathname.startsWith("/admin") ? "active" : ""} href="/admin/setup">
-          <span>⚙</span>{language === "th" ? "ตั้งค่า" : "Setup"}
-        </Link>
       </nav>
     </div>
   );
