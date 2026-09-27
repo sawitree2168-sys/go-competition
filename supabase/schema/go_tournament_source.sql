@@ -68,6 +68,7 @@ create table public.events (
   organizer_user_id uuid not null references auth.users(id),
   name_th text not null,
   name_en text,
+  competition_year smallint not null check (competition_year between 2020 and 2100),
   venue_th text,
   venue_en text,
   starts_at timestamptz not null,
@@ -92,6 +93,7 @@ create table public.divisions (
   event_id uuid not null references public.events(id) on delete cascade,
   name_th text not null,
   name_en text,
+  category text not null check (category in ('BEGINNER', 'KYU', 'DAN', 'HIGH_DAN', 'OPEN_DAN', 'OPEN', 'CUSTOM')),
   format text not null check (format in ('SWISS', 'MCMAHON', 'ROUND_ROBIN', 'KNOCKOUT', 'CUSTOM')),
   rounds smallint,
   min_rank_kind public.rank_kind,
@@ -100,6 +102,34 @@ create table public.divisions (
   max_rank_value smallint,
   settings jsonb not null default '{}'::jsonb,
   sort_order integer not null default 0
+);
+
+create table public.competition_series (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  name_th text not null,
+  name_en text,
+  requires_high_or_open_dan boolean not null default false,
+  is_published boolean not null default true
+);
+
+create table public.series_seasons (
+  id uuid primary key default gen_random_uuid(),
+  series_id uuid not null references public.competition_series(id) on delete cascade,
+  competition_year smallint not null check (competition_year between 2020 and 2100),
+  name text not null,
+  is_published boolean not null default false,
+  unique (series_id, competition_year)
+);
+
+create table public.series_event_memberships (
+  season_id uuid not null references public.series_seasons(id) on delete cascade,
+  event_id uuid not null references public.events(id) on delete cascade,
+  qualifying_division_id uuid not null references public.divisions(id) on delete restrict,
+  eligibility_status text not null default 'PENDING'
+    check (eligibility_status in ('PENDING', 'ELIGIBLE', 'APPROVED', 'REJECTED')),
+  reviewed_at timestamptz,
+  primary key (season_id, event_id)
 );
 
 create table public.registrations (
@@ -177,6 +207,8 @@ create table public.kyu_rating_ledger (
 create index athlete_profiles_institution_idx on public.athlete_public_profiles (institution_id);
 create index events_state_starts_idx on public.events (state, starts_at desc);
 create index divisions_event_idx on public.divisions (event_id, sort_order);
+create index events_year_state_idx on public.events (competition_year, state, starts_at desc);
+create index series_memberships_event_idx on public.series_event_memberships (event_id, eligibility_status);
 create index registrations_athlete_idx on public.registrations (athlete_id, event_id);
 create index matches_public_idx on public.matches (event_id, division_id, round_number, result_state);
 create index results_athlete_idx on public.event_results (athlete_id, published_at desc);
@@ -189,6 +221,9 @@ alter table public.athlete_photos enable row level security;
 alter table public.events enable row level security;
 alter table public.event_staff enable row level security;
 alter table public.divisions enable row level security;
+alter table public.competition_series enable row level security;
+alter table public.series_seasons enable row level security;
+alter table public.series_event_memberships enable row level security;
 alter table public.registrations enable row level security;
 alter table public.matches enable row level security;
 alter table public.event_results enable row level security;
@@ -233,6 +268,18 @@ using (exists (
   where e.id = divisions.event_id and e.state = 'PUBLISHED'
 ));
 
+create policy "published series are public"
+on public.competition_series for select to anon, authenticated
+using (is_published);
+
+create policy "published series seasons are public"
+on public.series_seasons for select to anon, authenticated
+using (is_published);
+
+create policy "approved series events are public"
+on public.series_event_memberships for select to anon, authenticated
+using (eligibility_status = 'APPROVED');
+
 create policy "athletes can read own registrations"
 on public.registrations for select to authenticated
 using (exists (
@@ -259,6 +306,16 @@ create policy "published kyu ledger is public"
 on public.kyu_rating_ledger for select to anon, authenticated
 using (is_published);
 
+-- Super Series validation rule:
+-- before eligibility_status becomes APPROVED, the qualifying division must belong
+-- to the same event and its category must be HIGH_DAN or OPEN_DAN.
+-- Enforce this in the authenticated review transaction/server action.
+--
+-- competition_year is only for yearly filtering and yearly statistics.
+-- kyu_rating_accounts and kyu_rating_ledger intentionally continue across years.
+-- Dan results may be stored for history, but rating changes come from GAT POINT,
+-- not from this Kyu ledger.
+--
 -- Mutations intentionally have no browser policies in this foundation.
 -- Organizer writes must go through authenticated server actions that verify
 -- event ownership/staff assignment. Never expose a service-role key to clients.
