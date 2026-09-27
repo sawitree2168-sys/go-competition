@@ -51,6 +51,17 @@ create table public.athlete_public_profiles (
   )
 );
 
+create table public.athlete_photos (
+  id uuid primary key default gen_random_uuid(),
+  athlete_id uuid not null references public.athletes(id) on delete cascade,
+  storage_path text not null unique,
+  review_state text not null default 'PENDING' check (review_state in ('PENDING', 'APPROVED', 'REJECTED')),
+  is_current boolean not null default false,
+  submitted_at timestamptz not null default now(),
+  reviewed_at timestamptz,
+  check (not is_current or review_state = 'APPROVED')
+);
+
 create table public.events (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique,
@@ -174,6 +185,7 @@ create index kyu_ledger_athlete_time_idx on public.kyu_rating_ledger (athlete_id
 alter table public.institutions enable row level security;
 alter table public.athletes enable row level security;
 alter table public.athlete_public_profiles enable row level security;
+alter table public.athlete_photos enable row level security;
 alter table public.events enable row level security;
 alter table public.event_staff enable row level security;
 alter table public.divisions enable row level security;
@@ -194,6 +206,13 @@ using (is_published);
 create policy "athletes can read own private record"
 on public.athletes for select to authenticated
 using ((select auth.uid()) = owner_user_id);
+
+create policy "athletes can read own photo submissions"
+on public.athlete_photos for select to authenticated
+using (exists (
+  select 1 from public.athletes a
+  where a.id = athlete_photos.athlete_id and a.owner_user_id = (select auth.uid())
+));
 
 create policy "published events are public"
 on public.events for select to anon, authenticated
