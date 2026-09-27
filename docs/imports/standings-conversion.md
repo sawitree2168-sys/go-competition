@@ -21,7 +21,7 @@ The converter resolves the place to a source player and displays the athlete's f
 - `2-` must correspond to `5+`
 - draws must appear as draws on both rows
 
-Two reciprocal entries become one canonical match.
+Two reciprocal entries become one canonical match.\n\nThe source note defines `×` as “ไม่ได้แข่งขันในรอบนั้น”. Both `×` and forms such as `28×` are retained as non-participation evidence but do not create a match, win, loss, BYE, or rating change.
 
 ## Identity resolution
 

@@ -38,7 +38,7 @@ export type StandingIssue = {
 type ParsedResult = { opponentPlace: number; outcome: "win" | "loss" | "draw"; raw: string };
 
 function splitRounds(value: string): string[] {
-  return value.split("|").map((part) => part.trim()).filter(Boolean);
+  return value.split("|").map((part) => part.trim());
 }
 
 function parseRound(value: string): ParsedResult | null {
@@ -92,6 +92,8 @@ export function convertStandingsToMatches(rows: StandingSourceRow[]): {
       const rounds = splitRounds(player.roundResults);
       rounds.forEach((notation, index) => {
         const round = index + 1;
+        const compactNotation = notation.replace(/\\s+/g, "");
+        if (/^(?:\\d+)?×$/.test(compactNotation)) return;
         const parsed = parseRound(notation);
         if (!parsed) {
           issues.push({ division, rowPlace: player.place, round, message: "อ่านผลรอบไม่ได้: " + notation });
