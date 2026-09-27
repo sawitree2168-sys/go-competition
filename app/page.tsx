@@ -2,8 +2,8 @@ import Link from "next/link";
 
 const quickActions = [
   { href: "/tournaments", icon: "▦", title: "รายการแข่งขัน", description: "ค้นหาและสมัครการแข่งขัน" },
+  { href: "/athletes", icon: "◎", title: "ค้นหานักกีฬา", description: "ประวัติ ผลงาน และอันดับ" },
   { href: "/live", icon: "●", title: "ผลสด", description: "คู่แข่งขัน ผล และอันดับ" },
-  { href: "/pairing", icon: "⌘", title: "หน้าจับคู่", description: "มุมมองกรรมการและผู้จัด" },
   { href: "/admin/setup", icon: "⚙", title: "สร้างการแข่งขัน", description: "ตั้งค่าแบบทีละขั้น" },
 ];
 
