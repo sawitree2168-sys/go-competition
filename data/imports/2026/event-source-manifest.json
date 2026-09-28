@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "preparedAt": "2026-09-27",
+  "policy": {
+    "kyuRating": "Continuous across calendar years",
+    "danRating": "Do not calculate; use GAT POINT externally",
+    "friendship": "Store event history only; no Kyu Rating until an exact Kyu level is verified",
+    "identity": "Match by stable athlete ID when available; name-only matches require review"
+  },
+  "rankDirectory": {
+    "title": "1ทำเนียบคิวไทย",
+    "driveFileId": "1s9t-SrWowjiNHWdH5k8dx4NDp6slihzi6cg8xRXdydE",
+    "url": "https://docs.google.com/spreadsheets/d/1s9t-SrWowjiNHWdH5k8dx4NDp6slihzi6cg8xRXdydE/edit?usp=drivesdk",
+    "sheet": "ทำเนียบคิว",
+    "use": "Verify exact Kyu level before assigning an initial rating"
+  },
+  "events": [
+    {
+      "eventCode": "SEACON-BANGKAE-GO-KYU-WAR-2026",
+      "title": "SEACON BANGKAE GO KYU WAR 2026",
+      "driveFileId": "14p3jmPKf6o1BFUdT0b-HflzMnEd8DfukDxGO0tRhZsM",
+      "url": "https://docs.google.com/spreadsheets/d/14p3jmPKf6o1BFUdT0b-HflzMnEd8DfukDxGO0tRhZsM/edit?usp=drivesdk",
+      "resultSheet": "ผลการแข่งขัน",
+      "publicResultRows": 236,
+      "kyuRows": 142,
+      "danRows": 26,
+      "friendshipRows": 68,
+      "status": "SOURCE_VERIFIED"
+    },
+    {
+      "eventCode": "MINGLE-GO-KYU-WAR-2026",
+      "title": "Mingle GO Kyu War 2026",
+      "driveFileId": "17EAh751b4nORfxgfk4cpPj5YqivUX_fX9rIuQPVjqmw",
+      "url": "https://docs.google.com/spreadsheets/d/17EAh751b4nORfxgfk4cpPj5YqivUX_fX9rIuQPVjqmw/edit?usp=drivesdk",
+      "resultSheet": "ชีต1",
+      "publicResultRows": 85,
+      "kyuRows": 51,
+      "danRows": 8,
+      "friendshipRows": 26,
+      "status": "SOURCE_VERIFIED"
+    },
+    {
+      "eventCode": "THAMMASAT-OPEN-2026",
+      "title": "ธรรมศาสตร์ โอเพ่น 2026",
+      "driveFileId": "1KqFMntWKqVBESNLVONq0V3VMBfwkN3R2h9vVMAOc3k0",
+      "url": "https://docs.google.com/spreadsheets/d/1KqFMntWKqVBESNLVONq0V3VMBfwkN3R2h9vVMAOc3k0/edit?usp=drivesdk",
+      "resultSheet": "Standings",
+      "pairingSheet": "Pairings",
+      "matchResultSheet": "Results",
+      "publicResultRows": 267,
+      "kyuRows": 139,
+      "danRows": 52,
+      "friendshipRows": 76,
+      "status": "SOURCE_FOUND_AND_VERIFIED",
+      "notes": "Use final Standings, not Standings_Backup or certificate-only workbook"
+    },
+    {
+      "eventCode": "FIVE-BOARD-GO-LAMPHUN-2026",
+      "title": "5 หมากกระดานหมากล้อม @ ลำพูน 2026",
+      "driveFileId": "1lG2Nh1-0tMM0u04PZmLSvJQ6Rnq7Z2bMTt6DM2jPilo",
+      "url": "https://docs.google.com/spreadsheets/d/1lG2Nh1-0tMM0u04PZmLSvJQ6Rnq7Z2bMTt6DM2jPilo/edit?usp=drivesdk",
+      "resultSheet": "ผลการแข่งขันทั้งหมด",
+      "publicResultRows": 66,
+      "kyuRows": null,
+      "danRows": null,
+      "friendshipRows": null,
+      "status": "NEEDS_RANK_MATCHING",
+      "notes": "Divisions are Open, U10, U16 and WOMEN, so Kyu/Dan cannot be inferred from division"
+    }
+  ]
+}

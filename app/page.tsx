@@ -1,123 +1,134 @@
+import Link from "next/link";
+
+const quickActions = [
+  { href: "/tournaments", icon: "▦", title: "รายการแข่งขัน", description: "ค้นหาและสมัครการแข่งขัน" },
+  { href: "/athletes", icon: "◎", title: "ค้นหานักกีฬา", description: "ประวัติ ผลงาน และอันดับ" },
+  { href: "/live", icon: "●", title: "ผลสด", description: "คู่แข่งขัน ผล และอันดับ" },
+  { href: "/admin/setup", icon: "⚙", title: "สร้างการแข่งขัน", description: "ตั้งค่าแบบทีละขั้น" },
+];
+
+const events = [
+  {
+    status: "เปิดรับสมัคร",
+    statusClass: "status-open",
+    title: "ZEER GO KYU WAR 2026",
+    date: "5 ธันวาคม 2569",
+    venue: "ZEER Rangsit",
+    divisions: "Kyu • Beginner",
+    accent: "event-blue",
+  },
+  {
+    status: "เตรียมเปิดรับสมัคร",
+    statusClass: "status-soon",
+    title: "GO CARNIVAL @ ZEER",
+    date: "กุมภาพันธ์ 2570",
+    venue: "ZEER Rangsit",
+    divisions: "หลายรูปแบบการแข่งขัน",
+    accent: "event-gold",
+  },
+  {
+    status: "กำลังแข่งขัน",
+    statusClass: "status-live",
+    title: "GO TOURNAMENT DEMO",
+    date: "ระบบทดสอบ",
+    venue: "Live Tournament",
+    divisions: "Swiss • 5 รอบ",
+    accent: "event-green",
+  },
+];
+
 export default function Home() {
   return (
-    <main className="bg-gray-50 min-h-screen">
-
-      {/* HERO */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 grid md:grid-cols-2 gap-8 items-center">
-        
-        {/* TEXT */}
-        <div>
-          <p className="text-blue-600 mb-2 text-sm sm:text-base">
-            การแข่งขันหมากล้อม
+    <>
+      <section className="hero section-shell">
+        <div className="hero-copy">
+          <span className="eyebrow">GO TOURNAMENT PLATFORM</span>
+          <h1>ทุกการแข่งขันหมากล้อม<br />จัดการได้ในที่เดียว</h1>
+          <p>
+            สมัครแข่งขัน เช็กชื่อ จับคู่ ลงผล และติดตามอันดับสด
+            ด้วยหน้าจอที่อ่านง่ายทั้งคอมพิวเตอร์และมือถือ
           </p>
-
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-black leading-tight mb-4">
-            การแข่งขันหมากล้อม <br />
-            ชิงชนะเลิศแห่งประเทศไทย 2567
-          </h1>
-
-          <p className="text-gray-600 mb-4 text-sm sm:text-base">
-            Thailand Go Championship 2024
-          </p>
-
-          <div className="text-sm text-gray-600 space-y-1">
-            <p>📅 25 - 26 พฤษภาคม 2567</p>
-            <p>📍 กรุงเทพมหานคร</p>
+          <div className="hero-actions">
+            <Link className="button button-primary" href="/tournaments">ดูรายการแข่งขัน</Link>
+            <Link className="button button-secondary" href="/live">ดูผลการแข่งขันสด</Link>
           </div>
-
-          <button className="mt-6 w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
-            ดูรายละเอียด
-          </button>
-        </div>
-
-        {/* IMAGE */}
-        <div className="relative">
-          <img
-            src="/go-poster.jpg"
-            className="rounded-2xl shadow-lg w-full"
-          />
-
-          <div className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto bg-blue-600 text-white px-4 py-2 rounded-lg shadow text-sm sm:text-base">
-            GO CUP 2026 <br />
-            เงินรางวัลรวมกว่า 100,000 บาท
+          <div className="hero-points">
+            <span>✓ รองรับหลายรายการในหนึ่งงาน</span>
+            <span>✓ ไทย / English</span>
+            <span>✓ ออกแบบสำหรับมือถือ</span>
           </div>
         </div>
-
+        <div className="hero-board" aria-label="ตัวอย่างกระดานหมากล้อม">
+          <div className="board-grid" />
+          <span className="stone stone-black stone-a" />
+          <span className="stone stone-white stone-b" />
+          <span className="stone stone-black stone-c" />
+          <span className="stone stone-white stone-d" />
+          <div className="board-card">
+            <span className="live-dot" />
+            LIVE ROUND 3
+            <strong>128 ผู้เล่น</strong>
+          </div>
+        </div>
       </section>
 
-      {/* MENU */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 mb-10">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-
-          {[
-            "ปฏิทินการแข่งขัน",
-            "สมัครแข่งขัน",
-            "ค้นหานักกีฬา",
-            "ผลการแข่งขัน",
-            "ติดต่อแอดมิน",
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl p-4 sm:p-6 text-center shadow hover:shadow-md cursor-pointer"
-            >
-              <p className="font-semibold text-black text-sm sm:text-base">
-                {item}
-              </p>
-            </div>
+      <section className="section-shell section-block">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">เริ่มต้นใช้งาน</span>
+            <h2>คุณต้องการทำอะไร</h2>
+          </div>
+        </div>
+        <div className="quick-grid">
+          {quickActions.map((item) => (
+            <Link className="quick-card" href={item.href} key={item.href}>
+              <span className="quick-icon">{item.icon}</span>
+              <span><strong>{item.title}</strong><small>{item.description}</small></span>
+              <span className="arrow">→</span>
+            </Link>
           ))}
-
         </div>
       </section>
 
-      {/* LIST */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
-        <h2 className="text-lg sm:text-xl font-bold mb-6 text-black">
-          รายการแข่งขันที่เปิดรับสมัคร
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-
-          {[1,2,3,4].map((i) => (
-            <div key={i} className="bg-white rounded-xl shadow overflow-hidden">
-              
-              <img src="/go-poster.jpg" className="h-40 w-full object-cover" />
-
-              <div className="p-4 space-y-2 text-sm text-gray-700">
-                <p className="font-semibold text-black">
-                  การแข่งขันหมากล้อม 2567
-                </p>
-
-                <p>📅 25 - 26 พ.ค. 2567</p>
-                <p>📍 กรุงเทพมหานคร</p>
-                <p>👥 7 รุ่นการแข่งขัน</p>
-
-                <button className="mt-3 w-full bg-green-500 text-white py-2 rounded-lg">
-                  เปิดรับสมัคร
-                </button>
+      <section className="section-shell section-block">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">UPCOMING TOURNAMENTS</span>
+            <h2>รายการแข่งขัน</h2>
+          </div>
+          <Link className="text-link" href="/tournaments">ดูทั้งหมด →</Link>
+        </div>
+        <div className="event-grid">
+          {events.map((event) => (
+            <article className="event-card" key={event.title}>
+              <div className={`event-cover ${event.accent}`}>
+                <span className={`status-pill ${event.statusClass}`}>{event.status}</span>
+                <span className="event-mark">GO</span>
               </div>
-            </div>
+              <div className="event-content">
+                <p className="event-date">{event.date}</p>
+                <h3>{event.title}</h3>
+                <dl>
+                  <div><dt>สถานที่</dt><dd>{event.venue}</dd></div>
+                  <div><dt>ประเภท</dt><dd>{event.divisions}</dd></div>
+                </dl>
+                <Link className="card-link" href="/tournaments">ดูรายละเอียดและสมัคร →</Link>
+              </div>
+            </article>
           ))}
-
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-white border-t py-6">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-sm text-gray-500 flex flex-col sm:flex-row justify-between gap-3">
-          
-          <span className="text-center sm:text-left">
-            © 2024 GO Tournament
-          </span>
-
-          <div className="flex justify-center sm:justify-end gap-4">
-            <span>เกี่ยวกับเรา</span>
-            <span>ติดต่อ</span>
-            <span>เงื่อนไข</span>
+      <section className="section-shell section-block">
+        <div className="platform-panel">
+          <div>
+            <span className="eyebrow eyebrow-light">สำหรับผู้จัดการแข่งขัน</span>
+            <h2>สร้างงานหลายรูปแบบ โดยไม่ต้องจำศัพท์เทคนิค</h2>
+            <p>ระบบช่วยอธิบายทุกตัวเลือก แนะนำค่าตามจำนวนผู้เล่น และตรวจความพร้อมก่อนเปิดการแข่งขัน</p>
           </div>
-
+          <Link className="button button-light" href="/admin/setup">เริ่มตั้งค่าการแข่งขัน</Link>
         </div>
-      </footer>
-
-    </main>
+      </section>
+    </>
   );
 }
