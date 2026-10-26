@@ -5,6 +5,7 @@ import {createClient,type SupabaseClient} from "@supabase/supabase-js";
 type Tournament={id:string;title:string;start_at:string|null;status:string;published:boolean};
 type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean};
 type Applicant={id:string;go_id:string|null;athlete_name:string;rank:string|null;division_name:string;registration_status:string;payment_status:string};
+type NewsRow={id:string;title:string;body:string;status:string;created_at:string};
 type Summary={counts:{divisions:number;registrations:number;confirmedRegistrations:number;paymentVerifiedRegistrations:number;matches:number;verifiedMatches:number;news:number;media:number;certificates:number};finance:null|{payments:number;verifiedPayments:number;verifiedAmount:number;expenses:number}};
 const modules=["ผู้สมัครและนักกีฬา","ตรวจเงินและสลิป (รอเชื่อม)","เช็กอิน / จับคู่ / ผลแข่ง","ใบประกาศ","ข่าว / รูปเด่น / Drive","ค่าใช้จ่ายและรายงาน"];
 export default function TournamentAdmin(){
@@ -18,6 +19,7 @@ export default function TournamentAdmin(){
  const [summary,setSummary]=useState<Summary|null>(null),[summaryBusy,setSummaryBusy]=useState(false);
  const [albumUrl,setAlbumUrl]=useState(""),[albumSaving,setAlbumSaving]=useState(false);
  const [applicants,setApplicants]=useState<Applicant[]>([]);
+ const [news,setNews]=useState<NewsRow[]>([]),[newsTitle,setNewsTitle]=useState(""),[newsBody,setNewsBody]=useState("");
  useEffect(()=>{let active=true;let cleanup=()=>{};(async()=>{try{
   const r=await fetch("/api/auth/public-config",{cache:"no-store"});const cfg=await r.json();if(!r.ok||cfg.status!=="ok")throw Error();
   const c=createClient(cfg.url,cfg.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -48,10 +50,15 @@ export default function TournamentAdmin(){
   try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setSummary(null);setAlbumUrl("");setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกไม่สำเร็จ")}finally{setBusy(false)}
  }
- async function chooseEvent(id:string){setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setApplicants([]);setMessage("");setSummaryBusy(true);
-  try{const [d,s,a,r]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-albums?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-registrations?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setSummary(s);setAlbumUrl(a.album?.drive_folder_url||"");setApplicants(r.registrations)}
+ async function chooseEvent(id:string){setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setApplicants([]);setNews([]);setMessage("");setSummaryBusy(true);
+  try{const [d,s,a,r,n]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-albums?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-registrations?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-news?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setSummary(s);setAlbumUrl(a.album?.drive_folder_url||"");setApplicants(r.registrations);setNews(n.news)}
   catch(e){setMessage(e instanceof Error?e.message:"โหลดข้อมูลรายการแข่งขันไม่สำเร็จ")}
   finally{setSummaryBusy(false)}
+ }
+ async function createNews(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
+  try{await api("/api/admin/tournament-news","POST",{tournament_id:selected,title:newsTitle,body:newsBody});
+   const n=await api("/api/admin/tournament-news?tournament_id="+encodeURIComponent(selected));setNews(n.news);setNewsTitle("");setNewsBody("");setMessage("บันทึกข่าวแบบร่างแล้ว ยังไม่เผยแพร่") 
+  }catch(e){setMessage(e instanceof Error?e.message:"บันทึกข่าวไม่สำเร็จ")}finally{setBusy(false)}
  }
  async function saveAlbum(e:FormEvent){e.preventDefault();if(!selected)return;setAlbumSaving(true);setMessage("");
   try{await api("/api/admin/tournament-albums","PUT",{tournament_id:selected,drive_folder_url:albumUrl});setMessage("บันทึกลิงก์อัลบั้มเป็นแบบร่างแล้ว (ยังไม่เผยแพร่สาธารณะ)")}
@@ -121,6 +128,22 @@ export default function TournamentAdmin(){
         <p className="mt-2 text-xs text-slate-500">ยอดแสดงจากข้อมูลใน Supabase ไม่ใช่เงินเข้าบัญชีธนาคารที่ตรวจยืนยันภายนอก</p>
       </div>}
       <div className="mt-3 space-y-2">{divisions.map(d=><div key={d.id} className="rounded-lg border bg-white p-3">{d.name} • {d.seats_limit?d.seats_limit+" ที่":"ไม่จำกัดจำนวน"}</div>)}</div>
+      <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+       <h4 className="font-extrabold">ข่าวของรายการแข่งขัน</h4>
+       <p className="mt-1 text-sm text-slate-600">ข่าวทั้งหมด {news.length} รายการ · เพิ่มได้เป็นแบบร่างเท่านั้น</p>
+       {news.map(n=><div key={n.id} className="mt-2 rounded-lg border bg-slate-50 p-3">
+        <p className="font-bold">{n.title}</p><p className="mt-1 text-sm text-slate-500">{n.status==="draft"?"แบบร่าง":n.status}</p>
+       </div>)}
+       {["owner","admin"].includes(role)&&<form onSubmit={createNews} className="mt-4 space-y-3">
+        <label className="block text-sm font-bold">หัวข้อข่าว
+         <input required minLength={3} maxLength={200} value={newsTitle} onChange={e=>setNewsTitle(e.target.value)} className="mt-2 w-full rounded-lg border p-3"/>
+        </label>
+        <label className="block text-sm font-bold">เนื้อหา
+         <textarea rows={4} maxLength={10000} value={newsBody} onChange={e=>setNewsBody(e.target.value)} className="mt-2 w-full rounded-lg border p-3"/>
+        </label>
+        <button disabled={busy} className="rounded-xl bg-[#10366d] px-5 py-3 font-bold text-white">บันทึกข่าวแบบร่าง</button>
+       </form>}
+      </div>
       <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
        <h4 className="font-extrabold">รายชื่อผู้สมัครของรายการนี้</h4>
        <p className="mt-1 text-xs text-slate-500">ดูได้เฉพาะเจ้าหน้าที่ที่ยืนยันสิทธิ์แล้ว · รวม {applicants.length} รายการ</p>
