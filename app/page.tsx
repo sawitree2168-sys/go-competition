@@ -14,12 +14,19 @@ export default function Home(){
  return <main className="min-h-screen bg-[#f4f7fc] text-[#10294b]">
    <header className="bg-[#09264e] text-white">
     <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-5">
-     <Link href="/" className="font-black tracking-widest text-[#f1cb75] sm:text-xl">GO TOURNAMENT</Link>
+     <Link href="/" className="flex items-center gap-3 font-black tracking-widest text-[#f1cb75] sm:text-xl"><img src="/visual/logo.jpg" alt="GO TOURNAMENT" className="h-12 w-16 rounded bg-white object-contain"/>GO TOURNAMENT</Link>
      <span className="rounded-full border border-amber-200/40 bg-amber-100/10 px-3 py-2 text-xs font-semibold text-[#f1cb75]">เวอร์ชันทดสอบระบบจริง</span>
     </div>
    </header>
    <div className="mx-auto max-w-6xl px-4 pt-5"><Link href="/visual-overview" className="flex min-h-14 items-center justify-center rounded-2xl border border-[#c9a661] bg-[#fff8e7] px-5 py-4 text-center font-extrabold text-[#163c71]">ดูผังภาพรวมเว็บไซต์ทั้งระบบ (7 หมวด) ›</Link></div>
    <section className="mx-auto max-w-6xl px-4 pt-7 sm:pt-12">
+    <div className="mb-5 overflow-hidden rounded-2xl border border-[#d2ad62] bg-white shadow-lg">
+     <img src="/visual/overview.jpg" alt="ภาพรวมเว็บไซต์ GO TOURNAMENT ที่ออกแบบไว้" className="h-auto w-full object-contain"/>
+     <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
+      <div><h2 className="font-extrabold text-[#0c3166]">ชมภาพเว็บไซต์ที่ออกแบบไว้</h2><p className="mt-1 text-sm text-slate-600">ดูต้นแบบ 25 หน้าจอ ครบการสมัคร แข่งขัน ผลงาน และ Admin</p></div>
+      <Link href="/visual-overview" className="rounded-xl bg-[#0f3874] px-5 py-3 font-bold text-white">เปิดดูทุกหน้า ›</Link>
+     </div>
+    </div>
     <div className="rounded-3xl bg-gradient-to-br from-[#174782] via-[#0d3263] to-[#091b38] p-6 text-white shadow-lg sm:p-12">
      <p className="text-sm font-extrabold tracking-[0.2em] text-[#f4cc76]">GO TOURNAMENT</p>
      <h1 className="mt-3 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">ระบบจัดการแข่งขันหมากล้อม และข้อมูลนักกีฬา</h1>
