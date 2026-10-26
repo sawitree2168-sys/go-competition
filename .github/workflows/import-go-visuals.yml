@@ -1,0 +1,46 @@
+name: Import GO TOURNAMENT visual reference images
+on:
+  push:
+    branches:
+      - codex/go-tournament-vite-migration
+    paths:
+      - visual-assets-manifest.json
+      - .github/workflows/import-go-visuals.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/go-tournament-vite-migration
+      - name: Import website reference files
+        run: |
+          python3 - <<'PY'
+          import json,urllib.request,pathlib
+          target=pathlib.Path("public/visual")
+          target.mkdir(parents=True,exist_ok=True)
+          for record in json.load(open("visual-assets-manifest.json")):
+              source=record["url"]
+              if not source.startswith("https://media.canva.com/"):
+                  raise ValueError("Unexpected image source")
+              req=urllib.request.Request(source,headers={"User-Agent":"Mozilla/5.0 GO-TOURNAMENT-Preview"})
+              with urllib.request.urlopen(req,timeout=20) as response:
+                  mime=response.headers.get("content-type","")
+                  data=response.read(3000000)
+                  if not mime.startswith("image/") or len(data)<1000:
+                      raise ValueError("Invalid source: "+record["filename"])
+              (target/record["filename"]).write_bytes(data)
+              print("Imported", record["filename"], len(data),"bytes")
+          PY
+      - name: Commit reference assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/visual
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: store GO TOURNAMENT visual preview images"
+            git push
+          fi
