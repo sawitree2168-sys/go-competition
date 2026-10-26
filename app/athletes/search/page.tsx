@@ -1,3 +1,4 @@
+import Link from "next/link";
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -96,7 +97,7 @@ export default function AthleteSearchPage() {
             <button disabled={authBusy||!client.current} className="w-full rounded-xl bg-blue-800 p-4 font-bold text-white disabled:opacity-50">{authBusy?"กำลังดำเนินการ...":"ส่งลิงก์เข้าสู่ระบบ"}</button>
           </form>
           {authMessage&&<p role="status" className="mt-3 rounded-xl bg-blue-50 p-4 text-sm text-blue-900">{authMessage}</p>}
-          <p className="mt-4 text-sm text-slate-600">ยังไม่มีบัญชี? ระบบสมัครใหม่และการยืนยันสิทธิ์ในโปรไฟล์นักกีฬาเดิมอยู่ระหว่างพัฒนา ไม่ควรสร้างข้อมูลนักกีฬาซ้ำ</p>
+          <p className="mt-4 text-sm text-slate-600">ยังไม่มีบัญชี? ระบบสมัครใหม่อยู่ระหว่างพัฒนา ไม่ควรสร้างข้อมูลนักกีฬาซ้ำ</p>
         </>}
         {authenticated&&<div className="mt-5 flex items-center justify-between gap-3 rounded-xl bg-green-50 p-3 text-sm text-green-900">
           <strong>ยืนยันตัวตนแล้ว</strong>
@@ -109,8 +110,9 @@ export default function AthleteSearchPage() {
         </form>
         {status==="error"&&<p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-red-800">{message}</p>}
         {status==="verification_required"&&<p role="alert" className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">กรุณาเข้าสู่ระบบและยืนยันอีเมลก่อนค้นหา</p>}
-        {status==="not_linked"&&<p role="status" className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">ไม่พบโปรไฟล์ชื่อนี้ที่ผูกกับบัญชีของคุณ ไม่ได้หมายความว่าไม่มีข้อมูลในระบบ หากเคยแข่งขัน กรุณาติดต่อผู้จัดเพื่อยืนยันและผูกโปรไฟล์ก่อนสมัครใหม่</p>}
+        {status==="not_linked"&&<p role="status" className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">ไม่พบโปรไฟล์ชื่อนี้ที่ผูกกับบัญชีของคุณ ไม่ได้หมายความว่าไม่มีข้อมูลในระบบ หากเคยแข่งขัน สามารถส่งคำขอผูกโปรไฟล์ให้ผู้จัดตรวจสอบได้</p>}
         {status==="found"&&<div className="mt-5 space-y-2" aria-live="polite"><h2 className="font-bold">โปรไฟล์ที่คุณเข้าถึงได้</h2>{matches.map(a=><div key={a.athleteId} className="rounded-xl border p-4"><strong>{a.displayName}</strong><p className="text-sm text-slate-600">{[a.nickname,a.level].filter(Boolean).join(" • ")}</p></div>)}</div>}
+        <Link href="/athletes/claim" className="mt-5 block rounded-xl border border-blue-700 px-5 py-4 text-center font-semibold text-blue-800">ขอผูก GO ID เดิมกับบัญชีของฉัน</Link>
       </section>
       <p className="text-center text-xs text-slate-500">เว็บไซต์ Preview สำหรับทดสอบ ยังไม่เปิดรับสมัครแข่งขันจริง</p>
     </div>
