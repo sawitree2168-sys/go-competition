@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 type Claim={id:string;go_id:string;relationship:string;status:string;created_at:string};
 export default function AdminClaimsPage(){
@@ -11,6 +11,9 @@ export default function AdminClaimsPage(){
  const [claims,setClaims]=useState<Claim[]>([]);
  const [state,setState]=useState<"idle"|"loading"|"ok"|"denied"|"error">("idle");
  const [message,setMessage]=useState("");
+ const [email,setEmail]=useState("");
+ const [sending,setSending]=useState(false);
+ const [loginMessage,setLoginMessage]=useState("");
  useEffect(()=>{let active=true;let off:(()=>void)|undefined;
   (async()=>{try{
    const r=await fetch("/api/auth/public-config",{cache:"no-store"});const cfg=await r.json();
@@ -24,6 +27,24 @@ export default function AdminClaimsPage(){
   }catch{if(active){setMessage("ไม่สามารถเชื่อมระบบยืนยันตัวตน");setAuthReady(true);setState("error");}}})();
   return()=>{active=false;off?.()};
  },[]);
+ async function sendLogin(event:FormEvent<HTMLFormElement>){
+  event.preventDefault();
+  if(!client.current || sending)return;
+  setSending(true);setLoginMessage("");
+  try{
+   const {error}=await client.current.auth.signInWithOtp({
+    email:email.trim(),
+    options:{
+      shouldCreateUser:false,
+      emailRedirectTo:window.location.origin+"/admin/athlete-claims"
+    }
+   });
+   if(error)throw error;
+   setLoginMessage("ส่งคำขอเข้าสู่ระบบแล้ว หากมีบัญชีนี้ กรุณาเปิดอีเมลฉบับใหม่และกดลิงก์บนมือถือเครื่องนี้");
+  }catch{
+   setLoginMessage("ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่และตรวจการตั้งค่า Supabase Auth");
+  }finally{setSending(false);}
+ }
  async function load(){
   const token=(await client.current?.auth.getSession())?.data.session?.access_token;
   if(!token){setState("denied");return;}
@@ -46,7 +67,16 @@ export default function AdminClaimsPage(){
     <p className="mt-3 leading-relaxed text-slate-600">ตรวจรายการคำขอได้เฉพาะผู้ที่ได้รับสิทธิ์เจ้าของระบบ ผู้ดูแล หรือผู้ตรวจสอบ ทั้งนี้การตรวจเอกสารและอนุมัติยังไม่ได้เปิดใช้</p>
     <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">โหมดตรวจสอบเท่านั้น • ไม่สามารถอนุมัติ ปฏิเสธ หรือแก้ GO ID จากหน้านี้</div>
     {!authReady&&<p role="status" className="mt-5">กำลังตรวจสอบการเข้าสู่ระบบ...</p>}
-    {authReady&&!signedIn&&<div className="mt-5 rounded-xl bg-blue-50 p-4"><p>กรุณาเข้าสู่ระบบก่อน</p><Link href="/athletes/search" className="mt-2 inline-block font-semibold text-blue-700 underline">ไปหน้าเข้าสู่ระบบ</Link></div>}
+    {authReady&&!signedIn&&<div className="mt-5 rounded-xl bg-blue-50 p-4">
+      <p className="font-bold">เข้าสู่ระบบผู้ดูแล GO TOURNAMENT</p>
+      <p className="mt-2 text-sm">ใช้บัญชีอีเมลที่ผ่านการยืนยันแล้ว ระบบจะส่งลิงก์ใหม่เพื่อกลับเข้าหน้านี้โดยตรง</p>
+      <form onSubmit={sendLogin} className="mt-4 space-y-3">
+       <label htmlFor="admin-email" className="block font-semibold">อีเมลผู้ดูแล</label>
+       <input id="admin-email" type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com" className="w-full rounded-xl border border-slate-300 p-4 text-base"/>
+       <button disabled={sending||!client.current} className="w-full rounded-xl bg-blue-800 px-5 py-4 font-bold text-white disabled:opacity-50">{sending?"กำลังส่งลิงก์...":"ส่งลิงก์เข้าสู่ระบบ"}</button>
+      </form>
+      {loginMessage&&<p role="status" className="mt-4 rounded-lg bg-white p-3 text-sm">{loginMessage}</p>}
+     </div>}
     {signedIn&&<div className="mt-5">
      <button type="button" onClick={()=>void load()} className="rounded-xl bg-blue-800 px-5 py-3 font-semibold text-white">ตรวจสิทธิ์และโหลดคำขออีกครั้ง</button>
      {state==="loading"&&<p role="status" className="mt-4">กำลังโหลดรายการ...</p>}
