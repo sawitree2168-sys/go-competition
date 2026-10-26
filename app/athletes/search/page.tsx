@@ -2,11 +2,11 @@
 
 import { useState, type FormEvent } from "react";
 type Athlete = { athleteId: string; displayName: string; nickname?: string; level?: string; institution?: string };
-type Result = { status: "found"|"not_found"|"error"; athletes?: Athlete[]; message?: string };
+type Result = { status: "found"|"not_linked"|"verification_required"|"error"; athletes?: Athlete[]; message?: string };
 
 export default function AthleteLookupPage() {
   const [name,setName]=useState("");
-  const [state,setState]=useState<"idle"|"loading"|"found"|"not_found"|"error">("idle");
+  const [state,setState]=useState<"idle"|"loading"|"found"|"not_linked"|"verification_required"|"error">("idle");
   const [athletes,setAthletes]=useState<Athlete[]>([]);
   const [error,setError]=useState("");
   const [selected,setSelected]=useState<Athlete|null>(null);
@@ -20,8 +20,9 @@ export default function AthleteLookupPage() {
         body:JSON.stringify({name:term})
       });
       const json:Result=await response.json();
+      if(json.status==="verification_required"){setState("verification_required");return;}
       if(!response.ok || json.status==="error") throw new Error(json.message || "ไม่สามารถตรวจสอบรายชื่อได้");
-      if(json.status!=="found" && json.status!=="not_found") throw new Error("รูปแบบผลค้นหาไม่ถูกต้อง");
+      if(json.status!=="found" && json.status!=="not_linked") throw new Error("รูปแบบผลค้นหาไม่ถูกต้อง");
       if(json.status==="found" && !Array.isArray(json.athletes)) throw new Error("ข้อมูลที่ส่งกลับไม่ถูกต้อง");
       setAthletes(json.athletes||[]);
       setState(json.status);
@@ -41,7 +42,7 @@ export default function AthleteLookupPage() {
       <section className="rounded-2xl bg-white p-5 shadow-sm sm:p-8">
         <div className="mb-3 text-sm font-semibold text-blue-700">ขั้นตอนที่ 1 — ตรวจสอบรายชื่อ</div>
         <h1 className="text-2xl font-extrabold">ค้นหานักกีฬาก่อนสมัคร</h1>
-        <p className="mt-3 leading-relaxed text-slate-600">กรุณาพิมพ์ชื่อ-นามสกุล เพื่อค้นหาว่าเคยมีข้อมูลนักกีฬาใน GO TOURNAMENT แล้วหรือไม่</p>
+        <p className="mt-3 leading-relaxed text-slate-600">กรุณาพิมพ์ชื่อ-นามสกุลเพื่อตรวจสอบโปรไฟล์ที่ผูกกับบัญชีของคุณ หลังจากยืนยันตัวตนแล้ว</p>
         <form onSubmit={search} className="mt-7 space-y-3">
           <label htmlFor="athlete-name" className="block font-semibold">ชื่อ-นามสกุลนักกีฬา</label>
           <input id="athlete-name" type="text" autoComplete="name" required minLength={2} value={name}
@@ -53,14 +54,15 @@ export default function AthleteLookupPage() {
           </button>
         </form>
         <div aria-live="polite" className="mt-6">
+          {state==="verification_required" && <div role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-900"><strong>ต้องยืนยันตัวตนก่อนค้นหา</strong><p className="mt-1">เพื่อคุ้มครองข้อมูลนักกีฬา ระบบจะแสดงเฉพาะโปรไฟล์ที่เจ้าของบัญชีเข้าถึงได้ ฟังก์ชันเข้าสู่ระบบอยู่ระหว่างการพัฒนา</p></div>}
           {state==="error" && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
             <strong>ยังตรวจสอบข้อมูลไม่ได้</strong><p className="mt-1">{error}</p>
             <p className="mt-2 text-sm">กรุณาค้นหาใหม่เมื่อระบบพร้อม เพื่อป้องกันการสร้างโปรไฟล์ซ้ำ</p>
           </div>}
-          {state==="not_found" && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <strong>ไม่พบรายชื่อที่ตรงกัน</strong>
-            <p className="mt-1 text-sm">ค้นหาสำเร็จ แต่ยังไม่พบรายชื่อนี้ในฐานข้อมูลที่เชื่อมต่อ</p>
-            <p className="mt-3 font-medium">ระบบสร้างบัญชีใหม่จะเปิดหลังจากตรวจสอบการยืนยันตัวตนเรียบร้อย</p>
+          {state==="not_linked" && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <strong>ยังไม่พบรายชื่อที่ผูกกับบัญชีนี้</strong>
+            <p className="mt-1 text-sm">ผลนี้ตรวจได้เฉพาะนักกีฬาที่ผูกกับบัญชีที่ยืนยันตัวตนแล้ว ไม่ใช่การยืนยันว่าไม่มีชื่อในระบบทั้งหมด</p>
+            <p className="mt-3 font-medium">หากเคยแข่งขันแต่ยังไม่ผูกบัญชี กรุณาให้ผู้จัดการแข่งขันตรวจสอบก่อนสร้างโปรไฟล์ใหม่</p>
           </div>}
           {state==="found" && <div className="space-y-3">
             <h2 className="font-bold">พบรายชื่อที่อาจตรงกัน</h2>
