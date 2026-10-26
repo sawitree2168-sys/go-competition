@@ -1,0 +1,33 @@
+export const visualImages = {
+  "logo": {
+    "local": "/visual/logo.jpg",
+    "fallback": "https://media.canva.com/v2/image-resize/format:JPG/height:150/quality:75/uri:ifs%3A%2F%2FM%2Fb202651a-0cda-40c5-a7d6-4662c87d0a16/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAACPaGQA0uNaap3CW-nn9yFuBVX2nsACKjW88aRUp2oPH&exp=1793047162&osig=AAAAAAAAAAAAAAAAAAAAAN6_4De0mGO2VDJfHeTwXUc6qF7l6Y9bzH5uTdP28aWM&signer=media-rpc&token=AAIAAU0AJGIyMDI2NTFhLTBjZGEtNDBjNS1hN2Q2LTQ2NjJjODdkMGExNgAAAAABoXnwbJCeJBUi3UxGZ8CKjSRtUPtxKA6jXni7LKQHD7GN7RxoHw&x-canva-quality=thumbnail"
+  },
+  "overview": {
+    "local": "/visual/overview.jpg",
+    "fallback": "https://media.canva.com/v2/image-resize/format:JPG/height:133/quality:75/uri:ifs%3A%2F%2FM%2F98853a52-ce94-4068-8da9-a6019c1b6923/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAHRfvGswRpKjdJVhHNKP_FlbyOYeZA-e_dNAz3nrq0-h&exp=1793046688&osig=AAAAAAAAAAAAAAAAAAAAAJdemSgvms8NWkDujw_wqgdbrkc6FjXgfa9CUKymqM3x&signer=media-rpc&token=AAIAAU0AJDk4ODUzYTUyLWNlOTQtNDA2OC04ZGE5LWE2MDE5YzFiNjkyMwAAAAABoXnpMQBn26UnCpWFINgLsT_kyS-EaE-YLX-EnHLpMSgoVK1faA&x-canva-quality=thumbnail"
+  },
+  "registration": {
+    "local": "/visual/registration.jpg",
+    "fallback": "https://media.canva.com/v2/image-resize/format:JPG/height:100/quality:75/uri:ifs%3A%2F%2FM%2Fcb8d2055-32fc-4a44-bb0c-75e4d5dd1cff/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAL_ww4IPghwOSIKwuoQtOTfCDBymlQZV-j-okEhyn4MY&exp=1793045460&osig=AAAAAAAAAAAAAAAAAAAAAGKa_GWRR2yC5aJ3Tmsi1G92Upihmmah7VgjW9a7szBn&signer=media-rpc&token=AAIAAU0AJGNiOGQyMDU1LTMyZmMtNGE0NC1iYjBjLTc1ZTRkNWRkMWNmZgAAAAABoXnWdCBMJAma__5-kSsZiEcOK3UdSJoU8kHbYlGcE9qmq165WQ&x-canva-quality=thumbnail"
+  },
+  "checkin": {
+    "local": "/visual/checkin-results.jpg",
+    "fallback": "https://media.canva.com/v2/image-resize/format:JPG/height:133/quality:75/uri:ifs%3A%2F%2FM%2F8d2e6796-0e28-4a31-8cdc-b4b0082d4446/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAAdeDLoVoIGnvRPOY97O8Z0B8SvHJdnbcJqCLrv8T-DF&exp=1793048294&osig=AAAAAAAAAAAAAAAAAAAAANNIdYp4lhb89Fd-rCS_FvZtPai39iHb1ow8En9wY9kM&signer=media-rpc&token=AAIAAU0AJDhkMmU2Nzk2LTBlMjgtNGEzMS04Y2RjLWI0YjAwODJkNDQ0NgAAAAABoXoBsnCe119-073tcJcVc9zJ-NpQOItIO3q04zPV6gTYSvEP6A&x-canva-quality=thumbnail"
+  },
+  "profile": {
+    "local": "/visual/profile-news.jpg",
+    "fallback": "https://media.canva.com/v2/image-resize/format:JPG/height:133/quality:75/uri:ifs%3A%2F%2FM%2F79a0f51a-68bc-4825-a90d-2f97a6f67b03/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAOWdXTlauArtRYWNtsiyztV9eTdXVH-UYfJhOZrQmIrC&exp=1793047672&osig=AAAAAAAAAAAAAAAAAAAAAC6C9h8Wn5Xjh4jMSOTJslae2WHKvs-woPLp-soRcMpv&signer=media-rpc&token=AAIAAU0AJDc5YTBmNTFhLTY4YmMtNDgyNS1hOTBkLTJmOTdhNmY2N2IwMwAAAAABoXn4NMBWx92qj6B_xmO2SaWM54Yg2rQOxkMPqswQphNZFiXeGQ&x-canva-quality=thumbnail"
+  },
+  "admin": {
+    "local": "/visual/admin.jpg",
+    "fallback": "https://media.canva.com/v2/image-resize/format:JPG/height:133/quality:75/uri:ifs%3A%2F%2FM%2F8db9b0a2-494d-4276-a25a-41c36f4e9faf/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAM_kN9mlBpOGwYyj8uL3h9kVVnQVmdFlWAhMJwp4spbr&exp=1793045517&osig=AAAAAAAAAAAAAAAAAAAAAEj4OqCJgfXnJ-vwgHbWki8tm9IjndIYRhEEBPkXBPv6&signer=media-rpc&token=AAIAAU0AJDhkYjliMGEyLTQ5NGQtNDI3Ni1hMjVhLTQxYzM2ZjRlOWZhZgAAAAABoXnXUsgD8nT-Ufq8vqmBkyd2IqePBU-NyfSVJPVzVHZgP1f1bg&x-canva-quality=thumbnail"
+  }
+} as const;
+export const visualGroups=[
+ {id:"intro",title:"ภาพรวมหน้าหลัก",subtitle:"โครงสร้างเว็บไซต์และรายการแข่งขัน",image:"overview",route:"/",steps:["รายการแข่งขัน","รายละเอียดการแข่งขัน","สมัครแข่งขัน","รายชื่อผู้สมัคร","ผลการแข่งขัน"]},
+ {id:"registration",title:"สมัครแข่งขัน 5 ขั้นตอน",subtitle:"จากเลือกรายการจนถึงยืนยันสมัคร",image:"registration",route:"/athletes/search",steps:["รายละเอียดงาน","เลือกประเภทสมัคร","ค้นหานักกีฬา","ตรวจสอบข้อมูล","สำเร็จ / สถานะ"]},
+ {id:"competition",title:"ระบบหน้างานและการแข่งขัน",subtitle:"เช็กอิน จับคู่ รายงานผล ตารางคะแนน",image:"checkin",route:"/schedule",steps:["เช็กอิน","จับคู่ Swiss","บันทึกผล","ตารางคะแนน","รางวัลและใบประกาศ"]},
+ {id:"profile",title:"โปรไฟล์และสถิตินักกีฬา",subtitle:"ประวัติสมัคร รางวัล ข่าวสาร ตั้งค่าบัญชี",image:"profile",route:"/athletes/search",steps:["ประวัติสมัคร","รางวัลและเกียรติบัตร","สถิติพัฒนาการ","ข่าวสารกิจกรรม","ตั้งค่าบัญชี"]},
+ {id:"admin",title:"ผู้จัดการแข่งขันและ Admin",subtitle:"จัดการรุ่น ผู้สมัคร Swiss ผลและคะแนน",image:"admin",route:"/admin/athlete-claims",steps:["จัดการรุ่น","ตรวจผู้สมัคร","จับคู่ Swiss","บันทึกผล","อันดับและคะแนน"]}
+] as const;
