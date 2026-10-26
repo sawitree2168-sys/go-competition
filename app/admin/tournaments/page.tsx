@@ -4,6 +4,7 @@ import {useEffect,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
 type Tournament={id:string;title:string;start_at:string|null;status:string;published:boolean};
 type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean};
+type Applicant={id:string;go_id:string|null;athlete_name:string;rank:string|null;division_name:string;registration_status:string;payment_status:string};
 type Summary={counts:{divisions:number;registrations:number;confirmedRegistrations:number;paymentVerifiedRegistrations:number;matches:number;verifiedMatches:number;news:number;media:number;certificates:number};finance:null|{payments:number;verifiedPayments:number;verifiedAmount:number;expenses:number}};
 const modules=["ผู้สมัครและนักกีฬา","ตรวจเงินและสลิป (รอเชื่อม)","เช็กอิน / จับคู่ / ผลแข่ง","ใบประกาศ","ข่าว / รูปเด่น / Drive","ค่าใช้จ่ายและรายงาน"];
 export default function TournamentAdmin(){
@@ -16,6 +17,7 @@ export default function TournamentAdmin(){
  const [selected,setSelected]=useState<string|null>(null),[divisions,setDivisions]=useState<Division[]>([]),[divName,setDivName]=useState(""),[seats,setSeats]=useState("");
  const [summary,setSummary]=useState<Summary|null>(null),[summaryBusy,setSummaryBusy]=useState(false);
  const [albumUrl,setAlbumUrl]=useState(""),[albumSaving,setAlbumSaving]=useState(false);
+ const [applicants,setApplicants]=useState<Applicant[]>([]);
  useEffect(()=>{let active=true;let cleanup=()=>{};(async()=>{try{
   const r=await fetch("/api/auth/public-config",{cache:"no-store"});const cfg=await r.json();if(!r.ok||cfg.status!=="ok")throw Error();
   const c=createClient(cfg.url,cfg.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -46,8 +48,8 @@ export default function TournamentAdmin(){
   try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setSummary(null);setAlbumUrl("");setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกไม่สำเร็จ")}finally{setBusy(false)}
  }
- async function chooseEvent(id:string){setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setMessage("");setSummaryBusy(true);
-  try{const [d,s,a]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-albums?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setSummary(s);setAlbumUrl(a.album?.drive_folder_url||"")}
+ async function chooseEvent(id:string){setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setApplicants([]);setMessage("");setSummaryBusy(true);
+  try{const [d,s,a,r]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-albums?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-registrations?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setSummary(s);setAlbumUrl(a.album?.drive_folder_url||"");setApplicants(r.registrations)}
   catch(e){setMessage(e instanceof Error?e.message:"โหลดข้อมูลรายการแข่งขันไม่สำเร็จ")}
   finally{setSummaryBusy(false)}
  }
@@ -119,6 +121,15 @@ export default function TournamentAdmin(){
         <p className="mt-2 text-xs text-slate-500">ยอดแสดงจากข้อมูลใน Supabase ไม่ใช่เงินเข้าบัญชีธนาคารที่ตรวจยืนยันภายนอก</p>
       </div>}
       <div className="mt-3 space-y-2">{divisions.map(d=><div key={d.id} className="rounded-lg border bg-white p-3">{d.name} • {d.seats_limit?d.seats_limit+" ที่":"ไม่จำกัดจำนวน"}</div>)}</div>
+      <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+       <h4 className="font-extrabold">รายชื่อผู้สมัครของรายการนี้</h4>
+       <p className="mt-1 text-xs text-slate-500">ดูได้เฉพาะเจ้าหน้าที่ที่ยืนยันสิทธิ์แล้ว · รวม {applicants.length} รายการ</p>
+       {applicants.length===0?<p className="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">ยังไม่มีผู้สมัครในฐานข้อมูลรายการนี้</p>:
+       <div className="mt-3 max-h-96 space-y-2 overflow-y-auto">{applicants.map(x=><div key={x.id} className="rounded-lg border border-slate-200 p-3">
+        <p className="font-bold">{x.athlete_name} {x.go_id?<span className="text-sm font-normal text-blue-800">({x.go_id})</span>:null}</p>
+        <p className="mt-1 text-sm text-slate-600">รุ่น: {x.division_name} • สมัคร: {x.registration_status} • ชำระ: {x.payment_status}</p>
+       </div>)}</div>}
+      </div>
       <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
        <h4 className="font-extrabold">อัลบั้มภาพการแข่งขัน (Google Drive)</h4>
        <p className="mt-2 text-sm text-slate-600">อัปโหลดภาพทั้งหมดเข้าโฟลเดอร์ Drive แล้ววางลิงก์โฟลเดอร์ ระบบเก็บลิงก์กับ Tournament ID นี้โดยตรง ยังไม่เผยแพร่จนกว่าจะตรวจสิทธิ์และภาพนักกีฬา</p>
