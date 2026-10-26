@@ -4,6 +4,7 @@ import {useEffect,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
 type Tournament={id:string;title:string;start_at:string|null;status:string;published:boolean};
 type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean};
+type Summary={counts:{divisions:number;registrations:number;confirmedRegistrations:number;paymentVerifiedRegistrations:number;matches:number;verifiedMatches:number;news:number;media:number;certificates:number};finance:null|{payments:number;verifiedPayments:number;verifiedAmount:number;expenses:number}};
 const modules=["ผู้สมัครและนักกีฬา","ตรวจเงินและสลิป (รอเชื่อม)","เช็กอิน / จับคู่ / ผลแข่ง","ใบประกาศ","ข่าว / รูปเด่น / Drive","ค่าใช้จ่ายและรายงาน"];
 export default function TournamentAdmin(){
  const client=useRef<SupabaseClient|null>(null);
@@ -13,6 +14,7 @@ export default function TournamentAdmin(){
  const [role,setRole]=useState(""),[events,setEvents]=useState<Tournament[]>([]);
  const [year,setYear]=useState("2026"),[title,setTitle]=useState(""),[date,setDate]=useState("");
  const [selected,setSelected]=useState<string|null>(null),[divisions,setDivisions]=useState<Division[]>([]),[divName,setDivName]=useState(""),[seats,setSeats]=useState("");
+ const [summary,setSummary]=useState<Summary|null>(null),[summaryBusy,setSummaryBusy]=useState(false);
  useEffect(()=>{let active=true;let cleanup=()=>{};(async()=>{try{
   const r=await fetch("/api/auth/public-config",{cache:"no-store"});const cfg=await r.json();if(!r.ok||cfg.status!=="ok")throw Error();
   const c=createClient(cfg.url,cfg.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -40,15 +42,16 @@ export default function TournamentAdmin(){
   setOtpMessage(error?"ส่งอีเมลไม่สำเร็จ กรุณาตรวจบัญชี":"ส่งลิงก์เข้าสู่ระบบแล้ว กรุณาเปิดอีเมลและกลับหน้านี้");setBusy(false);
  }
  async function createEvent(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");
-  try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
+  try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setSummary(null);setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกไม่สำเร็จ")}finally{setBusy(false)}
  }
- async function chooseEvent(id:string){setSelected(id);setDivisions([]);setMessage("");
-  try{const d=await api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id));setDivisions(d.divisions)}
-  catch(e){setMessage(e instanceof Error?e.message:"โหลดรุ่นแข่งขันไม่สำเร็จ")}
+ async function chooseEvent(id:string){setSelected(id);setDivisions([]);setSummary(null);setMessage("");setSummaryBusy(true);
+  try{const [d,s]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setSummary(s)}
+  catch(e){setMessage(e instanceof Error?e.message:"โหลดข้อมูลรายการแข่งขันไม่สำเร็จ")}
+  finally{setSummaryBusy(false)}
  }
  async function createDivision(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
-  try{const d=await api("/api/admin/tournament-divisions","POST",{tournament_id:selected,name:divName,seats_limit:seats});setDivisions(old=>[...old,d.division]);setDivName("");setSeats("");setMessage("เพิ่มรุ่นแข่งขันสำเร็จ")}
+  try{const d=await api("/api/admin/tournament-divisions","POST",{tournament_id:selected,name:divName,seats_limit:seats});setDivisions(old=>[...old,d.division]);setSummary(old=>old?{...old,counts:{...old.counts,divisions:old.counts.divisions+1}}:old);setDivName("");setSeats("");setMessage("เพิ่มรุ่นแข่งขันสำเร็จ")}
   catch(e){setMessage(e instanceof Error?e.message:"เพิ่มรุ่นไม่สำเร็จ")}finally{setBusy(false)}
  }
  const yearOf=(x:Tournament)=>x.start_at?new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Bangkok",year:"numeric"}).format(new Date(x.start_at)):"";
@@ -95,6 +98,20 @@ export default function TournamentAdmin(){
      {selectedEvent&&<section className="mt-6 rounded-xl border border-[#d7b66d] bg-[#fffbf3] p-4">
       <h3 className="text-lg font-extrabold">รุ่นแข่งขัน: {selectedEvent.title}</h3>
       <p className="mt-2 text-sm text-slate-600">รุ่นในรายการนี้ {divisions.length} รุ่น</p>
+      {summaryBusy&&<p role="status" className="mt-3">กำลังสรุปข้อมูลรายการ...</p>}
+      {summary&&<div className="mt-4">
+        <h4 className="font-extrabold">ข้อมูลจริงที่เชื่อมกับรายการนี้</h4>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+         {([{label:"รุ่นแข่งขัน",value:summary.counts.divisions},{label:"ผู้สมัคร",value:summary.counts.registrations},{label:"ยืนยันสมัคร",value:summary.counts.confirmedRegistrations},{label:"ชำระผ่านตรวจ",value:summary.counts.paymentVerifiedRegistrations},{label:"คู่แข่งขัน",value:summary.counts.matches},{label:"ผลที่ยืนยัน",value:summary.counts.verifiedMatches},{label:"ข่าว",value:summary.counts.news},{label:"รูปเด่น",value:summary.counts.media},{label:"ใบประกาศ",value:summary.counts.certificates}]).map(x=><div key={x.label} className="rounded-xl border border-blue-100 bg-white p-3">
+          <p className="text-xs text-slate-600">{x.label}</p><p className="mt-1 text-2xl font-black">{x.value}</p>
+         </div>)}
+        </div>
+        {summary.finance&&<div className="mt-3 grid grid-cols-2 gap-2">
+         <div className="rounded-xl bg-emerald-50 p-3"><p className="text-xs">รับชำระที่ตรวจแล้ว (บาท)</p><p className="text-xl font-black">{summary.finance.verifiedAmount.toLocaleString("th-TH")}</p></div>
+         <div className="rounded-xl bg-white p-3"><p className="text-xs">ค่าใช้จ่ายที่บันทึก (บาท)</p><p className="text-xl font-black">{summary.finance.expenses.toLocaleString("th-TH")}</p></div>
+        </div>}
+        <p className="mt-2 text-xs text-slate-500">ยอดแสดงจากข้อมูลใน Supabase ไม่ใช่เงินเข้าบัญชีธนาคารที่ตรวจยืนยันภายนอก</p>
+      </div>}
       <div className="mt-3 space-y-2">{divisions.map(d=><div key={d.id} className="rounded-lg border bg-white p-3">{d.name} • {d.seats_limit?d.seats_limit+" ที่":"ไม่จำกัดจำนวน"}</div>)}</div>
       {["owner","admin"].includes(role)&&!selectedEvent.published&&<form onSubmit={createDivision} className="mt-4 space-y-3">
        <label className="block">ชื่อรุ่น<input required minLength={2} maxLength={100} value={divName} onChange={e=>setDivName(e.target.value)} placeholder="เช่น 1–2 คิว" className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
