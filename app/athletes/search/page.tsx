@@ -1,84 +1,118 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-type Athlete = { athleteId: string; displayName: string; nickname?: string; level?: string; institution?: string };
-type Result = { status: "found"|"not_linked"|"verification_required"|"error"; athletes?: Athlete[]; message?: string };
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-export default function AthleteLookupPage() {
-  const [name,setName]=useState("");
-  const [state,setState]=useState<"idle"|"loading"|"found"|"not_linked"|"verification_required"|"error">("idle");
-  const [athletes,setAthletes]=useState<Athlete[]>([]);
-  const [error,setError]=useState("");
-  const [selected,setSelected]=useState<Athlete|null>(null);
-  async function search(e:FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const term=name.trim().replace(/\s+/g," ");
-    if(term.length<2) return;
-    setState("loading");setAthletes([]);setError("");setSelected(null);
-    try {
-      const response=await fetch("/api/athletes/search",{
-        method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",
-        body:JSON.stringify({name:term})
+type Athlete = { athleteId: string; displayName: string; nickname?: string; level?: string };
+type SearchResult = { status: "found"|"not_linked"|"verification_required"|"error"; athletes?: Athlete[]; message?: string };
+
+export default function AthleteSearchPage() {
+  const client=useRef<SupabaseClient | null>(null);
+  const [ready,setReady]=useState(false);
+  const [authenticated,setAuthenticated]=useState(false);
+  const [email,setEmail]=useState("");
+  const [authMessage,setAuthMessage]=useState("");
+  const [authBusy,setAuthBusy]=useState(false);
+  const [query,setQuery]=useState("");
+  const [status,setStatus]=useState<"idle"|"loading"|"found"|"not_linked"|"verification_required"|"error">("idle");
+  const [message,setMessage]=useState("");
+  const [matches,setMatches]=useState<Athlete[]>([]);
+
+  useEffect(()=>{
+    let active=true;
+    let cleanup:(()=>void)|undefined;
+    (async()=>{
+      try{
+        const response=await fetch("/api/auth/public-config",{cache:"no-store"});
+        const config=await response.json();
+        if(!response.ok || config.status!=="ok" || typeof config.url!=="string" || typeof config.key!=="string") throw new Error("Auth unavailable");
+        const supabase=createClient(config.url,config.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+        if(!active)return;
+        client.current=supabase;
+        const current=await supabase.auth.getSession();
+        if(active){setAuthenticated(Boolean(current.data.session));setReady(true);}
+        const listener=supabase.auth.onAuthStateChange((_event,session)=>{
+          if(active){setAuthenticated(Boolean(session));setMatches([]);setStatus("idle");}
+        });
+        cleanup=()=>listener.data.subscription.unsubscribe();
+      }catch{if(active){setReady(true);setAuthMessage("ระบบยืนยันตัวตนยังไม่พร้อม กรุณาลองใหม่ภายหลัง");}}
+    })();
+    return()=>{active=false;cleanup?.()};
+  },[]);
+
+  async function sendLoginLink(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    if(!client.current||authBusy)return;
+    setAuthBusy(true);setAuthMessage("");
+    try{
+      const {error}=await client.current.auth.signInWithOtp({
+        email:email.trim(),
+        options:{shouldCreateUser:false,emailRedirectTo:window.location.origin+"/athletes/search"}
       });
-      const json:Result=await response.json();
-      if(json.status==="verification_required"){setState("verification_required");return;}
-      if(!response.ok || json.status==="error") throw new Error(json.message || "ไม่สามารถตรวจสอบรายชื่อได้");
-      if(json.status!=="found" && json.status!=="not_linked") throw new Error("รูปแบบผลค้นหาไม่ถูกต้อง");
-      if(json.status==="found" && !Array.isArray(json.athletes)) throw new Error("ข้อมูลที่ส่งกลับไม่ถูกต้อง");
-      setAthletes(json.athletes||[]);
-      setState(json.status);
-    } catch(e) {
-      setError(e instanceof Error?e.message:"การค้นหาขัดข้อง");
-      setState("error");
+      if(error)throw error;
+      setAuthMessage("หากอีเมลนี้มีบัญชีอยู่แล้ว ระบบจะส่งลิงก์เข้าสู่ระบบ กรุณาตรวจอีเมล (ต้องกำหนด Redirect URL ใน Supabase Auth ให้ตรงกับ Preview)");
+    }catch{
+      setAuthMessage("ยังส่งลิงก์เข้าสู่ระบบไม่ได้ กรุณาลองใหม่หรือติดต่อผู้จัดการแข่งขัน");
+    }finally{setAuthBusy(false);}
+  }
+
+  async function search(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    if(!client.current||!authenticated){setStatus("verification_required");return;}
+    const name=query.trim().replace(/\s+/g," ");
+    if(name.length<2)return;
+    setStatus("loading");setMessage("");setMatches([]);
+    try{
+      const session=await client.current.auth.getSession();
+      if(!session.data.session?.access_token){setStatus("verification_required");return;}
+      const response=await fetch("/api/athletes/search",{
+        method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${session.data.session.access_token}`},
+        body:JSON.stringify({name}),cache:"no-store"
+      });
+      const result:SearchResult=await response.json();
+      if(result.status==="verification_required"){setStatus("verification_required");return;}
+      if(!response.ok||result.status==="error")throw new Error(result.message || "ค้นหาขัดข้อง");
+      if(result.status!=="found"&&result.status!=="not_linked")throw new Error("รูปแบบข้อมูลไม่ถูกต้อง");
+      setMatches(result.athletes||[]);
+      setStatus(result.status);
+    }catch(error){
+      setMessage(error instanceof Error?error.message:"ค้นหาไม่สำเร็จ กรุณาลองใหม่");
+      setStatus("error");
     }
   }
-  return <main className="min-h-screen bg-[#f2f5fa] text-[#122b52]">
-    <header className="bg-[#0b2854] px-5 py-5 text-white">
-      <div className="mx-auto flex max-w-3xl items-center justify-between">
-        <strong className="text-xl tracking-widest text-[#f2ce72]">GO TOURNAMENT</strong>
-        <span className="text-sm">ระบบรับสมัครแข่งขัน</span>
-      </div>
-    </header>
-    <div className="mx-auto max-w-xl px-4 py-7">
-      <section className="rounded-2xl bg-white p-5 shadow-sm sm:p-8">
-        <div className="mb-3 text-sm font-semibold text-blue-700">ขั้นตอนที่ 1 — ตรวจสอบรายชื่อ</div>
-        <h1 className="text-2xl font-extrabold">ค้นหานักกีฬาก่อนสมัคร</h1>
-        <p className="mt-3 leading-relaxed text-slate-600">กรุณาพิมพ์ชื่อ-นามสกุลเพื่อตรวจสอบโปรไฟล์ที่ผูกกับบัญชีของคุณ หลังจากยืนยันตัวตนแล้ว</p>
-        <form onSubmit={search} className="mt-7 space-y-3">
-          <label htmlFor="athlete-name" className="block font-semibold">ชื่อ-นามสกุลนักกีฬา</label>
-          <input id="athlete-name" type="text" autoComplete="name" required minLength={2} value={name}
-            onChange={e=>{setName(e.target.value);setState("idle");setAthletes([]);setSelected(null)}}
-            placeholder="เช่น สมชาย ใจดี"
-            className="w-full rounded-xl border border-slate-300 px-4 py-4 text-base text-slate-900 focus:border-blue-700 focus:outline-blue-700"/>
-          <button disabled={state==="loading"||name.trim().length<2} className="w-full rounded-xl bg-blue-800 px-4 py-4 font-bold text-white disabled:opacity-50">
-            {state==="loading"?"กำลังตรวจสอบรายชื่อ...":"ค้นหานักกีฬา"}
-          </button>
+  return <main className="min-h-screen bg-[#f3f6fb] text-[#122b52]">
+    <header className="bg-[#0b2854] p-5 text-center text-xl font-extrabold tracking-widest text-[#f1ca73]">GO TOURNAMENT</header>
+    <div className="mx-auto max-w-xl space-y-5 px-4 py-8">
+      <section className="rounded-2xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-semibold text-blue-700">ขั้นตอนที่ 1 — ตรวจสอบโปรไฟล์ก่อนสมัคร</p>
+        <h1 className="mt-2 text-2xl font-extrabold">ค้นหานักกีฬาเดิม</h1>
+        <p className="mt-3 text-sm leading-relaxed text-slate-600">เพื่อคุ้มครองข้อมูลนักกีฬา โดยเฉพาะเด็กและเยาวชน ระบบจะให้เห็นเฉพาะโปรไฟล์ที่ผูกกับบัญชีที่ยืนยันตัวตนแล้ว</p>
+        {!ready&&<p role="status" className="mt-4">กำลังเตรียมระบบเข้าสู่ระบบ...</p>}
+        {ready&&!authenticated&&<>
+          <form onSubmit={sendLoginLink} className="mt-6 space-y-3">
+            <label htmlFor="account-email" className="block font-semibold">อีเมลบัญชีที่มีอยู่</label>
+            <input id="account-email" type="email" required autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)}
+              placeholder="email@example.com" className="w-full rounded-xl border border-slate-300 p-4 text-base"/>
+            <button disabled={authBusy||!client.current} className="w-full rounded-xl bg-blue-800 p-4 font-bold text-white disabled:opacity-50">{authBusy?"กำลังดำเนินการ...":"ส่งลิงก์เข้าสู่ระบบ"}</button>
+          </form>
+          {authMessage&&<p role="status" className="mt-3 rounded-xl bg-blue-50 p-4 text-sm text-blue-900">{authMessage}</p>}
+          <p className="mt-4 text-sm text-slate-600">ยังไม่มีบัญชี? ระบบสมัครใหม่และการยืนยันสิทธิ์ในโปรไฟล์นักกีฬาเดิมอยู่ระหว่างพัฒนา ไม่ควรสร้างข้อมูลนักกีฬาซ้ำ</p>
+        </>}
+        {authenticated&&<div className="mt-5 flex items-center justify-between gap-3 rounded-xl bg-green-50 p-3 text-sm text-green-900">
+          <strong>ยืนยันตัวตนแล้ว</strong>
+          <button type="button" className="rounded-lg border border-green-600 px-3 py-2 font-medium" onClick={async()=>{await client.current?.auth.signOut();setAuthenticated(false);setMatches([]);setStatus("idle")}}>ออกจากระบบ</button>
+        </div>}
+        <form onSubmit={search} className="mt-6 space-y-3">
+          <label htmlFor="athlete-full-name" className="block font-semibold">ชื่อ-นามสกุลนักกีฬา</label>
+          <input id="athlete-full-name" minLength={2} required value={query} onChange={e=>{setQuery(e.target.value);setStatus("idle");setMatches([])}} className="w-full rounded-xl border border-slate-300 p-4 text-base" placeholder="พิมพ์ชื่อ-นามสกุล"/>
+          <button disabled={!authenticated||query.trim().length<2||status==="loading"} className="w-full rounded-xl bg-blue-800 p-4 font-bold text-white disabled:opacity-50">{status==="loading"?"กำลังค้นหา...":"ค้นหานักกีฬา"}</button>
         </form>
-        <div aria-live="polite" className="mt-6">
-          {state==="verification_required" && <div role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-900"><strong>ต้องยืนยันตัวตนก่อนค้นหา</strong><p className="mt-1">เพื่อคุ้มครองข้อมูลนักกีฬา ระบบจะแสดงเฉพาะโปรไฟล์ที่เจ้าของบัญชีเข้าถึงได้ ฟังก์ชันเข้าสู่ระบบอยู่ระหว่างการพัฒนา</p></div>}
-          {state==="error" && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
-            <strong>ยังตรวจสอบข้อมูลไม่ได้</strong><p className="mt-1">{error}</p>
-            <p className="mt-2 text-sm">กรุณาค้นหาใหม่เมื่อระบบพร้อม เพื่อป้องกันการสร้างโปรไฟล์ซ้ำ</p>
-          </div>}
-          {state==="not_linked" && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <strong>ยังไม่พบรายชื่อที่ผูกกับบัญชีนี้</strong>
-            <p className="mt-1 text-sm">ผลนี้ตรวจได้เฉพาะนักกีฬาที่ผูกกับบัญชีที่ยืนยันตัวตนแล้ว ไม่ใช่การยืนยันว่าไม่มีชื่อในระบบทั้งหมด</p>
-            <p className="mt-3 font-medium">หากเคยแข่งขันแต่ยังไม่ผูกบัญชี กรุณาให้ผู้จัดการแข่งขันตรวจสอบก่อนสร้างโปรไฟล์ใหม่</p>
-          </div>}
-          {state==="found" && <div className="space-y-3">
-            <h2 className="font-bold">พบรายชื่อที่อาจตรงกัน</h2>
-            {athletes.map(a=><button key={a.athleteId} type="button" onClick={()=>setSelected(a)}
-              className="w-full rounded-xl border border-slate-300 bg-white p-4 text-left focus:ring-2 focus:ring-blue-600">
-              <strong>{a.displayName}</strong>
-              <div className="text-sm text-slate-600">{[a.nickname,a.level,a.institution].filter(Boolean).join(" • ")}</div>
-            </button>)}
-            {selected && <div className="rounded-xl bg-blue-50 p-4 text-blue-900">
-              <strong>เลือก: {selected.displayName}</strong>
-              <p className="mt-1 text-sm">ต้องยืนยันตัวตนกับระบบก่อนเข้าถึงหรือแก้ไขข้อมูลเดิม</p>
-            </div>}
-          </div>}
-        </div>
+        {status==="error"&&<p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-red-800">{message}</p>}
+        {status==="verification_required"&&<p role="alert" className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">กรุณาเข้าสู่ระบบและยืนยันอีเมลก่อนค้นหา</p>}
+        {status==="not_linked"&&<p role="status" className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">ไม่พบโปรไฟล์ชื่อนี้ที่ผูกกับบัญชีของคุณ ไม่ได้หมายความว่าไม่มีข้อมูลในระบบ หากเคยแข่งขัน กรุณาติดต่อผู้จัดเพื่อยืนยันและผูกโปรไฟล์ก่อนสมัครใหม่</p>}
+        {status==="found"&&<div className="mt-5 space-y-2" aria-live="polite"><h2 className="font-bold">โปรไฟล์ที่คุณเข้าถึงได้</h2>{matches.map(a=><div key={a.athleteId} className="rounded-xl border p-4"><strong>{a.displayName}</strong><p className="text-sm text-slate-600">{[a.nickname,a.level].filter(Boolean).join(" • ")}</p></div>)}</div>}
       </section>
-      <p className="mt-5 text-center text-sm text-slate-500">ไม่มีการแสดงผลนักกีฬาสมมติ และไม่แสดงข้อมูลส่วนตัวก่อนยืนยันสิทธิ์</p>
+      <p className="text-center text-xs text-slate-500">เว็บไซต์ Preview สำหรับทดสอบ ยังไม่เปิดรับสมัครแข่งขันจริง</p>
     </div>
   </main>;
 }
