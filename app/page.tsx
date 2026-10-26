@@ -18,6 +18,7 @@ export default function Home(){
      <span className="rounded-full border border-amber-200/40 bg-amber-100/10 px-3 py-2 text-xs font-semibold text-[#f1cb75]">เวอร์ชันทดสอบระบบจริง</span>
     </div>
    </header>
+   <div className="mx-auto max-w-6xl px-4 pt-5"><Link href="/visual-overview" className="flex min-h-14 items-center justify-center rounded-2xl border border-[#c9a661] bg-[#fff8e7] px-5 py-4 text-center font-extrabold text-[#163c71]">ดูผังภาพรวมเว็บไซต์ทั้งระบบ (7 หมวด) ›</Link></div>
    <section className="mx-auto max-w-6xl px-4 pt-7 sm:pt-12">
     <div className="rounded-3xl bg-gradient-to-br from-[#174782] via-[#0d3263] to-[#091b38] p-6 text-white shadow-lg sm:p-12">
      <p className="text-sm font-extrabold tracking-[0.2em] text-[#f4cc76]">GO TOURNAMENT</p>
