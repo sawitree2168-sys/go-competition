@@ -57,6 +57,7 @@ export default function Home(){
      <p className="text-sm font-bold tracking-wider text-blue-800">STAFF AREA</p>
      <h2 className="mt-1 text-2xl font-black">สำหรับผู้จัดการแข่งขัน / Admin</h2>
      <p className="mt-2 leading-relaxed text-slate-600">ต้องเข้าสู่ระบบด้วยบัญชีที่ได้รับสิทธิ์ Owner, Admin หรือ Reviewer</p>
+     <Link href="/admin/tournaments" className="mt-5 block rounded-xl bg-[#0c3473] px-5 py-4 text-center font-bold text-white">เปิดศูนย์จัดการรายการแข่งขันรายปี ›</Link>
      <div className="mt-5 grid gap-3 sm:grid-cols-2">
       {admin.map(a=><Link key={a.href} href={a.href} className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
        <h3 className="font-bold text-[#0b3676]">{a.title}</h3><p className="mt-2 text-sm leading-relaxed text-slate-600">{a.detail}</p><p className="mt-3 font-semibold text-blue-800">เข้าสู่ระบบจัดการ ›</p>
