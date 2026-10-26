@@ -43,7 +43,16 @@ export async function POST(request:Request){
    signal:AbortSignal.timeout(8000),cache:"no-store"
   });
   if(response.status===409)return fail("มีคำขอสำหรับ GO ID นี้ค้างตรวจสอบอยู่แล้ว",409);
-  if(!response.ok)throw new Error("Database rejected request");
+  if(!response.ok){
+    // Only map known safe database rule names. Do not expose internal SQL messages.
+    let code:unknown=null;
+    try{const details:unknown=await response.json();
+      if(details&&typeof details==="object"&&"message" in details)code=(details as {message:unknown}).message;
+    }catch{}
+    if(code==="CLAIM_DAILY_LIMIT")return NextResponse.json({status:"rate_limited",message:"ส่งคำขอครบ 5 ครั้งในรอบ 24 ชั่วโมงแล้ว กรุณาลองใหม่ภายหลัง"},{status:429,headers:{"Cache-Control":"no-store","Retry-After":"3600"}});
+    if(code==="CLAIM_PENDING_LIMIT")return NextResponse.json({status:"rate_limited",message:"มีคำขอรอตรวจสอบครบ 3 รายการแล้ว กรุณารอผู้จัดตรวจสอบก่อน"},{status:429,headers:{"Cache-Control":"no-store"}});
+    throw new Error("Database rejected request");
+  }
   return NextResponse.json({status:"submitted",message:"ส่งคำขอแล้ว รอผู้จัดตรวจสอบและยืนยันสิทธิ์"},{status:201,headers});
  }catch{return fail("ส่งคำขอไม่สำเร็จ กรุณาลองใหม่",503);}
 }
