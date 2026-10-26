@@ -68,6 +68,7 @@ export default function AdminClaimsPage(){
     <h1 className="mt-2 text-2xl font-extrabold">ตรวจคำขอผูก GO ID</h1>
     <p className="mt-3 leading-relaxed text-slate-600">ตรวจรายการคำขอได้เฉพาะผู้ที่ได้รับสิทธิ์เจ้าของระบบ ผู้ดูแล หรือผู้ตรวจสอบ ทั้งนี้การตรวจเอกสารและอนุมัติยังไม่ได้เปิดใช้</p>
     <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">โหมดตรวจสอบเท่านั้น • ไม่สามารถอนุมัติ ปฏิเสธ หรือแก้ GO ID จากหน้านี้</div>
+    <Link href="/admin/claim-review" className="mt-4 block rounded-xl border border-blue-700 px-4 py-4 text-center font-semibold text-blue-800">เปิดหน้าบันทึกผลตรวจ GO ID</Link>
     {!authReady&&<p role="status" className="mt-5">กำลังตรวจสอบการเข้าสู่ระบบ...</p>}
     {authReady&&!signedIn&&<div className="mt-5 rounded-xl bg-blue-50 p-4">
       <p className="font-bold">เข้าสู่ระบบผู้ดูแล GO TOURNAMENT</p>
