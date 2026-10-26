@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { summarizeHeadToHead } from './head-to-head.mjs';
+const match=(id,winner,state='verified')=>({id,state,verified_at:state==='verified'?'2026-10-26T00:00:00Z':null,black_athlete_id:'a',white_athlete_id:'b',winner_athlete_id:winner});
+test('3 vs 2 yields 60% vs 40%',()=>{const x=summarizeHeadToHead([match('1','a'),match('2','b'),match('3','a'),match('4','b'),match('5','a')],'a','b');assert.equal(x.games,5);assert.equal(x.athleteA.winPercent,60);assert.equal(x.athleteB.winPercent,40);});
+test('no games => null percentage',()=>assert.equal(summarizeHeadToHead([],'a','b').athleteA.winPercent,null));
+test('exclude pending and void',()=>assert.equal(summarizeHeadToHead([match('1','a','pending'),match('2','b','void'),match('3','a')],'a','b').games,1));
+test('dedupe match ID',()=>assert.equal(summarizeHeadToHead([match('1','a'),match('1','a')],'a','b').games,1));
+test('exclude other opponents',()=>assert.equal(summarizeHeadToHead([{...match('1','a'),white_athlete_id:'c'}],'a','b').games,0));
+test('exclude BYE and invalid winner',()=>assert.equal(summarizeHeadToHead([{...match('1','a'),white_athlete_id:null},match('2',null)],'a','b').games,0));
+test('reject same athlete',()=>assert.throws(()=>summarizeHeadToHead([],'a','a')));
