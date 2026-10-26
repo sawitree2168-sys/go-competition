@@ -15,6 +15,7 @@ export default function TournamentAdmin(){
  const [year,setYear]=useState("2026"),[title,setTitle]=useState(""),[date,setDate]=useState("");
  const [selected,setSelected]=useState<string|null>(null),[divisions,setDivisions]=useState<Division[]>([]),[divName,setDivName]=useState(""),[seats,setSeats]=useState("");
  const [summary,setSummary]=useState<Summary|null>(null),[summaryBusy,setSummaryBusy]=useState(false);
+ const [albumUrl,setAlbumUrl]=useState(""),[albumSaving,setAlbumSaving]=useState(false);
  useEffect(()=>{let active=true;let cleanup=()=>{};(async()=>{try{
   const r=await fetch("/api/auth/public-config",{cache:"no-store"});const cfg=await r.json();if(!r.ok||cfg.status!=="ok")throw Error();
   const c=createClient(cfg.url,cfg.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -42,13 +43,17 @@ export default function TournamentAdmin(){
   setOtpMessage(error?"ส่งอีเมลไม่สำเร็จ กรุณาตรวจบัญชี":"ส่งลิงก์เข้าสู่ระบบแล้ว กรุณาเปิดอีเมลและกลับหน้านี้");setBusy(false);
  }
  async function createEvent(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");
-  try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setSummary(null);setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
+  try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setSummary(null);setAlbumUrl("");setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกไม่สำเร็จ")}finally{setBusy(false)}
  }
- async function chooseEvent(id:string){setSelected(id);setDivisions([]);setSummary(null);setMessage("");setSummaryBusy(true);
-  try{const [d,s]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setSummary(s)}
+ async function chooseEvent(id:string){setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setMessage("");setSummaryBusy(true);
+  try{const [d,s,a]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-albums?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setSummary(s);setAlbumUrl(a.album?.drive_folder_url||"")}
   catch(e){setMessage(e instanceof Error?e.message:"โหลดข้อมูลรายการแข่งขันไม่สำเร็จ")}
   finally{setSummaryBusy(false)}
+ }
+ async function saveAlbum(e:FormEvent){e.preventDefault();if(!selected)return;setAlbumSaving(true);setMessage("");
+  try{await api("/api/admin/tournament-albums","PUT",{tournament_id:selected,drive_folder_url:albumUrl});setMessage("บันทึกลิงก์อัลบั้มเป็นแบบร่างแล้ว (ยังไม่เผยแพร่สาธารณะ)")}
+  catch(e){setMessage(e instanceof Error?e.message:"บันทึกลิงก์ไม่สำเร็จ")}finally{setAlbumSaving(false)}
  }
  async function createDivision(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
   try{const d=await api("/api/admin/tournament-divisions","POST",{tournament_id:selected,name:divName,seats_limit:seats});setDivisions(old=>[...old,d.division]);setSummary(old=>old?{...old,counts:{...old.counts,divisions:old.counts.divisions+1}}:old);setDivName("");setSeats("");setMessage("เพิ่มรุ่นแข่งขันสำเร็จ")}
@@ -113,6 +118,16 @@ export default function TournamentAdmin(){
         <p className="mt-2 text-xs text-slate-500">ยอดแสดงจากข้อมูลใน Supabase ไม่ใช่เงินเข้าบัญชีธนาคารที่ตรวจยืนยันภายนอก</p>
       </div>}
       <div className="mt-3 space-y-2">{divisions.map(d=><div key={d.id} className="rounded-lg border bg-white p-3">{d.name} • {d.seats_limit?d.seats_limit+" ที่":"ไม่จำกัดจำนวน"}</div>)}</div>
+      <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+       <h4 className="font-extrabold">อัลบั้มภาพการแข่งขัน (Google Drive)</h4>
+       <p className="mt-2 text-sm text-slate-600">อัปโหลดภาพทั้งหมดเข้าโฟลเดอร์ Drive แล้ววางลิงก์โฟลเดอร์ ระบบเก็บลิงก์กับ Tournament ID นี้โดยตรง ยังไม่เผยแพร่จนกว่าจะตรวจสิทธิ์และภาพนักกีฬา</p>
+       {["owner","admin"].includes(role)&&<form onSubmit={saveAlbum} className="mt-3 space-y-3">
+        <label className="block text-sm font-semibold">ลิงก์โฟลเดอร์ Google Drive
+         <input type="url" value={albumUrl} onChange={e=>setAlbumUrl(e.target.value)} required placeholder="https://drive.google.com/drive/folders/..." className="mt-2 w-full rounded-lg border border-slate-300 p-3 text-base"/>
+        </label>
+        <button disabled={albumSaving} className="rounded-xl bg-[#0d3974] px-5 py-3 font-bold text-white disabled:opacity-50">{albumSaving?"กำลังบันทึก...":"บันทึกลิงก์อัลบั้ม (แบบร่าง)"}</button>
+       </form>}
+      </div>
       {["owner","admin"].includes(role)&&!selectedEvent.published&&<form onSubmit={createDivision} className="mt-4 space-y-3">
        <label className="block">ชื่อรุ่น<input required minLength={2} maxLength={100} value={divName} onChange={e=>setDivName(e.target.value)} placeholder="เช่น 1–2 คิว" className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
        <label className="block">จำนวนรับ (เว้นว่าง = ไม่จำกัด)<input type="number" min={1} max={10000} value={seats} onChange={e=>setSeats(e.target.value)} className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
