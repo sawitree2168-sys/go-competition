@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   if (typeof name !== "string" || name.length > 120 || name.trim().length < 2) {
     return json({status:"error",message:"กรุณาระบุชื่อที่ถูกต้อง"},400);
   }
-  const normalized = name.trim().normalize("NFC").replace(/\\s+/g," ");
+  const normalized = name.trim().normalize("NFC").replace(/\s+/g," ");
   if (normalized.length < 2) return json({status:"error",message:"กรุณาระบุชื่อที่ถูกต้อง"},400);
   const rawAuth=request.headers.get("authorization") || "";
   const jwt = /^Bearer ([A-Za-z0-9._~-]+)$/.exec(rawAuth)?.[1];
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const records:unknown=await athleteRes.json();
     if(!Array.isArray(records))throw new Error("Invalid data");
     const hits=records.filter((x): x is {id:string;go_id:string;full_name:string;nickname?:string;current_rank?:string}=>Boolean(x&&typeof x==="object"&&typeof x.full_name==="string"&&typeof x.go_id==="string"&&typeof x.id==="string"))
-      .filter(x=>x.full_name.normalize("NFC").replace(/\\s+/g," ").trim().includes(normalized))
+      .filter(x=>x.full_name.normalize("NFC").replace(/\s+/g," ").trim().includes(normalized))
       .slice(0,10)
       .map(x=>({athleteId:x.go_id,displayName:x.full_name,nickname:x.nickname||undefined,level:x.current_rank||undefined}));
     return json({status:hits.length?"found":"not_linked",athletes:hits},200);
