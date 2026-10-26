@@ -1,5 +1,5 @@
-import Link from "next/link";
 "use client";
+import Link from "next/link";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
