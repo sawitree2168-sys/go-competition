@@ -1,5 +1,5 @@
 # GO TOURNAMENT — EXECUTION CHECKLIST / แผนลงมือทำเมื่อ Vercel พร้อม
-**Last reviewed:** 2026-10-27 (Asia/Bangkok)
+**Last reviewed:** 2026-10-27 (Asia/Bangkok) — UI Master Inventory pass 1
 **Canonical URL:** https://go-tournament.vercel.app
 **Repo:** sawitree2168-sys/go-competition
 **Branch:** codex/go-tournament-vite-migration
@@ -13,7 +13,7 @@
 - Check off [x] ONLY after the Acceptance Criteria are independently verified; label [~] for code-complete/not deployed; [ ] for pending.
 - No automatic background execution is implied. Each session must continue by explicit user request or a separately approved scheduled task.
 - No fake athlete/event/payment records. Use transaction rollback tests; actual live data only with user-authorized source.
-- Respect original 20-screen mockup master and media policy at docs/MEDIA_STORAGE_POLICY.md.
+- Respect ALL user-approved visual references through numbered screen 105 and additional non-numbered art; use docs/GO_TOURNAMENT_UI_MASTER_INVENTORY.md and docs/MEDIA_STORAGE_POLICY.md.
 - Financial data, IDs, youth photos, proof and password flows require review of RBAC/RLS and privacy before publication.
 - Always update this file's status and timestamp on completion, with test evidence URL/deployment SHA.
 
@@ -62,3 +62,9 @@
 2. If quota reopened, consolidate changes, deploy once, test GT-001 and GT-002; verify mobile rendering.
 3. Continue first incomplete P0 item and record result here using [x]/[~]/[ ] and evidence, even if task is partly done.
 4. Never mark phases complete while payment/private data/security end-to-end workflows are missing.
+
+## Phase 6 — designs added after screen 33 (user approved; no redesign)
+- [~] **GT-020 | P0 | Master UI inventory up to screen 105.** Initial 73 top-level image files analyzed, duplicates identified, range-to-module map saved. Next verify remaining missing range boards 34–44,86–90 and exact assets, and upload originals to durable project location; no manual redesign. Acceptance: each approved image has stable asset path and linked UI module/route/revision status.
+- [ ] **GT-021 | P0 | Academy mass-registration + student live tracking.** Implement visual flows from screens 91–100 including per-student division assignment, fees, shared payments, institutional membership scoping, live results and exports. Acceptance: group registration 6 students does not create duplicate athletes, allocation always equals source payment and errors don't create partial registrations.
+- [ ] **GT-022 | P1 | Verified athlete Head-to-Head.** Implement mobile athlete comparison and desktop referee matchup modal from unnumbered images; query approved match results by stable athlete UUIDs, filters by event and result and correct win/loss denominator. Acceptance: symmetry of win/loss; empty/zero-match scenario doesn't display invented history or divide by zero; referee can avoid repeat pairings if rules permit.
+- [ ] **GT-023 | P1 | Login/password recovery and role choice screen 101–105.** Translate approved desktop/mobile visuals into secure auth flows, isolate academy staff vs referee vs owner/admin permissions. Acceptance: no account discovery leak; user cannot self-select higher privilege; valid reset/OTP and safe fallbacks.
