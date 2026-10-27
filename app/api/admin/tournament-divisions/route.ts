@@ -24,13 +24,13 @@ export async function POST(request:Request){
  const seats=d.seats_limit===""||d.seats_limit==null?null:Number(d.seats_limit);
  const rawFee=d.entry_fee_thb==null?"":String(d.entry_fee_thb).trim();
  const fee=rawFee===""?null:Number(rawFee);
- if(!uuid.test(id)||name.length<2||name.length>100||seats!==null&&(!Number.isInteger(seats)||seats<=0||seats>10000)||fee!==null&&(!/^\\d{1,7}(?:\\.\\d{1,2})?$/.test(rawFee)||!Number.isFinite(fee)||fee<0||fee>1000000))
+ if(!uuid.test(id)||name.length<2||name.length>100||seats!==null&&(!Number.isInteger(seats)||seats<=0||seats>10000)||fee!==null&&(!/^\d{1,7}(?:\.\d{1,2})?$/.test(rawFee)||!Number.isFinite(fee)||fee<0||fee>1000000))
   return reply({status:"invalid",message:"ข้อมูลรุ่นแข่งขันไม่ถูกต้อง"},400);
  try{
   const url=new URL("/rest/v1/gt_divisions",auth.base);url.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit,entry_fee_thb");
   let effectiveFee=fee;
   if(effectiveFee===null){
-   const kind=/ดั้ง|\\bdan\\b/i.test(name)?"dan":/คิว|\\bkyu\\b/i.test(name)?"kyu":null;
+   const kind=/ดั้ง|\bdan\b/i.test(name)?"dan":/คิว|\bkyu\b/i.test(name)?"kyu":null;
    if(kind){
     const t=new URL("/rest/v1/gt_tournaments",auth.base);
     t.searchParams.set("select","default_kyu_fee_thb,default_dan_fee_thb");t.searchParams.set("id","eq."+id);t.searchParams.set("limit","1");
