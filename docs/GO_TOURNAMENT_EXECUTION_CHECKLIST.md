@@ -1,5 +1,5 @@
 # GO TOURNAMENT — EXECUTION CHECKLIST / แผนลงมือทำเมื่อ Vercel พร้อม
-**Last reviewed:** 2026-10-27 (Asia/Bangkok) — UI Master Inventory pass 1
+**Last reviewed:** 2026-10-27 (Asia/Bangkok) — UI inventory and API/route crosswalk pass 1
 **Canonical URL:** https://go-tournament.vercel.app
 **Repo:** sawitree2168-sys/go-competition
 **Branch:** codex/go-tournament-vite-migration
@@ -56,6 +56,10 @@
 - Image storage convention: docs/MEDIA_STORAGE_POLICY.md.
 - Audit/checkpoints: migration/CONNECTION_GAP_AUDIT_2026-10-27.md and migration/CONNECTION_REPAIR_CHECKPOINT_2026-10-27.md.
 - All prior migration and SQL rollback test successes are **not** equivalent to production/browser E2E passing.
+
+## Latest completed coding checkpoint (2026-10-27)
+- [~] **GT-024 | P0 | Event applicant roster page.** Added real authenticated staff-only read-only UI at `app/admin/tournaments/[id]/registrations/page.tsx` with search, rank/name/GO ID, division filters, registration/payment status filters, per-division totals, filtered CSV export; linked from the Admin tournament page. Existing API `app/api/admin/tournament-registrations/route.ts` uses verified gt_* schema. **GitHub code only; no build, deployment, Owner E2E, or payment verification yet.** See `docs/GO_TOURNAMENT_UI_ROUTE_DATA_CROSSWALK.md`.
+- [~] **GT-025 | P0 | Academy live status visuals 96–100 selected for mapping.** Images found, confirmed `gt_athletes` currently has no academy_id column and event registrations have no institute membership. Must design explicit institution membership and role scoping before real student progress dashboard; do not invent school assignments.
 
 ## Immediate resume steps — no re-planning
 1. Read this checklist, latest git file and deployment SHA; inspect whether quota reopened. If still 402, **do not repeatedly submit deployments**; proceed with remaining GitHub/SQL work without changing billing.
