@@ -1,5 +1,5 @@
 # GO TOURNAMENT — EXECUTION CHECKLIST / แผนลงมือทำเมื่อ Vercel พร้อม
-**Last reviewed:** 2026-10-27 (Asia/Bangkok) — UI inventory and API/route crosswalk pass 1
+**Last reviewed:** 2026-10-27 (Asia/Bangkok) — academy registry DB + UI code checkpoint
 **Canonical URL:** https://go-tournament.vercel.app
 **Repo:** sawitree2168-sys/go-competition
 **Branch:** codex/go-tournament-vite-migration
@@ -72,3 +72,12 @@
 - [ ] **GT-021 | P0 | Academy mass-registration + student live tracking.** Implement visual flows from screens 91–100 including per-student division assignment, fees, shared payments, institutional membership scoping, live results and exports. Acceptance: group registration 6 students does not create duplicate athletes, allocation always equals source payment and errors don't create partial registrations.
 - [ ] **GT-022 | P1 | Verified athlete Head-to-Head.** Implement mobile athlete comparison and desktop referee matchup modal from unnumbered images; query approved match results by stable athlete UUIDs, filters by event and result and correct win/loss denominator. Acceptance: symmetry of win/loss; empty/zero-match scenario doesn't display invented history or divide by zero; referee can avoid repeat pairings if rules permit.
 - [ ] **GT-023 | P1 | Login/password recovery and role choice screen 101–105.** Translate approved desktop/mobile visuals into secure auth flows, isolate academy staff vs referee vs owner/admin permissions. Acceptance: no account discovery leak; user cannot self-select higher privilege; valid reset/OTP and safe fallbacks.
+
+
+## 2026-10-27 Academy registry coding checkpoint (requires deployment)
+- [~] **GT-026 | P0 | Academy registry DB (implemented).** New RLS-protected `gt_academies`, `gt_academy_memberships`, `gt_academy_staff` tables migrated. Owner/admin can create academy drafts and pending memberships only. Verified rollback-safe temporary GO ID link as active Owner; all test rows rolled back. **No permission for unverified academy staff to read athlete records.**
+- [~] **GT-027 | P0 | Academy directory + GO ID linking UI (authored).** `app/admin/academies/page.tsx`, `app/api/admin/academies/route.ts`, `app/api/admin/academy-memberships/route.ts`; link to academy registry from `app/admin/tournaments/page.tsx`. GitHub only; not browser-tested or deployed. Note real academy list/member records still empty.
+- [ ] **GT-028 | P0 | Academy membership approval / role-grant reviews.** Before academy staff accesses sensitive data, add verified evidence, owner approval, audit log, role-specific RLS tests and applicant child privacy. Do not auto-confirm by GO ID alone.
+- [ ] **GT-029 | P0 | Academy batch registration with transaction, unique idempotency and fee allocations.** Next development stage; use academy-approved roster only, no direct write of money status as verified, protect across institutions.
+
+Source of truth for this checkpoint: `migration/ACADEMY_REGISTRY_CHECKPOINT_2026-10-27.md`.
