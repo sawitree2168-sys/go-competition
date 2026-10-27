@@ -56,3 +56,11 @@ Introduce a **server-side approved public media manifest** with a public-only wh
 - Sheet is editorial source only. Updating its cells alone does NOT change production. Use Admin media publish as interim manual approved push; fully automated Sheet sync requires server-side Google authorization/audit.
 - NEVER use private Drive link as web image URL; uploaded exact logo is safe in private Drive, pending public web hosting of optimized versions and official approval. After first Vercel deployment, changing published config URLs needs no new deployment so long as the target image bytes are already hosted.
 - **Not yet QA:** TypeScript build, anonymous/owner browser GET/POST/PUT tests, 390px/768px/1440px responsive screenshot compare, production deployment.
+
+
+## Follow-up: Public website asset upload enabled in code
+- New public Supabase storage bucket `gt-site-assets` with 6 MB cap, PNG/JPEG/WebP only; configured public on purpose because logos and website banners are publicly displayed. NEVER upload student photos, slips, verification IDs, or private media into this bucket.
+- Storage INSERT/SELECT RLS requires an active Owner/Admin from gt_staff_members and restricts folder prefix to logos/ or banners/. No overwrite policy: versioned immutable UUID paths prevent accidental replacement.
+- Admin `app/admin/site-media/page.tsx` offers image file upload using authenticated Supabase client, then populates public URL into form; **still requires explicit draft save and approval/publication**. Uploading alone does not mark a row published.
+- Public API uses narrow column grants for anonymous viewers (only slot/device/asset ID/public URL/alt/updated timestamp); anonymous cannot read private Drive file IDs or edit rows, verified with DB privilege query.
+- Browser uploader and production integration remain UNTESTED. New official logo exact image is stored in Drive; after first deploy the Owner can upload web-optimized logo using this page and approve/publish `brand-logo` slot without new deployment for its URL switch.
