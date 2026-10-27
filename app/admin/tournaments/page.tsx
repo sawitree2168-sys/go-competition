@@ -112,6 +112,7 @@ export default function TournamentAdmin(){
      {selectedEvent&&<section className="mt-6 rounded-xl border border-[#d7b66d] bg-[#fffbf3] p-4">
       <h3 className="text-lg font-extrabold">รุ่นแข่งขัน: {selectedEvent.title}</h3>
       <Link href={"/admin/tournaments/"+selectedEvent.id+"/media"} className="mt-3 block rounded-xl bg-blue-800 px-4 py-3 text-center font-bold text-white">จัดการรูปเด่นและโปสเตอร์ของรายการ ›</Link>
+      <Link href={"/admin/tournaments/"+selectedEvent.id+"/registrations"} className="mt-3 block rounded-xl border border-blue-800 bg-white px-4 py-3 text-center font-bold text-blue-900">ตรวจรายชื่อผู้สมัคร / ค้นหา / ส่งออก CSV ›</Link>
       <p className="mt-2 text-sm text-slate-600">รุ่นในรายการนี้ {divisions.length} รุ่น</p>
       {summaryBusy&&<p role="status" className="mt-3">กำลังสรุปข้อมูลรายการ...</p>}
       {summary&&<div className="mt-4">
