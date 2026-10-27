@@ -4,10 +4,12 @@ import {useEffect,useMemo,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
 type Registration={id:string;athlete_id:string;go_id:string|null;athlete_name:string;rank:string|null;division_name:string;registration_status:string;payment_status:string;created_at:string};
 type Result={status:"ok";registrations:Registration[]};
+type DivisionOption={id:string;name:string;seats_limit:number|null};
 export default function TournamentRegistrationList({params}:{params:Promise<{id:string}>}){
  const [id,setId]=useState(""),[isLoading,setIsLoading]=useState(true),[signedIn,setSignedIn]=useState(false),[email,setEmail]=useState("");
  const [rows,setRows]=useState<Registration[]>([]),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
  const [search,setSearch]=useState(""),[division,setDivision]=useState("all"),[registration,setRegistration]=useState("all"),[payment,setPayment]=useState("all");
+ const [options,setOptions]=useState<DivisionOption[]>([]),[addGoId,setAddGoId]=useState(""),[addDivision,setAddDivision]=useState(""),[adding,setAdding]=useState(false),[addMessage,setAddMessage]=useState("");
  const client=useRef<SupabaseClient|null>(null);
  useEffect(()=>{let active=true;void params.then(p=>{if(active)setId(p.id)});return()=>{active=false}},[params]);
  useEffect(()=>{let active=true;let unsubscribe=()=>{};void(async()=>{try{
@@ -27,6 +29,10 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
    const data:Result|{status:string;message?:string}=await result.json();
    if(!result.ok||data.status!=="ok"||!("registrations" in data)||!Array.isArray(data.registrations))throw Error("message" in data?data.message||"ไม่สามารถอ่านรายชื่อผู้สมัครได้":"ไม่สามารถอ่านรายชื่อผู้สมัครได้");
    setRows(data.registrations);
+   const divResponse=await fetch("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id),{cache:"no-store",headers:{Authorization:"Bearer "+token}});
+   const divData=await divResponse.json();
+   if(divResponse.ok&&divData.status==="ok"&&Array.isArray(divData.divisions))
+    setOptions(divData.divisions);
   }catch(e){setRows([]);setMessage(e instanceof Error?e.message:"ไม่สามารถโหลดข้อมูล")}
   finally{setBusy(false)}
  }
@@ -34,6 +40,20 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
  async function login(e:FormEvent){e.preventDefault();if(!client.current)return;setBusy(true);
   const {error}=await client.current.auth.signInWithOtp({email:email.trim(),options:{shouldCreateUser:false,emailRedirectTo:window.location.href}});
   setMessage(error?error.message:"ส่งลิงก์เข้าระบบแล้ว โปรดตรวจอีเมล");setBusy(false);
+ }
+ async function addPendingRegistration(e:FormEvent){
+  e.preventDefault();if(!id||!client.current||adding)return;
+  if(!window.confirm("เพิ่มนักกีฬา GO ID "+addGoId+" เป็นใบสมัครรอตรวจสอบเท่านั้น และยังไม่ถือว่าชำระเงิน ใช่หรือไม่?"))return;
+  setAdding(true);setAddMessage("");
+  try{
+   const token=(await client.current.auth.getSession()).data.session?.access_token;
+   if(!token)throw Error("กรุณาเข้าสู่ระบบใหม่");
+   const r=await fetch("/api/admin/tournament-registrations",{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({tournament_id:id,division_id:addDivision,go_id:addGoId.trim()})});
+   const d=await r.json();
+   if(!r.ok||d.status!=="ok")throw Error(d.message||"บันทึกใบสมัครไม่ได้");
+   setAddMessage("บันทึกแบบร่างแล้ว: "+d.athlete_name+" ("+d.go_id+") — ยังไม่ยืนยันการชำระเงิน");
+   setAddGoId("");setAddDivision("");await load();
+  }catch(err){setAddMessage(err instanceof Error?err.message:"บันทึกไม่สำเร็จ")}finally{setAdding(false)}
  }
  const divisions=useMemo(()=>[...new Set(rows.map(x=>x.division_name))].sort((a,b)=>a.localeCompare(b,"th")),[rows]);
  const registrationStatuses=useMemo(()=>[...new Set(rows.map(x=>x.registration_status))].sort(),[rows]);
@@ -68,6 +88,16 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
    </form>}
    {message&&<p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4">{message}</p>}
    {signedIn&&<>
+    <section className="rounded-2xl border border-blue-200 bg-white p-5 shadow-sm">
+     <h2 className="text-xl font-black">เพิ่มใบสมัครรอตรวจสอบ (Owner / Admin)</h2>
+     <p className="mt-2 text-sm text-slate-600">ใช้ GO ID ที่มีอยู่ในระบบเท่านั้น ไม่สร้างนักกีฬาซ้ำ ไม่สำรองที่นั่ง ไม่ยืนยันสิทธิ์ และไม่บันทึกว่าชำระเงินแล้ว ผู้มีสิทธิ์ Reviewer สามารถดูรายชื่อ แต่เพิ่มใบสมัครไม่ได้</p>
+     <form onSubmit={addPendingRegistration} className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
+      <label className="font-bold">GO ID เดิม<input value={addGoId} onChange={e=>setAddGoId(e.target.value)} required minLength={3} maxLength={40} placeholder="ระบุ GO ID ที่ยืนยันแล้ว" className="mt-2 w-full rounded-xl border p-3"/></label>
+      <label className="font-bold">รุ่นการแข่งขัน<select value={addDivision} onChange={e=>setAddDivision(e.target.value)} required className="mt-2 w-full rounded-xl border p-3"><option value="">เลือกรุ่นแข่งขัน</option>{options.map(x=><option key={x.id} value={x.id}>{x.name}{x.seats_limit?" (กำหนด "+x.seats_limit+" คน)":""}</option>)}</select></label>
+      <button disabled={adding||busy||!addGoId.trim()||!addDivision} className="min-h-12 rounded-xl bg-blue-800 px-5 py-3 font-bold text-white disabled:opacity-40">{adding?"กำลังบันทึก...":"เพิ่มใบสมัครรอตรวจ"}</button>
+     </form>
+     {addMessage&&<p role="status" className="mt-3 rounded-xl bg-amber-50 p-3 text-sm font-bold">{addMessage}</p>}
+    </section>
     <section className="grid grid-cols-2 gap-3 md:grid-cols-3">
      <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-slate-600">ผู้สมัครทั้งหมด (รายการ)</p><p className="text-3xl font-black">{rows.length}</p></div>
      <div className="rounded-xl bg-white p-4 shadow-sm"><p className="text-sm text-slate-600">รุ่นแข่งขัน</p><p className="text-3xl font-black">{divisions.length}</p></div>
