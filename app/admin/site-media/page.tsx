@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import {SiteMediaBulkUpload} from "./SiteMediaBulkUpload";
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
 type Item={slot:string;device:string;asset_id:string;image_url:string;alt_text:string;status:string;drive_file_id:string|null;sheet_row_reference:string|null;updated_at?:string};
@@ -70,6 +71,7 @@ export default function MediaManagement(){
     <button disabled={busy} className="rounded-xl bg-blue-800 px-5 py-3 font-bold text-white">ส่งลิงก์เข้าสู่ระบบ</button></form>}
    {message&&<p role="status" className="rounded-xl bg-white p-4">{message}</p>}
    {signed&&<>
+    <SiteMediaBulkUpload client={client.current} onSaved={load}/>
     <section className="rounded-2xl bg-white p-5 shadow-sm">
      <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-black">ทะเบียนภาพ ({items.length})</h2><button disabled={busy} onClick={()=>void load()} className="rounded-xl border px-4 py-3 font-bold">รีเฟรช</button></div>
      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{items.map(x=><button key={x.slot+x.device} onClick={()=>edit(x)} className="rounded-xl border bg-slate-50 p-4 text-left">
