@@ -44,6 +44,13 @@ export function SiteMediaBulkUpload({client,onSaved}:{client:SupabaseClient|null
    try{
     const token=(await client.auth.getSession()).data.session?.access_token;
     if(!token)throw Error("กรุณาล็อกอิน Owner/Admin อีกครั้ง");
+    // Avoid creating an orphaned public file when the media slot is already registered.
+    const existingResponse=await fetch("/api/admin/site-media",{headers:{Authorization:"Bearer "+token},cache:"no-store"});
+    if(!existingResponse.ok)throw Error("ไม่สามารถตรวจทะเบียนก่อนอัปโหลดได้");
+    const existing=await existingResponse.json();
+    if(!Array.isArray(existing.items))throw Error("ทะเบียนภาพมีรูปแบบไม่ถูกต้อง");
+    if(existing.items.some((row:{slot:string;device:string})=>row.slot===item.slot&&row.device===item.device))
+      throw Error("มีรายการหน้า/อุปกรณ์นี้อยู่แล้ว กรุณาแก้ที่ทะเบียนภาพเดิมแทนการเพิ่มซ้ำ");
     const path="banners/"+item.slot+"/"+item.device+"/"+crypto.randomUUID()+".webp";
     const upload=await client.storage.from("gt-site-assets").upload(path,item.file,{contentType:"image/webp",cacheControl:"3600",upsert:false});
     if(upload.error)throw Error("อัปโหลดล้มเหลว: "+upload.error.message);
