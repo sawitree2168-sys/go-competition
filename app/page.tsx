@@ -27,10 +27,17 @@ export default function Home(){
       <Link href="/visual-overview" className="rounded-xl bg-[#0f3874] px-5 py-3 font-bold text-white">เปิดดูทุกหน้า ›</Link>
      </div>
     </div>
-    <div className="rounded-3xl bg-gradient-to-br from-[#174782] via-[#0d3263] to-[#091b38] p-6 text-white shadow-lg sm:p-12">
+    <div className="relative isolate min-h-[530px] overflow-hidden rounded-3xl bg-[#073f94] text-white shadow-lg sm:min-h-[500px] lg:min-h-[450px]">
+     <picture className="absolute inset-0 -z-20 block h-full w-full" aria-hidden="true">
+       <source media="(max-width: 639px)" srcSet="/banners/home/home_mobile.svg" type="image/svg+xml"/>
+       <source media="(max-width: 1023px)" srcSet="/banners/home/home_tablet.svg" type="image/svg+xml"/>
+       <img src="/banners/home/home_desktop.svg" alt="" className="h-full w-full object-cover object-center" fetchPriority="high"/>
+     </picture>
+     <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#041633]/90 via-[#062b65]/75 to-[#064c9a]/20"/>
+     <div className="relative max-w-3xl p-6 sm:p-10 lg:p-12">
      <p className="text-sm font-extrabold tracking-[0.2em] text-[#f4cc76]">GO TOURNAMENT</p>
-     <h1 className="mt-3 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">ระบบจัดการแข่งขันหมากล้อม และข้อมูลนักกีฬา</h1>
-     <p className="mt-4 max-w-2xl text-base leading-relaxed text-blue-100 sm:text-lg">ค้นหาข้อมูล ติดตามปฏิทิน ส่งคำขอผูก GO ID เดิม และเข้าสู่พื้นที่เจ้าหน้าที่ได้จากหน้าเดียว</p>
+     <h1 className="mt-3 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">เชื่อมโยงทุกการแข่งขันหมากล้อม</h1>
+     <p className="mt-4 max-w-2xl text-base leading-relaxed text-blue-50 sm:text-lg">นักกีฬา สถาบัน กรรมการ และกองเชียร์ — พบรายการแข่งขัน ผลการแข่งขัน และสถิติในที่เดียว</p>
      <div className="mt-6 rounded-xl border border-amber-200/40 bg-[#153b69] p-4 text-sm leading-relaxed">
        <strong className="text-[#f3cd7b]">สถานะการเปิดใช้งาน</strong>
        <p className="mt-1 text-white">เว็บไซต์เชื่อม Supabase แล้ว แต่ยังไม่เปิดรับสมัครแข่งขันหรือยืนยันชำระเงินจริง ระบบอนุมัติ GO ID ยังปิดอยู่เพื่อป้องกันข้อมูลผิดคน</p>
@@ -38,6 +45,7 @@ export default function Home(){
      <div className="mt-6 flex flex-wrap gap-3">
       <Link href="/schedule" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[#f3cb75] px-6 py-3 font-extrabold text-[#09264e]">ดูรายการแข่งขัน</Link>
       <Link href="/athletes/search" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/60 px-6 py-3 font-semibold text-white">ค้นหานักกีฬา</Link>
+     </div>
      </div>
     </div>
    </section>
