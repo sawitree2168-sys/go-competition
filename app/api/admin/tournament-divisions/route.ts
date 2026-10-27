@@ -7,7 +7,7 @@ export async function GET(request:Request){
  if(!id||!uuid.test(id))return reply({status:"invalid",message:"Tournament ID ไม่ถูกต้อง"},400);
  try{
   const endpoint=new URL("/rest/v1/gt_divisions",auth.base);
-  endpoint.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit,entry_fee_thb");
+  endpoint.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit,entry_fee_thb,friendship_board_size");
   endpoint.searchParams.set("tournament_id",`eq.${id}`);endpoint.searchParams.set("order","name.asc");
   const r=await fetch(endpoint,{headers:auth.headers,cache:"no-store",signal:AbortSignal.timeout(8000)});
   const data=await r.json();if(!r.ok||!Array.isArray(data))throw Error();
@@ -24,10 +24,13 @@ export async function POST(request:Request){
  const seats=d.seats_limit===""||d.seats_limit==null?null:Number(d.seats_limit);
  const rawFee=d.entry_fee_thb==null?"":String(d.entry_fee_thb).trim();
  const fee=rawFee===""?null:Number(rawFee);
+ const friendshipBoard=d.friendship_board_size==null||d.friendship_board_size===""?null:Number(d.friendship_board_size);
+ if(friendshipBoard!==null&&(![9,13].includes(friendshipBoard)||!/friendship|เฟรนชิพ|เฟรนด์ชิพ/i.test(name)))
+  return reply({status:"invalid",message:"ขนาดกระดาน 9×9 หรือ 13×13 ใช้สำหรับรุ่น Friendship เท่านั้น"},400);
  if(!uuid.test(id)||name.length<2||name.length>100||seats!==null&&(!Number.isInteger(seats)||seats<=0||seats>10000)||fee!==null&&(!/^\d{1,7}(?:\.\d{1,2})?$/.test(rawFee)||!Number.isFinite(fee)||fee<0||fee>1000000))
   return reply({status:"invalid",message:"ข้อมูลรุ่นแข่งขันไม่ถูกต้อง"},400);
  try{
-  const url=new URL("/rest/v1/gt_divisions",auth.base);url.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit,entry_fee_thb");
+  const url=new URL("/rest/v1/gt_divisions",auth.base);url.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit,entry_fee_thb,friendship_board_size");
   let effectiveFee=fee;
   if(effectiveFee===null){
    const kind=/ดั้ง|\bdan\b/i.test(name)?"dan":/คิว|\bkyu\b/i.test(name)?"kyu":null;
@@ -40,7 +43,7 @@ export async function POST(request:Request){
     effectiveFee=Number(values[0][kind==="dan"?"default_dan_fee_thb":"default_kyu_fee_thb"]);
    }
   }
-  const r=await fetch(url,{method:"POST",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({tournament_id:id,name,seats_limit:seats,entry_fee_thb:effectiveFee,pairing_enabled:false}),cache:"no-store",signal:AbortSignal.timeout(8000)});
+  const r=await fetch(url,{method:"POST",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({tournament_id:id,name,seats_limit:seats,entry_fee_thb:effectiveFee,friendship_board_size:friendshipBoard,pairing_enabled:false}),cache:"no-store",signal:AbortSignal.timeout(8000)});
   const data=await r.json();if(!r.ok||!Array.isArray(data)||data.length!==1)throw Error();
   return reply({status:"ok",division:data[0]},201);
  }catch{return reply({status:"error",message:"เพิ่มรุ่นไม่ได้ ตรวจสอบว่ารายการยังเป็นแบบร่าง"},503)}
