@@ -1,6 +1,6 @@
 # GO TOURNAMENT — MEDIA ASSET MANAGEMENT MASTER
 Updated: 2026-10-27 Asia/Bangkok
-State: Google Drive root folders + native Google Sheet asset register CREATED and READ VERIFIED. No website-to-Sheet automated sync yet. Vercel unchanged.
+State: Google Drive root folders + native Google Sheet asset register CREATED and READ VERIFIED. Website media registry/API/UI source now implemented; Sheet auto-sync still NOT enabled. Vercel unchanged.
 
 ## Brand rule — IMPORTANT
 The sole approved GO TOURNAMENT official logo is the uploaded 1448×1086 original image at:
@@ -45,3 +45,14 @@ Introduce a **server-side approved public media manifest** with a public-only wh
 - 3 SVG background banners at public/banners/home/home_desktop.svg, home_tablet.svg, home_mobile.svg committed (not same as AI mockup) and selected by <picture>.
 - User requested bright contemporary Go tournament imagery, with exact official brand logo as above.
 - Homepage visually staged, awaiting corrected production logo integration, mobile QA, build and deployment.
+
+
+## Live media registry implementation — 2026-10-27 (additional work)
+- Supabase migration gt_site_media_catalog_public_approved_slots_v1 added `gt_site_media` (slot + device PK, asset URL, editor ref, draft/approved/published/archived, attribution, RLS). Anonymous can SELECT only published, while owner/admin can manage.
+- Seeded THREE home SVG backgrounds as draft only; none published. They are reference images rather than approved official designs.
+- Public `app/api/site-media/route.ts` returns only published media for given slot. Admin `app/api/admin/site-media/route.ts` supports authenticated Owner/Admin read, draft create and explicit status-update approval with allowed URL validation.
+- Admin UI `app/admin/site-media/page.tsx` loads and updates entries and links to the Drive folder / Google Sheet; `app/admin/tournaments/page.tsx` has a nav link.
+- `app/components/SiteHeroMedia.tsx` resolves three variant URL slots dynamically on homepage; `app/page.tsx` uses it, along with `SiteOfficialLogo` which only displays real official logo after separately published as site media. Until then display a neutral text wordmark, NOT fake logo.
+- Sheet is editorial source only. Updating its cells alone does NOT change production. Use Admin media publish as interim manual approved push; fully automated Sheet sync requires server-side Google authorization/audit.
+- NEVER use private Drive link as web image URL; uploaded exact logo is safe in private Drive, pending public web hosting of optimized versions and official approval. After first Vercel deployment, changing published config URLs needs no new deployment so long as the target image bytes are already hosted.
+- **Not yet QA:** TypeScript build, anonymous/owner browser GET/POST/PUT tests, 390px/768px/1440px responsive screenshot compare, production deployment.
