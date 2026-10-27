@@ -1,17 +1,16 @@
 import Link from "next/link";
 import {visualGroups,visualImages} from "./visual-data";
 import {VisualImage} from "./VisualImage";
+import {SiteOfficialLogo} from "../components/SiteHeroMedia";
 export default function VisualOverview(){
  return <main className="min-h-screen bg-[#eef3fb] text-[#102a53]">
   <header className="bg-[#09234d] px-4 py-7 text-white">
    <div className="mx-auto max-w-6xl">
     <Link href="/" className="font-bold text-[#f4cf80]">‹ กลับหน้าแรก</Link>
     <div className="mt-4 flex items-center gap-4">
-     <div className="hidden w-28 overflow-hidden rounded-lg bg-white sm:block">
-      <VisualImage local={visualImages.logo.local} fallback={visualImages.logo.fallback} alt="GO TOURNAMENT"/>
-     </div>
+     <div className="hidden sm:block"><SiteOfficialLogo/></div>
      <div><h1 className="text-3xl font-black tracking-wide sm:text-5xl">GO TOURNAMENT</h1>
-     <p className="mt-2 text-blue-100">ภาพเว็บไซต์ที่ออกแบบไว้ — เลือกหน้าที่ต้องการดูได้เลย</p></div>
+     <p className="mt-2 text-blue-100">ภาพเว็บไซต์ที่ออกแบบไว้ — เลือกหน้าที่ต้องการดูได้เลย</p><Link href="/site-map" className="mt-3 inline-block rounded-lg border border-amber-200 px-4 py-2 text-sm font-bold text-amber-200">เปิดเมนูเว็บไซต์ที่ทำงานจริง ›</Link></div>
     </div>
    </div>
   </header>
