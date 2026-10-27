@@ -11,7 +11,7 @@ export async function GET(request:Request){
   const u=new URL("/rest/v1/gt_site_media",base);
   u.searchParams.set("select","slot,device,image_url,alt_text,asset_id,updated_at");
   u.searchParams.set("slot","eq."+slot);
-  u.searchParams.set("status","eq.published");
+  // RLS is the only publication gate; anon cannot query internal status column.
   u.searchParams.set("limit","3");
   const r=await fetch(u,{headers:{apikey:key,Accept:"application/json"},cache:"no-store",signal:AbortSignal.timeout(8000)});
   const data:unknown=await r.json();
