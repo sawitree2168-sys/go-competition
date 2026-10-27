@@ -19,7 +19,7 @@ export default function Home(){
      <span className="rounded-full border border-amber-200/40 bg-amber-100/10 px-3 py-2 text-xs font-semibold text-[#f1cb75]">เวอร์ชันทดสอบระบบจริง</span>
     </div>
    </header>
-   <div className="mx-auto max-w-6xl px-4 pt-5"><Link href="/visual-overview" className="flex min-h-14 items-center justify-center rounded-2xl border border-[#c9a661] bg-[#fff8e7] px-5 py-4 text-center font-extrabold text-[#163c71]">ดูผังภาพรวมเว็บไซต์ทั้งระบบ (7 หมวด) ›</Link></div>
+   <nav aria-label="เมนูหน้าหลัก" className="mx-auto flex max-w-6xl flex-wrap gap-3 px-4 pt-5"><Link href="/site-map" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-[#0e3e81] px-5 py-3 text-center font-extrabold text-white sm:flex-none">เมนูเว็บไซต์ทั้งหมด ›</Link><Link href="/schedule" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl border border-blue-300 bg-white px-5 py-3 text-center font-bold text-[#0c3166] sm:flex-none">รายการแข่งขัน</Link><Link href="/faq" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl border border-blue-300 bg-white px-5 py-3 text-center font-bold text-[#0c3166] sm:flex-none">คำถามที่พบบ่อย</Link><Link href="/visual-overview" className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-[#c9a661] bg-[#fff8e7] px-5 py-3 text-center font-bold text-[#163c71] sm:w-auto">ดูต้นแบบเว็บไซต์ ›</Link></nav>
    <section className="mx-auto max-w-6xl px-4 pt-7 sm:pt-12">
     <div className="relative isolate min-h-[530px] overflow-hidden rounded-3xl bg-[#073f94] text-white shadow-lg sm:min-h-[500px] lg:min-h-[450px]">
      <SiteHeroMedia slot="home"/>
