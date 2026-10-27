@@ -25,10 +25,13 @@ export async function GET(request:Request){
    if(q.length<2||q.length>70||!(/^[\p{L}\p{N} \-]+$/u).test(q))
     return NextResponse.json({status:"invalid",message:"พิมพ์ชื่อหรือ GO ID อย่างน้อย 2 ตัวอักษร"},{status:400});
    const isGoId=/^[A-Za-z0-9\-]{3,40}$/.test(q);
+   const safeName=q.replace(/ /g,"%");
+   const searchFilter=isGoId
+    ? "(go_id.eq."+q+",full_name.ilike.*"+safeName+"*)"
+    : "(full_name.ilike.*"+safeName+"*)";
    const rows=await getRows<Athlete>(base,key,"gt_athletes",{
     select:"id,go_id,full_name,nickname,current_rank",profile_public:"eq.true",
-    ...(isGoId?{go_id:"eq."+q}:{full_name:"ilike.*"+q.replace(/ /g,"%")+"*"}),
-    limit:"20",order:"full_name.asc"
+    or:searchFilter,limit:"20",order:"full_name.asc"
    });
    return NextResponse.json({status:"ok",athletes:rows},{headers:{"Cache-Control":"no-store"}});
   }
