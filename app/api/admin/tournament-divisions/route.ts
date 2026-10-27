@@ -7,7 +7,7 @@ export async function GET(request:Request){
  if(!id||!uuid.test(id))return reply({status:"invalid",message:"Tournament ID ไม่ถูกต้อง"},400);
  try{
   const endpoint=new URL("/rest/v1/gt_divisions",auth.base);
-  endpoint.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit");
+  endpoint.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit,entry_fee_thb");
   endpoint.searchParams.set("tournament_id",`eq.${id}`);endpoint.searchParams.set("order","name.asc");
   const r=await fetch(endpoint,{headers:auth.headers,cache:"no-store",signal:AbortSignal.timeout(8000)});
   const data=await r.json();if(!r.ok||!Array.isArray(data))throw Error();
@@ -22,11 +22,13 @@ export async function POST(request:Request){
  const d=b as Record<string,unknown>;const id=typeof d.tournament_id==="string"?d.tournament_id:"";
  const name=typeof d.name==="string"?d.name.trim():"";
  const seats=d.seats_limit===""||d.seats_limit==null?null:Number(d.seats_limit);
- if(!uuid.test(id)||name.length<2||name.length>100||seats!==null&&(!Number.isInteger(seats)||seats<=0||seats>10000))
+ const rawFee=d.entry_fee_thb==null?"":String(d.entry_fee_thb).trim();
+ const fee=rawFee===""?null:Number(rawFee);
+ if(!uuid.test(id)||name.length<2||name.length>100||seats!==null&&(!Number.isInteger(seats)||seats<=0||seats>10000)||fee!==null&&(!/^\\d{1,7}(?:\\.\\d{1,2})?$/.test(rawFee)||!Number.isFinite(fee)||fee<0||fee>1000000))
   return reply({status:"invalid",message:"ข้อมูลรุ่นแข่งขันไม่ถูกต้อง"},400);
  try{
-  const url=new URL("/rest/v1/gt_divisions",auth.base);url.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit");
-  const r=await fetch(url,{method:"POST",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({tournament_id:id,name,seats_limit:seats,pairing_enabled:false}),cache:"no-store",signal:AbortSignal.timeout(8000)});
+  const url=new URL("/rest/v1/gt_divisions",auth.base);url.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit,entry_fee_thb");
+  const r=await fetch(url,{method:"POST",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({tournament_id:id,name,seats_limit:seats,entry_fee_thb:fee,pairing_enabled:false}),cache:"no-store",signal:AbortSignal.timeout(8000)});
   const data=await r.json();if(!r.ok||!Array.isArray(data)||data.length!==1)throw Error();
   return reply({status:"ok",division:data[0]},201);
  }catch{return reply({status:"error",message:"เพิ่มรุ่นไม่ได้ ตรวจสอบว่ารายการยังเป็นแบบร่าง"},503)}
