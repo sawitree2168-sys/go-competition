@@ -2,7 +2,7 @@
 import Link from "next/link";
 import {useEffect,useMemo,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
-type Registration={id:string;athlete_id:string;go_id:string|null;athlete_name:string;rank:string|null;division_name:string;registration_status:string;payment_status:string;created_at:string};
+type Registration={id:string;athlete_id:string;go_id:string|null;athlete_name:string;rank:string|null;division_name:string;registration_status:string;payment_status:string;fee_snapshot_thb:number|null;created_at:string};
 type Result={status:"ok";registrations:Registration[];role:"owner"|"admin"|"reviewer"};
 type DivisionOption={id:string;name:string;seats_limit:number|null};
 export default function TournamentRegistrationList({params}:{params:Promise<{id:string}>}){
@@ -65,9 +65,9 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
  }),[rows,search,division,registration,payment]);
  const breakdown=useMemo(()=>divisions.map(name=>({name,count:rows.filter(r=>r.division_name===name).length})),[rows,divisions]);
  function exportCsv(){
-  const header=["GO ID","ชื่อ-นามสกุล","ระดับ","รุ่น","สถานะสมัคร","สถานะชำระ","วันที่สมัคร"];
+  const header=["GO ID","ชื่อ-นามสกุล","ระดับ","รุ่น","ค่าสมัคร ณ วันลงทะเบียน (บาท)","สถานะสมัคร","สถานะชำระ","วันที่สมัคร"];
   const escape=(v:unknown)=>{const s=String(v??"");const neutral=/^[\s]*[=+@\-\t\r]/.test(s)?"'"+s:s;return '"'+neutral.replaceAll('"','""')+'"';};
-  const lines=[header,...filtered.map(r=>[r.go_id||"",r.athlete_name,r.rank||"",r.division_name,r.registration_status,r.payment_status,r.created_at])];
+  const lines=[header,...filtered.map(r=>[r.go_id||"",r.athlete_name,r.rank||"",r.division_name,r.fee_snapshot_thb??"",r.registration_status,r.payment_status,r.created_at])];
   const csv="\ufeff"+lines.map(line=>line.map(escape).join(",")).join("\r\n");
   const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));
   const a=document.createElement("a");a.href=url;a.download="go-tournament-applicants-"+id+".csv";a.click();URL.revokeObjectURL(url);
@@ -134,10 +134,10 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
      <h2 className="px-4 pt-5 text-xl font-black">รายชื่อผู้สมัคร {filtered.length} รายการ</h2>
      {filtered.length===0?<p className="p-5 text-slate-600">ไม่พบรายการตามตัวกรองที่เลือก หรือยังไม่มีผู้สมัครในระบบ</p>:
       <div className="overflow-x-auto"><table className="min-w-[730px] w-full text-left text-sm">
-       <thead className="bg-[#0b3270] text-white"><tr><th className="p-3">#</th><th className="p-3">ชื่อ-นามสกุล</th><th className="p-3">GO ID / ระดับ</th><th className="p-3">รุ่น</th><th className="p-3">สมัคร</th><th className="p-3">ชำระเงิน</th></tr></thead>
+       <thead className="bg-[#0b3270] text-white"><tr><th className="p-3">#</th><th className="p-3">ชื่อ-นามสกุล</th><th className="p-3">GO ID / ระดับ</th><th className="p-3">รุ่น</th><th className="p-3">ค่าสมัคร</th><th className="p-3">สมัคร</th><th className="p-3">ชำระเงิน</th></tr></thead>
        <tbody>{filtered.map((r,i)=><tr key={r.id} className="border-b border-blue-50 even:bg-[#f4f8ff]">
         <td className="p-3">{i+1}</td><td className="p-3 font-bold">{r.athlete_name}</td><td className="p-3">{r.go_id||"—"}<p className="text-slate-500">{r.rank||"—"}</p></td>
-        <td className="p-3">{r.division_name}</td><td className="p-3">{r.registration_status}</td><td className="p-3">{r.payment_status}</td>
+        <td className="p-3">{r.division_name}</td><td className="p-3">{r.fee_snapshot_thb===null?"ยังไม่กำหนด":Number(r.fee_snapshot_thb).toLocaleString("th-TH")+" บาท"}</td><td className="p-3">{r.registration_status}</td><td className="p-3">{r.payment_status}</td>
        </tr>)}</tbody>
       </table></div>}
     </section>
