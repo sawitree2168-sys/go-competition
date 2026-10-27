@@ -20,13 +20,6 @@ export default function Home(){
    </header>
    <div className="mx-auto max-w-6xl px-4 pt-5"><Link href="/visual-overview" className="flex min-h-14 items-center justify-center rounded-2xl border border-[#c9a661] bg-[#fff8e7] px-5 py-4 text-center font-extrabold text-[#163c71]">ดูผังภาพรวมเว็บไซต์ทั้งระบบ (7 หมวด) ›</Link></div>
    <section className="mx-auto max-w-6xl px-4 pt-7 sm:pt-12">
-    <div className="mb-5 overflow-hidden rounded-2xl border border-[#d2ad62] bg-white shadow-lg">
-     <img src="/visual/overview.jpg" alt="ภาพรวมเว็บไซต์ GO TOURNAMENT ที่ออกแบบไว้" className="h-auto w-full object-contain"/>
-     <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
-      <div><h2 className="font-extrabold text-[#0c3166]">ชมภาพเว็บไซต์ที่ออกแบบไว้</h2><p className="mt-1 text-sm text-slate-600">ดูต้นแบบ 25 หน้าจอ ครบการสมัคร แข่งขัน ผลงาน และ Admin</p></div>
-      <Link href="/visual-overview" className="rounded-xl bg-[#0f3874] px-5 py-3 font-bold text-white">เปิดดูทุกหน้า ›</Link>
-     </div>
-    </div>
     <div className="relative isolate min-h-[530px] overflow-hidden rounded-3xl bg-[#073f94] text-white shadow-lg sm:min-h-[500px] lg:min-h-[450px]">
      <picture className="absolute inset-0 -z-20 block h-full w-full" aria-hidden="true">
        <source media="(max-width: 639px)" srcSet="/banners/home/home_mobile.svg" type="image/svg+xml"/>
@@ -48,6 +41,14 @@ export default function Home(){
      </div>
      </div>
     </div>
+    <div className="mt-6 overflow-hidden rounded-2xl border border-[#d2ad62] bg-white shadow-lg">
+     <img src="/visual/overview.jpg" alt="ภาพรวมเว็บไซต์ GO TOURNAMENT ที่ออกแบบไว้" className="h-auto w-full object-contain"/>
+     <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
+      <div><h2 className="font-extrabold text-[#0c3166]">ชมภาพเว็บไซต์ที่ออกแบบไว้</h2><p className="mt-1 text-sm text-slate-600">ดูต้นแบบ 25 หน้าจอ ครบการสมัคร แข่งขัน ผลงาน และ Admin</p></div>
+      <Link href="/visual-overview" className="rounded-xl bg-[#0f3874] px-5 py-3 font-bold text-white">เปิดดูทุกหน้า ›</Link>
+     </div>
+    </div>
+
    </section>
    <section className="mx-auto max-w-6xl px-4 py-9">
     <div className="mb-5"><h2 className="text-2xl font-black">ระบบสำหรับนักกีฬาและผู้ปกครอง</h2><p className="mt-1 text-slate-600">เลือกเมนูเพื่อเปิดหน้าใช้งานจริง</p></div>
