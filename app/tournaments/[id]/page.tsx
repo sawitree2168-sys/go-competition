@@ -4,7 +4,7 @@ import {useEffect,useState} from "react";
 import {useParams} from "next/navigation";
 import {SiteSectionBanner} from "../../components/SiteSectionBanner";
 type Event={id:string;title:string;start_at:string|null;status:string};
-type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean};
+type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean;entry_fee_thb:number|null};
 export default function TournamentDetailsPage(){
  const params=useParams<{id:string}>();
  const id=typeof params.id==="string"?params.id:"";
@@ -37,6 +37,7 @@ export default function TournamentDetailsPage(){
        <ul className="mt-3 grid gap-3 sm:grid-cols-2">{divisions.map(d=><li key={d.id} className="rounded-xl border border-slate-200 p-4">
         <h3 className="text-lg font-extrabold">{d.name}</h3>
         <p className="mt-2 text-sm text-slate-600">{d.seats_limit===null?"ยังไม่ระบุจำนวนรับสมัคร":"จำนวนที่กำหนด: "+d.seats_limit+" คน"}</p>
+        <p className="mt-1 text-sm font-semibold text-blue-800">{d.entry_fee_thb===null?"ค่าสมัคร: รอผู้จัดกำหนด":"ค่าสมัคร: "+Number(d.entry_fee_thb).toLocaleString("th-TH",{minimumFractionDigits:0,maximumFractionDigits:2})+" บาท/คน (ยังไม่เปิดชำระผ่านเว็บ)"}</p>
         <p className="mt-1 text-sm text-slate-600">{d.pairing_enabled?"ผู้จัดเปิดใช้ระบบจับคู่การแข่งขัน":"รายการนี้ไม่ได้เปิดระบบจับคู่อัตโนมัติ"}</p>
        </li>)}</ul>}
     </section>
