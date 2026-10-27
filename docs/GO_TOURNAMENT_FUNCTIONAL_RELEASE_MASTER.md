@@ -38,3 +38,19 @@ Public GO FAN must not require login; follows are device-local; public verified 
 - Google Drive and Sheets are editorial stores; Supabase public-only media needs explicit publication, and change in Sheet alone does not update deployed site.
 - Carry forward detailed tasks GT-001–GT-040 from docs/GO_TOURNAMENT_EXECUTION_CHECKLIST.md.
 - Vercel quota has previously blocked deploy; continue developing in GitHub without promising production availability.
+## First functional implementation checkpoint — 2026-10-27
+- [CODE] Added /site-map: a responsive category navigation page with working links to confirmed routes only; modules not built are visibly disabled, never dead links.
+- [CODE] Added /faq: actual native HTML details/summary accordion with public help and accurate unavailable features; no logins required.
+- [CODE] Updated / with prominent /site-map, /schedule, /faq and separate /visual-overview navigation.
+- [CODE] Replaced old incorrect AI logo on /visual-overview with SiteOfficialLogo published brand slot (text fallback until official logo actually hosted/approved).
+- [CODE] Added /api/tournaments/[id]: strict UUID, published-only event and divisions, no hidden draft event leak, bounded and no-cache.
+- [CODE] Added /tournaments/[id]: responsive event detail page with real event title/date/division names and truthful unavailable signup banner. No financial action.
+- [CODE] Updated /schedule event cards to actually navigate to /tournaments/[id].
+- [DATA checked] gt_tournaments and gt_divisions columns confirmed; public policies inspect and SELECT grants true; at checkpoint 0 tournaments, thus no real event to browser-test yet.
+- [NOT DONE] Node/TSC build, browser event-detail E2E, admin auth E2E, production deployment. No live claim.
+
+## Next real functional slice
+Implement verified public athlete search for GO FAN separately from authenticated private GO ID claim; make fan local bookmark UI and safe public match/event snapshot, while honoring youth privacy. Then registration draft/verification and staff competition operations with transaction/RLS tests. Do not fabricate records to make pages look populated.
+
+## Go-live release note
+Vercel staging/prod not updated. Existing 105 numbered approved mockup screens plus extra designs are an inventory of visual references, NOT completed functional routes. Keep output statuses separate: DESIGN, CODE, DATA, TEST, LIVE.
