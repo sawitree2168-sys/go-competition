@@ -13,7 +13,7 @@ export async function GET(request:Request){
   u.searchParams.set("slot","eq."+slot);
   u.searchParams.set("status","eq.published");
   u.searchParams.set("limit","3");
-  const r=await fetch(u,{headers:{apikey:key,Authorization:"Bearer "+key,Accept:"application/json"},cache:"no-store",signal:AbortSignal.timeout(8000)});
+  const r=await fetch(u,{headers:{apikey:key,Accept:"application/json"},cache:"no-store",signal:AbortSignal.timeout(8000)});
   const data:unknown=await r.json();
   if(!r.ok||!Array.isArray(data))throw Error();
   return reply({status:"ok",slot,images:data});
