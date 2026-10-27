@@ -40,3 +40,56 @@ export async function GET(request:Request){
  return reply({status:"ok",tournament_id:id,registrations:list});
  }catch{return reply({status:"error",message:"ไม่สามารถอ่านรายชื่อผู้สมัครได้ โปรดตรวจฐานข้อมูลหรือแบ่งหน้ารายการ"},503)}
 }
+
+export async function POST(request:Request){
+ const auth=await staffAuth(request);
+ if("error" in auth)return auth.error;
+ if(auth.role!=="owner"&&auth.role!=="admin")return reply({status:"forbidden",message:"เฉพาะ Owner / Admin เท่านั้น"},403);
+ let body:unknown;
+ try{body=await request.json()}catch{return reply({status:"invalid",message:"ข้อมูล JSON ไม่ถูกต้อง"},400)}
+ if(!body||typeof body!=="object"||Array.isArray(body))return reply({status:"invalid"},400);
+ const b=body as Record<string,unknown>;
+ const tournamentId=typeof b.tournament_id==="string"?b.tournament_id:"";
+ const divisionId=typeof b.division_id==="string"?b.division_id:"";
+ const goId=typeof b.go_id==="string"?b.go_id.trim():"";
+ if(!uuid.test(tournamentId)||!uuid.test(divisionId)||!/^[^\s]{3,40}$/.test(goId))
+  return reply({status:"invalid",message:"กรุณาระบุรายการแข่งขัน รุ่น และ GO ID ให้ถูกต้อง"},400);
+ async function list(table:string,select:string,filters:Record<string,string>){
+  const u=new URL("/rest/v1/"+table,auth.base);
+  u.searchParams.set("select",select);
+  for(const [key,value] of Object.entries(filters))u.searchParams.set(key,"eq."+value);
+  u.searchParams.set("limit","2");
+  const response=await fetch(u,{headers:auth.headers,cache:"no-store",signal:AbortSignal.timeout(8000)});
+  const values:unknown=await response.json();
+  if(!response.ok||!Array.isArray(values))throw Error("database");
+  return values as Record<string,unknown>[];
+ }
+ try{
+  // No athlete creation, payment verification, or confirmed registration is permitted here.
+  const [events,divisions,athletes]=await Promise.all([
+   list("gt_tournaments","id,status",{"id":tournamentId}),
+   list("gt_divisions","id,tournament_id",{"id":divisionId,"tournament_id":tournamentId}),
+   list("gt_athletes","id,go_id,full_name",{"go_id":goId})
+  ]);
+  if(events.length!==1)return reply({status:"not_found",message:"ไม่พบรายการแข่งขัน"},404);
+  if(events[0].status==="cancelled"||events[0].status==="completed")
+   return reply({status:"invalid",message:"รายการนี้ปิดการเพิ่มผู้สมัครแล้ว"},409);
+  if(divisions.length!==1)return reply({status:"invalid",message:"รุ่นแข่งขันไม่ตรงกับรายการ"},400);
+  if(athletes.length!==1)return reply({status:"not_found",message:"ไม่พบ GO ID เดิม กรุณาตรวจข้อมูลนักกีฬาก่อน"},404);
+  const athleteId=String(athletes[0].id);
+  const duplicates=await list("gt_registrations","id,division_id,registration_status",{"tournament_id":tournamentId,"athlete_id":athleteId});
+  if(duplicates.length>0)
+   return reply({status:"conflict",message:"นักกีฬาคนนี้มีใบสมัครในรายการแข่งขันนี้อยู่แล้ว ห้ามเพิ่มซ้ำ",registration:duplicates[0]},409);
+  const endpoint=new URL("/rest/v1/gt_registrations",auth.base);
+  endpoint.searchParams.set("select","id,tournament_id,division_id,athlete_id,registration_status,payment_status,created_at");
+  const inserted=await fetch(endpoint,{method:"POST",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({
+   tournament_id:tournamentId,division_id:divisionId,athlete_id:athleteId,
+   registration_status:"pending",payment_status:"pending"
+  }),cache:"no-store",signal:AbortSignal.timeout(8000)});
+  if(inserted.status===409)return reply({status:"conflict",message:"พบการสมัครซ้ำจากการบันทึกพร้อมกัน กรุณาโหลดข้อมูลใหม่"},409);
+  const saved:unknown=await inserted.json();
+  if(!inserted.ok||!Array.isArray(saved)||saved.length!==1)
+    return reply({status:"error",message:"ไม่สามารถบันทึกใบสมัครได้ โปรดตรวจข้อมูลและสิทธิ์"},503);
+  return reply({status:"ok",registration:saved[0],athlete_name:athletes[0].full_name,go_id:goId,message:"บันทึกใบสมัครรอตรวจสอบแล้ว ยังไม่ยืนยันสิทธิ์หรือรับชำระเงิน"},201);
+ }catch{return reply({status:"error",message:"การเชื่อมข้อมูลผู้สมัครขัดข้อง ไม่ได้ยืนยันการบันทึก"},503)}
+}
