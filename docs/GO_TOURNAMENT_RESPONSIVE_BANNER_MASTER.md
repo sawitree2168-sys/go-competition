@@ -35,3 +35,16 @@ The image generation contact sheet delivered in conversation is a DESIGN MOCKUP,
 - [ ] User reviews rendered screenshot and approves exact appearance as distinct from the generated collage.
 - [ ] Vercel single consolidated deployment after quota permits.
 - [ ] Website page loads 3 correct responsive sources; no layout shift/broken images; actions work.
+
+
+## New generated banner reference library — 2026-10-27
+The user liked the prior individual banners and requested saving all designs and continuing remaining pages. Verified via Drive upload + Google Sheet read/write process:
+- Previously liked 8 individual banner references stored in private creative Drive: news, rankings, calendar, contact, gallery, documents, FAQ, GO FAN.
+- This session's 4 additional composite boards stored as files: 6-section draft, 12-section draft, 12-section alternate, 8-section alternate.
+- Editorial registration: `GO TOURNAMENT — MEDIA ASSET REGISTER`, ASSET_REGISTER rows 7–18, status fields.
+- Drive folder: https://drive.google.com/drive/folders/1O0BwCxcMvxVsUtFEdYtxDwGE24p_5csq
+- Sheet: https://docs.google.com/spreadsheets/d/1wSoV5JoQJgNeUmV85_1T9RU8SATa8uRZSApYpTyFdUM/edit
+
+**IMPORTANT quality and deployment gates:** Composite boards are visual design studies only, not individually exported 1920×600, 1280×800, 800×1000 production-ready binaries. AI-drawn copies of the logo in image mockups are NOT the authoritative brand mark. Final web banners must omit/cover those copies and overlay the exact official uploaded logo, with HTML text set in licensed Prompt or Sarabun (separate from art). Generated sample athletes, medals, event dates and stats are not real. No images were auto-published to Supabase/Vercel from these reference uploads.
+
+Remaining distinct banners before project-wide coverage: event detail, payment, participant check-in, referee, pairing, standings admin, certificate, institution batch registration, institution live tracking, and role-specific admin (unless already available in accepted references). For these functional screens, a banner should be light or omit it to preserve event-day legibility.
