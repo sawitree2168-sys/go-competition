@@ -22,3 +22,12 @@
 ## Canonical record
 Drive root: https://drive.google.com/drive/folders/1y4-J6kx7uQpGhLfgu5cqGm5Dg0vsM03k
 Asset register: https://docs.google.com/spreadsheets/d/1wSoV5JoQJgNeUmV85_1T9RU8SATa8uRZSApYpTyFdUM/edit
+
+
+## 2026-10-27 follow-up: bulk uploader and verified archive manifest
+- `app/admin/site-media/SiteMediaBulkUpload.tsx` added: Owner/Admin browser selects up to 30 extracted .webp files, strict filename mapping to 9 supported slots and 3 device widths (e.g. `registration_status_mobile.webp`); rejects invalid types, duplicates, oversized files; requires explicit public-image acknowledgement.
+- Uses authenticated Supabase Storage `gt-site-assets` client upload, obtains generated public URL, then creates `gt_site_media` row with `status=draft` only. Checks already-registered slot/device BEFORE upload, to avoid most accidental orphans. Each result displays success/failure and does **NOT** publish automatically.
+- Wired uploader into `app/admin/site-media/page.tsx`. This source is **GitHub only** until next Vercel deploy. It has not been E2E-tested with actual owner auth.
+- Inspected source ZIPs in the active container with Pillow: **27 WebP files all decodable, correct dimensions, no mismatch**. Exact filename/dimensions/bytes/SHA-256 manifest exported and uploaded into Drive: https://drive.google.com/file/d/120kvH_0UQisszI9baqFnoJSrjsoLiDt4/view .
+- Supabase query prior to this coding step: `storage.objects` for bucket `gt-site-assets` was **0**. The assistant does not have a connected Supabase Storage binary upload capability here. Therefore ZERO real images were uploaded to Storage by this step; public URLs must not be fabricated and content must stay unpublished. Users will be able to batch-upload via Owner/Admin media page after deploying and verifying it.
+- During upload, WebP asset files must be extracted from their ZIP before multi-select. If a slot exists already, use manual single-image editor/PUT workflow, not duplicate POST. No upload of private athlete images to public asset bucket.
