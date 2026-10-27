@@ -6,7 +6,7 @@
 **Vercel project:** prj_rHlHu3BfpaZ0MpWfIgqosklwzwWK
 **Supabase project:** bqyokjwuxyzyiripijbs
 **Purpose:** Do not re-plan from scratch. Continue tasks in dependency order. Distinguish code, DB, deployment, and end-to-end tests.
-**Current blocker:** Vercel POST deployment returns HTTP 402 api-deployments-free-per-day; latest confirmed production website uses older deployed code, while newer APIs exist only on GitHub.
+**Deployment status last verified 2026-10-27:** earlier manual Vercel API deployment hit 402 Hobby daily creation limit; however automatic Git-linked preview builds HAVE since returned READY. Confirmed READY deployment dpl_D3TXLwPpoGitCEiJZPrrC5GdvdfP at GitHub SHA ae30da46c0347fe738dbfbf44da95661a3de2dc7 (FAQ code); alias go-tournament.vercel.app attached. Latest branch source after this SHA is NOT in that verified deployment. Never claim all Vercel deployments are blocked; check deployment SHA/alias separately. Page may still be inaccessible to some users under SSO/preview protection.
 
 ## How to use this file
 - In next conversation: "เปิด docs/GO_TOURNAMENT_EXECUTION_CHECKLIST.md แล้วทำรายการที่ยังไม่ผ่านตามลำดับ ตรวจเว็บจริงก่อนติ๊กเสร็จ".
@@ -126,3 +126,12 @@ Source of truth for this checkpoint: `migration/ACADEMY_REGISTRY_CHECKPOINT_2026
 - [~] **GT-043 | P0 | Published tournament detail vertical slice.** New `/api/tournaments/[id]` public published-only verified event + division read, exact UUID validation; new `/tournaments/[id]` functional page with real title/date/availability status, linked by `/schedule` when events exist. Event register count 0 at inspection, so live end-to-end unavailable; no fake test events inserted. DB public grants and published-only RLS inspected; code not yet built/deployed/browser tested.
 - [ ] **GT-044 | P0 | Current GitHub source build/test.** Run TypeScript and production build, route smoke tests, role gates and mobile responsiveness; repair all failures BEFORE release. No claim of passed build.
 - [ ] **GT-045 | P0 | Full user journey.** Published event -> athlete identity -> register -> payment -> check-in -> pairing optional -> verified result -> standings -> award; no skipped validation/permission/finance steps.
+
+
+## 2026-10-27 Vercel status correction and cost discipline
+- Vercel team project checked: `prj_rHlHu3BfpaZ0MpWfIgqosklwzwWK`; preview deployment `dpl_D3TXLwPpoGitCEiJZPrrC5GdvdfP` READY and carries branch commit `ae30da46c0347fe738dbfbf44da95661a3de2dc7` only. Its alias includes `go-tournament.vercel.app`, verified by get_project_domain.
+- Do **NOT** treat READY preview status as latest branch or successful end-to-end test; latest UI route + other branch commits newer than that SHA still need consolidated build and actual testing.
+- Project reports SSO enabled for non-custom domains. Verify actual visitor access and anonymous API behavior, not merely build success.
+- Vercel official pricing checked: Hobby USD $0/month, 100 deployments/day; Pro starts USD $20/month and 6,000 deployments/day (excludes tax/additional paid use). No change to subscription authorized or needed merely to complete Next.js code.
+- Automatic Git previews on **every** commit may consume Hobby daily creation quota. Reduce commit churn by staging logically related fixes together and check quota/build SHA before release; don't attempt repeated API deploy calls when limited.
+- Release requires real 390px/768px/1440px device QA, private staff authentication regression, no missing route, and verified event/registration/referee/payment flows. See `docs/GO_TOURNAMENT_FUNCTIONAL_RELEASE_MASTER.md`.
