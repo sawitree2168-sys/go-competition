@@ -8,7 +8,7 @@ const statuses=["draft","approved","published","archived"];
 export default function MediaManagement(){
  const client=useRef<SupabaseClient|null>(null);
  const [signed,setSigned]=useState(false),[ready,setReady]=useState(false),[email,setEmail]=useState("");
- const [busy,setBusy]=useState(false),[message,setMessage]=useState(""),[items,setItems]=useState<Item[]>([]);
+ const [busy,setBusy]=useState(false),[uploading,setUploading]=useState(false),[message,setMessage]=useState(""),[items,setItems]=useState<Item[]>([]);
  const [form,setForm]=useState<Item>(defaults),[existing,setExisting]=useState(false),[approval,setApproval]=useState(false);
  useEffect(()=>{let alive=true;let un=()=>{};void(async()=>{try{
   const r=await fetch("/api/auth/public-config",{cache:"no-store"});const cfg=await r.json();if(!r.ok||cfg.status!=="ok")throw Error();
@@ -30,6 +30,22 @@ export default function MediaManagement(){
  }
  function edit(item:Item){setForm({...item});setExisting(true);setApproval(false)}
  function patch<K extends keyof Item>(key:K,value:Item[K]){setForm(old=>({...old,[key]:value}))}
+ async function uploadImage(file:File|undefined){
+  if(!file||!client.current)return;
+  if(!/^[a-z][a-z0-9_-]{1,63}$/.test(form.slot)||!["desktop","tablet","mobile"].includes(form.device)){setMessage("กรุณาเลือกหน้าและอุปกรณ์ให้ถูกต้องก่อนอัปโหลด");return;}
+  if(!["image/png","image/jpeg","image/webp"].includes(file.type)||file.size>6*1024*1024){setMessage("รองรับ PNG, JPG, WebP ขนาดไม่เกิน 6 MB เท่านั้น");return;}
+  setUploading(true);setMessage("");
+  try{
+   const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
+   const folder=form.slot==="brand-logo"?"logos":"banners";
+   const path=folder+"/"+form.slot+"/"+form.device+"/"+crypto.randomUUID()+"."+ext;
+   const {error}=await client.current.storage.from("gt-site-assets").upload(path,file,{contentType:file.type,upsert:false,cacheControl:"3600"});
+   if(error)throw error;
+   const {data}=client.current.storage.from("gt-site-assets").getPublicUrl(path);
+   patch("image_url",data.publicUrl);
+   setMessage("อัปโหลดไฟล์สำหรับเว็บสำเร็จแล้ว (ไฟล์นี้เป็นสาธารณะ) กรุณาบันทึกรายการแบบร่างก่อน จากนั้นตรวจและอนุมัติ");
+  }catch(e){setMessage(e instanceof Error?e.message:"อัปโหลดภาพไม่สำเร็จ")}finally{setUploading(false)}
+ }
  async function save(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");
   try{
    const confirm_publish=approval&&(form.status==="approved"||form.status==="published");
@@ -70,12 +86,17 @@ export default function MediaManagement(){
       <label className="font-bold">Asset ID<input required value={form.asset_id} onChange={e=>patch("asset_id",e.target.value)} className="mt-2 w-full rounded-xl border p-3"/></label>
       <label className="font-bold">สถานะ<select value={form.status} onChange={e=>{patch("status",e.target.value);setApproval(false)}} className="mt-2 w-full rounded-xl border p-3">{statuses.map(x=><option key={x} value={x}>{x}</option>)}</select></label>
      </div>
+     <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50 p-4"><label className="block font-bold">อัปโหลดภาพสำหรับเว็บไซต์ (เผยแพร่สาธารณะเมื่อรู้ URL)</label>
+      <p className="text-sm text-slate-700">ใช้เฉพาะโลโก้หรือแบนเนอร์ที่ได้รับอนุญาต ห้ามอัปโหลดภาพเด็กหรือข้อมูลส่วนตัวในที่เก็บนี้ รองรับ PNG / JPG / WebP ไม่เกิน 6 MB</p>
+      <input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading||busy} onChange={e=>void uploadImage(e.target.files?.[0])} className="w-full rounded-xl border bg-white p-3" />
+      {uploading&&<p role="status" className="font-bold">กำลังอัปโหลดภาพ...</p>}
+     </div>
      <label className="block font-bold">URL ภาพสำหรับเว็บไซต์<input required value={form.image_url} onChange={e=>patch("image_url",e.target.value)} placeholder="/banners/home/home_desktop.svg" className="mt-2 w-full rounded-xl border p-3"/></label>
      <label className="block font-bold">คำอธิบายภาพ<input value={form.alt_text} onChange={e=>patch("alt_text",e.target.value)} className="mt-2 w-full rounded-xl border p-3"/></label>
      <label className="block font-bold">Drive File ID (เก็บอ้างอิง ไม่ใช่ URL ภาพหน้าเว็บ)<input value={form.drive_file_id||""} onChange={e=>patch("drive_file_id",e.target.value||null)} className="mt-2 w-full rounded-xl border p-3"/></label>
      <label className="block font-bold">ตำแหน่งใน Sheet<input value={form.sheet_row_reference||""} onChange={e=>patch("sheet_row_reference",e.target.value||null)} placeholder="ASSET_REGISTER!A2" className="mt-2 w-full rounded-xl border p-3"/></label>
      {["approved","published"].includes(form.status)&&<label className="flex items-start gap-3 rounded-xl bg-amber-50 p-4 font-bold"><input type="checkbox" checked={approval} onChange={e=>setApproval(e.target.checked)} className="mt-1 h-5 w-5"/>ฉันตรวจสอบภาพนี้แล้ว และยืนยันสถานะ {form.status==="published"?"เผยแพร่บนเว็บไซต์":"อนุมัติ"}</label>}
-     <button disabled={busy} className="w-full rounded-xl bg-[#0a4fb5] p-4 font-black text-white disabled:opacity-40">{busy?"กำลังบันทึก...":"บันทึกภาพ"}</button>
+     <button disabled={busy||uploading} className="w-full rounded-xl bg-[#0a4fb5] p-4 font-black text-white disabled:opacity-40">{busy?"กำลังบันทึก...":"บันทึกภาพ"}</button>
     </form>
    </>}
   </div>
