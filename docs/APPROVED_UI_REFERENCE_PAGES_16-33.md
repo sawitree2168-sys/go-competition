@@ -1,5 +1,5 @@
 # GO TOURNAMENT — APPROVED UI REFERENCE SCREENS 16–33
-Status: USER-APPROVED DESIGNS, not new design tasks.
+Status: USER-APPROVED DESIGNS, not new design tasks. Screens 16–33 are only one numbered subset; **33 is NOT the total number of mockups made for this project.** Additional approved/generated mockups outside the numbered range require an inventory before claiming any total.
 2026-10-27: User supplied full-resolution visual compositions for sets 4–7 in this conversation, four 1536×1024 PNG files. Preserve these designs and map UI implementation to them. Do NOT suggest remaking 25 pages as an alternative; the user explicitly said she already designed them.
 
 ## Design catalog and implementation targets
@@ -52,3 +52,17 @@ docs/GO_TOURNAMENT_EXECUTION_CHECKLIST.md:
 - GT-018 implement screen 24 and home statistics.
 - Home responsive targets screens 31–33.
 - Next stage: build pages and real interactions from these approved specs and wire Supabase; batch deployment when Vercel quota is available.
+
+
+## Additional designs outside the numbered 1–33 inventory (not yet reconciled)
+Past project design context includes separate image/mockup concepts beyond the sequentially numbered screens:
+- Athlete account search desktop UI (GO ID search, player result list, account selection).
+- Athlete account search mobile UI.
+- Athlete-versus-athlete Matchup/head-to-head/statistics dashboard UI.
+- Composite dashboard board containing athlete profile, application, menus and account tabs.
+These references must be checked for duplication against numbered screens and stored assets before a new sequential screen number is assigned. No inferred total is authorized.
+
+## Inventory standard
+Track per *design asset* and per *functional screen* separately. A single composite may contain multiple screens, and desktop/mobile variants may represent one route; duplicated drafts and revisions must not inflate functional route counts.
+Record: asset_id, source (conversation/Drive/GitHub), original image link or asset path, screen title, desktop/mobile, functional route, approved/revision/pending, linked backend feature, imported-to-repo? deployed? verified? Never claim an asset was physically copied into GitHub merely because its location was documented in a Markdown index.
+Do not cap implementation at 33. First reconcile ALL approved references, then implement without redesigning user's work.
