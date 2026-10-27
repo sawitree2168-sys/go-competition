@@ -112,6 +112,7 @@ export default function AthleteSearchPage() {
         {status==="verification_required"&&<p role="alert" className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">กรุณาเข้าสู่ระบบและยืนยันอีเมลก่อนค้นหา</p>}
         {status==="not_linked"&&<p role="status" className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">ไม่พบโปรไฟล์ชื่อนี้ที่ผูกกับบัญชีของคุณ ไม่ได้หมายความว่าไม่มีข้อมูลในระบบ หากเคยแข่งขัน สามารถส่งคำขอผูกโปรไฟล์ให้ผู้จัดตรวจสอบได้</p>}
         {status==="found"&&<div className="mt-5 space-y-2" aria-live="polite"><h2 className="font-bold">โปรไฟล์ที่คุณเข้าถึงได้</h2>{matches.map(a=><div key={a.athleteId} className="rounded-xl border p-4"><strong>{a.displayName}</strong><p className="text-sm text-slate-600">{[a.nickname,a.level].filter(Boolean).join(" • ")}</p></div>)}</div>}
+        <Link href="/athletes/activate" className="mt-5 block rounded-xl bg-blue-800 px-5 py-4 text-center font-bold text-white">เริ่มใช้บัญชีครั้งแรก / ตั้งรหัสผ่านใหม่ ›</Link>
         <Link href="/athletes/claim" className="mt-5 block rounded-xl border border-blue-700 px-5 py-4 text-center font-semibold text-blue-800">ขอผูก GO ID เดิมกับบัญชีของฉัน</Link>
       </section>
       <p className="text-center text-xs text-slate-500">เว็บไซต์ Preview สำหรับทดสอบ ยังไม่เปิดรับสมัครแข่งขันจริง</p>
