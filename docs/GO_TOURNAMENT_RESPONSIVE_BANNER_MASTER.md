@@ -57,3 +57,15 @@ Remaining distinct banners before project-wide coverage: event detail, payment, 
 - Registered 11 new records in the editorial Google Sheet (rows 21–31), nine WebP entries honestly marked `created local / waiting for upload` with empty website URLs. Do not publish before exact file upload, approval and visual review.
 - Production usage: import WebPs to approved public media storage, set slot `gallery`/`calendar`/`contact` for each device in `gt_site_media`, check approved and published status via Owner/Admin Media Manager after integration deploy. The existing homepage component can be reused on those public routes once corresponding pages are created.
 - Before publish verify Thai titles, accessibility, crop, and that any AI sample people are imagery only, not real competitors.
+
+
+## 2026-10-27 — registration/payment and staff-operation banners V2
+- Visual reference board for functional pages uploaded to Drive: https://drive.google.com/file/d/12X2ieAO013OPCWkwWfnJ0IblFvdU-Ebv/view . This is a **reference**, not deployable hero artwork.
+- Authored **18 individual WebP background assets**, with **no baked-in logo or text**, organized by: payment, registration_status, checkin, pairing, referee and admin, each in desktop/tablet/mobile.
+- Public payment/status backgrounds: desktop 1920×600, tablet 1280×800, mobile 800×1000.
+- Staff-facing checkin/pairing/referee/admin banners: compact desktop 1600×320, tablet 1200×320, mobile 800×380 to maximize screen space for tables/actions.
+- Generated conversation artifact: `GO_TOURNAMENT_FUNCTION_BANNERS_V2_18_FILES.zip` with 18 WebPs + 6-item preview + SHA256 manifest CSV. **Local conversation artifact only**; not yet uploaded to public Storage or committed to site assets. Do not claim any of these are live.
+- Wrote 19 editorial registration records into `ASSET_REGISTER` starting row 32, with honest asset-hosting status pending. The Drive link above is only the composite board; the 18 actual WebP exports need uploading.
+- Font policy: use licensed Thai Prompt or Sarabun in HTML headings and controls. The exact official owner-provided GO TOURNAMENT logo remains a separate Header image. Never add a second logo in the hero, or embed fake UI values in artwork.
+- These are DESIGN assets; no payments, athlete statuses, pairings, or referee match results are invented or changed by this work.
+- Release gates: owner reviews render, upload final WebPs to `gt-site-assets`, register and publish via Owner/Admin media editor, responsive QA, first Vercel deployment and E2E status review.
