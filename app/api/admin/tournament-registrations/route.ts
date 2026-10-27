@@ -37,7 +37,7 @@ export async function GET(request:Request){
   division_name:dnames.get(r.division_id)||"ไม่พบชื่อรุ่น",
   registration_status:r.registration_status,payment_status:r.payment_status
  }));
- return reply({status:"ok",tournament_id:id,registrations:list});
+ return reply({status:"ok",tournament_id:id,role:auth.role,registrations:list});
  }catch{return reply({status:"error",message:"ไม่สามารถอ่านรายชื่อผู้สมัครได้ โปรดตรวจฐานข้อมูลหรือแบ่งหน้ารายการ"},503)}
 }
 
