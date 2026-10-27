@@ -13,11 +13,11 @@ export default function GoFan(){
  const [searching,setSearching]=useState(false),[loading,setLoading]=useState(false);
  const [found,setFound]=useState<Athlete[]>([]),[athletes,setAthletes]=useState<Athlete[]>([]);
  const [matches,setMatches]=useState<Match[]>([]),[notice,setNotice]=useState("");
- const [error,setError]=useState("");
+ const [error,setError]=useState(""),[refreshTick,setRefreshTick]=useState(0);
  useEffect(()=>{try{const ids:unknown=JSON.parse(localStorage.getItem(KEY)||"[]");
    if(Array.isArray(ids))setSaved([...new Set(ids.filter((x):x is string=>typeof x==="string"&&idPattern.test(x)))].slice(0,MAX));
   }catch{localStorage.removeItem(KEY)}setHydrated(true)},[]);
- useEffect(()=>{if(hydrated)localStorage.setItem(KEY,JSON.stringify(saved))},[saved,hydrated]);
+ useEffect(()=>{if(hydrated)localStorage.setItem(KEY,JSON.stringify(saved))},[saved,hydrated,refreshTick]);
  useEffect(()=>{if(!hydrated)return;let live=true;const ctrl=new AbortController();
   async function load(){setLoading(true);setError("");
    if(saved.length===0){setAthletes([]);setMatches([]);setLoading(false);return}
@@ -56,10 +56,10 @@ export default function GoFan(){
    {notice&&<p role="status" className="rounded-xl border border-blue-200 bg-blue-50 p-4 font-semibold">{notice}</p>}
    {error&&<p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-800">{error}</p>}
    <section className="rounded-2xl bg-white p-5 shadow-sm">
-    <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-black">นักกีฬาที่ติดตาม ({saved.length}/{MAX})</h2><button type="button" onClick={clear} disabled={!saved.length} className="min-h-11 rounded-xl border border-red-300 px-4 py-2 font-bold text-red-700 disabled:opacity-40">ล้างทั้งหมด</button></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-black">นักกีฬาที่ติดตาม ({saved.length}/{MAX})</h2><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>setRefreshTick(x=>x+1)} disabled={loading||!saved.length} className="min-h-11 rounded-xl border border-blue-700 bg-blue-50 px-4 py-2 font-bold text-blue-800 disabled:opacity-40">อัปเดตผล</button><button type="button" onClick={clear} disabled={!saved.length} className="min-h-11 rounded-xl border border-red-300 px-4 py-2 font-bold text-red-700 disabled:opacity-40">ล้างทั้งหมด</button></div></div>
     {loading&&<p role="status" className="mt-4">กำลังโหลดผลการแข่งขัน...</p>}
     {!loading&&!saved.length&&<p className="mt-4 rounded-xl border border-dashed p-6 text-center text-slate-600">ยังไม่มีนักกีฬาที่ติดตาม ค้นหาแล้วกด + ติดตาม ได้เลยค่ะ</p>}
-    {!loading&&saved.length>list.length&&<p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-950">นักกีฬาบางคนไม่สามารถแสดงข้อมูลสาธารณะได้แล้ว คุณสามารถลบรายชื่อนั้นออกได้โดยกดล้างทั้งหมด</p>}
+    {!loading&&saved.length>list.length&&<div className="mt-4 space-y-2 rounded-xl bg-amber-50 p-4 text-sm text-amber-950"><p>บางรายชื่อไม่สามารถเปิดเผยข้อมูลสาธารณะได้ในขณะนี้ สามารถลบออกเป็นรายคนได้</p>{saved.filter(id=>!athletes.some(a=>a.id===id)).map(id=><div key={id} className="flex items-center justify-between gap-2 rounded-lg bg-white p-3"><span>นักกีฬาที่ไม่เปิดเผยข้อมูล</span><button type="button" onClick={()=>remove(id)} className="min-h-11 rounded-lg border border-red-300 px-4 font-bold text-red-700">ลบรายนี้</button></div>)}</div>}
     <div className="mt-4 grid gap-4 lg:grid-cols-2">{list.map(a=>{
      const rounds=grouped.get(a.id)||[];const wins=rounds.filter(m=>m.winner_id===a.id).length;const defeats=rounds.filter(m=>m.winner_id!==a.id).length;
      return <article key={a.id} className="rounded-2xl border border-blue-100 bg-[#f8fbff] p-4">
