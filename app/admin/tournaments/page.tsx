@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import {SiteSectionBanner} from "../../components/SiteSectionBanner";
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
 type Tournament={id:string;title:string;start_at:string|null;status:string;published:boolean};
@@ -73,10 +74,10 @@ export default function TournamentAdmin(){
  const selectedEvent=events.find(x=>x.id===selected);
  return <main className="min-h-screen bg-[#f2f6fc] text-[#112d57]">
   <header className="bg-[#09244e] p-5 text-white"><div className="mx-auto max-w-5xl">
-   <Link href="/" className="text-[#f0cd82]">‹ GO TOURNAMENT</Link><h1 className="mt-3 text-3xl font-extrabold">ศูนย์จัดการรายการแข่งขัน</h1>
-   <p className="mt-2 text-blue-100">ปีการแข่งขัน • รุ่น • ผู้สมัคร • การเงิน • ผลแข่งขัน • สื่อ</p>
+   <Link href="/" className="text-[#f0cd82]">‹ GO TOURNAMENT</Link><p className="mt-2 text-sm text-blue-100">เครื่องมือสำหรับเจ้าหน้าที่ที่ได้รับสิทธิ์</p>
   </div></header>
   <div className="mx-auto max-w-5xl space-y-5 px-4 py-7">
+   <SiteSectionBanner slot="admin" compact eyebrow="STAFF DASHBOARD" title="ศูนย์จัดการรายการแข่งขัน" description="ปีการแข่งขัน • รุ่น • ผู้สมัคร • การเงิน • ผลแข่งขัน • สื่อ"/>
    {!ready&&<p>กำลังตรวจสอบสิทธิ์...</p>}
    {ready&&!signed&&<section className="rounded-2xl bg-white p-6 shadow-sm">
     <h2 className="text-xl font-extrabold">เข้าสู่ระบบ Owner / Admin</h2>
