@@ -1,4 +1,5 @@
 import Link from "next/link";
+import {SiteHeroMedia,SiteOfficialLogo} from "./components/SiteHeroMedia";
 
 const modules = [
  {title:"ปฏิทินการแข่งขัน",detail:"อ่านรายการแข่งขันที่ประกาศเผยแพร่จากฐานข้อมูลจริง",href:"/schedule",symbol:"▦",state:"เชื่อมข้อมูลแล้ว"},
@@ -14,18 +15,14 @@ export default function Home(){
  return <main className="min-h-screen bg-[#f4f7fc] text-[#10294b]">
    <header className="bg-[#09264e] text-white">
     <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-5">
-     <Link href="/" className="flex items-center gap-3 font-black tracking-widest text-[#f1cb75] sm:text-xl"><span className="inline-flex items-center rounded-lg border border-[#efc96a]/60 px-3 py-2 text-lg font-black tracking-wide text-[#f9e6ad]">GO TOURNAMENT</span></Link>
+     <Link href="/" className="flex items-center gap-3 font-black tracking-widest text-[#f1cb75] sm:text-xl"><SiteOfficialLogo/></Link>
      <span className="rounded-full border border-amber-200/40 bg-amber-100/10 px-3 py-2 text-xs font-semibold text-[#f1cb75]">เวอร์ชันทดสอบระบบจริง</span>
     </div>
    </header>
    <div className="mx-auto max-w-6xl px-4 pt-5"><Link href="/visual-overview" className="flex min-h-14 items-center justify-center rounded-2xl border border-[#c9a661] bg-[#fff8e7] px-5 py-4 text-center font-extrabold text-[#163c71]">ดูผังภาพรวมเว็บไซต์ทั้งระบบ (7 หมวด) ›</Link></div>
    <section className="mx-auto max-w-6xl px-4 pt-7 sm:pt-12">
     <div className="relative isolate min-h-[530px] overflow-hidden rounded-3xl bg-[#073f94] text-white shadow-lg sm:min-h-[500px] lg:min-h-[450px]">
-     <picture className="absolute inset-0 -z-20 block h-full w-full" aria-hidden="true">
-       <source media="(max-width: 639px)" srcSet="/banners/home/home_mobile.svg" type="image/svg+xml"/>
-       <source media="(max-width: 1023px)" srcSet="/banners/home/home_tablet.svg" type="image/svg+xml"/>
-       <img src="/banners/home/home_desktop.svg" alt="" className="h-full w-full object-cover object-center" fetchPriority="high"/>
-     </picture>
+     <SiteHeroMedia slot="home"/>
      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#041633]/90 via-[#062b65]/75 to-[#064c9a]/20"/>
      <div className="relative max-w-3xl p-6 sm:p-10 lg:p-12">
      <p className="text-sm font-extrabold tracking-[0.2em] text-[#f4cc76]">GO TOURNAMENT</p>
