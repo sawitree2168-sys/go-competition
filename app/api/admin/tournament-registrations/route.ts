@@ -17,7 +17,7 @@ export async function GET(request:Request){
  };
  try{
  const [registrations,divisions]=await Promise.all([
-  get("gt_registrations","id,athlete_id,division_id,registration_status,payment_status,fee_snapshot_thb,created_at","tournament_id"),
+  get("gt_registrations","id,athlete_id,division_id,registration_status,payment_status,fee_snapshot_thb,competition_rank_reference,rank_reference_source,created_at","tournament_id"),
   get("gt_divisions","id,name","tournament_id")
  ]);
  const dnames=new Map(divisions.map(d=>[d.id,d.name]));
@@ -34,6 +34,8 @@ export async function GET(request:Request){
   athlete_id:r.athlete_id,go_id:amap.get(r.athlete_id)?.go_id||null,
   athlete_name:amap.get(r.athlete_id)?.full_name||"ไม่พบข้อมูลนักกีฬา",
   rank:amap.get(r.athlete_id)?.current_rank||null,
+  competition_rank_reference:r.competition_rank_reference||null,
+  rank_reference_source:r.rank_reference_source||null,
   division_name:dnames.get(r.division_id)||"ไม่พบชื่อรุ่น",
   registration_status:r.registration_status,payment_status:r.payment_status,fee_snapshot_thb:r.fee_snapshot_thb
  }));
@@ -81,7 +83,7 @@ export async function POST(request:Request){
   if(duplicates.length>0)
    return reply({status:"conflict",message:"นักกีฬาคนนี้มีใบสมัครในรายการแข่งขันนี้อยู่แล้ว ห้ามเพิ่มซ้ำ",registration:duplicates[0]},409);
   const endpoint=new URL("/rest/v1/gt_registrations",auth.base);
-  endpoint.searchParams.set("select","id,tournament_id,division_id,athlete_id,registration_status,payment_status,created_at");
+  endpoint.searchParams.set("select","id,tournament_id,division_id,athlete_id,registration_status,payment_status,fee_snapshot_thb,competition_rank_reference,rank_reference_source,created_at");
   const inserted=await fetch(endpoint,{method:"POST",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({
    tournament_id:tournamentId,division_id:divisionId,athlete_id:athleteId,
    registration_status:"pending",payment_status:"pending"
