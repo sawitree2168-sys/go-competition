@@ -15,7 +15,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   eventUrl.searchParams.set("published","eq.true");
   eventUrl.searchParams.set("limit","1");
   const divisionUrl=new URL("/rest/v1/gt_divisions",base);
-  divisionUrl.searchParams.set("select","id,name,seats_limit,pairing_enabled");
+  divisionUrl.searchParams.set("select","id,name,seats_limit,pairing_enabled,entry_fee_thb");
   divisionUrl.searchParams.set("tournament_id","eq."+id);
   divisionUrl.searchParams.set("order","name.asc");
   divisionUrl.searchParams.set("limit","100");
