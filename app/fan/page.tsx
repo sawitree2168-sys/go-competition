@@ -27,7 +27,7 @@ export default function GoFan(){
     if(!r.ok||d.status!=="ok"||!Array.isArray(d.athletes)||!Array.isArray(d.results))throw Error(d.message||"โหลดผลการแข่งขันไม่ได้");
     if(live){setAthletes(d.athletes);setMatches(d.results)}
    }catch(e){if(live&&!ctrl.signal.aborted){setError(e instanceof Error?e.message:"ไม่สามารถโหลดผลได้");setAthletes([]);setMatches([])}}finally{if(live)setLoading(false)}
-  }void load();return()=>{live=false;ctrl.abort()};},[saved,hydrated]);
+  }void load();return()=>{live=false;ctrl.abort()};},[saved,hydrated,refreshTick]);
  async function search(e:FormEvent){e.preventDefault();const q=query.trim();if(q.length<2)return;setSearching(true);setNotice("");setError("");setFound([]);
   try{const r=await fetch("/api/fan?mode=search&q="+encodeURIComponent(q),{cache:"no-store"});const d:WatchResult=await r.json();
    if(!r.ok||d.status!=="ok"||!Array.isArray(d.athletes))throw Error(d.message||"ค้นหาไม่ได้");
