@@ -17,7 +17,7 @@ export async function GET(request:Request){
  };
  try{
  const [registrations,divisions]=await Promise.all([
-  get("gt_registrations","id,athlete_id,division_id,registration_status,payment_status,created_at","tournament_id"),
+  get("gt_registrations","id,athlete_id,division_id,registration_status,payment_status,fee_snapshot_thb,created_at","tournament_id"),
   get("gt_divisions","id,name","tournament_id")
  ]);
  const dnames=new Map(divisions.map(d=>[d.id,d.name]));
@@ -35,7 +35,7 @@ export async function GET(request:Request){
   athlete_name:amap.get(r.athlete_id)?.full_name||"ไม่พบข้อมูลนักกีฬา",
   rank:amap.get(r.athlete_id)?.current_rank||null,
   division_name:dnames.get(r.division_id)||"ไม่พบชื่อรุ่น",
-  registration_status:r.registration_status,payment_status:r.payment_status
+  registration_status:r.registration_status,payment_status:r.payment_status,fee_snapshot_thb:r.fee_snapshot_thb
  }));
  return reply({status:"ok",tournament_id:id,role:auth.role,registrations:list});
  }catch{return reply({status:"error",message:"ไม่สามารถอ่านรายชื่อผู้สมัครได้ โปรดตรวจฐานข้อมูลหรือแบ่งหน้ารายการ"},503)}
