@@ -14,7 +14,7 @@ export default function Home(){
  return <main className="min-h-screen bg-[#f4f7fc] text-[#10294b]">
    <header className="bg-[#09264e] text-white">
     <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-5">
-     <Link href="/" className="flex items-center gap-3 font-black tracking-widest text-[#f1cb75] sm:text-xl"><img src="/visual/logo.jpg" alt="GO TOURNAMENT" className="h-12 w-16 rounded bg-white object-contain"/>GO TOURNAMENT</Link>
+     <Link href="/" className="flex items-center gap-3 font-black tracking-widest text-[#f1cb75] sm:text-xl"><span className="inline-flex items-center rounded-lg border border-[#efc96a]/60 px-3 py-2 text-lg font-black tracking-wide text-[#f9e6ad]">GO TOURNAMENT</span></Link>
      <span className="rounded-full border border-amber-200/40 bg-amber-100/10 px-3 py-2 text-xs font-semibold text-[#f1cb75]">เวอร์ชันทดสอบระบบจริง</span>
     </div>
    </header>
