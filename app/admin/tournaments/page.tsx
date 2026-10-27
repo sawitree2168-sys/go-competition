@@ -173,6 +173,7 @@ export default function TournamentAdmin(){
     </>}
    </section>}
    {message&&status!=="error"&&status!=="forbidden"&&<p role="status" className="rounded-xl bg-white p-4">{message}</p>}
+   <Link href="/admin/academies" className="block rounded-xl bg-[#f4e3be] p-4 text-center font-extrabold text-[#0b2b5c]">จัดการสถาบัน / เชื่อม GO ID นักกีฬา ›</Link>
    <section className="rounded-2xl bg-white p-5"><h2 className="text-xl font-extrabold">ศูนย์รวมข้อมูลแต่ละการแข่งขัน</h2>
     <div className="mt-4 grid gap-3 sm:grid-cols-2">{modules.map(x=><div key={x} className="rounded-xl border bg-slate-50 p-4 font-semibold">{x}<p className="mt-1 text-xs font-normal text-slate-500">ทยอยเชื่อมข้อมูลตาม Tournament ID</p></div>)}</div>
     <Link href="/admin/athlete-claims" className="mt-4 block rounded-xl bg-[#e9f0fb] p-4 text-center font-bold text-blue-900">ตรวจคำขอ GO ID ›</Link>
