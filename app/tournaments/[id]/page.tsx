@@ -16,7 +16,7 @@ export default function TournamentDetailsPage(){
    const v=await r.json();
    if(!r.ok||v.status!=="ok"||!v.tournament||!Array.isArray(v.divisions))throw Error();
    if(alive){setEvent(v.tournament);setDivisions(v.divisions);setState("ready")}
-  }catch{if(alive&&!ctrl.signal.aborted)setState("error")}})();return()=>{alive=false;ctrl.abort()},[id]);
+  }catch{if(alive&&!ctrl.signal.aborted)setState("error")}})();return()=>{alive=false;ctrl.abort()};},[id]);
  const date=event?.start_at?new Date(event.start_at).toLocaleString("th-TH",{year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Bangkok"}):"ยังไม่ระบุวันและเวลา";
  return <main className="min-h-screen bg-[#f0f5fc] text-[#12315c]">
   <header className="bg-[#082b61] px-5 py-5 text-white"><div className="mx-auto max-w-5xl"><Link href="/schedule" className="font-bold text-amber-200">‹ กลับรายการแข่งขัน</Link></div></header>
