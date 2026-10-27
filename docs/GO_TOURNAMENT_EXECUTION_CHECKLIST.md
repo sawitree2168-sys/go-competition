@@ -108,3 +108,8 @@ Source of truth for this checkpoint: `migration/ACADEMY_REGISTRY_CHECKPOINT_2026
 
 ## 2026-10-27 — function-specific visual banner asset checkpoint
 - [~] **GT-036 | P1 | Registration/payment and Admin/Referee banners V2.** Created 18 individual logo-free, text-free WebP backgrounds: payment, registration status, check-in, pairing, referee and admin × 3 devices. Staff banners use compact height; public backgrounds retain original Desktop/Tablet/Mobile format. Complete ZIP and SHA256 manifest are local conversation artifacts; 19 editorial rows added to Google Sheet; composite reference board uploaded to Drive. **Not yet binary-hosted on the site, not approved/published, no production tests.** Details `docs/GO_TOURNAMENT_RESPONSIVE_BANNER_MASTER.md`.
+
+
+## 2026-10-27 archive + route integration checkpoint
+- [~] **GT-037 | P0 | Preserve real banner export files.** Uploaded 2 source ZIPs containing 9 public WebPs and 18 functional WebPs into Drive 03_BANNERS_WEB_EXPORT; verified spreadsheet rows 23–31 and 33–50 now reference the containing ZIP in column G, while web URL column H is still intentionally empty. Individual WebP objects **not yet on public Storage**, no approval/publish.
+- [~] **GT-038 | P1 | Reusable route-bound responsive banner UI.** Added `app/components/SiteSectionBanner.tsx`; wired existing `/schedule` to `calendar` and `/admin/tournaments` to compact `admin` responsive slot; original real-data lists/forms preserved. NOT typechecked, deployed, browser tested. See `migration/BANNER_EXPORT_ASSET_DISTRIBUTION_2026-10-27.md`.
