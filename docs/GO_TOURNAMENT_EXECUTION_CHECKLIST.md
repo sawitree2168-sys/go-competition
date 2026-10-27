@@ -81,3 +81,7 @@
 - [ ] **GT-029 | P0 | Academy batch registration with transaction, unique idempotency and fee allocations.** Next development stage; use academy-approved roster only, no direct write of money status as verified, protect across institutions.
 
 Source of truth for this checkpoint: `migration/ACADEMY_REGISTRY_CHECKPOINT_2026-10-27.md`.
+
+
+## Newly requested spectator experience — GO FAN
+- [ ] **GT-030 | P1 | GO FAN multi-athlete following.** Parent/guardian/FC/spectator can follow any number of approved public athletes from same or different academies. One mobile dashboard shows statuses, rounds, verified results, final official placements; filters, follow/unfollow, refresh and privacy constraints. Spec saved at `docs/GO_FAN_MULTI_ATHLETE_FOLLOW_SPEC.md`. Pending privacy/schema review, RLS follow data, approved public API, UI, tests and deployment. Does not grant academy staff/guardian privileges to fans.
