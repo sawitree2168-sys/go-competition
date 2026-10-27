@@ -4,7 +4,7 @@ import {SiteSectionBanner} from "../../components/SiteSectionBanner";
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
 type Tournament={id:string;title:string;start_at:string|null;status:string;published:boolean};
-type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean};
+type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean;entry_fee_thb:number|null};
 type Applicant={id:string;go_id:string|null;athlete_name:string;rank:string|null;division_name:string;registration_status:string;payment_status:string};
 type NewsRow={id:string;title:string;body:string;status:string;created_at:string};
 type Summary={counts:{divisions:number;registrations:number;confirmedRegistrations:number;paymentVerifiedRegistrations:number;matches:number;verifiedMatches:number;news:number;media:number;certificates:number};finance:null|{payments:number;verifiedPayments:number;verifiedAmount:number;expenses:number}};
@@ -16,7 +16,7 @@ export default function TournamentAdmin(){
  const [status,setStatus]=useState<"idle"|"loading"|"ok"|"error"|"forbidden">("idle"),[message,setMessage]=useState("");
  const [role,setRole]=useState(""),[events,setEvents]=useState<Tournament[]>([]);
  const [year,setYear]=useState("2026"),[title,setTitle]=useState(""),[date,setDate]=useState("");
- const [selected,setSelected]=useState<string|null>(null),[divisions,setDivisions]=useState<Division[]>([]),[divName,setDivName]=useState(""),[seats,setSeats]=useState("");
+ const [selected,setSelected]=useState<string|null>(null),[divisions,setDivisions]=useState<Division[]>([]),[divName,setDivName]=useState(""),[seats,setSeats]=useState(""),[entryFee,setEntryFee]=useState("");
  const [summary,setSummary]=useState<Summary|null>(null),[summaryBusy,setSummaryBusy]=useState(false);
  const [albumUrl,setAlbumUrl]=useState(""),[albumSaving,setAlbumSaving]=useState(false);
  const [applicants,setApplicants]=useState<Applicant[]>([]);
@@ -66,7 +66,7 @@ export default function TournamentAdmin(){
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกลิงก์ไม่สำเร็จ")}finally{setAlbumSaving(false)}
  }
  async function createDivision(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
-  try{const d=await api("/api/admin/tournament-divisions","POST",{tournament_id:selected,name:divName,seats_limit:seats});setDivisions(old=>[...old,d.division]);setSummary(old=>old?{...old,counts:{...old.counts,divisions:old.counts.divisions+1}}:old);setDivName("");setSeats("");setMessage("เพิ่มรุ่นแข่งขันสำเร็จ")}
+  try{const d=await api("/api/admin/tournament-divisions","POST",{tournament_id:selected,name:divName,seats_limit:seats,entry_fee_thb:entryFee});setDivisions(old=>[...old,d.division]);setSummary(old=>old?{...old,counts:{...old.counts,divisions:old.counts.divisions+1}}:old);setDivName("");setSeats("");setEntryFee("");setMessage("เพิ่มรุ่นแข่งขันสำเร็จ")}
   catch(e){setMessage(e instanceof Error?e.message:"เพิ่มรุ่นไม่สำเร็จ")}finally{setBusy(false)}
  }
  const yearOf=(x:Tournament)=>x.start_at?new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Bangkok",year:"numeric"}).format(new Date(x.start_at)):"";
@@ -168,6 +168,7 @@ export default function TournamentAdmin(){
       {["owner","admin"].includes(role)&&!selectedEvent.published&&<form onSubmit={createDivision} className="mt-4 space-y-3">
        <label className="block">ชื่อรุ่น<input required minLength={2} maxLength={100} value={divName} onChange={e=>setDivName(e.target.value)} placeholder="เช่น 1–2 คิว" className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
        <label className="block">จำนวนรับ (เว้นว่าง = ไม่จำกัด)<input type="number" min={1} max={10000} value={seats} onChange={e=>setSeats(e.target.value)} className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
+       <label className="block">ค่าสมัครต่อคน (บาท) — เว้นว่าง = ยังไม่กำหนด<input type="number" inputMode="decimal" min={0} max={1000000} step="0.01" value={entryFee} onChange={e=>setEntryFee(e.target.value)} placeholder="เช่น 500.00" className="mt-1 w-full rounded-lg border bg-white p-3"/><span className="mt-1 block text-xs text-slate-600">ใช้เป็นค่าสมัครอ้างอิงตอนสร้างใบสมัคร ไม่ใช่ยอดเงินที่ได้รับแล้ว</span></label>
        <button disabled={busy} className="rounded-xl bg-blue-800 px-5 py-3 font-bold text-white">เพิ่มรุ่นแข่งขัน</button>
       </form>}
      </section>}
