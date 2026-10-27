@@ -3,7 +3,7 @@ import Link from "next/link";
 import {SiteSectionBanner} from "../../components/SiteSectionBanner";
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
-type Tournament={id:string;title:string;start_at:string|null;status:string;published:boolean};
+type Tournament={id:string;title:string;start_at:string|null;status:string;published:boolean;default_kyu_fee_thb:number;default_dan_fee_thb:number};
 type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean;entry_fee_thb:number|null};
 type Applicant={id:string;go_id:string|null;athlete_name:string;rank:string|null;division_name:string;registration_status:string;payment_status:string};
 type NewsRow={id:string;title:string;body:string;status:string;created_at:string};
@@ -17,6 +17,7 @@ export default function TournamentAdmin(){
  const [role,setRole]=useState(""),[events,setEvents]=useState<Tournament[]>([]);
  const [year,setYear]=useState("2026"),[title,setTitle]=useState(""),[date,setDate]=useState("");
  const [selected,setSelected]=useState<string|null>(null),[divisions,setDivisions]=useState<Division[]>([]),[divName,setDivName]=useState(""),[seats,setSeats]=useState(""),[entryFee,setEntryFee]=useState("");
+ const [kyuPrice,setKyuPrice]=useState("500"),[danPrice,setDanPrice]=useState("600"),[feeOverrides,setFeeOverrides]=useState<Record<string,string>>({});
  const [summary,setSummary]=useState<Summary|null>(null),[summaryBusy,setSummaryBusy]=useState(false);
  const [albumUrl,setAlbumUrl]=useState(""),[albumSaving,setAlbumSaving]=useState(false);
  const [applicants,setApplicants]=useState<Applicant[]>([]);
@@ -51,8 +52,8 @@ export default function TournamentAdmin(){
   try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setSummary(null);setAlbumUrl("");setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกไม่สำเร็จ")}finally{setBusy(false)}
  }
- async function chooseEvent(id:string){setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setApplicants([]);setNews([]);setMessage("");setSummaryBusy(true);
-  try{const [d,s,a,r,n]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-albums?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-registrations?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-news?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setSummary(s);setAlbumUrl(a.album?.drive_folder_url||"");setApplicants(r.registrations);setNews(n.news)}
+ async function chooseEvent(id:string){const ev=events.find(x=>x.id===id);setKyuPrice(String(ev?.default_kyu_fee_thb??500));setDanPrice(String(ev?.default_dan_fee_thb??600));setFeeOverrides({});setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setApplicants([]);setNews([]);setMessage("");setSummaryBusy(true);
+  try{const [d,s,a,r,n]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-albums?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-registrations?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-news?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setFeeOverrides(Object.fromEntries((d.divisions as Division[]).map(x=>[x.id,x.entry_fee_thb===null?"":String(x.entry_fee_thb)])));setSummary(s);setAlbumUrl(a.album?.drive_folder_url||"");setApplicants(r.registrations);setNews(n.news)}
   catch(e){setMessage(e instanceof Error?e.message:"โหลดข้อมูลรายการแข่งขันไม่สำเร็จ")}
   finally{setSummaryBusy(false)}
  }
@@ -68,6 +69,14 @@ export default function TournamentAdmin(){
  async function createDivision(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
   try{const d=await api("/api/admin/tournament-divisions","POST",{tournament_id:selected,name:divName,seats_limit:seats,entry_fee_thb:entryFee});setDivisions(old=>[...old,d.division]);setSummary(old=>old?{...old,counts:{...old.counts,divisions:old.counts.divisions+1}}:old);setDivName("");setSeats("");setEntryFee("");setMessage("เพิ่มรุ่นแข่งขันสำเร็จ")}
   catch(e){setMessage(e instanceof Error?e.message:"เพิ่มรุ่นไม่สำเร็จ")}finally{setBusy(false)}
+ }
+ async function saveDefaultFees(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
+  try{const result=await api("/api/admin/tournaments","PATCH",{tournament_id:selected,default_kyu_fee_thb:kyuPrice,default_dan_fee_thb:danPrice});setEvents(old=>old.map(x=>x.id===selected?{...x,...result.tournament}:x));setMessage("บันทึกราคาคิวและดั้งแล้ว รุ่นเดิมยังคงราคาของรุ่นไว้ตามที่ตั้งไว้");}
+  catch(e){setMessage(e instanceof Error?e.message:"แก้ค่าสมัครไม่สำเร็จ")}finally{setBusy(false)}
+ }
+ async function saveDivisionFee(id:string){if(!selected)return;setBusy(true);setMessage("");
+  try{const result=await api("/api/admin/tournament-divisions","PATCH",{tournament_id:selected,division_id:id,entry_fee_thb:feeOverrides[id]});setDivisions(old=>old.map(x=>x.id===id?{...x,entry_fee_thb:result.division.entry_fee_thb}:x));setMessage("บันทึกค่าสมัครรุ่นแล้ว ใบสมัครเดิมไม่เปลี่ยนราคา");}
+  catch(e){setMessage(e instanceof Error?e.message:"เปลี่ยนค่าสมัครรุ่นไม่สำเร็จ")}finally{setBusy(false)}
  }
  const yearOf=(x:Tournament)=>x.start_at?new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Bangkok",year:"numeric"}).format(new Date(x.start_at)):"";
  const rows=events.filter(x=>yearOf(x)===year);
@@ -129,7 +138,25 @@ export default function TournamentAdmin(){
         </div>}
         <p className="mt-2 text-xs text-slate-500">ยอดแสดงจากข้อมูลใน Supabase ไม่ใช่เงินเข้าบัญชีธนาคารที่ตรวจยืนยันภายนอก</p>
       </div>}
-      <div className="mt-3 space-y-2">{divisions.map(d=><div key={d.id} className="rounded-lg border bg-white p-3">{d.name} • {d.seats_limit?d.seats_limit+" ที่":"ไม่จำกัดจำนวน"}</div>)}</div>
+      <div className="mt-4 rounded-xl border border-blue-200 bg-white p-4">
+       <h4 className="text-lg font-extrabold">ตั้งค่าราคาค่าสมัครของรายการ</h4>
+       <p className="mt-1 text-sm text-slate-600">ราคาเริ่มต้น: รุ่นคิว 500 บาท และรุ่นดั้ง 600 บาท ปรับราคาของรายการนี้ได้ โดยรุ่นเดิมไม่เปลี่ยนราคาจนกว่าจะกดบันทึกแก้ไขที่รุ่น</p>
+       <form onSubmit={saveDefaultFees} className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <label className="font-bold">ราคามาตรฐานรุ่นคิว (บาท)<input type="number" min="0" max="1000000" step="0.01" value={kyuPrice} onChange={e=>setKyuPrice(e.target.value)} required disabled={!["owner","admin"].includes(role)} className="mt-2 w-full rounded-xl border p-3"/></label>
+        <label className="font-bold">ราคามาตรฐานรุ่นดั้ง (บาท)<input type="number" min="0" max="1000000" step="0.01" value={danPrice} onChange={e=>setDanPrice(e.target.value)} required disabled={!["owner","admin"].includes(role)} className="mt-2 w-full rounded-xl border p-3"/></label>
+        {["owner","admin"].includes(role)&&<button disabled={busy} className="min-h-12 rounded-xl bg-blue-800 px-5 py-3 font-bold text-white disabled:opacity-40">บันทึกค่าเริ่มต้น</button>}
+       </form>
+       <p className="mt-2 text-xs text-slate-600">ราคาของนักกีฬาที่ลงทะเบียนไว้แล้วจะใช้ยอด ณ วันสมัคร ไม่ถูกเปลี่ยนย้อนหลัง และไม่ได้หมายถึงรับชำระแล้ว</p>
+      </div>
+      <div className="mt-3 space-y-2">{divisions.map(d=><div key={d.id} className="rounded-xl border bg-white p-4">
+       <p className="font-bold">{d.name} • {d.seats_limit?d.seats_limit+" ที่":"ไม่จำกัดจำนวน"}</p>
+       <div className="mt-3 flex flex-wrap items-end gap-3">
+        <label className="flex-1 text-sm font-semibold">ค่าสมัครรุ่นนี้ (บาท)
+         <input type="number" min="0" max="1000000" step="0.01" value={feeOverrides[d.id]??String(d.entry_fee_thb??"")} onChange={e=>setFeeOverrides(x=>({...x,[d.id]:e.target.value}))} disabled={!["owner","admin"].includes(role)} className="mt-1 w-full rounded-lg border p-3" placeholder="ยังไม่กำหนด"/>
+        </label>
+        {["owner","admin"].includes(role)&&<button type="button" disabled={busy||!String(feeOverrides[d.id]??"").trim()} onClick={()=>void saveDivisionFee(d.id)} className="min-h-12 rounded-xl bg-[#0b4a97] px-4 py-3 font-bold text-white disabled:opacity-40">แก้ไขราคาของรุ่น</button>}
+       </div>
+      </div>)}</div>
       <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
        <h4 className="font-extrabold">ข่าวของรายการแข่งขัน</h4>
        <p className="mt-1 text-sm text-slate-600">ข่าวทั้งหมด {news.length} รายการ · เพิ่มได้เป็นแบบร่างเท่านั้น</p>
@@ -168,7 +195,7 @@ export default function TournamentAdmin(){
       {["owner","admin"].includes(role)&&!selectedEvent.published&&<form onSubmit={createDivision} className="mt-4 space-y-3">
        <label className="block">ชื่อรุ่น<input required minLength={2} maxLength={100} value={divName} onChange={e=>setDivName(e.target.value)} placeholder="เช่น 1–2 คิว" className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
        <label className="block">จำนวนรับ (เว้นว่าง = ไม่จำกัด)<input type="number" min={1} max={10000} value={seats} onChange={e=>setSeats(e.target.value)} className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
-       <label className="block">ค่าสมัครต่อคน (บาท) — เว้นว่าง = ยังไม่กำหนด<input type="number" inputMode="decimal" min={0} max={1000000} step="0.01" value={entryFee} onChange={e=>setEntryFee(e.target.value)} placeholder="เช่น 500.00" className="mt-1 w-full rounded-lg border bg-white p-3"/><span className="mt-1 block text-xs text-slate-600">ใช้เป็นค่าสมัครอ้างอิงตอนสร้างใบสมัคร ไม่ใช่ยอดเงินที่ได้รับแล้ว</span></label>
+       <label className="block">ค่าสมัครต่อคน (บาท) — เว้นว่าง = ใช้ราคาเริ่มต้นคิว/ดั้งตามชื่อรุ่น<input type="number" inputMode="decimal" min={0} max={1000000} step="0.01" value={entryFee} onChange={e=>setEntryFee(e.target.value)} placeholder="เช่น 500.00" className="mt-1 w-full rounded-lg border bg-white p-3"/><span className="mt-1 block text-xs text-slate-600">ใช้เป็นค่าสมัครอ้างอิงตอนสร้างใบสมัคร ไม่ใช่ยอดเงินที่ได้รับแล้ว</span></label>
        <button disabled={busy} className="rounded-xl bg-blue-800 px-5 py-3 font-bold text-white">เพิ่มรุ่นแข่งขัน</button>
       </form>}
      </section>}
