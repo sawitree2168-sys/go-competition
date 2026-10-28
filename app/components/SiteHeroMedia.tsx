@@ -14,7 +14,7 @@ export function SiteHeroMedia({slot="home"}:{slot?:string}){
  if(!desktop)return null;
  const tablet=sourceFor(images,"tablet");
  const mobile=sourceFor(images,"mobile");
- return <picture aria-hidden="true" className="absolute inset-0 -z-20 block h-full w-full">
+ return <picture aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 block h-full w-full">
   {mobile&&<source media="(max-width: 639px)" srcSet={mobile}/>}
   {tablet&&<source media="(max-width: 1023px)" srcSet={tablet}/>}
   <img src={desktop} alt="" className="h-full w-full object-cover object-center"/>
