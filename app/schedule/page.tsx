@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {SiteSectionBanner} from "../components/SiteSectionBanner";
-type Tournament={id:string;title:string;start_at:string|null;status:string};
+type Tournament={id:string;title:string;start_at:string|null;event_date:string|null;registration_open_date:string|null;registration_close_date:string|null;status:string};
 export default function TournamentSchedulePage(){
  const [rows,setRows]=useState<Tournament[]>([]);
  const [state,setState]=useState<"loading"|"ok"|"error">("loading");
@@ -25,7 +25,8 @@ export default function TournamentSchedulePage(){
     {state==="loading"&&<p role="status" className="mt-5 text-slate-600">กำลังอ่านรายการแข่งขัน...</p>}
     {state==="error"&&<p role="alert" className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">ไม่สามารถตรวจสอบรายการแข่งขันได้ กรุณาลองใหม่อีกครั้ง</p>}
     {state==="ok"&&rows.length===0&&<p className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-slate-600">ยังไม่มีรายการแข่งขันที่ประกาศเผยแพร่ใน GO TOURNAMENT</p>}
-    {state==="ok"&&rows.length>0&&<ul className="mt-5 space-y-3">{rows.map(t=><li key={t.id} className="rounded-xl border p-4"><h2 className="font-bold"><Link href={"/tournaments/"+t.id} className="text-blue-800 underline-offset-4 hover:underline">{t.title} ›</Link></h2><p className="mt-1 text-sm text-slate-600">{t.start_at?new Date(t.start_at).toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Bangkok"}):"ยังไม่กำหนดวันแข่งขัน"}</p><p className="mt-1 text-sm text-slate-600">สถานะ: {t.status}</p><Link href={"/tournaments/"+t.id} className="mt-3 inline-flex min-h-12 items-center rounded-xl bg-blue-800 px-5 py-3 font-bold text-white">ดูรายละเอียดและรุ่นแข่งขัน</Link></li>)}</ul>}
+    {state==="ok"&&rows.length>0&&<ul className="mt-5 space-y-3">{rows.map(t=><li key={t.id} className="rounded-xl border p-4"><h2 className="font-bold"><Link href={"/tournaments/"+t.id} className="text-blue-800 underline-offset-4 hover:underline">{t.title} ›</Link></h2><p className="mt-1 text-sm text-slate-600">{t.event_date?new Date(t.event_date+"T12:00:00+07:00").toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Bangkok"}):t.start_at?new Date(t.start_at).toLocaleDateString("th-TH",{year:"numeric",month:"long",day:"numeric",timeZone:"Asia/Bangkok"}):"ยังไม่กำหนดวันแข่งขัน"}</p>{t.registration_open_date&&t.registration_close_date&&<p className="mt-1 text-sm font-semibold text-blue-800">กำหนดรับสมัคร: {new Date(t.registration_open_date+"T12:00:00+07:00").toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"numeric",timeZone:"Asia/Bangkok"})} – {new Date(t.registration_close_date+"T12:00:00+07:00").toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"numeric",timeZone:"Asia/Bangkok"})}</p>}
+     <p className="mt-1 text-sm text-slate-600">สถานะการจัดการ: {t.status==="draft"?"ประกาศข้อมูลแล้ว (ระบบรับสมัครออนไลน์ยังอยู่ระหว่างทดสอบ)":t.status}</p><Link href={"/tournaments/"+t.id} className="mt-3 inline-flex min-h-12 items-center rounded-xl bg-blue-800 px-5 py-3 font-bold text-white">ดูรายละเอียดและรุ่นแข่งขัน</Link></li>)}</ul>}
     <Link href="/athletes/search" className="mt-6 inline-flex rounded-xl bg-blue-800 px-5 py-3 font-semibold text-white">ค้นหานักกีฬาก่อนสมัคร</Link>
    </div>
   </section>
