@@ -1,0 +1,8 @@
+import {publicRows,uuid,type Division,type Tournament} from "../../../../../../lib/competition/public-data";
+export const dynamic="force-dynamic";
+export async function GET(_req:Request,{params}:{params:Promise<{id:string;divisionId:string}>}){const {id,divisionId}=await params;const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:{"Cache-Control":"no-store"}});if(!uuid.test(id)||!uuid.test(divisionId))return reply({message:"รหัสรุ่นไม่ถูกต้อง"},400);try{const events=await publicRows<Tournament>("gt_tournaments",{select:"id,title,event_date,start_at,status,poster_url,registration_open_date,registration_close_date",id:"eq."+id,published:"eq.true",limit:"1"});if(!events.length)return reply({message:"ไม่พบงาน"},404);const ds=await publicRows<Division>("gt_divisions",{select:"id,name,seats_limit,entry_fee_thb,pairing_enabled,friendship_board_size",id:"eq."+divisionId,tournament_id:"eq."+id,limit:"1"});if(!ds.length)return reply({message:"ไม่พบรุ่นในงานนี้"},404);
+// Explicit public projection: never query private registrations or slips with privileged credentials.
+const base=process.env.GO_TOURNAMENT_SUPABASE_URL!,key=process.env.GO_TOURNAMENT_SUPABASE_PUBLISHABLE_KEY!;
+const rr=await fetch(new URL("/rest/v1/rpc/gt_division_roster_v2",base),{method:"POST",headers:{apikey:key,"Content-Type":"application/json"},body:JSON.stringify({p_event:id,p_division:divisionId}),cache:"no-store",signal:AbortSignal.timeout(8000)});
+const roster=rr.ok?await rr.json():null;
+return reply({status:"ok",tournament:events[0],division:ds[0],athletes:roster,roster_available:roster!==null,pairings_available:false,standings_available:false});}catch{return reply({message:"โหลดข้อมูลรุ่นไม่สำเร็จ"},503)}}
