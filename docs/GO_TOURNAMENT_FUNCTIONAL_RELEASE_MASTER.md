@@ -54,3 +54,16 @@ Implement verified public athlete search for GO FAN separately from authenticate
 
 ## Go-live release note
 Vercel staging/prod not updated. Existing 105 numbered approved mockup screens plus extra designs are an inventory of visual references, NOT completed functional routes. Keep output statuses separate: DESIGN, CODE, DATA, TEST, LIVE.
+
+## 2026-10-28 — OWNER'S NON-NEGOTIABLE COMPLETION TARGET FOR NEXT SESSION
+The owner expressly requires **every page and user journey previously planned and approved to be completed, visually good, and truly usable on the website**. Do not substitute image boards, placeholder buttons, partial code, or untested deployments for finished work. Continue from verified source and checklist without asking the owner to restate this requirement.
+
+**Visual acceptance:** each unique page/function represented by 1–105 approved screens and additional designs mapped to an actual route, responsive component, or documented justified shared variant. Keep approved navy/blue, white and gold visual language, only the exact official logo in Header, readable Thai text, spacious large staff controls. Compare built screens with references at desktop/tablet/mobile before sign-off. No visual redesign unless owner approves.
+
+**Functional acceptance:** every visible interactive button/CTA routes or acts meaningfully; no false success or fictitious data; login/role separation, form validation, empty/error states, accessibility, and real Supabase persistence when appropriate. Whole registration -> fee snapshot -> payment validation -> check-in -> Swiss/McMahon (no repeats) -> referee results (including both absent/double forfeit) -> correct configured scores/SOS/SOSOS -> standings -> awards/history must pass transactional and role tests. GO FAN is no-login, opt-in public-data-only, multi-follow and supports removals. Payment must never be marked verified without real independent verification.
+
+**Latest factual checkpoint:** admin Kyu/Dan price defaults 500/600 THB and per-division overrides committed, fee snapshot rollback test passed; `app/api/admin/tournament-divisions/route.ts` had a literal double-backslash regex defect fixed in GitHub commit `45b923b0deaa5d53e79501a68c89f9debb7f6b95`. Existing Vercel build previews previously ERROR due to syntax issue; no verified successful full latest-branch build/E2E after this commit. Do not describe current source as ready, completed, or live.
+
+**First operations next session:** (1) inspect current branch SHA, latest Vercel build logs and source, run/verify build; (2) fix compilation/type/runtime blockers and check role-safe pricing persistence (default Kyu/Dan and fee overrides); (3) continue P0 match-day flows and register every route against approved design inventory; (4) test each completed vertical slice against real data or transaction-rollback fixtures; (5) track verified status DESIGN/CODE/DATA/TEST/LIVE in checklist and only release after all gates pass.
+
+**Status language:** "implemented source" is not "tested", "preview READY" is not "production LIVE", and "designed" is not "working". All outstanding modules remain required deliverables; defer only with an explicit honest blocker and next action.
