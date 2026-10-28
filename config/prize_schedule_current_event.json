@@ -1,0 +1,370 @@
+{
+  "schema_version": 1,
+  "label": "เงินรางวัลการแข่งขันครั้งนี้ (อ้างอิงภาพผู้จัด)",
+  "source": "user_uploaded_prize_table_3917.jpg",
+  "status": "approved_prize_reference_unassigned_to_event",
+  "currency": "THB",
+  "excluded_divisions": [
+    "NEW ONE DAN"
+  ],
+  "cash_divisions": [
+    {
+      "code": "ASCENDANT",
+      "division": "ONE DAN (1 DAN)",
+      "placements": [
+        {
+          "place": "champion",
+          "cash_thb": 3000,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_1",
+          "cash_thb": 2000,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_2",
+          "cash_thb": 1500,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_3",
+          "cash_thb": 1000,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_4",
+          "cash_thb": 1000,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_5",
+          "cash_thb": 1000,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_6",
+          "cash_thb": 1000,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        }
+      ]
+    },
+    {
+      "code": "COMMANDER",
+      "division": "1–2 คิว",
+      "placements": [
+        {
+          "place": "champion",
+          "cash_thb": 2000,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_1",
+          "cash_thb": 1500,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_2",
+          "cash_thb": 1200,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_3",
+          "cash_thb": 1000,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_4",
+          "cash_thb": 800,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_5",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_6",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        }
+      ]
+    },
+    {
+      "code": "DIAMOND",
+      "division": "3–4 คิว",
+      "placements": [
+        {
+          "place": "champion",
+          "cash_thb": 1800,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_1",
+          "cash_thb": 1200,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_2",
+          "cash_thb": 1000,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_3",
+          "cash_thb": 800,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_4",
+          "cash_thb": 600,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_5",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_6",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        }
+      ]
+    },
+    {
+      "code": "PLATINUM",
+      "division": "5–6 คิว",
+      "placements": [
+        {
+          "place": "champion",
+          "cash_thb": 1500,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_1",
+          "cash_thb": 1000,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_2",
+          "cash_thb": 800,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_3",
+          "cash_thb": 600,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_4",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_5",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_6",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        }
+      ]
+    },
+    {
+      "code": "GOLD",
+      "division": "7–8 คิว",
+      "placements": [
+        {
+          "place": "champion",
+          "cash_thb": 1200,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_1",
+          "cash_thb": 1000,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_2",
+          "cash_thb": 800,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_3",
+          "cash_thb": 500,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_4",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_5",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_6",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        }
+      ]
+    },
+    {
+      "code": "SILVER",
+      "division": "9–12 คิว",
+      "placements": [
+        {
+          "place": "champion",
+          "cash_thb": 1100,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_1",
+          "cash_thb": 800,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_2",
+          "cash_thb": 700,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_3",
+          "cash_thb": 500,
+          "trophy": true,
+          "bronze_medal": false,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_4",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_5",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        },
+        {
+          "place": "runner_up_6",
+          "cash_thb": 500,
+          "trophy": false,
+          "bronze_medal": true,
+          "certificate": true
+        }
+      ]
+    }
+  ],
+  "friendship": {
+    "division": "Friendship",
+    "awards": [
+      {
+        "wins": 4,
+        "medal": "gold",
+        "certificate": true
+      },
+      {
+        "wins": 3,
+        "medal": "silver",
+        "certificate": true
+      },
+      {
+        "wins": 2,
+        "medal": "bronze",
+        "certificate": true
+      }
+    ],
+    "cash_prize": false
+  },
+  "notes": [
+    "ONE DAN ยังคงอยู่ เฉพาะ NEW ONE DAN ที่ถอดออก",
+    "ชนะเลิศ + รองชนะเลิศอันดับ 1–6 ตามตาราง",
+    "หมวดเหรียญทองแดงในอันดับรองชนะเลิศ 4–6 และทุกตำแหน่งมีใบประกาศ",
+    "ไม่ใช่ราคาค่าสมัครหรือข้อมูลการจ่ายเงินรางวัลจริง",
+    "รอผูก tournament_id เพื่อป้องกันใช้ผิดรายการ"
+  ]
+}
