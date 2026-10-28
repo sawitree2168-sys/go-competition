@@ -57,6 +57,11 @@ export function TournamentHome(){
     </div>
     {events.length>1&&<div className={styles.slides} aria-label="เลือกรายการแข่งขัน">{events.map((e,i)=><button type="button" key={e.id} onClick={()=>setSelected(i)} aria-label={"แสดง "+e.title} aria-pressed={i===selected}/>)}</div>}
    </section>
+   <section className={styles.posterSection} aria-label="โปสเตอร์ ZEER GO KYU WAR 2026">
+    <a href="/posters/zeer-go-kyu-war-2026.jpg" target="_blank" rel="noopener noreferrer" aria-label="เปิดโปสเตอร์ ZEER GO KYU WAR 2026 ขนาดเต็ม">
+     <img src="/posters/zeer-go-kyu-war-2026.jpg" alt="โปสเตอร์ ZEER GO KYU WAR 2026 เปิดรับสมัครพร้อมกันวันที่ 1 พฤศจิกายน 2569" width="1088" height="1536" loading="lazy"/>
+    </a>
+   </section>
    <nav className={styles.shortcuts} aria-label="ทางลัด">{[
     {label:"สมัครแข่งขัน",detail:"เลือกรายการและรุ่น",href:"/schedule",icon:"cup"},
     {label:"ค้นหานักกีฬา",detail:"ตรวจสอบ GO ID",href:"/athletes/search",icon:"fans"},
