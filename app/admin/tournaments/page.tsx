@@ -49,7 +49,7 @@ export default function TournamentAdmin(){
   setOtpMessage(error?"ส่งอีเมลไม่สำเร็จ กรุณาตรวจบัญชี":"ส่งลิงก์เข้าสู่ระบบแล้ว กรุณาเปิดอีเมลและกลับหน้านี้");setBusy(false);
  }
  async function createEvent(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");
-  try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setSummary(null);setAlbumUrl("");setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
+  try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setKyuPrice(String(d.tournament.default_kyu_fee_thb??500));setDanPrice(String(d.tournament.default_dan_fee_thb??600));setFeeOverrides({});setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setSummary(null);setAlbumUrl("");setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกไม่สำเร็จ")}finally{setBusy(false)}
  }
  async function chooseEvent(id:string){const ev=events.find(x=>x.id===id);setKyuPrice(String(ev?.default_kyu_fee_thb??500));setDanPrice(String(ev?.default_dan_fee_thb??600));setFeeOverrides({});setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setApplicants([]);setNews([]);setMessage("");setSummaryBusy(true);
@@ -67,7 +67,7 @@ export default function TournamentAdmin(){
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกลิงก์ไม่สำเร็จ")}finally{setAlbumSaving(false)}
  }
  async function createDivision(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
-  try{const d=await api("/api/admin/tournament-divisions","POST",{tournament_id:selected,name:divName,seats_limit:seats,entry_fee_thb:entryFee,friendship_board_size:friendshipBoard});setDivisions(old=>[...old,d.division]);setSummary(old=>old?{...old,counts:{...old.counts,divisions:old.counts.divisions+1}}:old);setDivName("");setSeats("");setEntryFee("");setFriendshipBoard("");setMessage("เพิ่มรุ่นแข่งขันสำเร็จ")}
+  try{const d=await api("/api/admin/tournament-divisions","POST",{tournament_id:selected,name:divName,seats_limit:seats,entry_fee_thb:entryFee,friendship_board_size:friendshipBoard});setDivisions(old=>[...old,d.division]);setFeeOverrides(old=>({...old,[d.division.id]:d.division.entry_fee_thb===null?"":String(d.division.entry_fee_thb)}));setSummary(old=>old?{...old,counts:{...old.counts,divisions:old.counts.divisions+1}}:old);setDivName("");setSeats("");setEntryFee("");setFriendshipBoard("");setMessage("เพิ่มรุ่นแข่งขันสำเร็จ")}
   catch(e){setMessage(e instanceof Error?e.message:"เพิ่มรุ่นไม่สำเร็จ")}finally{setBusy(false)}
  }
  async function saveDefaultFees(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
@@ -140,7 +140,7 @@ export default function TournamentAdmin(){
       </div>}
       <div className="mt-4 rounded-xl border border-blue-200 bg-white p-4">
        <h4 className="text-lg font-extrabold">ตั้งค่าราคาค่าสมัครของรายการ</h4>
-       <p className="mt-1 text-sm text-slate-600">ราคาเริ่มต้น: รุ่นคิว 500 บาท และรุ่นดั้ง 600 บาท ปรับราคาของรายการนี้ได้ โดยรุ่นเดิมไม่เปลี่ยนราคาจนกว่าจะกดบันทึกแก้ไขที่รุ่น</p>
+       <p className="mt-1 text-sm text-slate-600">ราคาเริ่มต้นที่ตั้งไว้สำหรับรายการนี้: คิว {selectedEvent.default_kyu_fee_thb.toLocaleString("th-TH")} บาท และดั้ง {selectedEvent.default_dan_fee_thb.toLocaleString("th-TH")} บาท ปรับราคาได้ โดยรุ่นเดิมไม่เปลี่ยนราคาจนกว่าจะกดบันทึกแก้ไขที่รุ่น</p>
        <form onSubmit={saveDefaultFees} className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <label className="font-bold">ราคามาตรฐานรุ่นคิว (บาท)<input type="number" min="0" max="1000000" step="0.01" value={kyuPrice} onChange={e=>setKyuPrice(e.target.value)} required disabled={!["owner","admin"].includes(role)} className="mt-2 w-full rounded-xl border p-3"/></label>
         <label className="font-bold">ราคามาตรฐานรุ่นดั้ง (บาท)<input type="number" min="0" max="1000000" step="0.01" value={danPrice} onChange={e=>setDanPrice(e.target.value)} required disabled={!["owner","admin"].includes(role)} className="mt-2 w-full rounded-xl border p-3"/></label>
