@@ -17,7 +17,7 @@ export default function GoFan(){
  useEffect(()=>{try{const ids:unknown=JSON.parse(localStorage.getItem(KEY)||"[]");
    if(Array.isArray(ids))setSaved([...new Set(ids.filter((x):x is string=>typeof x==="string"&&idPattern.test(x)))].slice(0,MAX));
   }catch{localStorage.removeItem(KEY)}setHydrated(true)},[]);
- useEffect(()=>{if(hydrated)localStorage.setItem(KEY,JSON.stringify(saved))},[saved,hydrated,refreshTick]);
+ useEffect(()=>{if(hydrated)localStorage.setItem(KEY,JSON.stringify(saved))},[saved,hydrated]);
  useEffect(()=>{if(!hydrated)return;let live=true;const ctrl=new AbortController();
   async function load(){setLoading(true);setError("");
    if(saved.length===0){setAthletes([]);setMatches([]);setLoading(false);return}
