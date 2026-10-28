@@ -24,8 +24,8 @@ export default function Home(){
    <section className="mx-auto max-w-6xl px-4 pt-7 sm:pt-12">
     <div className="relative isolate min-h-[530px] overflow-hidden rounded-3xl bg-[#073f94] text-white shadow-lg sm:min-h-[500px] lg:min-h-[450px]">
      <SiteHeroMedia slot="home"/>
-     <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#041633]/90 via-[#062b65]/75 to-[#064c9a]/20"/>
-     <div className="relative max-w-3xl p-6 sm:p-10 lg:p-12">
+     <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-[#041633]/90 via-[#062b65]/75 to-[#064c9a]/20"/>
+     <div className="relative z-20 max-w-3xl p-6 sm:p-10 lg:p-12">
      <p className="text-sm font-extrabold tracking-[0.2em] text-[#f4cc76]">GO TOURNAMENT</p>
      <h1 className="mt-3 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">เชื่อมโยงทุกการแข่งขันหมากล้อม</h1>
      <p className="mt-4 max-w-2xl text-base leading-relaxed text-blue-50 sm:text-lg">นักกีฬา สถาบัน กรรมการ และกองเชียร์ — พบรายการแข่งขัน ผลการแข่งขัน และสถิติในที่เดียว</p>
