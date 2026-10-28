@@ -255,7 +255,7 @@ export default function TournamentAdmin(){
        </form>}
       </div>
       {["owner","admin"].includes(role)&&!selectedEvent.published&&<form onSubmit={createDivision} className="mt-4 space-y-3">
-       <label className="block">ระดับการแข่งขัน<input required minLength={2} maxLength={100} value={divName} onChange={e=>setDivName(e.target.value)} placeholder="เช่น 1–2 คิว, 3–4 คิว, 1 ดั้ง" className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
+       <label className="block">ระดับการแข่งขัน<input list="go-tournament-level-options" required minLength={2} maxLength={100} value={divName} onChange={e=>setDivName(e.target.value)} placeholder="เช่น 1–2 คิว" className="mt-1 w-full rounded-lg border bg-white p-3"/><datalist id="go-tournament-level-options">{["1 ดั้ง","2 ดั้ง","3 ดั้ง","4 ดั้ง","5 ดั้ง","1–2 คิว","3–4 คิว","5–6 คิว","7–8 คิว","9–12 คิว"].map(level=><option key={level} value={level}/>)}</datalist><span className="mt-1 block text-xs text-slate-600">กรอกเพียงระดับ ไม่ต้องตั้งชื่อรุ่นอีกช่อง เช่น 1–2 คิว</span></label>
        <label className="block">ประเภท Friendship (กรณีไม่ทราบระดับฝีมือ)
         <select value={friendshipBoard} onChange={e=>setFriendshipBoard(e.target.value)} className="mt-1 w-full rounded-lg border bg-white p-3">
          <option value="">ไม่ใช่ Friendship / ไม่กำหนด</option>
