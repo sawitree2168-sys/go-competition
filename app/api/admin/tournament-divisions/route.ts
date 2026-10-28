@@ -20,6 +20,7 @@ export async function POST(request:Request){
  let b:unknown;try{b=await request.json()}catch{return reply({status:"invalid"},400)}
  if(!b||typeof b!=="object"||Array.isArray(b))return reply({status:"invalid"},400);
  const d=b as Record<string,unknown>;const id=typeof d.tournament_id==="string"?d.tournament_id:"";
+ // Existing database column `name` stores the competition level, not a separate display name.
  const name=typeof d.name==="string"?d.name.trim():"";
  const seats=d.seats_limit===""||d.seats_limit==null?null:Number(d.seats_limit);
  const rawFee=d.entry_fee_thb==null?"":String(d.entry_fee_thb).trim();
@@ -28,7 +29,7 @@ export async function POST(request:Request){
  if(friendshipBoard!==null&&(![9,13].includes(friendshipBoard)||!/friendship|เฟรนชิพ|เฟรนด์ชิพ/i.test(name)))
   return reply({status:"invalid",message:"ขนาดกระดาน 9×9 หรือ 13×13 ใช้สำหรับรุ่น Friendship เท่านั้น"},400);
  if(!uuid.test(id)||name.length<2||name.length>100||seats!==null&&(!Number.isInteger(seats)||seats<=0||seats>10000)||fee!==null&&(!/^\d{1,7}(?:\.\d{1,2})?$/.test(rawFee)||!Number.isFinite(fee)||fee<0||fee>1000000))
-  return reply({status:"invalid",message:"ข้อมูลรุ่นแข่งขันไม่ถูกต้อง"},400);
+  return reply({status:"invalid",message:"ระบุระดับการแข่งขัน เช่น 1–2 คิว หรือ 1 ดั้ง"},400);
  try{
   const url=new URL("/rest/v1/gt_divisions",auth.base);url.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit,entry_fee_thb,friendship_board_size");
   let effectiveFee=fee;
