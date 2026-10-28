@@ -10,7 +10,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  const headers={apikey:key,Accept:"application/json"};
  try{
   const eventUrl=new URL("/rest/v1/gt_tournaments",base);
-  eventUrl.searchParams.set("select","id,title,start_at,event_date,status,registration_open_date,registration_close_date,full_refund_through_date,refund_policy_text,default_kyu_fee_thb,default_dan_fee_thb,poster_url");
+  eventUrl.searchParams.set("select","id,title,start_at,event_date,status,registration_open_date,registration_close_date,full_refund_through_date,refund_policy_text,default_kyu_fee_thb,default_dan_fee_thb,default_friendship_fee_thb,poster_url");
   eventUrl.searchParams.set("id","eq."+id);
   eventUrl.searchParams.set("published","eq.true");
   eventUrl.searchParams.set("limit","1");
