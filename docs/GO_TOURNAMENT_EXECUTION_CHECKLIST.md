@@ -190,3 +190,10 @@ Source of truth for this checkpoint: `migration/ACADEMY_REGISTRY_CHECKPOINT_2026
 - [ ] Verify public-facing Vercel alias is not automatically updated from development branch, ensure preview/production gate and no >100 deployment daily; follow earlier owner instruction.
 - [ ] Next functional priority once quality gate is green: competition registration and per-event price UI E2E, privacy-authenticated payment verification, check-in, tournament referee and Swiss/McMahon no-repeat handling with double-forfeit and SOS/SOSOS rules.
 - [ ] Visual QA per approved 1–105 references, public content moderation, official exact logo media publishing only after signoff.
+
+
+## 2026-10-28 — Price configuration verification and UI synchronization
+- [x] **GT-053 | P0 | Kyu/Dan 500/600 price parsing regression.** Inspected current `app/api/admin/tournament-divisions/route.ts` (including Friendship type). Confirmed money regex accepts 500 / 600.00 / 0 and rejects negative, nonnumeric and over-precision inputs. Category detection resolves Kyu/Dan/Thai คิว/ดั้ง correctly; Friendship is not silently classified as Kyu. Node test cases passed.
+- [x] **GT-054 | P0 | DB per-event default price rollback test.** Checked configured DB defaults Kyu THB 500, Dan THB 600; inserted throwaway tournament and divisions inside BEGIN/ROLLBACK and assertions passed. No fake tournament retained. Authenticated table UPDATE grants verified; RLS still controls authorization.
+- [~] **GT-055 | P1 | Correct Admin price forms on event change and new divisions.** GitHub code now resets displayed fee defaults when creating a new event, synchronizes a new division's individual fee input immediately without requiring page reload, and renders selected event's actual defaults rather than hardcoded 500/600 text. Source commit `e2e9c44ab683494986bd9b49bf2184eb4629f908`. **Still requires latest-SHA build and Owner/Admin browser test** before marking production-ready.
+- [ ] Do not release payment functions merely because price configuration passes. Registration snapshots, bank reconciliation, capacity, referee flow and automated pairing require their own tests.
