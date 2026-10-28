@@ -36,7 +36,7 @@ export function TournamentHome(){
   <a href="#tournament-content" className={styles.skip}>ข้ามไปเนื้อหา</a>
   <header className={styles.header}><div className={styles.headerInner}>
    <button ref={menuButton} type="button" className={styles.menuButton} aria-label="เปิดเมนู" aria-expanded={menuOpen} aria-controls="home-menu" onClick={()=>setMenuOpen(true)}>☰</button>
-   <Link href="/" className={styles.brand} aria-label="GO TOURNAMENT หน้าหลัก"><img src="/visual/logo.jpg" alt="GO TOURNAMENT" width="200" height="150"/><span>GO <small>TOURNAMENT</small></span></Link>
+   <Link href="/" className={styles.brand} aria-label="GO TOURNAMENT หน้าหลัก"><img src="/brand/go-mark-transparent-v1.png" alt="GO" width="1774" height="887"/></Link>
    <nav className={styles.desktopNav} aria-label="เมนูหลัก">{menus.filter(m=>!["results","fans"].includes(m.icon)).map(m=><Link key={m.href} href={m.href} aria-current={m.href==="/"?"page":undefined}>{m.label}</Link>)}</nav>
    <Link className={styles.account} href="/athletes/claim">บัญชี / GO ID</Link>
   </div></header>
