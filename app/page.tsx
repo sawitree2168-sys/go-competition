@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {SiteHeroMedia,SiteOfficialLogo} from "./components/SiteHeroMedia";
+import {HomeInteractiveHub} from "./components/HomeInteractiveHub";
 
 const modules = [
  {title:"ปฏิทินการแข่งขัน",detail:"อ่านรายการแข่งขันที่ประกาศเผยแพร่จากฐานข้อมูลจริง",href:"/schedule",symbol:"▦",state:"เชื่อมข้อมูลแล้ว"},
@@ -19,7 +20,6 @@ export default function Home(){
      <span className="rounded-full border border-amber-200/40 bg-amber-100/10 px-3 py-2 text-xs font-semibold text-[#f1cb75]">เวอร์ชันทดสอบระบบจริง</span>
     </div>
    </header>
-   <div className="mx-auto max-w-6xl px-4 pt-4"><Link href="/overview" className="flex min-h-16 items-center justify-between rounded-2xl border border-[#edcf81] bg-[#fff5d7] px-5 py-4 text-base font-black text-[#163e75] shadow-sm">ดูภาพรวมเว็บไซต์ GO TOURNAMENT ทุกหน้า <span aria-hidden="true">เปิดดู ›</span></Link></div>
    <nav aria-label="เมนูหน้าหลัก" className="mx-auto flex max-w-6xl flex-wrap gap-3 px-4 pt-5"><Link href="/site-map" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-[#0e3e81] px-5 py-3 text-center font-extrabold text-white sm:flex-none">เมนูเว็บไซต์ทั้งหมด ›</Link><Link href="/schedule" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl border border-blue-300 bg-white px-5 py-3 text-center font-bold text-[#0c3166] sm:flex-none">รายการแข่งขัน</Link><Link href="/fan" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-[#f8d276] px-5 py-3 text-center font-extrabold text-[#0c3166] sm:flex-none">GO FAN · ติดตามผล</Link><Link href="/faq" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl border border-blue-300 bg-white px-5 py-3 text-center font-bold text-[#0c3166] sm:flex-none">คำถามที่พบบ่อย</Link><Link href="/visual-overview" className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-[#c9a661] bg-[#fff8e7] px-5 py-3 text-center font-bold text-[#163c71] sm:w-auto">ดูต้นแบบเว็บไซต์ ›</Link></nav>
    <section className="mx-auto max-w-6xl px-4 pt-7 sm:pt-12">
     <div className="relative isolate min-h-[530px] overflow-hidden rounded-3xl bg-[#073f94] text-white shadow-lg sm:min-h-[500px] lg:min-h-[450px]">
@@ -39,17 +39,12 @@ export default function Home(){
      </div>
      </div>
     </div>
-    <div className="mt-6 overflow-hidden rounded-2xl border border-[#d2ad62] bg-white shadow-lg">
-     <img src="/visual/overview.jpg" alt="ภาพรวมเว็บไซต์ GO TOURNAMENT ที่ออกแบบไว้" className="h-auto w-full object-contain"/>
-     <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
-      <div><h2 className="font-extrabold text-[#0c3166]">ชมภาพเว็บไซต์ที่ออกแบบไว้</h2><p className="mt-1 text-sm text-slate-600">ดูต้นแบบ 25 หน้าจอ ครบการสมัคร แข่งขัน ผลงาน และ Admin</p></div>
-      <Link href="/visual-overview" className="rounded-xl bg-[#0f3874] px-5 py-3 font-bold text-white">เปิดดูทุกหน้า ›</Link>
-     </div>
-    </div>
+
 
    </section>
+   <HomeInteractiveHub/>
    <section className="mx-auto max-w-6xl px-4 py-9">
-    <div className="mb-5"><h2 className="text-2xl font-black">ระบบสำหรับนักกีฬาและผู้ปกครอง</h2><p className="mt-1 text-slate-600">เลือกเมนูเพื่อเปิดหน้าใช้งานจริง</p></div>
+    <div className="mb-5"><h2 className="text-2xl font-black">ระบบสำหรับนักกีฬาและผู้ปกครอง</h2><p className="mt-1 text-slate-600">เลือกเมนูเพื่อเปิดหน้าใช้งานที่มีโค้ดแล้ว (บางส่วนยังรอทดสอบ)</p></div>
     <div className="grid gap-4 sm:grid-cols-2">
      {modules.map(m=><Link key={m.href} href={m.href} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-400 hover:shadow-md">
        <div className="flex items-center justify-between gap-2"><span className="text-3xl text-blue-800" aria-hidden="true">{m.symbol}</span><span className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{m.state}</span></div>
@@ -70,6 +65,12 @@ export default function Home(){
        <h3 className="font-bold text-[#0b3676]">{a.title}</h3><p className="mt-2 text-sm leading-relaxed text-slate-600">{a.detail}</p><p className="mt-3 font-semibold text-blue-800">เข้าสู่ระบบจัดการ ›</p>
       </Link>)}
      </div>
+    </div>
+   </section>
+   <section className="mx-auto max-w-6xl px-4 pb-10">
+    <div className="grid gap-5 rounded-2xl border border-[#dfc68a] bg-[#fff9ed] p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-7">
+      <div><p className="text-xs font-extrabold tracking-widest text-amber-800">DESIGN REFERENCE</p><h2 className="mt-2 text-xl font-black text-[#143a72]">ต้นแบบหน้าตาเว็บไซต์ที่เราอนุมัติไว้</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-700">แยกภาพต้นแบบออกจากหน้าที่ใช้งานจริง เพื่อไม่ให้การกดดูภาพสับสนกับการสมัครและผลแข่งขัน หน้าตาสุดท้ายจะประกอบจากต้นแบบที่อนุมัติ ไม่ใช่ใช้ภาพนิ่งแทนระบบ</p></div>
+      <Link href="/visual-overview" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[#0b3777] px-5 py-3 text-center font-extrabold text-white">เปิดดูภาพต้นแบบ ›</Link>
     </div>
    </section>
    <footer className="border-t border-slate-200 bg-white px-5 py-7 text-center text-sm text-slate-500">GO TOURNAMENT · ระบบทดสอบ ยังไม่เปิดรับสมัครแข่งขันจริง</footer>
