@@ -8,7 +8,7 @@ export async function GET() {
     const endpoint = new URL("/rest/v1/gt_tournaments",url);
     endpoint.searchParams.set("select","id,title,start_at,event_date,registration_open_date,registration_close_date,status");
     endpoint.searchParams.set("published","eq.true");
-    endpoint.searchParams.set("order","start_at.asc.nullslast");
+    endpoint.searchParams.set("order","event_date.asc.nullslast");
     endpoint.searchParams.set("limit","100");
     const response=await fetch(endpoint,{headers:{"apikey":key,"Accept":"application/json"},cache:"no-store",signal:AbortSignal.timeout(8000)});
     if(!response.ok)throw new Error("Database query failed");
