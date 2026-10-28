@@ -32,7 +32,8 @@ export default function SiteMap(){
   <header className="bg-[#08254e] px-5 py-4"><div className="mx-auto max-w-6xl"><Link href="/" className="font-bold text-[#f7d487]">‹ GO TOURNAMENT / หน้าหลัก</Link></div></header>
   <div className="mx-auto max-w-6xl space-y-8 px-4 py-7 sm:py-10">
    <SiteSectionBanner slot="home" eyebrow="GO TOURNAMENT · SITE MAP" title="เลือกส่วนที่ต้องการใช้งาน" description="รวมทางเข้าที่มีหน้าเว็บไซต์จริง พร้อมแสดงส่วนที่ยังอยู่ระหว่างพัฒนาอย่างชัดเจน"/>
-   <div role="note" className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-relaxed text-amber-950">เมนูที่กดได้คือหน้าที่มีโค้ดในโครงการแล้ว แต่ไม่ได้หมายความว่าทุกฟังก์ชันทดสอบหรือเปิดใช้จริงครบทุกขั้นตอน ระบบสมัคร จ่ายเงิน จับคู่ และ GO FAN ยังไม่เปิดใช้งานจริง</div>
+   <Link href="/overview" className="flex min-h-16 items-center justify-between rounded-2xl bg-[#0d448e] px-5 py-4 font-black text-white shadow-sm">ดูภาพรวมทุกหน้าของเว็บไซต์ — รวมหน้าที่ยังสร้างระบบไม่เสร็จ <span aria-hidden="true">›</span></Link>
+   <div role="note" className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-relaxed text-amber-950">เมนูที่กดได้คือหน้าที่มีโค้ดในโครงการแล้ว แต่ไม่ได้หมายความว่าทุกฟังก์ชันทดสอบหรือเปิดใช้จริงครบทุกขั้นตอน ระบบสมัคร จ่ายเงิน และจับคู่ยังไม่เปิดใช้งานจริง ส่วน GO FAN มีโครงและ API แต่ยังต้องผ่านการทดสอบบนเว็บไซต์</div>
    {groups.map(g=><section key={g.title} aria-label={g.title} className="space-y-4">
     <div><h2 className="text-2xl font-black">{g.title}</h2><p className="mt-1 text-sm text-slate-600">{g.detail}</p></div>
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{g.items.map(item=>item.href?
