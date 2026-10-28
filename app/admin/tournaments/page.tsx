@@ -3,7 +3,7 @@ import Link from "next/link";
 import {SiteSectionBanner} from "../../components/SiteSectionBanner";
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
-type Tournament={id:string;title:string;start_at:string|null;status:string;published:boolean;default_kyu_fee_thb:number;default_dan_fee_thb:number};
+type Tournament={id:string;title:string;start_at:string|null;event_date:string|null;status:string;published:boolean;default_kyu_fee_thb:number;default_dan_fee_thb:number};
 type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean;entry_fee_thb:number|null;friendship_board_size:number|null};
 type Applicant={id:string;go_id:string|null;athlete_name:string;rank:string|null;division_name:string;registration_status:string;payment_status:string};
 type NewsRow={id:string;title:string;body:string;status:string;created_at:string};
@@ -99,7 +99,7 @@ export default function TournamentAdmin(){
   try{const result=await api("/api/admin/tournament-divisions","PATCH",{tournament_id:selected,division_id:id,entry_fee_thb:feeOverrides[id]});setDivisions(old=>old.map(x=>x.id===id?{...x,entry_fee_thb:result.division.entry_fee_thb}:x));setMessage("บันทึกค่าสมัครรุ่นแล้ว ใบสมัครเดิมไม่เปลี่ยนราคา");}
   catch(e){setMessage(e instanceof Error?e.message:"เปลี่ยนค่าสมัครรุ่นไม่สำเร็จ")}finally{setBusy(false)}
  }
- const yearOf=(x:Tournament)=>x.start_at?new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Bangkok",year:"numeric"}).format(new Date(x.start_at)):"";
+ const yearOf=(x:Tournament)=>x.event_date?x.event_date.slice(0,4):x.start_at?new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Bangkok",year:"numeric"}).format(new Date(x.start_at)):"";
  const rows=events.filter(x=>yearOf(x)===year);
  const selectedEvent=events.find(x=>x.id===selected);
  return <main className="min-h-screen bg-[#f2f6fc] text-[#112d57]">
@@ -132,7 +132,7 @@ export default function TournamentAdmin(){
      </div>
      <div className="mt-4 rounded-xl bg-blue-50 p-4"><p>รายการแข่งขันในปีที่เลือก</p><p className="text-3xl font-black">{rows.length}</p></div>
      <div className="mt-3 space-y-2">{rows.length===0?<p className="rounded-xl border border-dashed p-5 text-slate-600">ยังไม่มีรายการแข่งขันในปีนี้</p>:rows.map(x=><button key={x.id} onClick={()=>void chooseEvent(x.id)} className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left hover:bg-blue-50">
-      <strong>{x.title}</strong><p className="mt-2 text-sm text-slate-600">{x.start_at?new Date(x.start_at).toLocaleDateString("th-TH",{timeZone:"Asia/Bangkok"}):"ไม่ระบุวัน"} • {x.status} • {x.published?"เผยแพร่แล้ว":"ยังไม่เผยแพร่"}</p>
+      <strong>{x.title}</strong><p className="mt-2 text-sm text-slate-600">{x.event_date?new Date(x.event_date+"T12:00:00+07:00").toLocaleDateString("th-TH",{timeZone:"Asia/Bangkok"}):x.start_at?new Date(x.start_at).toLocaleDateString("th-TH",{timeZone:"Asia/Bangkok"}):"ไม่ระบุวัน"} • {x.status} • {x.published?"เผยแพร่แล้ว":"ยังไม่เผยแพร่"}</p>
      </button>)}</div>
      {["owner","admin"].includes(role)&&<form onSubmit={createEvent} className="mt-6 space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
       <h3 className="text-lg font-extrabold">สร้างรายการแข่งขันใหม่ (แบบร่าง)</h3>
