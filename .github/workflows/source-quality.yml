@@ -1,0 +1,45 @@
+name: GO TOURNAMENT source quality gate
+
+# Verify code without using Vercel deployment quota.
+on:
+  push:
+    branches:
+      - codex/go-tournament-vite-migration
+    paths:
+      - 'app/**'
+      - 'components/**'
+      - 'lib/**'
+      - 'package.json'
+      - 'tsconfig.json'
+      - 'eslint.config.*'
+      - '.github/workflows/source-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: go-tournament-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies (no lockfile in current repo)
+        run: npm install --no-audit --no-fund
+      - name: Check TypeScript
+        run: npx tsc --noEmit
+      - name: Run lint
+        run: npm run lint
+      - name: Build Next.js
+        run: npm run build
+      - name: Show validated SHA
+        run: echo "Passed source checks for ${GITHUB_SHA}"
