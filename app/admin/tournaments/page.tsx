@@ -19,6 +19,7 @@ export default function TournamentAdmin(){
  const [selected,setSelected]=useState<string|null>(null),[divisions,setDivisions]=useState<Division[]>([]),[divName,setDivName]=useState(""),[seats,setSeats]=useState(""),[entryFee,setEntryFee]=useState(""),[friendshipBoard,setFriendshipBoard]=useState("");
  const [kyuPrice,setKyuPrice]=useState("500"),[danPrice,setDanPrice]=useState("600"),[feeOverrides,setFeeOverrides]=useState<Record<string,string>>({});
  const [summary,setSummary]=useState<Summary|null>(null),[summaryBusy,setSummaryBusy]=useState(false);
+ const [posterBusy,setPosterBusy]=useState(false),[posterPreview,setPosterPreview]=useState("");
  const [albumUrl,setAlbumUrl]=useState(""),[albumSaving,setAlbumSaving]=useState(false);
  const [applicants,setApplicants]=useState<Applicant[]>([]);
  const [news,setNews]=useState<NewsRow[]>([]),[newsTitle,setNewsTitle]=useState(""),[newsBody,setNewsBody]=useState("");
@@ -52,7 +53,7 @@ export default function TournamentAdmin(){
   try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setKyuPrice(String(d.tournament.default_kyu_fee_thb??500));setDanPrice(String(d.tournament.default_dan_fee_thb??600));setFeeOverrides({});setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setSummary(null);setAlbumUrl("");setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกไม่สำเร็จ")}finally{setBusy(false)}
  }
- async function chooseEvent(id:string){const ev=events.find(x=>x.id===id);setKyuPrice(String(ev?.default_kyu_fee_thb??500));setDanPrice(String(ev?.default_dan_fee_thb??600));setFeeOverrides({});setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setApplicants([]);setNews([]);setMessage("");setSummaryBusy(true);
+ async function chooseEvent(id:string){setPosterPreview("");const ev=events.find(x=>x.id===id);setKyuPrice(String(ev?.default_kyu_fee_thb??500));setDanPrice(String(ev?.default_dan_fee_thb??600));setFeeOverrides({});setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setApplicants([]);setNews([]);setMessage("");setSummaryBusy(true);
   try{const [d,s,a,r,n]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-albums?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-registrations?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-news?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setFeeOverrides(Object.fromEntries((d.divisions as Division[]).map(x=>[x.id,x.entry_fee_thb===null?"":String(x.entry_fee_thb)])));setSummary(s);setAlbumUrl(a.album?.drive_folder_url||"");setApplicants(r.registrations);setNews(n.news)}
   catch(e){setMessage(e instanceof Error?e.message:"โหลดข้อมูลรายการแข่งขันไม่สำเร็จ")}
   finally{setSummaryBusy(false)}
@@ -69,6 +70,26 @@ export default function TournamentAdmin(){
  async function createDivision(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
   try{const d=await api("/api/admin/tournament-divisions","POST",{tournament_id:selected,name:divName,seats_limit:seats,entry_fee_thb:entryFee,friendship_board_size:friendshipBoard});setDivisions(old=>[...old,d.division]);setFeeOverrides(old=>({...old,[d.division.id]:d.division.entry_fee_thb===null?"":String(d.division.entry_fee_thb)}));setSummary(old=>old?{...old,counts:{...old.counts,divisions:old.counts.divisions+1}}:old);setDivName("");setSeats("");setEntryFee("");setFriendshipBoard("");setMessage("เพิ่มรุ่นแข่งขันสำเร็จ")}
   catch(e){setMessage(e instanceof Error?e.message:"เพิ่มรุ่นไม่สำเร็จ")}finally{setBusy(false)}
+ }
+ async function uploadPoster(file:File|null){
+  if(!file||!selected||!client.current)return;
+  setMessage("");
+  if(file.type!=="image/webp"||file.size>6*1024*1024||file.size===0){setMessage("เลือกโปสเตอร์ WebP ที่มีขนาดไม่เกิน 6 MB");return}
+  if(!window.confirm("อัปโหลดโปสเตอร์สำหรับแสดงสาธารณะของรายการนี้ ใช่หรือไม่?"))return;
+  setPosterBusy(true);
+  try{
+   const token=(await client.current.auth.getSession()).data.session?.access_token;
+   if(!token)throw Error("กรุณาเข้าสู่ระบบ Owner/Admin ใหม่");
+   const storage=client.current.storage.from("gt-site-assets");
+   const filePath="banners/tournaments/"+selected+"/"+crypto.randomUUID()+".webp";
+   const uploaded=await storage.upload(filePath,file,{contentType:"image/webp",cacheControl:"3600",upsert:false});
+   if(uploaded.error)throw Error("อัปโหลดภาพไม่สำเร็จ: "+uploaded.error.message);
+   const url=storage.getPublicUrl(filePath).data.publicUrl;
+   const response=await fetch("/api/admin/tournament-poster",{method:"PATCH",cache:"no-store",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({tournament_id:selected,poster_url:url})});
+   const data=await response.json();
+   if(!response.ok||data.status!=="ok")throw Error(data.message||"ไฟล์อัปโหลดแล้ว แต่ยังไม่ได้ผูกกับรายการ โปรดให้เจ้าหน้าที่ตรวจสอบก่อนอัปโหลดซ้ำ");
+   setPosterPreview(url);setMessage("อัปโหลดและเชื่อมโปสเตอร์ของรายการสำเร็จ");
+  }catch(e){setMessage(e instanceof Error?e.message:"บันทึกโปสเตอร์ไม่ได้")}finally{setPosterBusy(false)}
  }
  async function saveDefaultFees(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
   try{const result=await api("/api/admin/tournaments","PATCH",{tournament_id:selected,default_kyu_fee_thb:kyuPrice,default_dan_fee_thb:danPrice});setEvents(old=>old.map(x=>x.id===selected?{...x,...result.tournament}:x));setMessage("บันทึกราคาคิวและดั้งแล้ว รุ่นเดิมยังคงราคาของรุ่นไว้ตามที่ตั้งไว้");}
@@ -121,6 +142,15 @@ export default function TournamentAdmin(){
      </form>}
      {selectedEvent&&<section className="mt-6 rounded-xl border border-[#d7b66d] bg-[#fffbf3] p-4">
       <h3 className="text-lg font-extrabold">รุ่นแข่งขัน: {selectedEvent.title}</h3>
+      <div className="mt-4 rounded-xl border border-blue-200 bg-white p-4">
+       <h4 className="text-base font-extrabold">โปสเตอร์งานแข่งขัน</h4>
+       <p className="mt-1 text-sm text-slate-600">อัปโหลดไฟล์ WebP แนวตั้งที่ปรับขนาดไว้แล้ว ระบบจะแสดงทั้งภาพโดยไม่ครอปตัวหนังสือบนหน้าเว็บจริง</p>
+       {posterPreview&&<img src={posterPreview} alt="โปสเตอร์ที่เพิ่งอัปโหลด" className="mx-auto mt-3 max-h-80 w-auto max-w-full object-contain"/>}
+       {["owner","admin"].includes(role)&&<label className="mt-3 block font-bold">เลือกภาพ WebP ไม่เกิน 6 MB
+         <input type="file" accept="image/webp,.webp" disabled={posterBusy} onChange={e=>void uploadPoster(e.target.files?.[0]||null)} className="mt-2 block w-full rounded-xl border p-3"/>
+       </label>}
+       {posterBusy&&<p role="status" className="mt-2 text-sm">กำลังอัปโหลดโปสเตอร์...</p>}
+      </div>
       <Link href={"/admin/tournaments/"+selectedEvent.id+"/media"} className="mt-3 block rounded-xl bg-blue-800 px-4 py-3 text-center font-bold text-white">จัดการรูปเด่นและโปสเตอร์ของรายการ ›</Link>
       <Link href={"/admin/tournaments/"+selectedEvent.id+"/registrations"} className="mt-3 block rounded-xl border border-blue-800 bg-white px-4 py-3 text-center font-bold text-blue-900">ตรวจรายชื่อผู้สมัคร / ค้นหา / ส่งออก CSV ›</Link>
       <p className="mt-2 text-sm text-slate-600">รุ่นในรายการนี้ {divisions.length} รุ่น</p>
