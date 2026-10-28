@@ -175,6 +175,7 @@ export default function TournamentAdmin(){
       </div>
       <Link href={"/admin/tournaments/"+selectedEvent.id+"/media"} className="mt-3 block rounded-xl bg-blue-800 px-4 py-3 text-center font-bold text-white">จัดการรูปเด่นและโปสเตอร์ของรายการ ›</Link>
       <Link href={"/admin/tournaments/"+selectedEvent.id+"/registrations"} className="mt-3 block rounded-xl border border-blue-800 bg-white px-4 py-3 text-center font-bold text-blue-900">ตรวจรายชื่อผู้สมัคร / ค้นหา / ส่งออก CSV ›</Link>
+      {divisions.some(d=>/friendship|เฟรนชิพ|เฟรนด์ชิพ/i.test(d.name))&&<Link href={"/admin/tournaments/"+selectedEvent.id+"/friendship-medals"} className="mt-3 block rounded-xl border border-amber-400 bg-amber-50 px-4 py-3 text-center font-extrabold text-amber-950">ตรวจตัวอย่างเหรียญรางวัล Friendship ›</Link>}
       <p className="mt-2 text-sm text-slate-600">รุ่นในรายการนี้ {divisions.length} รุ่น</p>
       {summaryBusy&&<p role="status" className="mt-3">กำลังสรุปข้อมูลรายการ...</p>}
       {summary&&<div className="mt-4">
