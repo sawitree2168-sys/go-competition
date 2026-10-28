@@ -1,10 +1,9 @@
 "use client";
 import Link from "next/link";
 import {useEffect,useRef,useState} from "react";
-import {SiteHeroMedia} from "./SiteHeroMedia";
 import styles from "./TournamentHome.module.css";
 
-type Event={id:string;title:string;event_date?:string|null;start_at?:string|null;status:string};
+type Event={id:string;title:string;event_date?:string|null;start_at?:string|null;status:string;registration_open_date?:string|null};
 const menus=[
  {label:"หน้าหลัก",href:"/",icon:"home"},
  {label:"รายการแข่งขัน",href:"/schedule",icon:"cup"},
@@ -22,69 +21,53 @@ function Icon({name}:{name:string}){
 }
 function eventDate(e:Event){const date=e.event_date?e.event_date+"T12:00:00+07:00":e.start_at;if(!date||Number.isNaN(Date.parse(date)))return "รอประกาศวันแข่งขัน";return new Date(date).toLocaleDateString("th-TH",{day:"numeric",month:"long",year:"numeric",timeZone:"Asia/Bangkok"});}
 
+const ZEER_ID="ce1382d9-1e1f-4697-8fe4-6a1a347d91eb";
+function poster(e:Event){return e.id===ZEER_ID?"/posters/zeer-go-kyu-war-2026.jpg":"/go-poster.jpg";}
+function isPast(e:Event,today:string){const day=e.event_date||e.start_at?.slice(0,10);return e.status==="completed"||e.status==="finished"||Boolean(day&&day<today);}
+
 export function TournamentHome(){
- const [events,setEvents]=useState<Event[]>([]),[state,setState]=useState<"loading"|"ok"|"error">("loading"),[selected,setSelected]=useState(0);
+ const [theme,setTheme]=useState<"light"|"dark">("light");
+ const [events,setEvents]=useState<Event[]>([]),[state,setState]=useState<"loading"|"ok"|"error">("loading");
  const [menuOpen,setMenuOpen]=useState(false),[retry,setRetry]=useState(0),[query,setQuery]=useState("");
- const menuButton=useRef<HTMLButtonElement>(null);
- const drawer=useRef<HTMLDialogElement>(null);
- const featured=events[selected];
- useEffect(()=>{const ctrl=new AbortController();void(async()=>{try{const r=await fetch("/api/tournaments",{cache:"no-store",signal:ctrl.signal});const d=await r.json();if(!r.ok||d.status!=="ok"||!Array.isArray(d.tournaments))throw Error();setEvents(d.tournaments);setSelected(0);setState("ok");}catch{if(!ctrl.signal.aborted)setState("error");}})();return()=>ctrl.abort()},[retry]);
- useEffect(()=>{if(!menuOpen)return;drawer.current?.showModal();const before=document.body.style.overflow;document.body.style.overflow="hidden";function close(e:KeyboardEvent){if(e.key==="Escape"){setMenuOpen(false);menuButton.current?.focus()}}document.addEventListener("keydown",close);return()=>{document.body.style.overflow=before;document.removeEventListener("keydown",close)}},[menuOpen]);
- const filtered=events.filter(e=>e.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+ const menuButton=useRef<HTMLButtonElement>(null),drawer=useRef<HTMLDialogElement>(null);
+ useEffect(()=>{try{const value=localStorage.getItem("go-tournament-theme");if(value==="dark"||value==="light")setTheme(value)}catch{}},[]);
+ function toggleTheme(){const next=theme==="light"?"dark":"light";setTheme(next);try{localStorage.setItem("go-tournament-theme",next)}catch{}}
+ useEffect(()=>{const ctrl=new AbortController();void(async()=>{try{const r=await fetch("/api/tournaments",{cache:"no-store",signal:ctrl.signal});const d=await r.json();if(!r.ok||d.status!=="ok"||!Array.isArray(d.tournaments))throw Error();setEvents(d.tournaments);setState("ok");}catch{if(!ctrl.signal.aborted)setState("error");}})();return()=>ctrl.abort()},[retry]);
+ useEffect(()=>{if(!menuOpen)return;drawer.current?.showModal();const before=document.body.style.overflow;document.body.style.overflow="hidden";return()=>{document.body.style.overflow=before}},[menuOpen]);
  function dismiss(){setMenuOpen(false);menuButton.current?.focus()}
- return <main className={styles.page}>
+ const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+ const filtered=events.filter(e=>e.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+ const upcoming=filtered.filter(e=>!isPast(e,today)),past=filtered.filter(e=>isPast(e,today)).sort((a,b)=>(b.event_date||b.start_at||"").localeCompare(a.event_date||a.start_at||""));
+ return <main className={styles.page} data-theme={theme}>
   <a href="#tournament-content" className={styles.skip}>ข้ามไปเนื้อหา</a>
   <header className={styles.header}><div className={styles.headerInner}>
    <button ref={menuButton} type="button" className={styles.menuButton} aria-label="เปิดเมนู" aria-expanded={menuOpen} aria-controls="home-menu" onClick={()=>setMenuOpen(true)}>☰</button>
    <Link href="/" className={styles.brand} aria-label="GO TOURNAMENT หน้าหลัก"><img src="/brand/go-mark-transparent-v1.png" alt="GO" width="1774" height="887"/></Link>
-   <nav className={styles.desktopNav} aria-label="เมนูหลัก">{menus.filter(m=>!["results","fans"].includes(m.icon)).map(m=><Link key={m.href} href={m.href} aria-current={m.href==="/"?"page":undefined}>{m.label}</Link>)}</nav>
    <Link className={styles.account} href="/athletes/claim">บัญชี / GO ID</Link>
   </div></header>
-  {menuOpen&&<dialog ref={drawer} aria-label="เมนูเว็บไซต์" className={styles.backdrop} onClose={dismiss}><button type="button" className={styles.scrim} aria-label="ปิดเมนูด้านข้าง" onClick={dismiss}/><section id="home-menu" aria-label="เมนูเว็บไซต์" className={styles.drawer}>
+  {menuOpen&&<dialog ref={drawer} aria-label="เมนูเว็บไซต์" className={styles.backdrop} onClose={dismiss}><button type="button" className={styles.scrim} aria-label="ปิดเมนูด้านข้าง" onClick={dismiss}/><section id="home-menu" className={styles.drawer}>
    <div className={styles.drawerHead}><strong>GO TOURNAMENT</strong><button type="button" onClick={dismiss} aria-label="ปิดเมนู">×</button></div>
-   <nav>{menus.map(m=><Link key={m.href} href={m.href} onClick={dismiss}><Icon name={m.icon}/>{m.label}<span>›</span></Link>)}<Link href="/overview/contact" onClick={dismiss}><Icon name="help"/>ติดต่อเรา<span>›</span></Link></nav>
+   <nav>{menus.map(m=><Link key={m.href} href={m.href} onClick={dismiss}><Icon name={m.icon}/>{m.label}<span>›</span></Link>)}</nav>
   </section></dialog>}
   <div className={styles.container} id="tournament-content">
-   <section className={styles.hero} aria-label="รายการแข่งขันแนะนำ">
-    <img src="/go-poster.jpg" alt="" className={styles.heroBackdrop}/><SiteHeroMedia slot="home"/>
-    <div className={styles.heroShade}/><div className={styles.heroContent}>
-     <p className={styles.eyebrow}>THAILAND GO COMMUNITY</p>
-     <h1>{featured?.title||"ทุกก้าวบนกระดาน สู่การแข่งขันครั้งใหม่"}</h1>
-     <p className={styles.heroDate}>{featured?eventDate(featured):"รายการแข่งขันหมากล้อม · นักกีฬา · กองเชียร์"}</p>
-     <p className={styles.heroTagline}>มากกว่าการแข่งขัน คือการพัฒนาตัวเอง</p>
-     <div className={styles.heroActions}><Link className={styles.goldButton} href={featured?"/tournaments/"+featured.id:"/schedule"}><Icon name="cup"/>{featured?"ดูรายละเอียดการแข่งขัน":"ดูรายการแข่งขัน"}</Link><Link className={styles.outlineButton} href="/athletes/search">ค้นหานักกีฬา / GO ID</Link></div>
-     {featured?.status==="draft"&&<p className={styles.draft}>ประกาศข้อมูลเบื้องต้น · ยังไม่เปิดรับสมัครออนไลน์</p>}
-    </div>
-    {events.length>1&&<div className={styles.slides} aria-label="เลือกรายการแข่งขัน">{events.map((e,i)=><button type="button" key={e.id} onClick={()=>setSelected(i)} aria-label={"แสดง "+e.title} aria-pressed={i===selected}/>)}</div>}
+   <div className={styles.sectionHeading}><h1>รายการแข่งขัน</h1><Link href="/schedule">ดูทั้งหมด ›</Link></div>
+   <label className={styles.search}><Icon name="search"/><span className="sr-only">ค้นหารายการแข่งขัน</span><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ค้นหารายการแข่งขัน"/></label>
+   <div className={styles.themeRow}><button type="button" onClick={toggleTheme} aria-label={theme==="light"?"เปลี่ยนเป็นโทนมืด":"เปลี่ยนเป็นโทนสว่าง"}>{theme==="light"?"☾ โทนมืด":"☀ โทนสว่าง"}</button></div>
+   {state==="loading"&&<p role="status" className={styles.message}>กำลังโหลดรายการแข่งขัน…</p>}
+   {state==="error"&&<div role="alert" className={styles.message}>ยังโหลดรายการแข่งขันไม่ได้ <button type="button" onClick={()=>{setState("loading");setRetry(x=>x+1)}}>ลองใหม่</button></div>}
+   <section aria-labelledby="upcoming-events"><h2 id="upcoming-events" className={styles.sectionTitle}><Icon name="cup"/>กำลังจะมาถึง</h2>
+    {state==="ok"&&!upcoming.length&&<p className={styles.message}>{query?"ไม่พบรายการตามคำค้น":"ยังไม่มีรายการแข่งขันที่กำลังจะมาถึง"}</p>}
+    <div className={styles.eventGrid}>{state==="ok"&&upcoming.slice(0,4).map(e=><article key={e.id} className={styles.eventCard}>
+     <Link href={"/tournaments/"+e.id} className={styles.cover}><img src={poster(e)} alt={"โปสเตอร์ "+e.title} width="1088" height="1536"/></Link>
+     <h3><Link href={"/tournaments/"+e.id}>{e.title}</Link></h3><p className={styles.date}>{eventDate(e)}</p>
+     {e.registration_open_date&&<span className={styles.badge}>เปิดรับสมัคร {new Date(e.registration_open_date+"T12:00:00+07:00").toLocaleDateString("th-TH",{day:"numeric",month:"short",timeZone:"Asia/Bangkok"})}</span>}
+    </article>)}</div>
    </section>
-   <section className={styles.posterSection} aria-label="โปสเตอร์ ZEER GO KYU WAR 2026">
-    <a href="/posters/zeer-go-kyu-war-2026.jpg" target="_blank" rel="noopener noreferrer" aria-label="เปิดโปสเตอร์ ZEER GO KYU WAR 2026 ขนาดเต็ม">
-     <img src="/posters/zeer-go-kyu-war-2026.jpg" alt="โปสเตอร์ ZEER GO KYU WAR 2026 เปิดรับสมัครพร้อมกันวันที่ 1 พฤศจิกายน 2569" width="1088" height="1536" loading="lazy"/>
-    </a>
+   <section aria-labelledby="past-events" className={styles.pastSection}><div className={styles.sectionHeading}><h2 id="past-events" className={styles.sectionTitle}><Icon name="results"/>ที่ผ่านมาแล้ว</h2><Link href="/overview/results">ดูทั้งหมด ›</Link></div>
+    {state==="ok"&&!past.length&&<p className={styles.message}>{query?"ไม่พบรายการตามคำค้น":"ยังไม่มีรายการแข่งขันที่ผ่านมา"}</p>}
+    <div>{state==="ok"&&past.slice(0,3).map(e=><Link key={e.id} href={"/tournaments/"+e.id} className={styles.pastRow}><img src={poster(e)} alt="" width="160" height="104" loading="lazy"/><div><h3>{e.title}</h3><p>{eventDate(e)}</p><span className={styles.finished}>จบการแข่งขัน</span></div><span className={styles.arrow} aria-hidden="true">›</span></Link>)}</div>
    </section>
-   <nav className={styles.shortcuts} aria-label="ทางลัด">{[
-    {label:"สมัครแข่งขัน",detail:"เลือกรายการและรุ่น",href:"/schedule",icon:"cup"},
-    {label:"ค้นหานักกีฬา",detail:"ตรวจสอบ GO ID",href:"/athletes/search",icon:"fans"},
-    ...menus.filter(m=>["results","chart","news","file","help"].includes(m.icon)).map(m=>({...m,detail:m.icon==="results"?"ผลและตารางคะแนน":m.icon==="chart"?"สถิตินักกีฬา":m.icon==="news"?"ข่าวและประกาศ":m.icon==="file"?"ระเบียบและแบบฟอร์ม":"คำถามที่พบบ่อย"}))
-   ].map(m=><Link key={m.href} href={m.href}><Icon name={m.icon}/><strong>{m.label}</strong><span>{m.detail}</span></Link>)}</nav>
-   <div className={styles.contentGrid}>
-    <section className={styles.events} aria-labelledby="latest-events"><div className={styles.sectionHeading}><h2 id="latest-events">รายการแข่งขันล่าสุด</h2><Link href="/schedule">ดูทั้งหมด ›</Link></div>
-     <label className={styles.search}><Icon name="search"/><span className="sr-only">ค้นหารายการแข่งขัน</span><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ค้นหาชื่อรายการแข่งขัน..."/></label>
-     {state==="loading"&&<p role="status" className={styles.message}>กำลังโหลดรายการแข่งขัน…</p>}
-     {state==="error"&&<div role="alert" className={styles.message}>ยังโหลดรายการแข่งขันไม่ได้ <button type="button" onClick={()=>{setState("loading");setRetry(x=>x+1)}}>ลองใหม่</button></div>}
-     {state==="ok"&&!filtered.length&&<p className={styles.message}>{query?"ไม่พบรายการตามคำค้น ลองเปลี่ยนชื่อที่ค้นหา":"ยังไม่มีรายการแข่งขันที่เผยแพร่"}</p>}
-     <div className={styles.eventGrid}>{state==="ok"&&filtered.slice(0,8).map(e=><article key={e.id} className={styles.eventCard}>
-      <Link href={"/tournaments/"+e.id} className={styles.cover}><img src="/go-poster.jpg" alt=""/><span className={styles.badge}>{e.status==="draft"?"ข้อมูลเบื้องต้น":"ประกาศโดยผู้จัด"}</span><Icon name="cup"/></Link>
-      <div className={styles.cardBody}><h3><Link href={"/tournaments/"+e.id}>{e.title}</Link></h3><p>{eventDate(e)}</p><p className={styles.cardNote}>{e.status==="draft"?"รอผู้จัดยืนยันรายละเอียดและเปิดรับสมัคร":"ตรวจสอบรุ่นและกำหนดการในหน้ารายละเอียด"}</p><Link className={styles.cardButton} href={"/tournaments/"+e.id}>ดูรายละเอียด ›</Link></div>
-     </article>)}</div>
-    </section>
-    <aside className={styles.sidebar}>
-     <section className={styles.fanCard}><Icon name="fans"/><p className={styles.eyebrow}>GO FAN</p><h2>ส่งกำลังใจ<br/>ให้คนที่คุณเชียร์</h2><p>ติดตามนักกีฬาหลายคนและดูผลที่ยืนยันแล้วในหน้าเดียว</p><Link className={styles.goldButton} href="/fan">เปิดกองเชียร์ของฉัน ›</Link></section>
-     <section className={styles.helpCard}><h2>เตรียมตัวก่อนสมัคร</h2><Link href="/athletes/search">ค้นหาชื่อและ GO ID <span>›</span></Link><Link href="/athletes/claim">ขอผูก GO ID เดิม <span>›</span></Link><Link href="/faq">คำถามเกี่ยวกับการสมัคร <span>›</span></Link></section>
-    </aside>
-   </div>
-   <section className={styles.explore}><div><p className={styles.eyebrow}>EXPLORE GO TOURNAMENT</p><h2>รู้จักนักกีฬา ติดตามทุกการแข่งขัน</h2><p>เลือกหมวดเพื่อดูข้อมูลและบริการของเว็บไซต์</p></div><div className={styles.exploreGrid}>{menus.filter(m=>["chart","image","news","file"].includes(m.icon)).map(m=><Link key={m.href} href={m.href}><Icon name={m.icon}/><strong>{m.label}</strong><span>เปิดดู ›</span></Link>)}</div></section>
-   <footer className={styles.footer}><strong>GO TOURNAMENT</strong><p>พื้นที่ของนักกีฬา ผู้จัด และกองเชียร์หมากล้อม</p><div><Link href="/admin/tournaments">สำหรับผู้จัด</Link><Link href="/faq">ความช่วยเหลือ</Link><Link href="/visual-overview">แบบอ้างอิงเว็บไซต์</Link></div><small>ระบบรับสมัครและการชำระเงินยังอยู่ระหว่างทดสอบ ตรวจสอบประกาศของแต่ละรายการก่อนดำเนินการ</small></footer>
+   <Link href="/fan" className={styles.fanBanner}><Icon name="fans"/><div><strong>GO FAN</strong><p>ติดตามนักกีฬาที่คุณเชียร์</p></div><span className={styles.arrow} aria-hidden="true">›</span></Link>
   </div>
   <nav className={styles.bottomNav} aria-label="เมนูล่าง">{[menus[0],menus[1],menus[8],menus[3],menus[4]].map(m=><Link key={m.href} href={m.href} aria-current={m.href==="/"?"page":undefined}><Icon name={m.icon}/><span>{m.label}</span></Link>)}</nav>
  </main>;
