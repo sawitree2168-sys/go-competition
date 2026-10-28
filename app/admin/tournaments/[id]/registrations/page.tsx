@@ -10,6 +10,7 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
  const [rows,setRows]=useState<Registration[]>([]),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
  const [search,setSearch]=useState(""),[division,setDivision]=useState("all"),[registration,setRegistration]=useState("all"),[payment,setPayment]=useState("all");
  const [options,setOptions]=useState<DivisionOption[]>([]),[addGoId,setAddGoId]=useState(""),[addDivision,setAddDivision]=useState(""),[adding,setAdding]=useState(false),[addMessage,setAddMessage]=useState(""),[staffRole,setStaffRole]=useState("");
+ const [checkins,setCheckins]=useState<Record<string,string>>({}),[checkingId,setCheckingId]=useState(""),[checkinMessage,setCheckinMessage]=useState("");
  const client=useRef<SupabaseClient|null>(null);
  useEffect(()=>{let active=true;void params.then(p=>{if(active)setId(p.id)});return()=>{active=false}},[params]);
  useEffect(()=>{let active=true;let unsubscribe=()=>{};void(async()=>{try{
@@ -29,6 +30,14 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
    const data:Result|{status:string;message?:string}=await result.json();
    if(!result.ok||data.status!=="ok"||!("registrations" in data)||!Array.isArray(data.registrations))throw Error("message" in data?data.message||"ไม่สามารถอ่านรายชื่อผู้สมัครได้":"ไม่สามารถอ่านรายชื่อผู้สมัครได้");
    setRows(data.registrations);setStaffRole(data.role);
+   const checkinResponse=await fetch("/api/admin/tournament-checkins?tournament_id="+encodeURIComponent(id),{cache:"no-store",headers:{Authorization:"Bearer "+token}});
+   if(checkinResponse.ok){
+    const checkinData=await checkinResponse.json();
+    if(checkinData.status==="ok"&&Array.isArray(checkinData.checkins))
+     setCheckins(Object.fromEntries(checkinData.checkins.map((x:{registration_id:string;checked_in_at:string})=>[x.registration_id,x.checked_in_at])));
+    else setCheckinMessage("อ่านสถานะเช็กอินไม่สำเร็จ กรุณาตรวจสอบก่อนบันทึก");
+   }else setCheckinMessage("โหลดข้อมูลเช็กอินไม่สำเร็จ กรุณาตรวจสอบสิทธิ์และฐานข้อมูล");
+
    const divResponse=await fetch("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id),{cache:"no-store",headers:{Authorization:"Bearer "+token}});
    const divData=await divResponse.json();
    if(divResponse.ok&&divData.status==="ok"&&Array.isArray(divData.divisions))
@@ -54,6 +63,24 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
    setAddMessage("บันทึกแบบร่างแล้ว: "+d.athlete_name+" ("+d.go_id+") — ยังไม่ยืนยันการชำระเงิน");
    setAddGoId("");setAddDivision("");await load();
   }catch(err){setAddMessage(err instanceof Error?err.message:"บันทึกไม่สำเร็จ")}finally{setAdding(false)}
+ }
+ async function checkIn(reg:Registration){
+  if(!client.current||checkingId||checkins[reg.id])return;
+  if(!window.confirm("ยืนยันเช็กอิน "+reg.athlete_name+"? นักกีฬาต้องอยู่หน้างานและผ่านการยืนยันสมัคร/ชำระเงินแล้ว"))return;
+  setCheckingId(reg.id);setCheckinMessage("");
+  try{
+   const token=(await client.current.auth.getSession()).data.session?.access_token;
+   if(!token)throw Error("เซสชันหมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง");
+   const response=await fetch("/api/admin/tournament-checkins",{
+    method:"POST",cache:"no-store",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},
+    body:JSON.stringify({registration_id:reg.id,tournament_id:id})
+   });
+   const data=await response.json();
+   if(!response.ok||data.status!=="ok")throw Error(data.message||"เช็กอินไม่สำเร็จ");
+   setCheckins(old=>({...old,[reg.id]:data.checkin.checked_in_at}));
+   setCheckinMessage("เช็กอิน "+reg.athlete_name+" สำเร็จ");
+  }catch(error){setCheckinMessage(error instanceof Error?error.message:"เกิดข้อผิดพลาดในการเช็กอิน")}
+  finally{setCheckingId("")}
  }
  const divisions=useMemo(()=>[...new Set(rows.map(x=>x.division_name))].sort((a,b)=>a.localeCompare(b,"th")),[rows]);
  const registrationStatuses=useMemo(()=>[...new Set(rows.map(x=>x.registration_status))].sort(),[rows]);
@@ -132,12 +159,15 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
     </section>
     <section className="overflow-hidden rounded-2xl bg-white shadow-sm">
      <h2 className="px-4 pt-5 text-xl font-black">รายชื่อผู้สมัคร {filtered.length} รายการ</h2>
+     <p className="px-4 pt-2 text-sm font-semibold text-slate-600">เช็กอินแล้ว {Object.keys(checkins).length} คน • เฉพาะใบสมัครที่ยืนยันและตรวจชำระ/ยกเว้นแล้ว</p>
+     {checkinMessage&&<p role="status" className="mx-4 mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold">{checkinMessage}</p>}
      {filtered.length===0?<p className="p-5 text-slate-600">ไม่พบรายการตามตัวกรองที่เลือก หรือยังไม่มีผู้สมัครในระบบ</p>:
       <div className="overflow-x-auto"><table className="min-w-[730px] w-full text-left text-sm">
-       <thead className="bg-[#0b3270] text-white"><tr><th className="p-3">#</th><th className="p-3">ชื่อ-นามสกุล</th><th className="p-3">GO ID / ระดับ</th><th className="p-3">รุ่น</th><th className="p-3">ค่าสมัคร</th><th className="p-3">สมัคร</th><th className="p-3">ชำระเงิน</th></tr></thead>
+       <thead className="bg-[#0b3270] text-white"><tr><th className="p-3">#</th><th className="p-3">ชื่อ-นามสกุล</th><th className="p-3">GO ID / ระดับ</th><th className="p-3">รุ่น</th><th className="p-3">ค่าสมัคร</th><th className="p-3">สมัคร</th><th className="p-3">ชำระเงิน</th><th className="p-3">เช็กอินหน้างาน</th></tr></thead>
        <tbody>{filtered.map((r,i)=><tr key={r.id} className="border-b border-blue-50 even:bg-[#f4f8ff]">
         <td className="p-3">{i+1}</td><td className="p-3 font-bold">{r.athlete_name}</td><td className="p-3">{r.go_id||"—"}<p className="text-slate-500">{r.rank||"ยังไม่ทราบระดับจริง"}{r.competition_rank_reference&&<span className="mt-1 block rounded-md bg-amber-100 px-2 py-1 text-xs font-bold text-amber-950">อ้างอิง Friendship: {r.competition_rank_reference} (ไม่ใช่ระดับทางการ)</span>}</p></td>
         <td className="p-3">{r.division_name}</td><td className="p-3">{r.fee_snapshot_thb===null?"ยังไม่กำหนด":Number(r.fee_snapshot_thb).toLocaleString("th-TH")+" บาท"}</td><td className="p-3">{r.registration_status}</td><td className="p-3">{r.payment_status}</td>
+        <td className="p-3">{checkins[r.id]?<span className="rounded-lg bg-emerald-100 px-3 py-2 font-bold text-emerald-900">เช็กอินแล้ว</span>:r.registration_status!=="confirmed"||!["verified","waived"].includes(r.payment_status)?<span className="font-semibold text-amber-800">ยังไม่ผ่านเงื่อนไข</span>:(staffRole==="owner"||staffRole==="admin")?<button type="button" disabled={Boolean(checkingId)||busy} onClick={()=>void checkIn(r)} className="min-h-12 rounded-xl bg-blue-800 px-5 py-3 font-black text-white disabled:opacity-40">{checkingId===r.id?"กำลังบันทึก...":"เช็กอิน"}</button>:<span className="text-slate-500">ยังไม่เช็กอิน</span>}</td>
        </tr>)}</tbody>
       </table></div>}
     </section>
