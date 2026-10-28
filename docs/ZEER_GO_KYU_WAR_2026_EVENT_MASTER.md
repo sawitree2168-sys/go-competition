@@ -26,3 +26,8 @@ As of 2026-10-28 (Asia/Bangkok). User-provided official A4 illustration, no inve
 - Confirm the official portrait poster is hosted in Supabase Storage and shown on page (not private Drive).
 - Registration open date is the planned schedule; do not activate payments or submission without guardian/athlete consent, rate/duplicate checks, cancellation/request/refund ledger, and transaction verification.
 - Test phone 390px, tablet 768px, desktop 1440px, no text clipping and correct Bangkok calendar dates.
+
+## Verified responsive production artwork backup
+- Optimized original-intact portrait WebP 900×1271 successfully uploaded to Drive exports: https://drive.google.com/file/d/1h0p2IvC38YVs7CR1iTO3rcNH3CAUbpuv/view .
+- Original official A4 JPG preserved separately: https://drive.google.com/file/d/1xhQH07rIb45usLfZ1moH4O3R61Ni1bpT/view .
+- Drive artifacts are not a public image serving origin; DO NOT set `poster_url` to these Drive links. Supabase Storage upload remains the required release gate.
