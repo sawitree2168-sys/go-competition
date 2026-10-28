@@ -120,7 +120,7 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
      <p className="mt-2 text-sm text-slate-600">ใช้ GO ID ที่มีอยู่ในระบบเท่านั้น ไม่สร้างนักกีฬาซ้ำ ไม่สำรองที่นั่ง ไม่ยืนยันสิทธิ์ และไม่บันทึกว่าชำระเงินแล้ว ผู้มีสิทธิ์ Reviewer สามารถดูรายชื่อ แต่เพิ่มใบสมัครไม่ได้</p>
      <form onSubmit={addPendingRegistration} className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
       <label className="font-bold">GO ID เดิม<input value={addGoId} onChange={e=>setAddGoId(e.target.value)} required minLength={3} maxLength={40} placeholder="ระบุ GO ID ที่ยืนยันแล้ว" className="mt-2 w-full rounded-xl border p-3"/></label>
-      <label className="font-bold">รุ่นการแข่งขัน<select value={addDivision} onChange={e=>setAddDivision(e.target.value)} required className="mt-2 w-full rounded-xl border p-3"><option value="">เลือกรุ่นแข่งขัน</option>{options.map(x=><option key={x.id} value={x.id}>{x.name}{x.seats_limit?" (กำหนด "+x.seats_limit+" คน)":""}</option>)}</select></label>
+      <label className="font-bold">รุ่นการแข่งขัน<select value={addDivision} onChange={e=>setAddDivision(e.target.value)} required className="mt-2 w-full rounded-xl border p-3"><option value="">เลือกระดับการแข่งขัน</option>{options.map(x=><option key={x.id} value={x.id}>{x.name}{x.seats_limit?" (กำหนด "+x.seats_limit+" คน)":""}</option>)}</select></label>
       <button disabled={adding||busy||!addGoId.trim()||!addDivision} className="min-h-12 rounded-xl bg-blue-800 px-5 py-3 font-bold text-white disabled:opacity-40">{adding?"กำลังบันทึก...":"เพิ่มใบสมัครรอตรวจ"}</button>
      </form>
      {addMessage&&<p role="status" className="mt-3 rounded-xl bg-amber-50 p-3 text-sm font-bold">{addMessage}</p>}
@@ -139,7 +139,7 @@ export default function TournamentRegistrationList({params}:{params:Promise<{id:
       <label className="font-semibold">ชื่อนักกีฬา หรือ GO ID
        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาชื่อหรือรหัสนักกีฬา" className="mt-2 w-full rounded-xl border p-3"/>
       </label>
-      <label className="font-semibold">รุ่นแข่งขัน
+      <label className="font-semibold">ระดับการแข่งขัน
        <select value={division} onChange={e=>setDivision(e.target.value)} className="mt-2 w-full rounded-xl border p-3">
         <option value="all">ทุกรุ่น</option>{divisions.map(x=><option key={x} value={x}>{x}</option>)}
        </select>
