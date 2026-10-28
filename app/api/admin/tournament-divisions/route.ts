@@ -34,14 +34,14 @@ export async function POST(request:Request){
   const url=new URL("/rest/v1/gt_divisions",auth.base);url.searchParams.set("select","id,tournament_id,name,pairing_enabled,seats_limit,entry_fee_thb,friendship_board_size");
   let effectiveFee=fee;
   if(effectiveFee===null){
-   const kind=/ดั้ง|\bdan\b/i.test(name)?"dan":/คิว|\bkyu\b/i.test(name)?"kyu":null;
+   const kind=/friendship|เฟรนชิพ|เฟรนด์ชิพ/i.test(name)?"friendship":/ดั้ง|\bdan\b/i.test(name)?"dan":/คิว|\bkyu\b/i.test(name)?"kyu":null;
    if(kind){
     const t=new URL("/rest/v1/gt_tournaments",auth.base);
-    t.searchParams.set("select","default_kyu_fee_thb,default_dan_fee_thb");t.searchParams.set("id","eq."+id);t.searchParams.set("limit","1");
+    t.searchParams.set("select","default_kyu_fee_thb,default_dan_fee_thb,default_friendship_fee_thb");t.searchParams.set("id","eq."+id);t.searchParams.set("limit","1");
     const check=await fetch(t,{headers:auth.headers,cache:"no-store",signal:AbortSignal.timeout(8000)});
     const values=await check.json();
     if(!check.ok||!Array.isArray(values)||values.length!==1)throw Error("default fee unavailable");
-    effectiveFee=Number(values[0][kind==="dan"?"default_dan_fee_thb":"default_kyu_fee_thb"]);
+    effectiveFee=Number(values[0][kind==="dan"?"default_dan_fee_thb":kind==="friendship"?"default_friendship_fee_thb":"default_kyu_fee_thb"]);
    }
   }
   const r=await fetch(url,{method:"POST",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({tournament_id:id,name,seats_limit:seats,entry_fee_thb:effectiveFee,friendship_board_size:friendshipBoard,pairing_enabled:false}),cache:"no-store",signal:AbortSignal.timeout(8000)});
