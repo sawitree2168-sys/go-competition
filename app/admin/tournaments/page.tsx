@@ -17,7 +17,7 @@ export default function TournamentAdmin(){
  const [role,setRole]=useState(""),[events,setEvents]=useState<Tournament[]>([]);
  const [year,setYear]=useState("2026"),[title,setTitle]=useState(""),[date,setDate]=useState("");
  const [selected,setSelected]=useState<string|null>(null),[divisions,setDivisions]=useState<Division[]>([]),[divName,setDivName]=useState(""),[seats,setSeats]=useState(""),[entryFee,setEntryFee]=useState(""),[friendshipBoard,setFriendshipBoard]=useState("");
- const [kyuPrice,setKyuPrice]=useState("500"),[danPrice,setDanPrice]=useState("600"),[feeOverrides,setFeeOverrides]=useState<Record<string,string>>({});
+ const [kyuPrice,setKyuPrice]=useState("500"),[danPrice,setDanPrice]=useState("600"),[friendshipPrice,setFriendshipPrice]=useState("500"),[feeOverrides,setFeeOverrides]=useState<Record<string,string>>({});
  const [templateBusy,setTemplateBusy]=useState(false);
  const [summary,setSummary]=useState<Summary|null>(null),[summaryBusy,setSummaryBusy]=useState(false);
  const [posterBusy,setPosterBusy]=useState(false),[posterPreview,setPosterPreview]=useState("");
@@ -54,7 +54,7 @@ export default function TournamentAdmin(){
   try{const d=await api("/api/admin/tournaments","POST",{title,date});setEvents(old=>[d.tournament,...old]);setSelected(d.tournament.id);setKyuPrice(String(d.tournament.default_kyu_fee_thb??500));setDanPrice(String(d.tournament.default_dan_fee_thb??600));setFeeOverrides({});setYear(date.slice(0,4));setTitle("");setDate("");setDivisions([]);setSummary(null);setAlbumUrl("");setMessage("เพิ่มรายการแข่งขันแบบร่างเรียบร้อย")}
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกไม่สำเร็จ")}finally{setBusy(false)}
  }
- async function chooseEvent(id:string){setPosterPreview("");const ev=events.find(x=>x.id===id);setKyuPrice(String(ev?.default_kyu_fee_thb??500));setDanPrice(String(ev?.default_dan_fee_thb??600));setFeeOverrides({});setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setApplicants([]);setNews([]);setMessage("");setSummaryBusy(true);
+ async function chooseEvent(id:string){setPosterPreview("");const ev=events.find(x=>x.id===id);setKyuPrice(String(ev?.default_kyu_fee_thb??500));setDanPrice(String(ev?.default_dan_fee_thb??600));setFriendshipPrice(String(ev?.default_friendship_fee_thb??500));setFeeOverrides({});setSelected(id);setDivisions([]);setSummary(null);setAlbumUrl("");setApplicants([]);setNews([]);setMessage("");setSummaryBusy(true);
   try{const [d,s,a,r,n]=await Promise.all([api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-summary?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-albums?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-registrations?tournament_id="+encodeURIComponent(id)),api("/api/admin/tournament-news?tournament_id="+encodeURIComponent(id))]);setDivisions(d.divisions);setFeeOverrides(Object.fromEntries((d.divisions as Division[]).map(x=>[x.id,x.entry_fee_thb===null?"":String(x.entry_fee_thb)])));setSummary(s);setAlbumUrl(a.album?.drive_folder_url||"");setApplicants(r.registrations);setNews(n.news)}
   catch(e){setMessage(e instanceof Error?e.message:"โหลดข้อมูลรายการแข่งขันไม่สำเร็จ")}
   finally{setSummaryBusy(false)}
@@ -114,7 +114,7 @@ export default function TournamentAdmin(){
   }catch(e){setMessage(e instanceof Error?e.message:"บันทึกโปสเตอร์ไม่ได้")}finally{setPosterBusy(false)}
  }
  async function saveDefaultFees(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
-  try{const result=await api("/api/admin/tournaments","PATCH",{tournament_id:selected,default_kyu_fee_thb:kyuPrice,default_dan_fee_thb:danPrice});setEvents(old=>old.map(x=>x.id===selected?{...x,...result.tournament}:x));setMessage("บันทึกราคาคิวและดั้งแล้ว รุ่นเดิมยังคงราคาของรุ่นไว้ตามที่ตั้งไว้");}
+  try{const result=await api("/api/admin/tournaments","PATCH",{tournament_id:selected,default_kyu_fee_thb:kyuPrice,default_dan_fee_thb:danPrice,default_friendship_fee_thb:friendshipPrice});setEvents(old=>old.map(x=>x.id===selected?{...x,...result.tournament}:x));setMessage("บันทึกราคาคิวและดั้งแล้ว รุ่นเดิมยังคงราคาของรุ่นไว้ตามที่ตั้งไว้");}
   catch(e){setMessage(e instanceof Error?e.message:"แก้ค่าสมัครไม่สำเร็จ")}finally{setBusy(false)}
  }
  async function saveDivisionFee(id:string){if(!selected)return;setBusy(true);setMessage("");
@@ -193,9 +193,10 @@ export default function TournamentAdmin(){
       <div className="mt-4 rounded-xl border border-blue-200 bg-white p-4">
        <h4 className="text-lg font-extrabold">ตั้งค่าราคาค่าสมัครของรายการ</h4>
        <p className="mt-1 text-sm text-slate-600">ราคาเริ่มต้นที่ตั้งไว้สำหรับรายการนี้: คิว {selectedEvent.default_kyu_fee_thb.toLocaleString("th-TH")} บาท และดั้ง {selectedEvent.default_dan_fee_thb.toLocaleString("th-TH")} บาท ปรับราคาได้ โดยรุ่นเดิมไม่เปลี่ยนราคาจนกว่าจะกดบันทึกแก้ไขที่รุ่น</p>
-       <form onSubmit={saveDefaultFees} className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+       <form onSubmit={saveDefaultFees} className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
         <label className="font-bold">ราคามาตรฐานรุ่นคิว (บาท)<input type="number" min="0" max="1000000" step="0.01" value={kyuPrice} onChange={e=>setKyuPrice(e.target.value)} required disabled={!["owner","admin"].includes(role)} className="mt-2 w-full rounded-xl border p-3"/></label>
         <label className="font-bold">ราคามาตรฐานรุ่นดั้ง (บาท)<input type="number" min="0" max="1000000" step="0.01" value={danPrice} onChange={e=>setDanPrice(e.target.value)} required disabled={!["owner","admin"].includes(role)} className="mt-2 w-full rounded-xl border p-3"/></label>
+        <label className="font-bold">ราคามาตรฐาน Friendship (บาท)<input type="number" min="0" max="1000000" step="0.01" value={friendshipPrice} onChange={e=>setFriendshipPrice(e.target.value)} required disabled={!["owner","admin"].includes(role)} className="mt-2 w-full rounded-xl border p-3"/></label>
         {["owner","admin"].includes(role)&&<button disabled={busy} className="min-h-12 rounded-xl bg-blue-800 px-5 py-3 font-bold text-white disabled:opacity-40">บันทึกค่าเริ่มต้น</button>}
        </form>
        <p className="mt-2 text-xs text-slate-600">ราคาของนักกีฬาที่ลงทะเบียนไว้แล้วจะใช้ยอด ณ วันสมัคร ไม่ถูกเปลี่ยนย้อนหลัง และไม่ได้หมายถึงรับชำระแล้ว</p>
@@ -255,7 +256,14 @@ export default function TournamentAdmin(){
        </form>}
       </div>
       {["owner","admin"].includes(role)&&!selectedEvent.published&&<form onSubmit={createDivision} className="mt-4 space-y-3">
-       <label className="block">ระดับการแข่งขัน<input list="go-tournament-level-options" required minLength={2} maxLength={100} value={divName} onChange={e=>setDivName(e.target.value)} placeholder="เช่น 1–2 คิว" className="mt-1 w-full rounded-lg border bg-white p-3"/><datalist id="go-tournament-level-options">{["1 ดั้ง","2 ดั้ง","3 ดั้ง","4 ดั้ง","5 ดั้ง","1–2 คิว","3–4 คิว","5–6 คิว","7–8 คิว","9–12 คิว"].map(level=><option key={level} value={level}/>)}</datalist><span className="mt-1 block text-xs text-slate-600">กรอกเพียงระดับ ไม่ต้องตั้งชื่อรุ่นอีกช่อง เช่น 1–2 คิว</span></label>
+       <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+        <p className="font-extrabold">เลือกรุ่น Friendship</p><p className="mt-1 text-sm text-slate-600">สำหรับนักกีฬาที่ไม่ทราบระดับฝีมือ เลือกขนาดกระดานได้ทันที โดยไม่ต้องพิมพ์ชื่อเอง</p>
+        <div className="mt-3 flex flex-wrap gap-3">
+         <button type="button" onClick={()=>{setDivName("Friendship 9×9");setFriendshipBoard("9");setEntryFee("");}} className="min-h-12 rounded-xl bg-[#0b4a97] px-5 py-3 font-bold text-white">Friendship 9×9</button>
+         <button type="button" onClick={()=>{setDivName("Friendship 13×13");setFriendshipBoard("13");setEntryFee("");}} className="min-h-12 rounded-xl bg-[#0b4a97] px-5 py-3 font-bold text-white">Friendship 13×13</button>
+        </div>
+       </div>
+       <label className="block">ระดับการแข่งขัน<input list="go-tournament-level-options" required minLength={2} maxLength={100} value={divName} onChange={e=>setDivName(e.target.value)} placeholder="เช่น 1–2 คิว" className="mt-1 w-full rounded-lg border bg-white p-3"/><datalist id="go-tournament-level-options">{["1 ดั้ง","2 ดั้ง","3 ดั้ง","4 ดั้ง","5 ดั้ง","1–2 คิว","3–4 คิว","5–6 คิว","7–8 คิว","9–12 คิว","Friendship 9×9","Friendship 13×13"].map(level=><option key={level} value={level}/>)}</datalist><span className="mt-1 block text-xs text-slate-600">กรอกเพียงระดับ ไม่ต้องตั้งชื่อรุ่นอีกช่อง เช่น 1–2 คิว</span></label>
        <label className="block">ประเภท Friendship (กรณีไม่ทราบระดับฝีมือ)
         <select value={friendshipBoard} onChange={e=>setFriendshipBoard(e.target.value)} className="mt-1 w-full rounded-lg border bg-white p-3">
          <option value="">ไม่ใช่ Friendship / ไม่กำหนด</option>
@@ -264,7 +272,7 @@ export default function TournamentAdmin(){
         </select><span className="mt-1 block text-xs text-slate-600">ใช้เฉพาะผู้สมัครที่ยังไม่ทราบระดับจริง ไม่เปลี่ยนระดับนักกีฬาในฐานข้อมูล</span>
        </label>
        <label className="block">จำนวนรับ (เว้นว่าง = ไม่จำกัด)<input type="number" min={1} max={10000} value={seats} onChange={e=>setSeats(e.target.value)} className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
-       <label className="block">ค่าสมัครต่อคน (บาท) — เว้นว่าง = ใช้ราคาตามระดับคิว/ดั้ง<input type="number" inputMode="decimal" min={0} max={1000000} step="0.01" value={entryFee} onChange={e=>setEntryFee(e.target.value)} placeholder="เช่น 500.00" className="mt-1 w-full rounded-lg border bg-white p-3"/><span className="mt-1 block text-xs text-slate-600">ใช้เป็นค่าสมัครอ้างอิงตอนสร้างใบสมัคร ไม่ใช่ยอดเงินที่ได้รับแล้ว</span></label>
+       <label className="block">ค่าสมัครต่อคน (บาท) — เว้นว่าง = ใช้ราคาเริ่มต้นของคิว / ดั้ง / Friendship<input type="number" inputMode="decimal" min={0} max={1000000} step="0.01" value={entryFee} onChange={e=>setEntryFee(e.target.value)} placeholder="เช่น 500.00" className="mt-1 w-full rounded-lg border bg-white p-3"/><span className="mt-1 block text-xs text-slate-600">ใช้เป็นค่าสมัครอ้างอิงตอนสร้างใบสมัคร ไม่ใช่ยอดเงินที่ได้รับแล้ว</span></label>
        <button disabled={busy} className="rounded-xl bg-blue-800 px-5 py-3 font-bold text-white">เพิ่มรุ่นแข่งขัน</button>
       </form>}
      </section>}
