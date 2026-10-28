@@ -5,6 +5,7 @@ import {useParams} from "next/navigation";
 import {SiteSectionBanner} from "../../components/SiteSectionBanner";
 type Event={id:string;title:string;start_at:string|null;event_date:string|null;status:string;registration_open_date:string|null;registration_close_date:string|null;full_refund_through_date:string|null;refund_policy_text:string|null;default_kyu_fee_thb:number|null;default_dan_fee_thb:number|null;default_friendship_fee_thb:number|null;poster_url:string|null};
 type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean;entry_fee_thb:number|null};
+function feeLabel(value:unknown){return typeof value==="number"&&Number.isFinite(value)&&value>=0?value.toLocaleString("th-TH")+" บาท/คน":"รอประกาศ";}
 export default function TournamentDetailsPage(){
  const params=useParams<{id:string}>();
  const id=typeof params.id==="string"?params.id:"";
@@ -42,9 +43,9 @@ export default function TournamentDetailsPage(){
       {event.registration_open_date&&<p><span className="font-bold">เปิดรับสมัคร:</span> {formatDay(event.registration_open_date)}</p>}
       {event.registration_close_date&&<p><span className="font-bold">ปิดรับสมัคร:</span> {formatDay(event.registration_close_date)}</p>}
       <div className="grid gap-3 sm:grid-cols-2">
-       <p className="rounded-xl bg-white p-4"><span className="font-bold">รุ่นคิว:</span> {event.default_kyu_fee_thb===null?"รอประกาศ":Number(event.default_kyu_fee_thb).toLocaleString("th-TH")+" บาท/คน"}</p>
-       <p className="rounded-xl bg-white p-4"><span className="font-bold">รุ่นดั้ง:</span> {event.default_dan_fee_thb===null?"รอประกาศ":Number(event.default_dan_fee_thb).toLocaleString("th-TH")+" บาท/คน"}</p>
-       <p className="rounded-xl bg-white p-4 sm:col-span-2"><span className="font-bold">รุ่น Friendship:</span> {event.default_friendship_fee_thb===null?"รอประกาศ":Number(event.default_friendship_fee_thb).toLocaleString("th-TH")+" บาท/คน"}</p>
+       <p className="rounded-xl bg-white p-4"><span className="font-bold">รุ่นคิว:</span> {feeLabel(event.default_kyu_fee_thb)}</p>
+       <p className="rounded-xl bg-white p-4"><span className="font-bold">รุ่นดั้ง:</span> {feeLabel(event.default_dan_fee_thb)}</p>
+       <p className="rounded-xl bg-white p-4 sm:col-span-2"><span className="font-bold">รุ่น Friendship:</span> {feeLabel(event.default_friendship_fee_thb)}</p>
       </div>
      </section>}
      {event.full_refund_through_date&&<section className="mt-5 rounded-2xl border border-amber-300 bg-amber-50 p-5" aria-label="นโยบายยกเลิกและคืนค่าสมัคร">
