@@ -48,7 +48,7 @@ export default function TournamentDetailsPage(){
      </section>}
      {event.full_refund_through_date&&<section className="mt-5 rounded-2xl border border-amber-300 bg-amber-50 p-5" aria-label="นโยบายยกเลิกและคืนค่าสมัคร">
       <h2 className="text-xl font-black text-amber-950">เงื่อนไขยกเลิกการสมัครและคืนเงิน</h2>
-      <p className="mt-3 leading-relaxed text-amber-950">ยกเลิกการสมัครภายในวันที่ <strong>{formatDay(event.full_refund_through_date)}</strong> ได้รับเงินคืนเต็มจำนวน</p>
+      <p className="mt-3 leading-relaxed text-amber-950">{event.refund_policy_text||<>ยกเลิกการสมัครภายในวันที่ <strong>{formatDay(event.full_refund_through_date)}</strong> ได้รับเงินคืนเต็มจำนวน</>}</p>
       <p className="mt-2 font-bold leading-relaxed text-red-800">หลังจากวันที่ {formatDay(event.full_refund_through_date)} ไม่คืนค่าสมัครทุกกรณี</p>
      </section>}
      <h2 className="mt-7 text-xl font-black">รุ่นการแข่งขัน</h2>
