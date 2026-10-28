@@ -163,7 +163,7 @@ export default function TournamentAdmin(){
       <button disabled={busy} className="rounded-xl bg-blue-800 px-5 py-3 font-bold text-white disabled:opacity-50">บันทึกแบบร่าง</button>
      </form>}
      {selectedEvent&&<section className="mt-6 rounded-xl border border-[#d7b66d] bg-[#fffbf3] p-4">
-      <h3 className="text-lg font-extrabold">รุ่นแข่งขัน: {selectedEvent.title}</h3>
+      <h3 className="text-lg font-extrabold">ระดับการแข่งขัน · {selectedEvent.title}</h3>
       <div className="mt-4 rounded-xl border border-blue-200 bg-white p-4">
        <h4 className="text-base font-extrabold">โปสเตอร์งานแข่งขัน</h4>
        <p className="mt-1 text-sm text-slate-600">อัปโหลดไฟล์ WebP แนวตั้งที่ปรับขนาดไว้แล้ว ระบบจะแสดงทั้งภาพโดยไม่ครอปตัวหนังสือบนหน้าเว็บจริง</p>
@@ -204,7 +204,7 @@ export default function TournamentAdmin(){
        <section className="mt-4 rounded-xl border border-[#c9a661] bg-[#fff8e5] p-4">
         <h4 className="text-lg font-black text-[#0b3165]">ชุดรุ่นแข่งขันมาตรฐาน · 8 รุ่น / 304 คน</h4>
         <p className="mt-1 text-sm text-slate-700">1 ดั้ง 32 · 1–2 คิว 32 · 3–4 คิว 32 · 5–6 คิว 32 · 7–8 คิว 32 · 9–12 คิว 64 · Friendship 13×13 16 · Friendship 9×9 64</p>
-        <p className="mt-2 text-sm text-slate-700">ใช้ราคามาตรฐานของรายการนี้สำหรับดั้ง/คิว ส่วน Friendship ยังไม่กำหนดราคา ต้องตรวจสอบก่อนเปิดสมัคร ระบบนี้จะไม่สร้างรุ่นซ้ำ</p>
+        <p className="mt-2 text-sm text-slate-700">ระบุเพียงระดับ ไม่ต้องตั้งชื่อรุ่นเพิ่ม ระบบใช้ราคามาตรฐานคิว/ดั้ง ส่วน Friendship ต้องตรวจราคาก่อนเปิดสมัครและจะไม่สร้างข้อมูลซ้ำ</p>
         <button type="button" disabled={templateBusy||busy||divisions.length>0} onClick={()=>void addStandardDivisionTemplate()}
          className="mt-3 min-h-12 w-full rounded-xl bg-[#0c4b9b] px-5 py-3 font-black text-white disabled:bg-slate-300 disabled:text-slate-600">
           {templateBusy?"กำลังเพิ่มรุ่น...":divisions.length>0?"รายการนี้มีรุ่นแข่งขันแล้ว — ไม่เพิ่มซ้ำ":"เพิ่มรุ่นมาตรฐานทั้ง 8 รุ่น"}
@@ -255,7 +255,7 @@ export default function TournamentAdmin(){
        </form>}
       </div>
       {["owner","admin"].includes(role)&&!selectedEvent.published&&<form onSubmit={createDivision} className="mt-4 space-y-3">
-       <label className="block">ชื่อรุ่น<input required minLength={2} maxLength={100} value={divName} onChange={e=>setDivName(e.target.value)} placeholder="เช่น 1–2 คิว" className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
+       <label className="block">ระดับการแข่งขัน<input required minLength={2} maxLength={100} value={divName} onChange={e=>setDivName(e.target.value)} placeholder="เช่น 1–2 คิว, 3–4 คิว, 1 ดั้ง" className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
        <label className="block">ประเภท Friendship (กรณีไม่ทราบระดับฝีมือ)
         <select value={friendshipBoard} onChange={e=>setFriendshipBoard(e.target.value)} className="mt-1 w-full rounded-lg border bg-white p-3">
          <option value="">ไม่ใช่ Friendship / ไม่กำหนด</option>
@@ -264,7 +264,7 @@ export default function TournamentAdmin(){
         </select><span className="mt-1 block text-xs text-slate-600">ใช้เฉพาะผู้สมัครที่ยังไม่ทราบระดับจริง ไม่เปลี่ยนระดับนักกีฬาในฐานข้อมูล</span>
        </label>
        <label className="block">จำนวนรับ (เว้นว่าง = ไม่จำกัด)<input type="number" min={1} max={10000} value={seats} onChange={e=>setSeats(e.target.value)} className="mt-1 w-full rounded-lg border bg-white p-3"/></label>
-       <label className="block">ค่าสมัครต่อคน (บาท) — เว้นว่าง = ใช้ราคาเริ่มต้นคิว/ดั้งตามชื่อรุ่น<input type="number" inputMode="decimal" min={0} max={1000000} step="0.01" value={entryFee} onChange={e=>setEntryFee(e.target.value)} placeholder="เช่น 500.00" className="mt-1 w-full rounded-lg border bg-white p-3"/><span className="mt-1 block text-xs text-slate-600">ใช้เป็นค่าสมัครอ้างอิงตอนสร้างใบสมัคร ไม่ใช่ยอดเงินที่ได้รับแล้ว</span></label>
+       <label className="block">ค่าสมัครต่อคน (บาท) — เว้นว่าง = ใช้ราคาตามระดับคิว/ดั้ง<input type="number" inputMode="decimal" min={0} max={1000000} step="0.01" value={entryFee} onChange={e=>setEntryFee(e.target.value)} placeholder="เช่น 500.00" className="mt-1 w-full rounded-lg border bg-white p-3"/><span className="mt-1 block text-xs text-slate-600">ใช้เป็นค่าสมัครอ้างอิงตอนสร้างใบสมัคร ไม่ใช่ยอดเงินที่ได้รับแล้ว</span></label>
        <button disabled={busy} className="rounded-xl bg-blue-800 px-5 py-3 font-bold text-white">เพิ่มรุ่นแข่งขัน</button>
       </form>}
      </section>}
