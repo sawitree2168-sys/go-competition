@@ -39,7 +39,7 @@ function MedalMark(){
 }
 
 function BottomNav(){
- const links=[{href:"/",icon:"home" as const,label:"หน้าหลัก"},{href:"/schedule",icon:"calendar" as const,label:"รายการแข่งขัน"},{href:"/fan",icon:"fans" as const,label:"GO FAN",active:true},{href:"/site-map",icon:"chart" as const,label:"เมนูทั้งหมด"},{href:"/faq",icon:"news" as const,label:"ช่วยเหลือ"}];
+ const links=[{href:"/",icon:"home" as const,label:"หน้าหลัก"},{href:"/schedule",icon:"trophy" as const,label:"รายการแข่งขัน"},{href:"/fan",icon:"fans" as const,label:"GO FAN",active:true},{href:"/overview/rankings",icon:"chart" as const,label:"อันดับ"},{href:"/overview/news",icon:"news" as const,label:"ข่าวสาร"}];
  return <nav aria-label="เมนูหลักมือถือ" className="fixed inset-x-0 bottom-0 z-50 border-t border-white/20 bg-[#051f53] pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-9px_30px_rgba(3,26,71,.2)] lg:hidden">
   <div className="mx-auto grid max-w-2xl grid-cols-5 gap-1 px-1 py-1.5">{links.map(x=><Link key={x.href} href={x.href} aria-current={x.active?"page":undefined} className={"flex min-h-[55px] flex-col items-center justify-center gap-1 rounded-xl px-1 text-center text-[10px] font-bold leading-tight "+(x.active?"bg-[#1363ea] text-white":"text-blue-100 hover:bg-white/10")}>
    <Glyph name={x.icon} size={22}/><span>{x.label}</span>
@@ -57,8 +57,8 @@ export default function GoFan(){
  const [found,setFound]=useState<Athlete[]>([]),[athletes,setAthletes]=useState<Athlete[]>([]);
  const [matches,setMatches]=useState<Match[]>([]),[notice,setNotice]=useState(""),[error,setError]=useState("");
  const [refreshTick,setRefreshTick]=useState(0),[tab,setTab]=useState<Tab>("all");
- useEffect(()=>{try{const ids:unknown=JSON.parse(localStorage.getItem(STORE)||"[]");if(Array.isArray(ids))setSaved([...new Set(ids.filter((x):x is string=>typeof x==="string"&&validId.test(x)))].slice(0,MAX));}catch{localStorage.removeItem(STORE)}setHydrated(true)},[]);
- useEffect(()=>{if(hydrated)localStorage.setItem(STORE,JSON.stringify(saved))},[saved,hydrated]);
+ useEffect(()=>{let active=true;queueMicrotask(()=>{if(!active)return;try{const ids:unknown=JSON.parse(localStorage.getItem(STORE)||"[]");if(Array.isArray(ids))setSaved([...new Set(ids.filter((x):x is string=>typeof x==="string"&&validId.test(x)))].slice(0,MAX));}catch{/* Storage may be blocked; following still works for this session. */}setHydrated(true)});return()=>{active=false}},[]);
+ useEffect(()=>{if(hydrated)try{localStorage.setItem(STORE,JSON.stringify(saved))}catch{/* Session-only following when storage is unavailable. */}},[saved,hydrated]);
  useEffect(()=>{if(!hydrated)return;let live=true;const ctrl=new AbortController();async function load(){
   setError("");if(!saved.length){setAthletes([]);setMatches([]);setLoading(false);return}
   setLoading(true);try{
@@ -88,14 +88,14 @@ export default function GoFan(){
     <Link href="/faq" aria-label="ช่วยเหลือ" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-white/20"><Glyph name="shield"/></Link>
    </div>
   </header>
-  <div className="mx-auto max-w-6xl space-y-5 px-3 pb-8 pt-4 sm:px-6">
-   <section className="relative isolate overflow-hidden rounded-[24px] border border-[#467ac2] bg-[radial-gradient(ellipse_at_85%_15%,#4084e4_0%,#154b9c_40%,#071e4d_92%)] text-white shadow-[0_14px_34px_rgba(7,34,87,.24)]">
+  <div className="mx-auto max-w-2xl space-y-3 px-3 pb-8 pt-0 sm:px-6 sm:pt-4">
+   <section className="relative isolate -mx-3 overflow-hidden rounded-none sm:mx-0 sm:rounded-[24px] border border-[#467ac2] bg-[radial-gradient(ellipse_at_85%_15%,#4084e4_0%,#154b9c_40%,#071e4d_92%)] text-white shadow-[0_14px_34px_rgba(7,34,87,.24)]">
     <SiteHeroMedia slot="fan"/>
     <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-[#051a43]/90 via-[#0a2a64]/75 to-[#123e83]/30"/>
     <div className="pointer-events-none absolute -right-12 -top-20 z-10 h-56 w-56 rounded-full border-[28px] border-[#f6d17a]/20 sm:h-80 sm:w-80"/>
     <div className="pointer-events-none absolute right-5 top-8 z-10 hidden h-40 w-40 rotate-12 rounded-full bg-[#efc35c]/10 blur-2xl sm:block"/>
     <div className="relative z-20 flex min-h-[165px] items-center justify-between gap-3 px-5 py-6 sm:min-h-[210px] sm:px-9">
-     <div className="max-w-xl"><p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ffdc91]">GO TOURNAMENT · SUPPORTER HUB</p>
+     <div className="max-w-xl"><p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ffdc91]">ติดตามทุกกำลังใจ</p>
       <h1 className="mt-2 text-[42px] font-black leading-none tracking-tight text-[#ffdc78] drop-shadow-lg sm:text-6xl">GO <span className="text-white">FAN</span></h1>
       <h2 className="mt-2 text-xl font-black sm:text-2xl">กองเชียร์ของฉัน</h2>
       <p className="mt-1 max-w-lg text-sm text-blue-50 sm:text-base">ติดตามนักกีฬาที่คุณเชียร์ได้หลายคนในหน้าจอเดียว</p>
@@ -103,13 +103,13 @@ export default function GoFan(){
      <div className="hidden h-24 w-24 shrink-0 items-center justify-center rounded-full border-4 border-[#fbd781]/70 bg-gradient-to-b from-[#f9e49b] to-[#a56b1a] text-[#563a0b] shadow-xl sm:flex" aria-hidden="true"><Glyph name="trophy" size={54}/></div>
     </div>
    </section>
-   <div className="rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm leading-relaxed text-slate-600"><strong className="text-blue-900">ไม่ต้องล็อกอิน</strong> · รายชื่อที่ติดตามเก็บไว้ในอุปกรณ์นี้ และแสดงเฉพาะโปรไฟล์สาธารณะกับผลแข่งขันที่ผู้จัดยืนยันแล้ว</div>
+   <div className="sr-only"><strong className="text-blue-900">ไม่ต้องล็อกอิน</strong> · รายชื่อที่ติดตามเก็บไว้ในอุปกรณ์นี้ และแสดงเฉพาะโปรไฟล์สาธารณะกับผลแข่งขันที่ผู้จัดยืนยันแล้ว</div>
    <section className="rounded-2xl bg-white p-3 shadow-sm sm:p-5" aria-label="ค้นหานักกีฬา">
-    <form onSubmit={search} className="flex flex-col gap-2 sm:flex-row">
-     <label className="relative min-w-0 flex-1"><span className="sr-only">ค้นหาชื่อนักกีฬาหรือ GO ID</span><span className="pointer-events-none absolute left-4 top-[14px] text-blue-600"><Glyph name="search"/></span>
-      <input value={query} onChange={e=>setQuery(e.target.value)} minLength={2} maxLength={70} required placeholder="ค้นหาชื่อนักกีฬาหรือ GO ID" className="min-h-12 w-full rounded-xl border-2 border-[#d6e3f4] bg-[#f8fbff] py-3 pl-12 pr-3 text-base font-medium outline-none focus:border-blue-600"/>
+    <form onSubmit={search} className="flex items-center gap-2">
+     <label className="relative min-w-0 flex-1"><span className="sr-only">ค้นหาชื่อนักกีฬาหรือ GO ID</span><span className="pointer-events-none absolute left-3 top-[13px] text-blue-600"><Glyph name="search"/></span>
+      <input value={query} onChange={e=>setQuery(e.target.value)} minLength={2} maxLength={70} required placeholder="ค้นหาชื่อนักกีฬาหรือ GO ID" className="min-h-11 w-full rounded-xl border border-[#d6e3f4] bg-[#f8fbff] py-3 pl-10 pr-2 text-sm font-medium outline-none focus:border-blue-600"/>
      </label>
-     <button disabled={searching||query.trim().length<2} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#ffe59e] to-[#f3c45c] px-5 py-3 font-extrabold text-[#092959] shadow-sm disabled:opacity-50"><Glyph name="plus" size={19}/>{searching?"กำลังค้นหา...":"ค้นหา / เพิ่มนักกีฬา"}</button>
+     <button disabled={searching||query.trim().length<2} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#ffe59e] to-[#f3c45c] shrink-0 px-3 py-3 text-sm font-extrabold text-[#092959] shadow-sm disabled:opacity-50"><Glyph name="plus" size={19}/>{searching?"กำลังค้นหา...":"เพิ่มนักกีฬา"}</button>
     </form>
     {found.length>0&&<div className="mt-3 grid gap-2 sm:grid-cols-2">{found.map(a=><div key={a.id} className="flex items-center gap-3 rounded-xl border border-blue-100 bg-[#f7faff] p-3">
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-lg font-black text-blue-800" aria-hidden="true">{athleteLabel(a).charAt(0)}</div>
@@ -124,7 +124,7 @@ export default function GoFan(){
    {error&&<p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800">{error}</p>}
    <section aria-labelledby="followed-title" className="space-y-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
-     <h2 id="followed-title" className="text-xl font-black sm:text-2xl">นักกีฬาที่ติดตาม <span className="text-base text-blue-700">({saved.length}/{MAX})</span></h2>
+     <h2 id="followed-title" className="text-lg font-black sm:text-2xl">นักกีฬาที่ติดตาม <span className="sr-only">({saved.length}/{MAX})</span></h2>
      <div className="flex flex-wrap gap-2">
       <button type="button" onClick={()=>setRefreshTick(x=>x+1)} disabled={loading||!saved.length} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-blue-300 bg-white px-3 text-sm font-bold text-blue-700 disabled:opacity-40"><Glyph name="refresh" size={16}/> อัปเดต</button>
       <button type="button" onClick={clear} disabled={!saved.length} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-red-300 bg-white px-3 text-sm font-bold text-red-700 disabled:opacity-40"><Glyph name="trash" size={16}/> ล้างทั้งหมด</button>
@@ -135,33 +135,36 @@ export default function GoFan(){
      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-700"><Glyph name="fans" size={31}/></span>
      <p className="mt-3 text-lg font-extrabold">ยังไม่มีนักกีฬาที่ติดตาม</p><p className="mt-1 text-sm text-slate-600">ค้นหาด้านบนแล้วกด “+ ติดตาม” เพื่อเพิ่มนักกีฬาของคุณ</p>
     </div>}
-    {!loading&&saved.length>list.length&&saved.filter(id=>!athletes.some(a=>a.id===id)).map(id=><div key={id} className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm"><span>นักกีฬารายนี้ไม่เปิดเผยข้อมูลสาธารณะแล้ว</span><button type="button" onClick={()=>remove(id)} className="min-h-11 rounded-lg border border-red-300 px-4 font-bold text-red-700">ลบออก</button></div>)}
-    <div className="grid gap-3 lg:grid-cols-2">{!loading&&visible.map(a=>{
+    {!loading&&!error&&saved.length>list.length&&saved.filter(id=>!athletes.some(a=>a.id===id)).map(id=><div key={id} className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm"><span>นักกีฬารายนี้ไม่เปิดเผยข้อมูลสาธารณะแล้ว</span><button type="button" onClick={()=>remove(id)} className="min-h-11 rounded-lg border border-red-300 px-4 font-bold text-red-700">ลบออก</button></div>)}
+    <div className="grid gap-2">{!loading&&visible.map(a=>{
       const rounds=grouped.get(a.id)||[];
-      const wins=rounds.filter(m=>m.winner_id===a.id).length;
-      const losses=rounds.filter(m=>!m.double_forfeit&&m.winner_id!==a.id).length;
-      const forfeits=rounds.filter(m=>m.double_forfeit).length;
-      return <article key={a.id} className="overflow-hidden rounded-2xl border border-[#dae5f4] bg-white shadow-[0_5px_18px_rgba(17,54,108,.07)]">
-       <div className="flex gap-3 p-3 sm:p-4">
-        <div className="relative h-[76px] w-[76px] shrink-0 rounded-xl border border-[#9abbe9] bg-gradient-to-br from-[#b7d7fd] via-[#f1f7ff] to-[#9ebde7] sm:h-[86px] sm:w-[86px]">
-         <div className="flex h-full w-full items-center justify-center text-3xl font-black text-[#164b9e]">{athleteLabel(a).charAt(0)}</div>
-         <div className="absolute -bottom-2 -right-2 rounded-full border-2 border-white bg-[#123e86] p-0.5 shadow-sm"><MedalMark/></div>
+      const latest=rounds[0];
+      const result=latest?resultLabel(latest,a.id):null;
+      return <article key={a.id} className="overflow-hidden rounded-xl border border-[#dae5f4] bg-white shadow-sm">
+       <div className="flex items-center gap-2.5 p-3">
+        <div className="relative flex h-[72px] w-[64px] shrink-0 items-center justify-center rounded-xl border border-[#9abbe9] bg-gradient-to-br from-[#c6dfff] to-[#eaf3ff] text-2xl font-black text-[#164b9e]" aria-label="ยังไม่มีรูปสาธารณะ">
+         {athleteLabel(a).charAt(0)}
+         <div className="absolute -bottom-1 -right-1"><MedalMark/></div>
         </div>
-        <div className="min-w-0 flex-1"><h3 className="truncate text-lg font-black text-[#092d69]">{athleteLabel(a)}</h3>
+        <div className="min-w-0 flex-1">
+         <h3 className="truncate text-base font-black text-[#092d69] sm:text-lg">{athleteLabel(a)}</h3>
          <p className="truncate text-xs text-slate-500">{a.full_name}</p>
-         <p className="mt-1 text-xs font-semibold text-blue-700">GO ID: {a.go_id}</p>
-         <p className="mt-1 text-xs text-slate-600">{a.current_rank?"ระดับ "+a.current_rank:"ยังไม่ระบุระดับ"}</p>
+         <p className="text-xs text-blue-800">GO ID: {a.go_id}</p>
+         <p className="mt-1 text-xs text-blue-700">{a.current_rank?"ระดับ "+a.current_rank:"ยังไม่ระบุระดับ"}{latest?" · รอบ "+latest.round:""}</p>
         </div>
-        <button type="button" onClick={()=>remove(a.id)} aria-label={"เลิกติดตาม "+athleteLabel(a)} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-200 text-red-600" title="เลิกติดตาม"><Glyph name="trash" size={18}/></button>
+        <div className="shrink-0 text-right">
+         <span className={"inline-flex items-center justify-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold "+(result?result.color:"bg-blue-50 text-blue-700")}>
+          {result?<>{result.icon} {result.text}</>:"ยังไม่มีผล"}
+         </span>
+         {latest&&<p className="mt-1 text-[10px] text-slate-500">ยืนยัน {new Date(latest.verified_at).toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Bangkok"})} น.</p>}
+        </div>
        </div>
-       <div className="mx-3 flex flex-wrap items-center gap-1.5 border-t border-blue-100 py-3 text-xs font-bold sm:mx-4">
-        <span className="rounded-full bg-[#e9f2ff] px-3 py-1.5 text-blue-800">ยืนยันแล้ว {rounds.length} เกม</span>
-        <span className="rounded-full bg-[#dff7e9] px-3 py-1.5 text-green-800">ชนะ {wins}</span>
-        <span className="rounded-full bg-[#fff0f1] px-3 py-1.5 text-red-800">แพ้ {losses}</span>
-        {forfeits>0&&<span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-700">แพ้ทั้งคู่ {forfeits}</span>}
-       </div>
-       {rounds.length===0?<p className="mx-3 mb-3 rounded-xl bg-[#f4f8ff] p-3 text-sm text-slate-600 sm:mx-4">ยังไม่มีผลแข่งขันที่ยืนยันและเปิดเผยต่อสาธารณะ</p>:
-        <ul className="mx-3 mb-3 space-y-2 sm:mx-4">{rounds.slice(0,5).map(m=>{const result=resultLabel(m,a.id);return <li key={m.id} className="flex items-center justify-between gap-2 rounded-xl bg-[#f5f8fd] px-3 py-2.5 text-sm"><span className="font-semibold text-slate-600">รอบ {m.round}</span><span className={"inline-flex min-w-20 justify-center rounded-lg px-3 py-1 font-extrabold "+result.color}>{result.icon} {result.text}</span></li>})}{rounds.length>5&&<li className="px-2 text-xs text-blue-700">แสดง 5 เกมล่าสุดจากผลที่ได้รับ</li>}</ul>}
+       <details className="border-t border-blue-50 px-3">
+        <summary className="cursor-pointer py-2 text-xs font-bold text-blue-700">ดูผลแข่งขัน ({rounds.length}) / จัดการติดตาม</summary>
+        {rounds.length===0?<p className="pb-3 text-xs text-slate-500">ยังไม่มีผลที่ยืนยันและเปิดเผยต่อสาธารณะ</p>:
+         <ul className="space-y-1 pb-2">{rounds.slice(0,5).map(m=>{const r=resultLabel(m,a.id);return <li key={m.id} className="flex justify-between rounded-lg bg-blue-50 px-3 py-2 text-xs"><span>รอบ {m.round}</span><span className="font-bold">{r.text}</span></li>})}</ul>}
+        <button type="button" onClick={()=>remove(a.id)} className="mb-3 inline-flex min-h-11 items-center gap-2 rounded-lg border border-red-200 px-3 text-xs font-bold text-red-700"><Glyph name="trash" size={16}/>เลิกติดตาม {athleteLabel(a)}</button>
+       </details>
       </article>;
      })}</div>
     {!loading&&saved.length>0&&visible.length===0&&list.length>0&&<p className="rounded-xl bg-white p-5 text-sm text-slate-600">ไม่มีนักกีฬาตรงกับตัวกรองนี้</p>}

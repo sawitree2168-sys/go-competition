@@ -3,7 +3,7 @@ import Link from "next/link";
 import {SiteSectionBanner} from "../../components/SiteSectionBanner";
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
-type Tournament={id:string;title:string;start_at:string|null;event_date:string|null;status:string;published:boolean;default_kyu_fee_thb:number;default_dan_fee_thb:number};
+type Tournament={id:string;title:string;start_at:string|null;event_date:string|null;status:string;published:boolean;default_kyu_fee_thb:number;default_dan_fee_thb:number;default_friendship_fee_thb:number};
 type Division={id:string;name:string;seats_limit:number|null;pairing_enabled:boolean;entry_fee_thb:number|null;friendship_board_size:number|null};
 type Applicant={id:string;go_id:string|null;athlete_name:string;rank:string|null;division_name:string;registration_status:string;payment_status:string};
 type NewsRow={id:string;title:string;body:string;status:string;created_at:string};
