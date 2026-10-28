@@ -18,6 +18,7 @@ export default function TournamentAdmin(){
  const [year,setYear]=useState("2026"),[title,setTitle]=useState(""),[date,setDate]=useState("");
  const [selected,setSelected]=useState<string|null>(null),[divisions,setDivisions]=useState<Division[]>([]),[divName,setDivName]=useState(""),[seats,setSeats]=useState(""),[entryFee,setEntryFee]=useState(""),[friendshipBoard,setFriendshipBoard]=useState("");
  const [kyuPrice,setKyuPrice]=useState("500"),[danPrice,setDanPrice]=useState("600"),[feeOverrides,setFeeOverrides]=useState<Record<string,string>>({});
+ const [templateBusy,setTemplateBusy]=useState(false);
  const [summary,setSummary]=useState<Summary|null>(null),[summaryBusy,setSummaryBusy]=useState(false);
  const [posterBusy,setPosterBusy]=useState(false),[posterPreview,setPosterPreview]=useState("");
  const [albumUrl,setAlbumUrl]=useState(""),[albumSaving,setAlbumSaving]=useState(false);
@@ -66,6 +67,27 @@ export default function TournamentAdmin(){
  async function saveAlbum(e:FormEvent){e.preventDefault();if(!selected)return;setAlbumSaving(true);setMessage("");
   try{await api("/api/admin/tournament-albums","PUT",{tournament_id:selected,drive_folder_url:albumUrl});setMessage("บันทึกลิงก์อัลบั้มเป็นแบบร่างแล้ว (ยังไม่เผยแพร่สาธารณะ)")}
   catch(e){setMessage(e instanceof Error?e.message:"บันทึกลิงก์ไม่สำเร็จ")}finally{setAlbumSaving(false)}
+ }
+ async function addStandardDivisionTemplate(){
+  if(!selected||!selectedEvent||templateBusy||divisions.length>0)return;
+  if(selectedEvent.published||selectedEvent.status!=="draft"){setMessage("เพิ่มชุดมาตรฐานได้เฉพาะรายการแบบร่างที่ยังไม่เผยแพร่");return}
+  if(!window.confirm("เพิ่ม 8 รุ่นมาตรฐาน จำนวนรับรวม 304 คนในรายการนี้ใช่หรือไม่? รุ่น Friendship จะยังไม่กำหนดค่าสมัคร"))return;
+  setTemplateBusy(true);setMessage("");
+  try{
+   const result=await api("/api/admin/tournament-division-template","POST",{tournament_id:selected});
+   const added:Division[]=result.divisions;
+   setDivisions(added);
+   setFeeOverrides(Object.fromEntries(added.map(d=>[d.id,d.entry_fee_thb===null?"":String(d.entry_fee_thb)])));
+   setSummary(old=>old?{...old,counts:{...old.counts,divisions:added.length}}:old);
+   setMessage("เพิ่ม 8 รุ่นมาตรฐาน รวม 304 ที่เรียบร้อยแล้ว โปรดกำหนดราคา Friendship ก่อนเปิดรับสมัคร");
+  }catch(e){
+   setMessage(e instanceof Error?e.message:"เพิ่มชุดรุ่นไม่ได้ กรุณาโหลดรายการตรวจสอบก่อนลองซ้ำ");
+   try{
+    const refresh=await api("/api/admin/tournament-divisions?tournament_id="+encodeURIComponent(selected));
+    setDivisions(refresh.divisions);
+    setFeeOverrides(Object.fromEntries((refresh.divisions as Division[]).map(d=>[d.id,d.entry_fee_thb===null?"":String(d.entry_fee_thb)])));
+   }catch{/* existing error message preserved */}
+  }finally{setTemplateBusy(false)}
  }
  async function createDivision(e:FormEvent){e.preventDefault();if(!selected)return;setBusy(true);setMessage("");
   try{const d=await api("/api/admin/tournament-divisions","POST",{tournament_id:selected,name:divName,seats_limit:seats,entry_fee_thb:entryFee,friendship_board_size:friendshipBoard});setDivisions(old=>[...old,d.division]);setFeeOverrides(old=>({...old,[d.division.id]:d.division.entry_fee_thb===null?"":String(d.division.entry_fee_thb)}));setSummary(old=>old?{...old,counts:{...old.counts,divisions:old.counts.divisions+1}}:old);setDivName("");setSeats("");setEntryFee("");setFriendshipBoard("");setMessage("เพิ่มรุ่นแข่งขันสำเร็จ")}
@@ -178,6 +200,16 @@ export default function TournamentAdmin(){
        </form>
        <p className="mt-2 text-xs text-slate-600">ราคาของนักกีฬาที่ลงทะเบียนไว้แล้วจะใช้ยอด ณ วันสมัคร ไม่ถูกเปลี่ยนย้อนหลัง และไม่ได้หมายถึงรับชำระแล้ว</p>
       </div>
+      {["owner","admin"].includes(role)&&!selectedEvent.published&&selectedEvent.status==="draft"&&
+       <section className="mt-4 rounded-xl border border-[#c9a661] bg-[#fff8e5] p-4">
+        <h4 className="text-lg font-black text-[#0b3165]">ชุดรุ่นแข่งขันมาตรฐาน · 8 รุ่น / 304 คน</h4>
+        <p className="mt-1 text-sm text-slate-700">1 ดั้ง 32 · 1–2 คิว 32 · 3–4 คิว 32 · 5–6 คิว 32 · 7–8 คิว 32 · 9–12 คิว 64 · Friendship 13×13 16 · Friendship 9×9 64</p>
+        <p className="mt-2 text-sm text-slate-700">ใช้ราคามาตรฐานของรายการนี้สำหรับดั้ง/คิว ส่วน Friendship ยังไม่กำหนดราคา ต้องตรวจสอบก่อนเปิดสมัคร ระบบนี้จะไม่สร้างรุ่นซ้ำ</p>
+        <button type="button" disabled={templateBusy||busy||divisions.length>0} onClick={()=>void addStandardDivisionTemplate()}
+         className="mt-3 min-h-12 w-full rounded-xl bg-[#0c4b9b] px-5 py-3 font-black text-white disabled:bg-slate-300 disabled:text-slate-600">
+          {templateBusy?"กำลังเพิ่มรุ่น...":divisions.length>0?"รายการนี้มีรุ่นแข่งขันแล้ว — ไม่เพิ่มซ้ำ":"เพิ่มรุ่นมาตรฐานทั้ง 8 รุ่น"}
+        </button>
+       </section>}
       <div className="mt-3 space-y-2">{divisions.map(d=><div key={d.id} className="rounded-xl border bg-white p-4">
        <p className="font-bold">{d.name} • {d.seats_limit?d.seats_limit+" ที่":"ไม่จำกัดจำนวน"}</p>
        <div className="mt-3 flex flex-wrap items-end gap-3">
