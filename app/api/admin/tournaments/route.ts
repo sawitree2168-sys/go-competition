@@ -4,7 +4,7 @@ export async function GET(request:Request){
  const auth=await staffAuth(request);if("error" in auth)return auth.error;
  try{
  const url=new URL("/rest/v1/gt_tournaments",auth.base);
- url.searchParams.set("select","id,title,start_at,status,published,created_at,default_kyu_fee_thb,default_dan_fee_thb");
+ url.searchParams.set("select","id,title,start_at,event_date,status,published,created_at,default_kyu_fee_thb,default_dan_fee_thb");
  url.searchParams.set("order","created_at.desc");url.searchParams.set("limit","500");
  const r=await fetch(url,{headers:auth.headers,cache:"no-store",signal:AbortSignal.timeout(8000)});
  const data=await r.json();if(!r.ok||!Array.isArray(data))throw Error();
@@ -25,8 +25,8 @@ export async function POST(request:Request){
   return reply({status:"invalid",message:"วันที่ไม่ถูกต้อง"},400);
  try{
   const endpoint=new URL("/rest/v1/gt_tournaments",auth.base);
-  endpoint.searchParams.set("select","id,title,start_at,status,published,default_kyu_fee_thb,default_dan_fee_thb");
-  const r=await fetch(endpoint,{method:"POST",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({title,start_at:date+"T09:00:00+07:00",status:"draft",published:false}),cache:"no-store",signal:AbortSignal.timeout(8000)});
+  endpoint.searchParams.set("select","id,title,start_at,event_date,status,published,default_kyu_fee_thb,default_dan_fee_thb");
+  const r=await fetch(endpoint,{method:"POST",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({title,event_date:date,status:"draft",published:false}),cache:"no-store",signal:AbortSignal.timeout(8000)});
   const data=await r.json();if(!r.ok||!Array.isArray(data)||data.length!==1)throw Error();
   return reply({status:"ok",tournament:data[0]},201);
  }catch{return reply({status:"error",message:"บันทึกรายการแข่งขันไม่สำเร็จ กรุณาลองใหม่"},503)}
