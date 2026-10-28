@@ -4,7 +4,7 @@ export async function GET(request:Request){
  const auth=await staffAuth(request);if("error" in auth)return auth.error;
  try{
  const url=new URL("/rest/v1/gt_tournaments",auth.base);
- url.searchParams.set("select","id,title,start_at,event_date,status,published,created_at,default_kyu_fee_thb,default_dan_fee_thb");
+ url.searchParams.set("select","id,title,start_at,event_date,status,published,created_at,default_kyu_fee_thb,default_dan_fee_thb,default_friendship_fee_thb");
  url.searchParams.set("order","created_at.desc");url.searchParams.set("limit","500");
  const r=await fetch(url,{headers:auth.headers,cache:"no-store",signal:AbortSignal.timeout(8000)});
  const data=await r.json();if(!r.ok||!Array.isArray(data))throw Error();
@@ -25,7 +25,7 @@ export async function POST(request:Request){
   return reply({status:"invalid",message:"วันที่ไม่ถูกต้อง"},400);
  try{
   const endpoint=new URL("/rest/v1/gt_tournaments",auth.base);
-  endpoint.searchParams.set("select","id,title,start_at,event_date,status,published,default_kyu_fee_thb,default_dan_fee_thb");
+  endpoint.searchParams.set("select","id,title,start_at,event_date,status,published,default_kyu_fee_thb,default_dan_fee_thb,default_friendship_fee_thb");
   const r=await fetch(endpoint,{method:"POST",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({title,event_date:date,status:"draft",published:false}),cache:"no-store",signal:AbortSignal.timeout(8000)});
   const data=await r.json();if(!r.ok||!Array.isArray(data)||data.length!==1)throw Error();
   return reply({status:"ok",tournament:data[0]},201);
@@ -46,11 +46,12 @@ export async function PATCH(request:Request){
  const b=body as Record<string,unknown>;
  const id=typeof b.tournament_id==="string"?b.tournament_id:"";
  const kyu=parseMoney(b.default_kyu_fee_thb),dan=parseMoney(b.default_dan_fee_thb);
- if(!eventIdPattern.test(id)||kyu===null||dan===null)return reply({status:"invalid",message:"ราคาต้องเป็นจำนวนบาทไม่ติดลบ ทศนิยมไม่เกิน 2 ตำแหน่ง"},400);
+ const friendship=parseMoney(b.default_friendship_fee_thb);
+ if(!eventIdPattern.test(id)||kyu===null||dan===null||friendship===null)return reply({status:"invalid",message:"ราคาต้องเป็นจำนวนบาทไม่ติดลบ ทศนิยมไม่เกิน 2 ตำแหน่ง"},400);
  try{
   const url=new URL("/rest/v1/gt_tournaments",auth.base);
-  url.searchParams.set("id","eq."+id);url.searchParams.set("select","id,title,default_kyu_fee_thb,default_dan_fee_thb");
-  const r=await fetch(url,{method:"PATCH",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({default_kyu_fee_thb:kyu,default_dan_fee_thb:dan}),cache:"no-store",signal:AbortSignal.timeout(8000)});
+  url.searchParams.set("id","eq."+id);url.searchParams.set("select","id,title,default_kyu_fee_thb,default_dan_fee_thb,default_friendship_fee_thb");
+  const r=await fetch(url,{method:"PATCH",headers:{...auth.headers,Prefer:"return=representation"},body:JSON.stringify({default_kyu_fee_thb:kyu,default_dan_fee_thb:dan,default_friendship_fee_thb:friendship}),cache:"no-store",signal:AbortSignal.timeout(8000)});
   const data:unknown=await r.json();
   if(!r.ok||!Array.isArray(data)||data.length!==1)throw Error();
   return reply({status:"ok",tournament:data[0],message:"บันทึกอัตราเริ่มต้นแล้ว ราคาใบสมัครเดิมไม่เปลี่ยน"});
