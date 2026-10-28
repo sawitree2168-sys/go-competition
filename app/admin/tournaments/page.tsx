@@ -271,6 +271,7 @@ export default function TournamentAdmin(){
     </>}
    </section>}
    {message&&status!=="error"&&status!=="forbidden"&&<p role="status" className="rounded-xl bg-white p-4">{message}</p>}
+   <Link href="/admin/prize-reference" className="block rounded-xl border border-amber-300 bg-[#fff3ce] p-4 text-center font-extrabold text-[#0b2b5c]">ตรวจตารางเงินรางวัลครั้งนี้ (ไม่รวม NEW ONE DAN) ›</Link>
    <Link href="/admin/academies" className="block rounded-xl bg-[#f4e3be] p-4 text-center font-extrabold text-[#0b2b5c]">จัดการสถาบัน / เชื่อม GO ID นักกีฬา ›</Link>
    <Link href="/admin/site-media" className="block rounded-xl bg-[#e5efff] p-4 text-center font-extrabold text-[#0b2b5c]">จัดการภาพเว็บไซต์ / โลโก้ / แบนเนอร์ ›</Link>
    <section className="rounded-2xl bg-white p-5"><h2 className="text-xl font-extrabold">ศูนย์รวมข้อมูลแต่ละการแข่งขัน</h2>
