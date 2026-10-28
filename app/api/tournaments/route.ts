@@ -6,7 +6,7 @@ export async function GET() {
   if (!url || !key) return NextResponse.json({ status:"error",message:"ยังไม่ได้ตั้งค่าการเชื่อมต่อฐานข้อมูล" },{status:503,headers:{"Cache-Control":"no-store"}});
   try {
     const endpoint = new URL("/rest/v1/gt_tournaments",url);
-    endpoint.searchParams.set("select","id,title,start_at,status");
+    endpoint.searchParams.set("select","id,title,start_at,event_date,registration_open_date,registration_close_date,status");
     endpoint.searchParams.set("published","eq.true");
     endpoint.searchParams.set("order","start_at.asc.nullslast");
     endpoint.searchParams.set("limit","100");
