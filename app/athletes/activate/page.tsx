@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import {useRouter} from "next/navigation";
 import {useEffect,useRef,useState,type FormEvent} from "react";
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";
 
@@ -7,6 +8,7 @@ type Athlete={athleteId:string;displayName:string;nickname?:string;level?:string
 type SearchResult={status:string;athletes?:Athlete[];message?:string};
 
 export default function FirstAccessPage(){
+ const router=useRouter();
  const client=useRef<SupabaseClient|null>(null);
  const [ready,setReady]=useState(false),[signed,setSigned]=useState(false);
  const [name,setName]=useState(""),[email,setEmail]=useState("");
@@ -64,7 +66,7 @@ export default function FirstAccessPage(){
   try{
    const {error}=await client.current.auth.updateUser({password});
    if(error)throw error;
-   setPassword("");setRepeat("");setStep("complete");
+   setPassword("");setRepeat("");setStep("complete");router.replace("/");
    setNotice("ตั้งรหัสผ่านเฉพาะบัญชีสำเร็จแล้ว สามารถใช้บัญชีที่ยืนยันตัวตนเข้าสู่ระบบในครั้งถัดไป");
   }catch{setError("ยังตั้งรหัสผ่านไม่ได้ โปรดตรวจเงื่อนไขความปลอดภัยหรือยืนยันบัญชีใหม่")}
   finally{setBusy(false)}

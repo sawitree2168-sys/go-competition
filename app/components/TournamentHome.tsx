@@ -5,6 +5,7 @@ import styles from "./TournamentHome.module.css";
 
 type Event={id:string;title:string;event_date?:string|null;start_at?:string|null;status:string;registration_open_date?:string|null};
 const menus=[
+ {label:"โปรไฟล์ของฉัน",href:"/profile",icon:"home"},
  {label:"หน้าหลัก",href:"/",icon:"home"},
  {label:"รายการแข่งขัน",href:"/schedule",icon:"cup"},
  {label:"ผลการแข่งขัน",href:"/overview/results",icon:"results"},
