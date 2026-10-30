@@ -1,0 +1,20 @@
+begin;
+do $test$ declare requester uuid:=gen_random_uuid(); reviewer uuid:=gen_random_uuid(); outsider uuid:=gen_random_uuid(); claim uuid:=gen_random_uuid(); result jsonb; history jsonb; begin
+insert into auth.users(id,email,aud,role) values(requester,'history-test-requester-'||requester||'@example.invalid','authenticated','authenticated'),(reviewer,'history-test-reviewer-'||reviewer||'@example.invalid','authenticated','authenticated'),(outsider,'history-test-outsider-'||outsider||'@example.invalid','authenticated','authenticated');
+insert into public.gt_staff_members(user_id,role,active) values(reviewer,'admin',true);
+perform set_config('request.jwt.claim.sub',requester::text,true);
+insert into public.gt_athlete_claim_requests(id,requester_user_id,go_id,relationship,consent_confirmed) values(claim,requester,'GO41250826','self',true);
+begin perform gt_private.approve_legacy_claim_v1(claim,'fixture identity reviewed');raise exception 'TEST_UNAUTHORIZED_FAILED';exception when others then if SQLERRM<>'APPROVAL_FORBIDDEN' then raise;end if;end;
+perform set_config('request.jwt.claim.sub',reviewer::text,true);
+begin perform gt_private.approve_legacy_claim_v1(claim,'fixture identity reviewed');raise exception 'TEST_MISSING_REVIEW_FAILED';exception when others then if SQLERRM<>'REVIEW_REQUIRED' then raise;end if;end;
+insert into public.gt_claim_review_checks(claim_id,reviewer_id,identity_checked,relationship_checked,go_id_checked,duplicate_checked,note) values(claim,reviewer,true,true,true,true,'fixture identity verified for rollback test');
+result:=gt_private.approve_legacy_claim_v1(claim,'fixture approval after verified review');
+if result->>'status'<>'approved' or not exists(select 1 from public.gt_athletes where go_id='GO41250826' and claimed_by=requester) then raise exception 'TEST_LINK_FAILED';end if;
+begin perform gt_private.approve_legacy_claim_v1(claim,'fixture duplicate approval');raise exception 'TEST_REPEATED_APPROVAL_FAILED';exception when others then if SQLERRM<>'CLAIM_NOT_PENDING' then raise;end if;end;
+perform set_config('request.jwt.claim.sub',requester::text,true);
+history:=gt_private.owned_history_v1('GO41250826');
+if history->>'go_id'<>'GO41250826' or (history->>'pending_match_count')::integer<4 then raise exception 'TEST_HISTORY_FAILED';end if;
+perform set_config('request.jwt.claim.sub',outsider::text,true);
+begin perform gt_private.owned_history_v1('GO41250826');raise exception 'TEST_OUTSIDER_FAILED';exception when others then if SQLERRM<>'HISTORY_ACCESS_DENIED' then raise;end if;end;
+end $test$;
+rollback;
