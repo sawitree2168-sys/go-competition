@@ -18,3 +18,8 @@ Service-only RPCs access private tables with RLS and explicit deny grants for an
 
 ## Data/operational limits
 Registry is the previously imported 3,448-row snapshot, not live synchronization with Sheets. Unknown names and conflicting identities require review. Codes are issued through the web admin screen, not editable plaintext Sheet password columns. The existing active owner account is retained. Source and frontend deployment are tracked in Project Master.
+
+## Self registration update — 30 October 2026
+Owner explicitly replaces admin-issued first setup with self registration. Unused existing registry IDs may now choose a password, repeat it, confirm own/guardian identity and obtain a real session immediately. No email/activation/admin approval. Dan numbers are checked where supplied by the directory. This is self-asserted public-registry matching, NOT verified identity; name/GO ID/Dan number are public facts and someone knowing them could claim an unused ID first. Existing owned profiles, any pre-existing profile row (including unclaimed), staff accounts, and held conflict GO106260826 cannot be overwritten. No fresh GO IDs are allocated, unknown registry names still require a registry update.
+
+Creation is serialized per GO ID in a service-only RPC with a private audit row; losing duplicate requests delete only their own unused Auth user. Unknown RPC transport errors retain the Auth user because a committed linkage may exist. Credentials stay hashed in Supabase Auth, not in Sheets or admin tables. Password recovery remains authorized admin code issuance. Profile registration remains private by default. /account now redirects to /profile instead of the homepage after successful session and ownership lookup.

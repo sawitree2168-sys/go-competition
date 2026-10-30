@@ -12,7 +12,7 @@ Deno.serve(async(req:Request)=>{
  const raw=await req.text();if(raw.length>4096)return respond({message:'ข้อมูลยาวเกินไป'},413);
  const b=JSON.parse(raw);const name=typeof b.name==='string'?b.name.trim():'';
  if(name.length<3||name.length>200||!name.includes(' '))return respond({message:'กรุณากรอกชื่อและนามสกุล'},400);
- const action=b.action||'search';if(!['search','login','issue','set-password'].includes(action))return respond({message:'คำขอไม่ถูกต้อง'},400);
+ const action=b.action||'search';if(!['search','login','register','issue','set-password'].includes(action))return respond({message:'คำขอไม่ถูกต้อง'},400);
  let staff=null;
  if(action==='issue'){
  const token=(req.headers.get('authorization')||'').replace(/^Bearer /,'');
@@ -39,6 +39,22 @@ Deno.serve(async(req:Request)=>{
  return respond({code,go_id:athlete.go_id,expires_in_hours:24,message:'แจ้งรหัสนี้แก่นักกีฬา ใช้ตั้งรหัสผ่านได้ครั้งเดียวภายใน 24 ชั่วโมง'});
  }
  if(typeof b.password!=='string'||b.password.length<1||b.password.length>128)return respond({message:'กรุณากรอกรหัสผ่าน'},400);
+ if(action==='register'){
+ if(athlete.user_id)return respond({message:'บัญชีนี้ตั้งรหัสแล้ว กรุณาเข้าสู่ระบบด้วยรหัสเดิม หรือเลือกลืมรหัสผ่าน'},409);
+ if(b.confirmed!==true||b.password.length<8||b.password!==b.confirm_password)return respond({message:'ตั้งรหัสอย่างน้อย 8 ตัวอักษร ยืนยันรหัสให้ตรงกัน และยืนยันข้อมูลของคุณ'},400);
+ const {data:created,error:createError}=await admin.auth.admin.createUser({email:crypto.randomUUID()+'@athlete.go-tournament.invalid',email_confirm:true,password:b.password});
+ if(createError||!created.user)return respond({message:'สร้างบัญชีไม่สำเร็จ กรุณาลองอีกครั้ง'},503);
+ const newUid=created.user.id;
+ const {data:enrolled,error:enrollError}=await admin.rpc('gt_athlete_self_register_v1',{p_go_id:athlete.go_id,p_name:name,p_dan:String(b.dan_number||'').replace(/,/g,'').trim(),p_user:newUid});
+ // A transport error can hide a committed transaction. Do not delete a possibly linked user.
+ if(enrollError)return respond({message:'ตรวจการบันทึกไม่ได้ กรุณาลองเข้าสู่ระบบด้วยรหัสที่เพิ่งตั้งก่อนสมัครซ้ำ'},503);
+ if(enrolled!==true){await admin.auth.admin.deleteUser(newUid);return respond({message:'ข้อมูลนี้มีบัญชีแล้วหรืออยู่ระหว่างตรวจสอบ กรุณาค้นชื่อใหม่และใช้รหัสเดิม'},409);}
+ const login=createClient(base,Deno.env.get('SUPABASE_ANON_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
+ const {data,error}=await login.auth.signInWithPassword({email:created.user.email,password:b.password});
+ if(error||!data.session)return respond({message:'สร้างบัญชีแล้ว กรุณาเข้าสู่ระบบด้วยรหัสที่เพิ่งตั้ง'},503);
+ return respond({session:{access_token:data.session.access_token,refresh_token:data.session.refresh_token},go_id:athlete.go_id,registered:true});
+ }
+
  let uid=athlete.user_id;if(!uid)return respond({message:'กรุณาติดต่อแอดมินเพื่อยืนยันตัวตนและตั้งรหัสครั้งแรก'},409);
  if(action==='set-password'){
  if(b.password.length<8||typeof b.code!=='string'||!/^[a-f0-9]{24}$/.test(b.code))return respond({message:'รหัสผ่านอย่างน้อย 8 ตัวอักษร และรหัสชั่วคราวที่ได้รับจากแอดมิน'},400);
