@@ -1,10 +1,10 @@
 import Link from "next/link";
-import {notFound} from "next/navigation";
+import {redirect,notFound} from "next/navigation";
 import {SiteSectionBanner} from "../../components/SiteSectionBanner";
 import {findPreview,previewPages} from "../page-catalog";
 export function generateStaticParams(){return previewPages.map(x=>({slug:x.slug}))}
 export default async function OverviewDetail({params}:{params:Promise<{slug:string}>}){
- const {slug}=await params;const item=findPreview(slug);if(!item)notFound();
+ const {slug}=await params;if(slug==="results")redirect("/results");const item=findPreview(slug);if(!item)notFound();
  const related=previewPages.filter(x=>x.section===item.section&&x.slug!==item.slug).slice(0,5);
  const staff=["เจ้าหน้าที่","สถาบัน"].includes(item.section);
  const isRegistration=item.section==="สมัครแข่งขัน";
