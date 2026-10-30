@@ -37,3 +37,9 @@ export async function GET(request:Request){
   return respond({status:"error",message:"ตรวจสอบคำขอไม่สำเร็จ กรุณาลองใหม่"},503);
  }
 }
+export async function POST(request:Request){
+ const {account,response}=await import('../../../../lib/competition/auth');const a=await account(request);if('error' in a)return a.error;
+ let b;try{b=await request.json()}catch{return response({message:'ข้อมูลไม่ถูกต้อง'},400)}
+ if(typeof b?.claimId!=='string'||!/^[-0-9a-f]{36}$/i.test(b.claimId)||typeof b.note!=='string'||b.note.trim().length<12||b.note.length>500)return response({message:'ระบุคำขอและเหตุผลอย่างน้อย 12 ตัวอักษร'},400);
+ try{const r=await fetch(new URL('/rest/v1/rpc/gt_approve_legacy_claim_v1',a.base),{method:'POST',headers:a.headers,body:JSON.stringify({p_claim:b.claimId,p_note:b.note.trim()}),cache:'no-store',signal:AbortSignal.timeout(12000)});const d=await r.json();if(!r.ok){const messages:Record<string,string>={REVIEW_REQUIRED:'กรุณาบันทึกผลตรวจครบทุกข้อด้วยบัญชีนี้ก่อนอนุมัติ',APPROVAL_FORBIDDEN:'เฉพาะเจ้าของระบบหรือผู้ดูแลที่มีสิทธิ์',SELF_APPROVAL_FORBIDDEN:'ต้องให้ผู้ดูแลอีกคนตรวจคำขอของตนเอง',ALREADY_LINKED:'GO ID นี้เชื่อมกับบัญชีอื่นแล้ว',CLAIM_NOT_PENDING:'คำขอนี้ไม่ได้อยู่ระหว่างรออนุมัติ',REGISTRY_ID_NOT_FOUND:'ยังไม่มี GO ID นี้ในทะเบียนที่เตรียมเชื่อม'};return response({message:messages[d.message]||'อนุมัติไม่สำเร็จ กรุณาตรวจสิทธิ์และสถานะคำขอ'},409)}return response(d)}catch{return response({message:'ยังยืนยันผลไม่ได้ กรุณาตรวจสถานะคำขอก่อนลองอีกครั้ง'},503)}
+}

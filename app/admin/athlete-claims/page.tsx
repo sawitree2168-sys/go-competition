@@ -15,6 +15,9 @@ export default function AdminClaimsPage(){
  const [sending,setSending]=useState(false);
  const [loginMessage,setLoginMessage]=useState("");
  const [filter,setFilter]=useState("pending");
+ const [approvalNote,setApprovalNote]=useState("");
+ const [approving,setApproving]=useState(false);
+ const [approvalMessage,setApprovalMessage]=useState("");
  const [selected,setSelected]=useState<string|null>(null);
  useEffect(()=>{let active=true;let off:(()=>void)|undefined;
   (async()=>{try{
@@ -60,14 +63,15 @@ export default function AdminClaimsPage(){
   }catch(e){setMessage(e instanceof Error?e.message:"เกิดข้อผิดพลาด");setState("error");}
  }
  useEffect(()=>{if(authReady&&signedIn)void load();},[authReady,signedIn]);
+ async function approve(claimId:string){if(approving)return;setApproving(true);setApprovalMessage('');try{const token=(await client.current?.auth.getSession())?.data.session?.access_token;if(!token)throw Error('กรุณาเข้าสู่ระบบ');const r=await fetch('/api/admin/athlete-claims',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({claimId,note:approvalNote})});const d=await r.json();if(!r.ok)throw Error(d.message);setApprovalNote('');setApprovalMessage('อนุมัติและเชื่อม GO ID เดิมสำเร็จ');await load()}catch(e){setApprovalMessage(e instanceof Error?e.message:'ดำเนินการไม่ได้')}finally{setApproving(false)}}
  return <main className="min-h-screen bg-[#f3f6fb] text-[#122b52]">
   <header className="bg-[#0b2854] p-5 font-bold tracking-wider text-[#efc875]"><Link href="/">GO TOURNAMENT</Link></header>
   <div className="mx-auto max-w-3xl space-y-5 px-4 py-8">
    <section className="rounded-2xl bg-white p-6 shadow-sm">
     <p className="text-sm font-semibold text-blue-700">ADMIN / PROFILE CLAIMS</p>
     <h1 className="mt-2 text-2xl font-extrabold">ตรวจคำขอผูก GO ID</h1>
-    <p className="mt-3 leading-relaxed text-slate-600">ตรวจรายการคำขอได้เฉพาะผู้ที่ได้รับสิทธิ์เจ้าของระบบ ผู้ดูแล หรือผู้ตรวจสอบ ทั้งนี้การตรวจเอกสารและอนุมัติยังไม่ได้เปิดใช้</p>
-    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">โหมดตรวจสอบเท่านั้น • ไม่สามารถอนุมัติ ปฏิเสธ หรือแก้ GO ID จากหน้านี้</div>
+    <p className="mt-3 leading-relaxed text-slate-600">ตรวจรายการคำขอได้เฉพาะผู้ที่ได้รับสิทธิ์เจ้าของระบบ ผู้ดูแล หรือผู้ตรวจสอบ ผู้ดูแลอนุมัติได้หลังบันทึกผลตรวจครบ</p>
+    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">การอนุมัติจะเชื่อมบัญชีผู้ยื่นกับ GO ID เดิม หลังตรวจตัวตนและสิทธิ์ครบแล้ว</div>
     <Link href="/admin/claim-review" className="mt-4 block rounded-xl border border-blue-700 px-4 py-4 text-center font-semibold text-blue-800">เปิดหน้าบันทึกผลตรวจ GO ID</Link>
     {!authReady&&<p role="status" className="mt-5">กำลังตรวจสอบการเข้าสู่ระบบ...</p>}
     {authReady&&!signedIn&&<div className="mt-5 rounded-xl bg-blue-50 p-4">
@@ -80,13 +84,13 @@ export default function AdminClaimsPage(){
       </form>
       {loginMessage&&<p role="status" className="mt-4 rounded-lg bg-white p-3 text-sm">{loginMessage}</p>}
      </div>}
-    {signedIn&&<div className="mt-5">
+    {approvalMessage&&<p role="status" className="mt-4 rounded-xl bg-blue-50 p-4">{approvalMessage}</p>}{signedIn&&<div className="mt-5">
      <button type="button" onClick={()=>void load()} className="rounded-xl bg-blue-800 px-5 py-3 font-semibold text-white">ตรวจสิทธิ์และโหลดคำขออีกครั้ง</button>
      {state==="loading"&&<p role="status" className="mt-4">กำลังโหลดรายการ...</p>}
      {state==="denied"&&<p role="alert" className="mt-4 rounded-xl bg-amber-50 p-4 text-amber-900">{message||"ไม่มีสิทธิ์เข้าถึงรายการคำขอ โปรดให้ผู้ดูแลระบบกำหนดบทบาทก่อน"}</p>}
      {state==="error"&&<p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-red-800">{message}</p>}
      {state==="ok"&&<>
-      <p className="mt-4 text-sm text-slate-600">สิทธิ์: {role==="owner"?"เจ้าของระบบ":role==="admin"?"ผู้ดูแล":"ผู้ตรวจสอบ"} • โหมดอ่านอย่างเดียว</p>
+      <p className="mt-4 text-sm text-slate-600">สิทธิ์: {role==="owner"?"เจ้าของระบบ":role==="admin"?"ผู้ดูแล":"ผู้ตรวจสอบ"}</p>
       <div className="mt-5 grid grid-cols-3 gap-2 text-center">
        <div className="rounded-xl bg-slate-100 p-3"><p className="text-2xl font-extrabold">{claims.length}</p><p className="text-xs">คำขอทั้งหมด</p></div>
        <div className="rounded-xl bg-amber-50 p-3"><p className="text-2xl font-extrabold">{claims.filter(x=>x.status==="pending").length}</p><p className="text-xs">รอตรวจสอบ</p></div>
@@ -112,7 +116,7 @@ export default function AdminClaimsPage(){
           <li>ตรวจ GO ID ไม่ถูกผูกกับบัญชีอื่น</li>
           <li>บันทึกชื่อผู้ตรวจและเหตุผลการอนุมัติ</li>
          </ol>
-         <p className="mt-3 font-semibold text-amber-900">ปุ่มอนุมัติยังปิดใช้งาน เพื่อความปลอดภัยของข้อมูล</p>
+         {c.status==='pending'&&['owner','admin'].includes(role)&&<><label className="mt-3 block font-semibold">เหตุผลอนุมัติ<textarea value={approvalNote} onChange={e=>setApprovalNote(e.target.value)} minLength={12} maxLength={500} className="mt-2 w-full rounded-xl border border-blue-900 bg-white p-3"/></label><button disabled={approving||approvalNote.trim().length<12} onClick={()=>void approve(c.id)} className="mt-3 w-full rounded-xl bg-blue-800 p-4 font-bold text-white disabled:opacity-50">{approving?'กำลังอนุมัติ…':'อนุมัติและเชื่อม GO ID เดิม'}</button></>}
         </div>}
        </li>)}</ul>}
      </>}
