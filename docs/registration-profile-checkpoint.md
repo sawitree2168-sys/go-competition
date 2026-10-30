@@ -25,3 +25,7 @@
 ประวัติการแข่งขันรายรอบ: งาน รุ่น รอบ คู่แข่ง สีหมาก และผล/คะแนน เชื่อมกับ GO ID เดิม โดยใช้ผลที่ผู้จัดยืนยัน ข้อมูลเก่านำเข้าภายหลังเมื่อมีหลักฐานรายรอบ ไม่อนุมานจากรางวัล และไม่สร้างผลที่ขาดหาย
 
 จังหวะกลับมาทำ: หลังเส้นทางสมัคร ชำระเงิน ตรวจสถานะ และโปรไฟล์พื้นฐานผ่านการตรวจแล้ว จึงทบทวนขอบเขตระบบคู่แข่งขัน/ผลแข่งกับผู้ใช้ก่อนขยายงาน
+
+## 30 October 2026 — Updated default portrait
+
+The owner supersedes the ten random cartoon defaults with the approved navy/gold portrait (`public/avatars/go-default-2026.jpg`). `defaultAvatar` now returns this single fallback. Existing athlete-uploaded `avatar_url` remains first priority; do not write the default into athlete records. Existing cartoon assets remain available for older releases.
