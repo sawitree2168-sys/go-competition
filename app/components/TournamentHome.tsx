@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import {useEffect,useRef,useState} from "react";
+import {posterFor} from "../../lib/competition/public-data";
 import styles from "./TournamentHome.module.css";
 
-type Event={id:string;title:string;event_date?:string|null;start_at?:string|null;status:string;registration_open_date?:string|null};
+type Event={id:string;title:string;event_date?:string|null;start_at?:string|null;status:string;poster_url?:string|null;registration_open_date?:string|null};
 const menus=[
  {label:"หน้าหลัก",href:"/",icon:"home"},
  {label:"รายการแข่งขัน",href:"/schedule",icon:"cup"},
@@ -21,8 +22,7 @@ function Icon({name}:{name:string}){
 }
 function eventDate(e:Event){const date=e.event_date?e.event_date+"T12:00:00+07:00":e.start_at;if(!date||Number.isNaN(Date.parse(date)))return "รอประกาศวันแข่งขัน";return new Date(date).toLocaleDateString("th-TH",{day:"numeric",month:"long",year:"numeric",timeZone:"Asia/Bangkok"});}
 
-const ZEER_ID="ce1382d9-1e1f-4697-8fe4-6a1a347d91eb";
-function poster(e:Event){return e.id===ZEER_ID?"/posters/zeer-go-kyu-war-2026.jpg":"/go-poster.jpg";}
+function poster(e:Event){return posterFor(e)||"/go-poster.jpg";}
 function isPast(e:Event,today:string){const day=e.event_date||e.start_at?.slice(0,10);return e.status==="completed"||e.status==="finished"||Boolean(day&&day<today);}
 
 export function TournamentHome(){
