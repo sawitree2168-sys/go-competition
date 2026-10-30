@@ -43,3 +43,13 @@
 .registration-crop{width:min(94vw,390px)}.registration-crop p{font-size:14px}.registration-crop-stage{width:280px;height:280px;margin:12px auto;overflow:hidden;position:relative;border:2px solid var(--line);border-radius:50%;touch-action:none;background:#edf6ff}.registration-crop-stage img{position:absolute;left:50%;top:50%;max-width:none;user-select:none;pointer-events:none}.competition .registration-crop input[type=range]{padding:0;accent-color:#9a6810}.registration-viewer{width:min(90vw,460px);text-align:center}.registration-viewer img{display:block;width:100%;aspect-ratio:1;object-fit:contain;margin:12px 0;border-radius:14px}.registration-viewer strong{font-size:22px}
 @media(max-width:360px){.registration-card{padding:12px}.registration-field{grid-template-columns:105px minmax(0,1fr)}.registration-form label{font-size:14px}.registration-next strong{font-size:22px}.registration-event{grid-template-columns:90px minmax(0,1fr);gap:10px}.registration-event>img{width:90px;height:125px}.registration-event h2{font-size:20px}}
 @media(min-width:1000px){.competition:has(.registration-form) .competition-content{max-width:1080px}.registration-form{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px}.registration-form .competition-card{margin-top:0;margin-bottom:18px}.registration-event{grid-template-columns:105px minmax(0,1fr);max-width:100%}.registration-event>img{width:105px;height:135px}.registration-progress{max-width:720px;margin:22px auto 26px}.registration-card{padding:20px}.registration-field{grid-template-columns:150px minmax(0,1fr)}.registration-identity strong{font-size:25px}}
+
+/* Full poster viewer: native dialog provides focus trapping and Escape dismissal. */
+.competition .event-poster-trigger{display:block;width:100%;padding:0;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer}
+.event-poster-trigger span{display:block;padding:7px 3px;font-size:12px}
+.competition dialog.event-poster-dialog{width:min(94vw,900px);max-width:900px;max-height:92dvh;padding:16px;overflow:auto}
+.event-poster-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.event-poster-toolbar strong{min-width:0;overflow-wrap:anywhere}
+.event-poster-toolbar button{flex-shrink:0}
+.event-poster-dialog>img{display:block;width:100%;height:auto;object-fit:contain;margin-bottom:12px}
+.event-poster-trigger:focus-visible{outline:3px solid var(--gold);outline-offset:3px}

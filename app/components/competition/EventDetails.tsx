@@ -2,6 +2,7 @@
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {useParams} from "next/navigation";
+import {EventPoster} from "./EventPoster";
 import {GoStones} from "./GoStones";
 import {CompetitionShell,Panel,Notice,Empty} from "./CompetitionShell";
 import {posterFor,day,fee,divisionOrder,type Tournament,type Division} from "../../../lib/competition/public-data";
@@ -11,7 +12,7 @@ export function EventDetails({preview}:{preview?:{tournament:Tournament;division
  async function share(){try{await navigator.clipboard.writeText(location.href);setNotice("คัดลอกลิงก์งานแล้ว")}catch{setNotice("คัดลอกลิงก์จากแถบที่อยู่เพื่อแชร์งานนี้")}}
  return <CompetitionShell title="รายละเอียดงานแข่งขัน" back="/schedule" footer={event&&<><small>{event.registration_open_date?"เปิดรับสมัคร "+day(event.registration_open_date):"รอประกาศวันรับสมัคร"}</small><Link className="competition-button primary" href={"/tournaments/"+id+"/register"}>สมัครแข่งขัน ›</Link></>}>
  {preview&&<div className="competition-demo-label">แบบทดลอง · ข้อมูลสมมติ ไม่ใช่ใบสมัครจริง</div>}{state==="loading"&&<Notice>กำลังโหลดข้อมูลงาน…</Notice>}{state==="error"&&<><Notice error>โหลดข้อมูลงานไม่สำเร็จ</Notice><button className="competition-button" onClick={()=>setRetry(x=>x+1)}>ลองใหม่</button></>}{state==="not_found"&&<Empty>ไม่พบงานที่เผยแพร่ <Link href="/schedule">กลับรายการแข่งขัน</Link></Empty>}
- {event&&state==="ready"&&<><Panel><div className="competition-hero">{posterFor(event)&&<a href={posterFor(event)!} target="_blank" rel="noreferrer" aria-label="ดูโปสเตอร์ขยาย"><img className="competition-poster" src={posterFor(event)!} alt={"โปสเตอร์ "+event.title}/></a>}<div><h2>{event.title}</h2><span className="competition-tag">{event.registration_open_date?"เปิดรับสมัคร "+day(event.registration_open_date):"รอประกาศวันรับสมัคร"}</span><p>◷ {day(event.event_date||event.start_at)}</p><p className="competition-muted">⌖ สถานที่รอยืนยัน</p><button className="competition-button" onClick={share}>↗ แชร์งาน</button></div></div></Panel>{notice&&<Notice>{notice}</Notice>}
+ {event&&state==="ready"&&<><Panel><div className="competition-hero">{posterFor(event)&&<EventPoster src={posterFor(event)!} title={event.title}/>}<div><h2>{event.title}</h2><span className="competition-tag">{event.registration_open_date?"เปิดรับสมัคร "+day(event.registration_open_date):"รอประกาศวันรับสมัคร"}</span><p>◷ {day(event.event_date||event.start_at)}</p><p className="competition-muted">⌖ สถานที่รอยืนยัน</p><button className="competition-button" onClick={share}>↗ แชร์งาน</button></div></div></Panel>{notice&&<Notice>{notice}</Notice>}
  <div className="competition-tabs" role="tablist" aria-label="ข้อมูลงาน">{["รุ่นแข่งขัน","กำหนดการ","กติกา"].map(t=><button key={t} role="tab" aria-selected={tab===t} onClick={()=>setTab(t)}>{t}</button>)}</div>
  {tab==="กำหนดการ"&&<Panel title="กำหนดการ"><dl><div><dt>วันแข่งขัน</dt><dd>{day(event.event_date||event.start_at)}</dd></div><div><dt>เปิดรับสมัคร</dt><dd>{day(event.registration_open_date)}</dd></div><div><dt>ปิดรับสมัคร</dt><dd>{day(event.registration_close_date)}</dd></div></dl><p className="competition-muted">เวลาเช็กอินและรอบแข่งขันรอผู้จัดประกาศ</p></Panel>}
  {tab==="กติกา"&&<Panel title="กติกาการแข่งขัน"><p>กติกาประจำรุ่นรอผู้จัดประกาศ</p>{event.refund_policy_text&&<p>{event.refund_policy_text}</p>}</Panel>}
