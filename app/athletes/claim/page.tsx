@@ -69,8 +69,8 @@ export default function ClaimPage(){
        <Link href="/athletes/search" className="mt-3 inline-flex rounded-xl bg-blue-800 px-5 py-3 font-semibold text-white">ไปหน้าเข้าสู่ระบบ</Link>
       </div>:
       <form onSubmit={submit} className="mt-6 space-y-4">
-       <div><label htmlFor="claim-goid" className="block font-semibold">GO ID หรือหมายเลขนักกีฬาเดิม</label>
-        <input id="claim-goid" required minLength={3} maxLength={40} value={goId} onChange={e=>setGoId(e.target.value)} placeholder="กรอก GO ID ที่ทราบ" className="mt-2 w-full rounded-xl border border-slate-300 p-4 text-base"/>
+       <div><label htmlFor="claim-goid" className="block font-semibold">GO ID หรือชื่อ–นามสกุลนักกีฬา</label>
+        <input id="claim-goid" required minLength={3} maxLength={200} value={goId} onChange={e=>setGoId(e.target.value)} placeholder="กรอกชื่อ–นามสกุลหรือ GO ID เดิม" className="mt-2 w-full rounded-xl border border-slate-300 p-4 text-base"/>
        </div>
        <div><label htmlFor="claim-relation" className="block font-semibold">ความสัมพันธ์กับนักกีฬา</label>
         <select id="claim-relation" value={relationship} onChange={e=>setRelationship(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 p-4 text-base">
