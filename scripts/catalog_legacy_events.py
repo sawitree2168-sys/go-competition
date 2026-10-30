@@ -8,11 +8,11 @@ records=[]
 for (year,tab,header),matches in groups.items():
  if year not in books:books[year]=openpyxl.load_workbook(f'/workspace/scratch/d3fd9d9199f9/year-{year}.xlsx',data_only=True)
  s=books[year][tab];labels=[]
- for row in s.iter_rows(min_row=1,max_row=header-1,max_col=3):
+ for row in s.iter_rows(min_row=1,max_row=header-1,max_col=20):
   vals=[str(c.value).strip() for c in row if isinstance(c.value,str) and c.value.strip()]
   if not vals:continue
   text=' / '.join(vals)
-  if re.search(r'Round|รอบ\s*\d|^Pl\.|Name|Score|ผล.*คะแนน',text,re.I):continue
+  if any(re.fullmatch(r'(?:Round\s*\d+|รอบ\s*\d+|Pl\.|Name|Score)',v,re.I) for v in vals):continue
   if any(isinstance(s.cell(row[0].row,c).value,(int,float)) for c in (1,3)):continue
   if re.search(r'แข่งขัน|Tournament|Championship|League|คัดตัว|คัดเลือก|โอเพ่น|Open|กีฬามหาวิทยาลัย|กีฬาแห่งชาติ|ย่าโม',text,re.I):labels.append({'row':row[0].row,'text':text})
  event=labels[-1] if labels else None
