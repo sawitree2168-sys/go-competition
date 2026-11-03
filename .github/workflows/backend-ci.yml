@@ -35,3 +35,5 @@ jobs:
         run: node --test lib/match-result-workflow.test.mjs
       - name: Test round audits
         run: node --test lib/round-audit.test.mjs
+      - name: Test avatar crop
+        run: node --test lib/avatar-crop.test.mjs
