@@ -1,7 +1,7 @@
 /**
  * ZEER GO KYU WAR 2026 — Google Sheets -> GO TOURNAMENT
  * Setup (once): Apps Script > Project Settings > Script properties:
- * GT_SYNC_URL = https://go-competition.vercel.app/api/sync/zeer-kyu-war
+ * GT_SYNC_URL = https://bqyokjwuxyzyiripijbs.supabase.co/functions/v1/zeer-kyu-war-public-entrants
  * GT_SYNC_SECRET = same secret configured as GT_SHEETS_SYNC_SECRET in Vercel.
  * Run installSyncTrigger() once and grant Google authorization.
  */
@@ -30,7 +30,7 @@ function syncPublicEntrants() {
   console.log(response.getContentText());
 }
 function installSyncTrigger(){
+  syncPublicEntrants(); // Check credentials and permissions before creating a trigger.
   ScriptApp.getProjectTriggers().filter(t=>t.getHandlerFunction()==="syncPublicEntrants").forEach(t=>ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger("syncPublicEntrants").timeBased().everyMinutes(5).create();
-  syncPublicEntrants();
 }
