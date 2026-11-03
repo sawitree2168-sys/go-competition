@@ -27,7 +27,7 @@ export default async function Home(){
   <header className="sticky top-0 z-30 bg-[#041b41] text-white shadow-md">
    <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3">
     <Link href="/" className="flex min-w-0 items-center gap-2" aria-label="GO TOURNAMENT หน้าแรก">
-     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d3ae62] bg-[#123361] text-sm font-extrabold text-[#eac576]">GO</span>
+     <span className="relative flex h-9 w-11 shrink-0 items-center justify-center text-2xl font-black tracking-tighter text-[#eac576]">G<span className="ml-[-2px] inline-flex h-6 w-6 items-center justify-center rounded-full border border-[#d8b777] bg-gradient-to-br from-white via-[#e6e7eb] to-[#131a2d] text-[8px] text-[#061b43]">●</span></span>
      <span className="truncate text-sm font-semibold tracking-wide sm:text-lg">TOURNAMENT</span>
     </Link>
     <nav className="hidden items-center gap-5 text-sm md:flex"><Link href="/tournaments">การแข่งขัน</Link><Link href="/athletes">นักกีฬา</Link><Link href="/schedule">ตารางแข่ง</Link><Link href="/results">ผลการแข่งขัน</Link><Link href="/go-fan">GO FAN</Link></nav>
@@ -35,18 +35,19 @@ export default async function Home(){
    </div>
   </header>
   <div className="mx-auto max-w-7xl px-3 pt-4 sm:px-6 sm:pt-7">
-   <section className="overflow-hidden rounded-2xl border border-[#dbe5f2] bg-white shadow-sm">
-    <div className="bg-gradient-to-r from-[#05204b] via-[#0a3c80] to-[#07204b] px-4 py-4 text-white sm:px-6">
-     <p className="text-xs font-semibold tracking-wide text-[#eac576]">GO TOURNAMENT</p>
-     <h1 className="mt-1 text-xl font-bold sm:text-2xl">รายการแข่งขันหมากล้อม</h1>
-     <p className="mt-1 text-xs text-blue-100 sm:text-sm">ค้นหารายการ สมัครแข่งขัน และติดตามผลได้ในที่เดียว</p>
+   <section className="relative isolate overflow-hidden rounded-2xl border border-[#b8cce4] bg-[#071e43] shadow-lg">
+    {featured?.poster_url?<img src={featured.poster_url} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-70"/>:<div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_75%_20%,#c99d55_0%,transparent_30%),radial-gradient(ellipse_at_20%_95%,#3261a4_0%,transparent_50%),linear-gradient(125deg,#04132d,#123b71_65%,#071a3b)]"><div className="absolute -bottom-8 right-3 text-[140px] leading-none opacity-30 sm:right-20 sm:text-[200px]">🏆</div><div className="absolute bottom-0 left-0 right-0 h-12 bg-[radial-gradient(ellipse_at_15%_80%,#f1f3f5_0%,#1b2638_30%,transparent_60%)] opacity-50"/></div>}
+    <div className="bg-gradient-to-r from-[#04142e]/95 via-[#061d43]/85 to-[#051b3c]/35 px-5 py-8 text-white sm:px-10 sm:py-14">
+     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#e7c778]">GO TOURNAMENT · รายการแข่งขันล่าสุด</p>
+     <h1 className="mt-3 max-w-2xl text-2xl font-extrabold leading-tight drop-shadow-md sm:text-4xl">{featured?featured.title:"การแข่งขันหมากล้อม GO TOURNAMENT"}</h1>
+     <p className="mt-3 text-sm text-blue-100 sm:text-base">{featured?.event_date?new Date(featured.event_date+"T12:00:00").toLocaleDateString("th-TH",{day:"numeric",month:"long",year:"numeric"}):"ค้นหารายการและติดตามการแข่งขันหมากล้อม"}</p>
+     <div className="mt-6 flex flex-wrap gap-2"><Link href="/register" className="rounded-lg bg-gradient-to-b from-[#ffe4a1] to-[#e5ad45] px-5 py-3 text-sm font-extrabold text-[#08204a] shadow-md">สมัครแข่งขัน</Link><Link href={featured?`/tournaments/${featured.id}`:"/tournaments"} className="rounded-lg border border-white/80 bg-[#061d43]/65 px-5 py-3 text-sm font-bold text-white">ดูรายละเอียด</Link></div>
     </div>
-    {featured?<div className="grid gap-0 sm:grid-cols-[240px_1fr]">
-     {featured.poster_url?<img src={featured.poster_url} alt={`โปสเตอร์ ${featured.title}`} className="h-44 w-full object-cover sm:h-full"/>:<div className="flex h-28 items-center justify-center bg-[#102e60] text-2xl font-bold text-[#eac576]">GO TOURNAMENT</div>}
-     <div className="p-4 sm:p-6"><span className="rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">รายการแข่งขันล่าสุด</span><h2 className="mt-3 text-lg font-bold sm:text-xl">{featured.title}</h2><p className="mt-2 text-sm text-slate-600">{featured.event_date?new Date(featured.event_date+"T12:00:00").toLocaleDateString("th-TH",{day:"numeric",month:"long",year:"numeric"}):"รอประกาศวันแข่งขัน"}</p><div className="mt-4 flex flex-wrap gap-2"><Link href={`/tournaments/${featured.id}`} className="rounded-lg bg-[#0863f7] px-4 py-3 text-sm font-semibold text-white">ดูรายละเอียดการแข่งขัน</Link><Link href="/register" className="rounded-lg border border-blue-600 px-4 py-3 text-sm font-semibold text-blue-700">สมัครแข่งขัน</Link></div></div>
-    </div>:<div className="p-5"><p className="font-semibold">รายการแข่งขันที่เผยแพร่จะปรากฏตรงนี้</p><p className="mt-1 text-sm text-slate-600">ระหว่างนี้สามารถเข้าดูรายการแข่งขันและระบบสมัครได้จากเมนูด้านล่าง</p><Link href="/tournaments" className="mt-4 inline-block rounded-lg bg-[#0863f7] px-5 py-3 text-sm font-semibold text-white">ดูรายการแข่งขัน</Link></div>}
    </section>
-   <section className="mt-6">
+   <section aria-label="เมนูด่วน" className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
+    {[{name:"สมัครแข่งขัน",href:"/register",icon:"▣"},{name:"รายชื่อผู้สมัคร",href:"/tournaments",icon:"☷"},{name:"ผลการแข่งขัน",href:"/results",icon:"🏆"},{name:"อันดับ/สถิติ",href:"/stats",icon:"▥"},{name:"ข่าวสาร",href:"/news",icon:"▤"},{name:"เอกสาร",href:"/documents",icon:"▧"},{name:"GO FAN",href:"/go-fan",icon:"★"}].map(x=><Link key={x.name} href={x.href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl border border-[#d7e2f1] bg-white p-2 text-center shadow-sm transition hover:border-blue-400"><span className="text-xl font-bold text-[#0d4a9a]">{x.icon}</span><span className="text-[11px] font-semibold leading-tight sm:text-xs">{x.name}</span></Link>)}
+   </section>
+   <section className="mt-7">
     <div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-bold sm:text-xl">รายการแข่งขันทั้งหมด</h2><Link href="/tournaments" className="text-sm font-semibold text-blue-700">ดูทั้งหมด →</Link></div>
     {events.length>0?<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{events.map(e=><Link key={e.id} href={`/tournaments/${e.id}`} className="flex overflow-hidden rounded-xl border border-[#dce5f2] bg-white shadow-sm transition hover:shadow-md">
      {e.poster_url?<img src={e.poster_url} alt="" className="h-28 w-28 shrink-0 object-cover"/>:<div className="flex h-28 w-24 shrink-0 items-center justify-center bg-[#0c2b5e] text-xs font-bold text-[#eac576]">GO</div>}
