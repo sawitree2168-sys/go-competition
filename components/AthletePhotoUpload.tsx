@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { avatarCropRect } from "@/lib/avatar-crop.mjs";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -46,12 +47,8 @@ export default function AthletePhotoUpload({ athleteId, onSaved }: Props) {
       canvas.width = size;canvas.height = size;
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("อุปกรณ์นี้ไม่รองรับการปรับรูป");
-      const crop = Math.min(img.naturalWidth,img.naturalHeight) / zoom;
-      const maxX = (img.naturalWidth-crop)/2, maxY = (img.naturalHeight-crop)/2;
-      const sourcePixelsPerPreviewPixel = Math.min(img.naturalWidth,img.naturalHeight) / (256 * zoom);
-      const sx = Math.max(0,Math.min(img.naturalWidth-crop,maxX-offset.x*sourcePixelsPerPreviewPixel));
-      const sy = Math.max(0,Math.min(img.naturalHeight-crop,maxY-offset.y*sourcePixelsPerPreviewPixel));
-      ctx.drawImage(img,sx,sy,crop,crop,0,0,size,size);
+      const crop = avatarCropRect(img.naturalWidth,img.naturalHeight,zoom,offset.x,offset.y);
+      ctx.drawImage(img,crop.x,crop.y,crop.width,crop.height,0,0,size,size);
       const blob = await new Promise<Blob>((resolve,reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("แปลงรูปไม่สำเร็จ")),"image/webp",.86));
       const path = `${userData.user.id}/${athleteId}/${crypto.randomUUID()}.webp`;
       const { error: uploadError } = await db.storage.from("gt-athlete-photos").upload(path,blob,{contentType:"image/webp",upsert:false});
