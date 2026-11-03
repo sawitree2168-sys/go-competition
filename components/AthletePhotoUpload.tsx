@@ -48,8 +48,9 @@ export default function AthletePhotoUpload({ athleteId, onSaved }: Props) {
       if (!ctx) throw new Error("อุปกรณ์นี้ไม่รองรับการปรับรูป");
       const crop = Math.min(img.naturalWidth,img.naturalHeight) / zoom;
       const maxX = (img.naturalWidth-crop)/2, maxY = (img.naturalHeight-crop)/2;
-      const sx = maxX - (offset.x / 128) * maxX;
-      const sy = maxY - (offset.y / 128) * maxY;
+      const sourcePixelsPerPreviewPixel = Math.min(img.naturalWidth,img.naturalHeight) / (256 * zoom);
+      const sx = Math.max(0,Math.min(img.naturalWidth-crop,maxX-offset.x*sourcePixelsPerPreviewPixel));
+      const sy = Math.max(0,Math.min(img.naturalHeight-crop,maxY-offset.y*sourcePixelsPerPreviewPixel));
       ctx.drawImage(img,sx,sy,crop,crop,0,0,size,size);
       const blob = await new Promise<Blob>((resolve,reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("แปลงรูปไม่สำเร็จ")),"image/webp",.86));
       const path = `${userData.user.id}/${athleteId}/${crypto.randomUUID()}.webp`;
