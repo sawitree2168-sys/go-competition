@@ -12,6 +12,8 @@ export default function AthletePhotoUpload({ athleteId, onSaved }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const drag = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const input = useRef<HTMLInputElement>(null);
@@ -22,7 +24,7 @@ export default function AthletePhotoUpload({ athleteId, onSaved }: Props) {
     if (!TYPES.includes(next.type)) { setMessage("รองรับ JPG, PNG และ WebP เท่านั้น"); return; }
     if (next.size > MAX_SIZE) { setMessage("ไฟล์ต้องมีขนาดไม่เกิน 5 MB"); return; }
     if (preview) URL.revokeObjectURL(preview);
-    setFile(next); setPreview(URL.createObjectURL(next)); setZoom(1); setMessage("");
+    setFile(next); setPreview(URL.createObjectURL(next)); setZoom(1); setOffset({x:0,y:0}); setMessage("");
   }
 
   async function save() {
@@ -45,7 +47,9 @@ export default function AthletePhotoUpload({ athleteId, onSaved }: Props) {
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("อุปกรณ์นี้ไม่รองรับการปรับรูป");
       const crop = Math.min(img.naturalWidth,img.naturalHeight) / zoom;
-      const sx = (img.naturalWidth-crop)/2,sy=(img.naturalHeight-crop)/2;
+      const maxX = (img.naturalWidth-crop)/2, maxY = (img.naturalHeight-crop)/2;
+      const sx = maxX - (offset.x / 128) * maxX;
+      const sy = maxY - (offset.y / 128) * maxY;
       ctx.drawImage(img,sx,sy,crop,crop,0,0,size,size);
       const blob = await new Promise<Blob>((resolve,reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("แปลงรูปไม่สำเร็จ")),"image/webp",.86));
       const path = `${userData.user.id}/${athleteId}/${crypto.randomUUID()}.webp`;
@@ -63,9 +67,13 @@ export default function AthletePhotoUpload({ athleteId, onSaved }: Props) {
     <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e => choose(e.target.files?.[0])} />
     <button type="button" className="rounded-lg border px-5 py-3 text-base" onClick={() => input.current?.click()}>เลือกรูปจากเครื่อง</button>
     {preview && <>
-      <div className="mx-auto w-64 h-64 rounded-full overflow-hidden border-2 bg-gray-100" aria-label="ตัวอย่างรูปโปรไฟล์">
-        <img src={preview} alt="ตัวอย่างรูปโปรไฟล์ก่อนบันทึก" className="w-full h-full object-cover" style={{ transform:`scale(${zoom})` }} />
+      <div className="mx-auto w-64 h-64 rounded-full overflow-hidden border-2 bg-gray-100 touch-none cursor-move" aria-label="ลากภาพเพื่อจัดตำแหน่งใบหน้า"
+        onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); drag.current = {x:e.clientX,y:e.clientY,startX:offset.x,startY:offset.y}; }}
+        onPointerMove={e => { if (!drag.current) return; const d=drag.current; setOffset({x:Math.max(-128,Math.min(128,d.startX+e.clientX-d.x)),y:Math.max(-128,Math.min(128,d.startY+e.clientY-d.y))}); }}
+        onPointerUp={() => { drag.current=null; }} onPointerCancel={() => { drag.current=null; }}>
+        <img src={preview} alt="ตัวอย่างรูปโปรไฟล์ก่อนบันทึก" className="w-full h-full object-cover" style={{ transform:`translate(${offset.x}px, ${offset.y}px) scale(${zoom})` }} />
       </div>
+      <p className="text-sm">ใช้นิ้วลากรูปเพื่อจัดตำแหน่งใบหน้า</p>
       <label className="block">ขยายรูป {Math.round(zoom*100)}%
         <input type="range" min="1" max="2" step=".05" value={zoom} onChange={e=>setZoom(Number(e.target.value))} className="block w-full" />
       </label>
