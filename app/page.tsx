@@ -24,10 +24,10 @@ export default async function Home(){
  const events=await tournaments();
  return <main className="min-h-screen bg-[#edf3fb] text-[#081f52]">
   <header className="bg-gradient-to-r from-[#031635] via-[#073477] to-[#061b43] text-white shadow-lg">
-   <div className="mx-auto max-w-7xl px-4 py-5 flex items-center justify-between gap-4">
+   <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3">
     <Link href="/" className="flex items-center gap-3" aria-label="GO TOURNAMENT หน้าแรก">
-     <span className="text-4xl font-black tracking-tighter text-[#e9bd65]">G<span className="text-white">●</span></span>
-     <span className="text-lg sm:text-2xl font-bold tracking-wide">TOURNAMENT</span>
+     <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#cda85b] bg-[#102b58] text-lg font-black tracking-tight text-[#e9bd65]" aria-hidden="true">GO</span>
+     <span className="text-sm sm:text-base font-semibold tracking-[0.08em]">TOURNAMENT</span>
     </Link>
     <nav className="hidden md:flex items-center gap-5 text-sm font-semibold"><Link href="/tournaments">การแข่งขัน</Link><Link href="/athletes">นักกีฬา</Link><Link href="/schedule">ตารางแข่ง</Link><Link href="/results">ผลการแข่งขัน</Link><Link href="/go-fan">GO FAN</Link></nav>
     <Link href="/register" className="rounded-xl bg-[#0863f7] px-4 py-3 font-semibold">สมัครแข่งขัน</Link>
