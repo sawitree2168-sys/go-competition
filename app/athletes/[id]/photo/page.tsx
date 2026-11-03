@@ -14,6 +14,7 @@ export default function AthletePhotoPage({ params }: Props) {
   const [error,setError] = useState("");
   const [userId,setUserId] = useState<string|null>(null);
   const [refresh,setRefresh] = useState(0);
+  const [photoUnavailable,setPhotoUnavailable] = useState(false);
 
   useEffect(() => {
     let active=true;
@@ -37,10 +38,11 @@ export default function AthletePhotoPage({ params }: Props) {
       if(readError||!data){setError("ไม่สามารถเปิดโปรไฟล์นี้ได้ หรือเจ้าของยังไม่อนุญาตให้แสดง");return;}
       setAthlete(data);
       setError("");
+      setPhotoUnavailable(false);
       if(!data.photo_path){setPhotoUrl(null);return;}
       const {data:signed,error:signError}=await db.storage.from("gt-athlete-photos")
         .createSignedUrl(data.photo_path,60*10);
-      if(active){setPhotoUrl(signError?null:signed?.signedUrl??null);}
+      if(active){setPhotoUrl(signError?null:signed?.signedUrl??null);setPhotoUnavailable(Boolean(signError));}
     }
     load().catch(()=>{if(active)setError("โหลดข้อมูลไม่สำเร็จ");});
     return ()=>{active=false;};
@@ -55,7 +57,7 @@ export default function AthletePhotoPage({ params }: Props) {
         <h2 className="text-xl font-semibold">{athlete.full_name}</h2>
         <div className="mx-auto h-56 w-56 overflow-hidden rounded-full border-2 bg-gray-200 flex items-center justify-center">
           {photoUrl ? <img src={photoUrl} alt={`รูปโปรไฟล์ของ ${athlete.full_name}`} className="h-full w-full object-cover"/> :
-            <span className="p-4 text-center text-sm">ยังไม่มีรูปโปรไฟล์ที่เปิดดูได้</span>}
+            <span className="p-4 text-center text-sm">{photoUnavailable ? "ไม่สามารถแสดงรูปส่วนตัวได้" : "กำลังรอรูปโปรไฟล์เริ่มต้น"}</span>}
         </div>
         {userId===athlete.claimed_by
           ? <AthletePhotoUpload athleteId={athlete.id} onSaved={()=>setRefresh(v=>v+1)} />
