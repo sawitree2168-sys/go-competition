@@ -6,12 +6,13 @@
  * Run installSyncTrigger() once and grant Google authorization.
  */
 const SOURCE_TAB = "การตอบแบบฟอร์ม 1";
+const SOURCE_SPREADSHEET_ID = "1D35CRcyH-VkR6sNtZUdz8aGwaKoDd09R9uaqGYMoDfI";
 function syncPublicEntrants() {
   const props = PropertiesService.getScriptProperties();
   const url = props.getProperty("GT_SYNC_URL");
   const secret = props.getProperty("GT_SYNC_SECRET");
   if (!url || !secret) throw new Error("Missing GT_SYNC_URL / GT_SYNC_SECRET");
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SOURCE_TAB);
+  const sheet = SpreadsheetApp.openById(SOURCE_SPREADSHEET_ID).getSheetByName(SOURCE_TAB);
   if (!sheet) throw new Error("Source tab not found");
   const data = sheet.getDataRange().getDisplayValues();
   const allowed = new Set(["1-2 Kyu","3-4 Kyu","5-6 Kyu","7-8 Kyu","9-12 Kyu","OPEN Friendship 9×9","OPEN Friendship 13×13"]);
