@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 
+export const dynamic = "force-dynamic";
+
 type Event = { id:string;title:string;event_date:string|null };
 type Division = { id:string;name:string;seats_limit:number|null };
 type Entrant = {source_row:number;title:string;full_name:string;institution:string;division_name:string;payment_status:string};
@@ -15,7 +17,16 @@ async function getData(id:string):Promise<{event:Event|null;divisions:Division[]
   const names=await db.from("gt_public_entrants").select("source_row,title,full_name,institution,division_name,payment_status").eq("tournament_id",id).order("source_row",{ascending:true}).limit(1000);return {event,divisions:r.data??[],entrants:names.data??[]};
  }catch{return {event:null,divisions:[],entrants:[]};}
 }
-const normalizeDivision=(name:string)=>name.toLowerCase().replace(/open\s*/g,"").replace(/friendship/g,"").replace(/kyu/g,"k").replace(/[–—−]/g,"-").replace(/[^0-9a-z×-]/g,"").replace(/9x9/g,"9×9").replace(/13x13/g,"13×13");
+const normalizeDivision = (name:string) => {
+ const compact=name.toLowerCase().replace(/[–—−]/g,"-").replace(/\s+/g,"");
+ if(compact.includes("friendship")||compact.includes("เฟรนชิพ")){
+  if(/13[x×]13/.test(compact))return "friendship:13x13";
+  if(/9[x×]9/.test(compact))return "friendship:9x9";
+ }
+ const match=compact.match(/(1-2|3-4|5-6|7-8|9-12)/);
+ if(match&&(compact.includes("kyu")||compact.includes("คิว")))return "kyu:"+match[1];
+ return "unknown:"+compact;
+};
 export default async function Entrants({params}:{params:Promise<{id:string}>}){
  const {id}=await params;
  const {event,divisions,entrants}=await getData(id);
