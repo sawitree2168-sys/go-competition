@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 
+// Rebuilt from the database at most every 60 s, so new tournaments and posters appear without a redeploy.
+export const revalidate = 60;
+
 type Tournament = { id:string; title:string; event_date:string|null; start_at:string|null; poster_url:string|null; status:string|null };
 async function tournaments():Promise<Tournament[]>{
  const url=process.env.NEXT_PUBLIC_SUPABASE_URL, key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
