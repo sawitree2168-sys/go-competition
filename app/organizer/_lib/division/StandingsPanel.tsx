@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { friendshipAward } from "@/lib/competition-day.mjs";
-import { poolKey, poolName, type DivisionData, type Standing } from "./types";
+import { poolKey, poolName, pts, type DivisionData, type Standing } from "./types";
 
 const MEDAL: Record<string, string> = { gold: "🥇 ทอง", silver: "🥈 เงิน", bronze: "🥉 ทองแดง" };
 
@@ -28,15 +28,15 @@ export function StandingsTable({ rows, data, large = false }: { rows: Standing[]
         </thead>
         <tbody>
           {rows.map((r) => {
-            const award = friendship ? friendshipAward(r.wins + r.byes, data.division) : null;
+            const award = friendship && !r.withdrawn ? friendshipAward(r.wins + r.byes, data.division) : null;
             return (
-              <tr key={r.athlete_id ?? `${r.pos}-${r.display_name}`} className="border-b border-[var(--gt-line)] last:border-0">
-                <td className={`${cell} gt-num font-bold`}>{friendship ? "" : r.pos}</td>
-                <td className={`${cell} min-w-0`}><span className="block font-semibold leading-tight">{r.display_name ?? "—"}</span><span className={`block truncate text-[var(--gt-muted)] ${large ? "text-base" : "max-w-[9rem] text-xs sm:max-w-none"}`}>{r.institution}</span></td>
-                <td className={`${cell} gt-num whitespace-nowrap text-right`}>{r.wins}{r.byes ? <span className="block text-xs text-[var(--gt-muted)]">+บาย {r.byes}</span> : null}</td>
+              <tr key={r.athlete_id ?? `${r.pos}-${r.display_name}`} className={`border-b border-[var(--gt-line)] last:border-0 ${r.withdrawn ? "opacity-60" : ""}`}>
+                <td className={`${cell} gt-num font-bold`}>{friendship || r.withdrawn ? "" : r.pos}</td>
+                <td className={`${cell} min-w-0`}><span className="block font-semibold leading-tight">{r.display_name ?? "—"}{r.withdrawn && <span className="ml-1 text-xs font-normal text-[var(--gt-bad)]">ตัดชื่อ</span>}</span><span className={`block truncate text-[var(--gt-muted)] ${large ? "text-base" : "max-w-[9rem] text-xs sm:max-w-none"}`}>{r.institution}</span></td>
+                <td className={`${cell} gt-num whitespace-nowrap text-right`}>{r.wins}{r.byes ? <span className="block text-xs text-[var(--gt-muted)]">+บาย {r.byes}</span> : null}{r.draws ? <span className="block text-xs text-[var(--gt-muted)]">เสมอ {r.draws}</span> : null}</td>
                 <td className={`${cell} gt-num text-right`}>{r.losses}</td>
-                <td className={`${cell} gt-num text-right font-bold`}>{r.score}</td>
-                {friendship ? <td className={cell}>{award ? MEDAL[award] : ""}</td> : <><td className={`${cell} gt-num text-right`}>{r.sos}</td><td className={`${cell} gt-num text-right`}>{r.sosos}</td></>}
+                <td className={`${cell} gt-num text-right font-bold`}>{pts(r.score)}</td>
+                {friendship ? <td className={cell}>{award ? MEDAL[award] : ""}</td> : <><td className={`${cell} gt-num text-right`}>{pts(r.sos)}</td><td className={`${cell} gt-num text-right`}>{pts(r.sosos)}</td></>}
               </tr>
             );
           })}
@@ -52,7 +52,7 @@ export default function StandingsPanel({ data, eventId }: { data: DivisionData; 
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--gt-muted)]">
-        {friendship ? "เฟรนชิพ: เหรียญตามจำนวนชนะ (บายนับเป็นชนะ)" : "เรียงตาม แต้ม → SOS (ผลรวมแต้มคู่แข่ง) → SOSOS"} · นับเฉพาะโต๊ะที่กรอกผลแล้ว
+        {friendship ? "เฟรนชิพ: เหรียญตามจำนวนชนะ (บายนับเป็นชนะ)" : "เรียงตาม แต้ม → SOS (ผลรวมแต้มคู่แข่งที่ได้เล่นจริง) → SOSOS · ชนะเพราะคู่ไม่มา และบาย ไม่นับใน SOS"} · นับเฉพาะโต๊ะที่กรอกผลแล้ว
       </p>
       {groups.map(([pool, rows]) => (
         <section key={pool || "all"} className="gt-card p-3">

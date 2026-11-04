@@ -6,6 +6,7 @@ import { useDivision } from "../../../_lib/division/useDivision";
 import { StandingsTable, groupStandings } from "../../../_lib/division/StandingsPanel";
 import { nameOf, poolKey, schoolOf } from "../../../_lib/division/types";
 import { divisionLabel } from "@/lib/division-display";
+import { pointsFor, resultLabel } from "@/lib/competition-day.mjs";
 
 type Search = { round?: string; pool?: string; view?: string };
 
@@ -43,8 +44,11 @@ function Sheet({ divisionId, q }: { divisionId: string; q: Search }) {
   const byId = new Map(data.regs.map((r) => [r.athlete_id, r]));
   const tables = data.matches.filter((m) => poolKey(m.pool_label) === pool && m.round_number === round).sort((a, b) => (a.board_number ?? 0) - (b.board_number ?? 0));
   const bye = data.byes.find((b) => poolKey(b.pool_label) === pool && b.round_number === round);
-  const outcome = (black: boolean, m: (typeof tables)[number]) =>
-    m.state !== "verified" ? "" : m.result_code === "double_forfeit" ? "✕" : (m.winner_athlete_id === (black ? m.black_athlete_id : m.white_athlete_id) ? "ชนะ" : "แพ้");
+  const outcome = (black: boolean, m: (typeof tables)[number]) => {
+    if (m.state !== "verified") return <span className="inline-block h-6 w-6 rounded border-2 border-[var(--gt-line)]" title="เช็คชื่อ" />;
+    const p = pointsFor(m, black ? m.black_athlete_id : m.white_athlete_id);
+    return <span className="gt-num font-bold">{p === 0.5 ? "½" : p}</span>;
+  };
 
   return (
     <div>
@@ -53,7 +57,7 @@ function Sheet({ divisionId, q }: { divisionId: string; q: Search }) {
       <table className="w-full border-collapse text-xl">
         <thead>
           <tr className="border-b-2 border-[var(--gt-line)] text-left text-base text-[var(--gt-muted)]">
-            <th className="px-2 py-2">โต๊ะ</th><th className="px-2 py-2">● ดำ</th><th className="px-2 py-2" /><th className="px-2 py-2">○ ขาว</th><th className="px-2 py-2" />
+            <th className="px-2 py-2">โต๊ะ</th><th className="px-2 py-2">● ดำ</th><th className="px-2 py-2" /><th className="px-2 py-2">○ ขาว</th><th className="px-2 py-2" /><th className="px-2 py-2">ผล</th>
           </tr>
         </thead>
         <tbody>
@@ -64,12 +68,14 @@ function Sheet({ divisionId, q }: { divisionId: string; q: Search }) {
               <td className="px-2 py-3 text-base">{outcome(true, m)}</td>
               <td className="px-2 py-3"><span className="font-semibold">{nameOf(byId.get(m.white_athlete_id))}</span><span className="block text-base text-[var(--gt-muted)]">{schoolOf(byId.get(m.white_athlete_id))}</span></td>
               <td className="px-2 py-3 text-base">{outcome(false, m)}</td>
+              <td className="px-2 py-3 text-base">{resultLabel(m)}</td>
             </tr>
           ))}
         </tbody>
       </table>
       {bye && <p className="mt-4 text-xl">บาย: <strong>{nameOf(byId.get(bye.athlete_id))}</strong> <span className="text-[var(--gt-muted)]">{schoolOf(byId.get(bye.athlete_id))}</span></p>}
       {!tables.length && !bye && <p className="text-lg">ยังไม่มีคู่ของรอบนี้</p>}
+      {tables.length > 0 && <p className="mt-4 text-base text-[var(--gt-muted)]">ช่องสี่เหลี่ยม = เช็คชื่อที่โต๊ะ · มาสายเกิน 15 นาที ถือว่าแพ้</p>}
     </div>
   );
 }

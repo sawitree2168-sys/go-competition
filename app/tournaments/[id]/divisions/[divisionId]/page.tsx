@@ -5,17 +5,12 @@ import DivisionTabs from "../../_ui/DivisionTabs";
 import RosterList from "../../_ui/RosterList";
 import PosterViewer from "@/components/PosterViewer";
 import { boardSize, divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
+import { resultLabel } from "@/lib/competition-day.mjs";
 
 // Served from cache and refreshed in the background at most every 30 s (see PUBLIC_CACHE_SECONDS).
 export const revalidate = 30;
 
-const resultText = (m: Match) => {
-  if (m.result_code === "double_forfeit") return "ไม่มีผู้ชนะ (สละสิทธิ์ทั้งคู่)";
-  const side = m.result_code === "black_win" ? "ดำชนะ" : m.result_code === "white_win" ? "ขาวชนะ" : null;
-  if (!side) return "รอผล";
-  if (!m.result_margin) return side;
-  return m.result_margin === "R" ? `${side} (ยอมแพ้)` : m.result_margin === "T" ? `${side} (หมดเวลา)` : `${side} ${m.result_margin} แต้ม`;
-};
+const resultText = (m: Match) => resultLabel(m) || "รอผล";
 
 function Stone({ color }: { color: "b" | "w" }) {
   return <span aria-hidden="true" className={`inline-block h-4 w-4 shrink-0 rounded-full ${color === "b" ? "bg-[radial-gradient(circle_at_35%_30%,#5b6170,#111_65%)]" : "border border-[var(--gt-muted)] bg-[radial-gradient(circle_at_35%_30%,#fff,#dfe3ea)]"}`} />;
@@ -32,7 +27,7 @@ function Notice({ title, body, icon = "clock" }: { title: string; body: string; 
 
 export default async function DivisionPage({ params }: { params: Promise<{ id: string; divisionId: string }> }) {
   const { id, divisionId } = await params;
-  const { event, divisions, entrants, matches, byes, standings } = await loadDivisionPage(publicDb(), id, divisionId);
+  const { event, divisions, entrants, matches, byes, standings, people } = await loadDivisionPage(publicDb(), id, divisionId);
   const division = divisions.find((d) => d.id === divisionId);
 
   if (!event || !division) {
@@ -48,8 +43,13 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
     );
   }
 
-  const names = new Map(standings.filter((s) => s.athlete_id && s.display_name).map((s) => [s.athlete_id as string, s.display_name as string]));
-  const nameOf = (athleteId: string) => names.get(athleteId) ?? "ผู้เข้าแข่งขัน";
+  for (const s of standings) if (s.athlete_id && s.display_name && !people.has(s.athlete_id)) people.set(s.athlete_id, { name: s.display_name, institution: s.institution ?? "" });
+  const nameOf = (athleteId: string) => people.get(athleteId)?.name ?? "ผู้เข้าแข่งขัน";
+  const instOf = (athleteId: string) => people.get(athleteId)?.institution ?? "";
+  const fmt = (n: number) => (Number.isInteger(Number(n)) ? String(Number(n)) : Number(n).toFixed(1));
+  const Who = ({ id: aid }: { id: string }) => (
+    <span className="min-w-0"><span className="block truncate">{nameOf(aid)}</span>{instOf(aid) && <span className="block truncate text-xs font-normal text-[var(--gt-muted)]">{instOf(aid)}</span>}</span>
+  );
   const roster = entrants.filter((e) => divisionKey(e.division_name) === divisionKey(division.name))
     .map((e) => ({ key: e.source_row, name: `${e.title} ${e.full_name}`.trim(), institution: e.institution, payment: e.payment_status }));
   const rounds = [...new Set([...matches.map((m) => m.round_number), ...byes.map((b) => b.round_number)])].sort((a, b) => b - a);
@@ -85,15 +85,15 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
                 <li key={m.id} className="gt-card flex min-w-0 items-center gap-3 px-3 py-2.5">
                   <span className="gt-num w-14 shrink-0 text-sm font-semibold text-[var(--gt-muted)]">โต๊ะ {m.board_number ?? "–"}</span>
                   <span className="grid min-w-0 flex-1 gap-1 text-[15px]">
-                    <span className="flex min-w-0 items-center gap-2"><Stone color="b" /><span className="truncate">{nameOf(m.black_athlete_id)}</span></span>
-                    <span className="flex min-w-0 items-center gap-2"><Stone color="w" /><span className="truncate">{nameOf(m.white_athlete_id)}</span></span>
+                    <span className="flex min-w-0 items-center gap-2"><Stone color="b" /><Who id={m.black_athlete_id} /></span>
+                    <span className="flex min-w-0 items-center gap-2"><Stone color="w" /><Who id={m.white_athlete_id} /></span>
                   </span>
                 </li>
               ))}
               {pb.filter((b) => b.round_number === r).map((b) => (
                 <li key={b.athlete_id} className="flex min-w-0 items-center gap-3 rounded-xl border border-dashed border-[var(--gt-line)] px-3 py-2.5">
                   <span className="w-14 shrink-0 text-sm font-semibold text-[var(--gt-muted)]">บาย</span>
-                  <span className="min-w-0 flex-1 truncate">{nameOf(b.athlete_id)}</span>
+                  <span className="min-w-0 flex-1"><Who id={b.athlete_id} /></span>
                   <span className="shrink-0 text-xs text-[var(--gt-muted)]">+1 คะแนน</span>
                 </li>
               ))}
@@ -123,7 +123,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
                     {(["b", "w"] as const).map((c) => {
                       const pid = c === "b" ? m.black_athlete_id : m.white_athlete_id;
                       const won = m.winner_athlete_id === pid;
-                      return <span key={c} className={`flex min-w-0 items-center gap-2 ${won ? "font-bold" : "text-[var(--gt-muted)]"}`}><Stone color={c} /><span className="truncate">{nameOf(pid)}</span>{won && <span className="ml-auto shrink-0 text-xs text-[var(--gt-ok)]">ชนะ</span>}</span>;
+                      return <span key={c} className={`flex min-w-0 items-center gap-2 ${won ? "font-bold" : "text-[var(--gt-muted)]"}`}><Stone color={c} /><Who id={pid} />{won && <span className="ml-auto shrink-0 text-xs text-[var(--gt-ok)]">ชนะ</span>}</span>;
                     })}
                   </div>
                 </li>
@@ -152,12 +152,12 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
               <tbody>
                 {inPool(standings, pool).map((s, i) => (
                   <tr key={s.athlete_id ?? `h${i}`} className="border-b border-[var(--gt-line)] last:border-0">
-                    <td className="py-2.5 pl-2.5 pr-1"><span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${s.pos <= 3 ? "gt-pill-gold" : "bg-[var(--gt-surface-2)]"}`}>{s.pos}</span></td>
-                    <td className="px-1 py-2.5"><span className={s.display_name ? "font-semibold" : "text-[var(--gt-muted)]"}>{s.display_name ?? "ไม่เปิดเผยชื่อ"}</span>{s.byes > 0 && <span className="ml-1.5 text-[11px] text-[var(--gt-muted)]">บาย {s.byes}</span>}</td>
-                    <td className="px-1 py-2.5 text-center">{s.wins}–{s.losses}</td>
-                    <td className="px-1 py-2.5 text-right text-base font-bold">{s.score}</td>
-                    <td className="px-1 py-2.5 text-right">{s.sos}</td>
-                    <td className="py-2.5 pl-1 pr-2.5 text-right">{s.sosos}</td>
+                    <td className="py-2.5 pl-2.5 pr-1">{s.pos != null && <span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${s.pos <= 3 ? "gt-pill-gold" : "bg-[var(--gt-surface-2)]"}`}>{s.pos}</span>}</td>
+                    <td className="px-1 py-2.5"><span className={s.display_name ? "font-semibold" : "text-[var(--gt-muted)]"}>{s.display_name ?? "ผู้เข้าแข่งขัน"}</span>{s.byes > 0 && <span className="ml-1.5 text-[11px] text-[var(--gt-muted)]">บาย {s.byes}</span>}{s.withdrawn && <span className="ml-1.5 text-[11px] text-[var(--gt-bad)]">ถอนตัว</span>}{s.institution && <span className="block text-xs text-[var(--gt-muted)]">{s.institution}</span>}</td>
+                    <td className="px-1 py-2.5 text-center">{s.wins}–{s.losses}{s.draws ? `–${s.draws}` : ""}</td>
+                    <td className="px-1 py-2.5 text-right text-base font-bold">{fmt(s.score)}</td>
+                    <td className="px-1 py-2.5 text-right">{fmt(s.sos)}</td>
+                    <td className="py-2.5 pl-1 pr-2.5 text-right">{fmt(s.sosos)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -165,7 +165,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
       ))}
-      <p className="mt-2 text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย · คะแนนเท่ากันดู SOS แล้ว SOSOS · นับเฉพาะผลที่ยืนยันแล้ว{multi ? " · อันดับแยกตามสาย" : ""}</p>
+      <p className="mt-2 text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย (เสมอ ½) · คะแนนเท่ากันดู SOS แล้ว SOSOS (นับเฉพาะคู่ที่ได้เล่นจริง) · นับเฉพาะผลที่ยืนยันแล้ว{multi ? " · อันดับแยกตามสาย" : ""}</p>
     </>
   ) : <Notice title="ยังไม่มีอันดับ" body="อันดับจะแสดงเมื่อผู้ตัดสินยืนยันผลรอบแรก" icon="info" />;
 
