@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { Header, Icon, Shell, STONES_IMAGE, Thumb } from "./_ui/chrome";
 import ShareButton from "./_ui/ShareButton";
-import { loadEntrants, loadEvent, publicDb } from "./_ui/data";
+import { loadEventPage, publicDb } from "./_ui/data";
 import { divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
 
-export const dynamic = "force-dynamic";
+// Served from cache and refreshed in the background at most every 30 s (see PUBLIC_CACHE_SECONDS).
+export const revalidate = 30;
 
 // หน้า 2 · รายละเอียดงานแข่งขัน: event card, schedule/rules shortcuts, one row per division.
 export default async function TournamentDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const db = publicDb();
-  const [{ event, divisions }, entrants] = await Promise.all([loadEvent(db, id), loadEntrants(db, id)]);
+  const { event, divisions, entrants } = await loadEventPage(publicDb(), id);
 
   if (!event) {
     return (
@@ -66,18 +66,18 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
         <p className="text-sm text-[var(--gt-muted)]">แตะรุ่นเพื่อดูรายละเอียดและรายชื่อผู้แข่งขัน</p>
 
         {divisions.length ? (
-          <ul className="mt-3 grid gap-2">
+          <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-2">
             {divisions.map((d, i) => {
               const n = countFor(d.name);
               return (
                 <li key={d.id}>
-                  <Link href={`/tournaments/${id}/divisions/${d.id}`} className="gt-card gt-row flex items-center gap-3 p-1.5 pr-3">
+                  <Link href={`/tournaments/${id}/divisions/${d.id}`} className="gt-card gt-row flex min-w-0 items-center gap-3 p-1.5 pr-3">
                     <Thumb src={STONES_IMAGE} alt="" shift={i} className="h-14 w-24 rounded-[10px]" />
                     <span className="min-w-0 flex-1">
                       <span className="block text-lg font-bold leading-snug">{divisionLabel(d.name)}</span>
                       <span className="block text-xs text-[var(--gt-muted)]">รายละเอียดรุ่น · รายชื่อผู้แข่งขัน{n ? ` · ${n} คน` : ""}</span>
                     </span>
-                    <Icon name="chevron" className="h-6 w-6 text-[var(--gt-brand)]" />
+                    <Icon name="chevron" className="h-6 w-6 shrink-0 text-[var(--gt-brand)]" />
                   </Link>
                 </li>
               );
