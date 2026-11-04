@@ -3,12 +3,13 @@
 import { useMemo, useState } from "react";
 import { assignPools } from "@/lib/pool-assignment.mjs";
 import { ErrorNote, staffDb, useAction } from "../staff";
-import { nameOf, poolKey, schoolOf, type DivisionData } from "./types";
+import { isWithdrawn, nameOf, poolKey, schoolOf, type DivisionData } from "./types";
 
 const LABELS = ["A", "B", "C", "D"];
 
 export default function PoolsPanel({ data, reload }: { data: DivisionData; reload: () => Promise<void> }) {
-  const { regs, matches, byes, division } = data;
+  const { matches, byes, division } = data;
+  const regs = useMemo(() => data.regs.filter((r) => !isWithdrawn(r)), [data.regs]);
   const locked = matches.length > 0 || byes.length > 0;
   const saved = useMemo(() => new Map(regs.map((r) => [r.athlete_id, poolKey(r.pool_label)])), [regs]);
   const savedPools = [...new Set(saved.values())].filter(Boolean).length;

@@ -22,18 +22,30 @@ function EventConsole({ id }: { id: string }) {
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [entrants, setEntrants] = useState<Entrant[]>([]);
   const [regCount, setRegCount] = useState<Map<string, number>>(new Map());
+  const [status, setStatus] = useState<Map<string, { last: number; pending: number; checked: number; seats: number }>>(new Map());
   const [loaded, setLoaded] = useState(false);
   const [summary, setSummary] = useState<string>("");
   const action = useAction();
 
   const load = useCallback(async () => {
     const db = staffDb()!;
-    const [ev, dv, en, rg] = await Promise.all([
+    const [ev, dv, en, rg, mt] = await Promise.all([
       db.from("gt_tournaments").select("title,event_date").eq("id", id).maybeSingle(),
       db.from("gt_divisions").select("id,name").eq("tournament_id", id),
       db.from("gt_public_entrants").select("source_row,full_name,institution,division_name").eq("tournament_id", id).order("source_row").limit(2000),
       db.from("gt_registrations").select("division_id").eq("tournament_id", id).eq("registration_status", "confirmed").limit(5000),
+      db.from("gt_matches").select("division_id,round_number,state,black_checkin_at,white_checkin_at").eq("tournament_id", id).neq("state", "void").limit(10000),
     ]);
+    const st = new Map<string, { last: number; pending: number; checked: number; seats: number }>();
+    type M = { division_id: string; round_number: number; state: string; black_checkin_at: string | null; white_checkin_at: string | null };
+    for (const m of (mt.data ?? []) as M[]) {
+      const cur = st.get(m.division_id) ?? { last: 0, pending: 0, checked: 0, seats: 0 };
+      if (m.round_number > cur.last) Object.assign(cur, { last: m.round_number, checked: 0, seats: 0 });
+      if (m.round_number === cur.last) { cur.seats += 2; cur.checked += (m.black_checkin_at ? 1 : 0) + (m.white_checkin_at ? 1 : 0); }
+      if (m.state !== "verified") cur.pending += 1;
+      st.set(m.division_id, cur);
+    }
+    setStatus(st);
     setEvent(ev.data);
     setDivisions(((dv.data ?? []) as Division[]).sort((a, b) => divisionSortValue(a.name) - divisionSortValue(b.name)));
     setEntrants((en.data ?? []) as Entrant[]);
@@ -105,7 +117,19 @@ function EventConsole({ id }: { id: string }) {
             return (
               <li key={d.id}>
                 <Link href={`/organizer/${id}/${d.id}`} className="gt-card gt-row flex min-h-16 items-center justify-between gap-3 px-4 py-3">
-                  <span className="font-semibold">{divisionLabel(d.name)}</span>
+                  <span className="min-w-0">
+                    <span className="block font-semibold">{divisionLabel(d.name)}</span>
+                    {(() => {
+                      const x = status.get(d.id);
+                      if (!x) return <span className="text-xs text-[var(--gt-muted)]">ยังไม่ออกคู่</span>;
+                      return (
+                        <span className="text-xs">
+                          รอบ {x.last} · {x.pending ? <span className="text-[var(--gt-warn)]">รอผล {x.pending} โต๊ะ</span> : <span className="text-[var(--gt-ok)]">ผลครบ</span>}
+                          {x.pending > 0 && <span className="text-[var(--gt-muted)]"> · เช็คอิน {x.checked}/{x.seats}</span>}
+                        </span>
+                      );
+                    })()}
+                  </span>
                   <span className="text-right text-sm">
                     <span className="gt-num block">{inDb} คน</span>
                     {inSheet !== inDb && <span className="block text-xs text-[var(--gt-warn)]">ในชีต {inSheet}</span>}
