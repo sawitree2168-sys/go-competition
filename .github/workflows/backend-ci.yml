@@ -1,0 +1,39 @@
+name: Backend domain checks
+on:
+  push:
+    branches:
+      - feat/six-system-integration-audit
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'scripts/**'
+      - 'app/api/**'
+      - '.github/workflows/backend-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  domain-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test identity reconciliation
+        run: node --test scripts/reconcile-athlete-sources.test.mjs
+      - name: Test match history
+        run: node --test lib/athlete-match-history.test.mjs
+      - name: Test pairing proposals
+        run: node --test lib/pairing-proposal.test.mjs
+      - name: Test standings
+        run: node --test lib/tournament-standings.test.mjs
+      - name: Test referee results
+        run: node --test lib/match-result-workflow.test.mjs
+      - name: Test round audits
+        run: node --test lib/round-audit.test.mjs
+      - name: Test avatar crop
+        run: node --test lib/avatar-crop.test.mjs
