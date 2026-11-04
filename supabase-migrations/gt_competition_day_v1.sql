@@ -41,6 +41,8 @@ alter table public.gt_match_audit_v1 enable row level security;
 create policy gt_match_audit_staff_read_v1 on public.gt_match_audit_v1 for select to authenticated
   using (exists (select 1 from public.gt_staff_members s where s.user_id = (select auth.uid()) and s.active
                  and s.role = any (array['owner','admin','reviewer'])));
+revoke all on public.gt_match_audit_v1 from anon;
+grant select on public.gt_match_audit_v1 to authenticated;  -- rows still limited to staff by the policy above
 comment on table public.gt_match_audit_v1 is 'Append-only log of competition-day actions (publish/cancel round, results). Written only by staff RPCs.';
 
 -- ---------------------------------------------------------------- helper
