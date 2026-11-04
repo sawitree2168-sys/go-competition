@@ -1,0 +1,95 @@
+/* GO TOURNAMENT event pages (หน้า 2 / หน้า 3): light + dark tokens.
+   Theme = explicit choice on the .gt wrapper (data-gt-theme), else the device setting. */
+.gt {
+  --gt-bg: #f4f7fc;
+  --gt-surface: #ffffff;
+  --gt-surface-2: #f0f5fc;
+  --gt-ink: #0b2a5b;
+  --gt-muted: #5a6e8f;
+  --gt-line: #d8e2f0;
+  --gt-brand: #123f86;
+  --gt-gold: #f0bf55;
+  --gt-gold-2: #ffe29a;
+  --gt-gold-ink: #6e4a0c;
+  --gt-gold-soft: #fff4d6;
+  --gt-ok: #1f9a4b;
+  --gt-warn: #b86a00;
+  --gt-warn-soft: #fff1dc;
+  --gt-bad: #c0392b;
+  --gt-header: #ffffff;
+  color-scheme: light;
+  background: var(--gt-bg);
+  color: var(--gt-ink);
+  font-family: var(--font-gt), "Prompt", "Noto Sans Thai", system-ui, sans-serif;
+  overflow-x: clip;
+}
+@media (prefers-color-scheme: dark) {
+   .gt:not([data-gt-theme="light"]) {
+    --gt-bg: #061632;
+    --gt-surface: #0b2148;
+    --gt-surface-2: #0e2a59;
+    --gt-ink: #eef3fb;
+    --gt-muted: #9db0d1;
+    --gt-line: #1e3c6e;
+    --gt-brand: #8fb6f5;
+    --gt-gold: #f2c45f;
+    --gt-gold-2: #ffe29a;
+    --gt-gold-ink: #ffe29a;
+    --gt-gold-soft: #2a2a1c;
+    --gt-ok: #49c97a;
+    --gt-warn: #ffbf5e;
+    --gt-warn-soft: #2e2615;
+    --gt-bad: #ff8a7a;
+    --gt-header: #071a3b;
+    color-scheme: dark;
+  }
+}
+.gt[data-gt-theme="dark"] {
+  --gt-bg: #061632;
+  --gt-surface: #0b2148;
+  --gt-surface-2: #0e2a59;
+  --gt-ink: #eef3fb;
+  --gt-muted: #9db0d1;
+  --gt-line: #1e3c6e;
+  --gt-brand: #8fb6f5;
+  --gt-gold: #f2c45f;
+  --gt-gold-2: #ffe29a;
+  --gt-gold-ink: #ffe29a;
+  --gt-gold-soft: #2a2a1c;
+  --gt-ok: #49c97a;
+  --gt-warn: #ffbf5e;
+  --gt-warn-soft: #2e2615;
+  --gt-bad: #ff8a7a;
+  --gt-header: #071a3b;
+  color-scheme: dark;
+}
+
+.gt-card { background: var(--gt-surface); border: 1px solid var(--gt-line); border-radius: 14px; }
+.gt-gold-btn {
+  background: linear-gradient(180deg, var(--gt-gold-2), var(--gt-gold));
+  color: #10264f; font-weight: 700; border-radius: 12px;
+  box-shadow: 0 2px 0 rgba(110, 74, 12, .25);
+}
+.gt-outline-btn { border: 1.5px solid var(--gt-brand); color: var(--gt-ink); border-radius: 12px; background: var(--gt-surface); }
+.gt-pill-gold { background: var(--gt-gold-soft); color: var(--gt-gold-ink); border: 1px solid var(--gt-gold); border-radius: 999px; }
+.gt :focus-visible { outline: 2px solid var(--gt-gold); outline-offset: 2px; }
+.gt-tabs [aria-selected="true"], .gt-tabs a[aria-current="page"] { background: linear-gradient(180deg, var(--gt-gold-2), var(--gt-gold)); color: #10264f; }
+.gt-num { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: no-preference) {
+  .gt-row { transition: transform .12s ease, border-color .12s ease; }
+  .gt-row:hover { transform: translateY(-1px); border-color: var(--gt-gold); }
+}
+
+/* Loading skeletons */
+.gt-skel { background: linear-gradient(90deg, var(--gt-surface-2) 25%, var(--gt-line) 50%, var(--gt-surface-2) 75%); background-size: 200% 100%; border-radius: 10px; }
+@media (prefers-reduced-motion: no-preference) { .gt-skel { animation: gt-shimmer 1.2s linear infinite; } }
+@keyframes gt-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* Printed pairings and standings: always black on white, whatever the screen theme. */
+@media print {
+  .gt, .gt[data-gt-theme="dark"], .gt:not([data-gt-theme="light"]) {
+    --gt-bg: #fff !important; --gt-surface: #fff !important; --gt-surface-2: #f3f3f3 !important;
+    --gt-ink: #000 !important; --gt-muted: #444 !important; --gt-line: #999 !important;
+    color-scheme: light; background: #fff !important;
+  }
+}
