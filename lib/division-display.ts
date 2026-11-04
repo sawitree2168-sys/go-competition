@@ -46,7 +46,3 @@ export function boardSize(name: string, friendshipBoardSize: number | null): num
 export const thaiDate = (iso: string | null, style: "long" | "short" = "long") =>
   iso ? new Date(iso + "T12:00:00").toLocaleDateString("th-TH", { day: "numeric", month: style, year: "numeric" }) : null;
 
-/** Local posters (/posters/name.jpg) ship with a small "-thumb" copy for fast page loads. */
-export function posterThumb(url: string) {
-  return /^\/posters\/.+\.(jpe?g|png|webp)$/i.test(url) ? url.replace(/\.(jpe?g|png|webp)$/i, "-thumb.$1") : url;
-}
