@@ -66,81 +66,106 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
     </>
   );
 
-  const pairsPanel = rounds.length ? rounds.map((r) => (
-    <section key={r} className="mt-4">
-      <h2 className="text-lg font-bold">รอบที่ {r}</h2>
-      <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1.5">
-        {matches.filter((m) => m.round_number === r).sort(byBoard).map((m) => (
-          <li key={m.id} className="gt-card flex min-w-0 items-center gap-3 px-3 py-2.5">
-            <span className="gt-num w-14 shrink-0 text-sm font-semibold text-[var(--gt-muted)]">โต๊ะ {m.board_number ?? "–"}</span>
-            <span className="grid min-w-0 flex-1 gap-1 text-[15px]">
-              <span className="flex min-w-0 items-center gap-2"><Stone color="b" /><span className="truncate">{nameOf(m.black_athlete_id)}</span></span>
-              <span className="flex min-w-0 items-center gap-2"><Stone color="w" /><span className="truncate">{nameOf(m.white_athlete_id)}</span></span>
-            </span>
-          </li>
+  const pools = [...new Set([...standings.map((x) => x.pool_label ?? ""), ...matches.map((m) => m.pool_label ?? ""), ...byes.map((b) => b.pool_label ?? "")])].sort();
+  const multi = pools.length > 1;
+  const PoolTitle = ({ pool }: { pool: string }) => multi ? <h2 className="mt-5 rounded-xl bg-[var(--gt-surface-2)] px-3 py-1.5 text-base font-bold">สาย {pool || "–"}</h2> : null;
+  const inPool = <T extends { pool_label?: string | null }>(rows: T[], pool: string) => rows.filter((x) => (x.pool_label ?? "") === pool);
+
+  const pairsPanel = rounds.length ? pools.map((pool) => {
+    const pm = inPool(matches, pool), pb = inPool(byes, pool);
+    const pr = [...new Set([...pm.map((m) => m.round_number), ...pb.map((b) => b.round_number)])].sort((a, b) => b - a);
+    return (
+      <div key={pool || "all"}>
+        <PoolTitle pool={pool} />
+        {pr.map((r) => (
+          <section key={r} className="mt-4">
+            <h2 className="text-lg font-bold">รอบที่ {r}</h2>
+            <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1.5">
+              {pm.filter((m) => m.round_number === r).sort(byBoard).map((m) => (
+                <li key={m.id} className="gt-card flex min-w-0 items-center gap-3 px-3 py-2.5">
+                  <span className="gt-num w-14 shrink-0 text-sm font-semibold text-[var(--gt-muted)]">โต๊ะ {m.board_number ?? "–"}</span>
+                  <span className="grid min-w-0 flex-1 gap-1 text-[15px]">
+                    <span className="flex min-w-0 items-center gap-2"><Stone color="b" /><span className="truncate">{nameOf(m.black_athlete_id)}</span></span>
+                    <span className="flex min-w-0 items-center gap-2"><Stone color="w" /><span className="truncate">{nameOf(m.white_athlete_id)}</span></span>
+                  </span>
+                </li>
+              ))}
+              {pb.filter((b) => b.round_number === r).map((b) => (
+                <li key={b.athlete_id} className="flex min-w-0 items-center gap-3 rounded-xl border border-dashed border-[var(--gt-line)] px-3 py-2.5">
+                  <span className="w-14 shrink-0 text-sm font-semibold text-[var(--gt-muted)]">บาย</span>
+                  <span className="min-w-0 flex-1 truncate">{nameOf(b.athlete_id)}</span>
+                  <span className="shrink-0 text-xs text-[var(--gt-muted)]">+1 คะแนน</span>
+                </li>
+              ))}
+            </ol>
+          </section>
         ))}
-        {byes.filter((b) => b.round_number === r).map((b) => (
-          <li key={b.athlete_id} className="flex min-w-0 items-center gap-3 rounded-xl border border-dashed border-[var(--gt-line)] px-3 py-2.5">
-            <span className="w-14 shrink-0 text-sm font-semibold text-[var(--gt-muted)]">บาย</span>
-            <span className="min-w-0 flex-1 truncate">{nameOf(b.athlete_id)}</span>
-            <span className="shrink-0 text-xs text-[var(--gt-muted)]">+1 คะแนน</span>
-          </li>
-        ))}
-      </ol>
-    </section>
-  )) : <Notice title="ยังไม่ประกาศคู่แข่งขัน" body="ผู้ตัดสินจะจับคู่แบบสวิส: โต๊ะ 1 คือผู้มีคะแนนสูงสุด" />;
+      </div>
+    );
+  }) : <Notice title="ยังไม่ประกาศคู่แข่งขัน" body="ผู้ตัดสินจะจับคู่แบบสวิส: โต๊ะ 1 คือผู้มีคะแนนสูงสุด" />;
 
   const verified = matches.filter((m) => m.state === "verified");
-  const resultsPanel = verified.length ? rounds.map((r) => {
-    const done = verified.filter((m) => m.round_number === r).sort(byBoard);
-    if (!done.length) return null;
+  const resultsPanel = verified.length ? pools.map((pool) => {
+    const pv = inPool(verified, pool);
+    const pr = [...new Set(pv.map((m) => m.round_number))].sort((a, b) => b - a);
+    if (!pv.length) return null;
     return (
-      <section key={r} className="mt-4">
-        <h2 className="text-lg font-bold">ผลรอบที่ {r}</h2>
-        <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1.5">
-          {done.map((m) => (
-            <li key={m.id} className="gt-card min-w-0 px-3 py-2.5">
-              <div className="flex items-center justify-between gap-2 text-xs text-[var(--gt-muted)]"><span className="gt-num">โต๊ะ {m.board_number ?? "–"}</span><span className="font-semibold text-[var(--gt-gold-ink)]">{resultText(m)}</span></div>
-              <div className="mt-1 grid gap-1 text-[15px]">
-                {(["b", "w"] as const).map((c) => {
-                  const pid = c === "b" ? m.black_athlete_id : m.white_athlete_id;
-                  const won = m.winner_athlete_id === pid;
-                  return <span key={c} className={`flex min-w-0 items-center gap-2 ${won ? "font-bold" : "text-[var(--gt-muted)]"}`}><Stone color={c} /><span className="truncate">{nameOf(pid)}</span>{won && <span className="ml-auto shrink-0 text-xs text-[var(--gt-ok)]">ชนะ</span>}</span>;
-                })}
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
+      <div key={pool || "all"}>
+        <PoolTitle pool={pool} />
+        {pr.map((r) => (
+          <section key={r} className="mt-4">
+            <h2 className="text-lg font-bold">ผลรอบที่ {r}</h2>
+            <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1.5">
+              {pv.filter((m) => m.round_number === r).sort(byBoard).map((m) => (
+                <li key={m.id} className="gt-card min-w-0 px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-2 text-xs text-[var(--gt-muted)]"><span className="gt-num">โต๊ะ {m.board_number ?? "–"}</span><span className="font-semibold text-[var(--gt-gold-ink)]">{resultText(m)}</span></div>
+                  <div className="mt-1 grid gap-1 text-[15px]">
+                    {(["b", "w"] as const).map((c) => {
+                      const pid = c === "b" ? m.black_athlete_id : m.white_athlete_id;
+                      const won = m.winner_athlete_id === pid;
+                      return <span key={c} className={`flex min-w-0 items-center gap-2 ${won ? "font-bold" : "text-[var(--gt-muted)]"}`}><Stone color={c} /><span className="truncate">{nameOf(pid)}</span>{won && <span className="ml-auto shrink-0 text-xs text-[var(--gt-ok)]">ชนะ</span>}</span>;
+                    })}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))}
+      </div>
     );
   }) : <Notice title="ยังไม่มีผลที่ยืนยันแล้ว" body="ผลจะแสดงเมื่อผู้ตัดสินยืนยันผลแต่ละโต๊ะ" icon="info" />;
 
   const standingsPanel = standings.some((s) => s.wins + s.losses + s.byes > 0) ? (
     <>
-      <div className="gt-card mt-4 overflow-x-auto">
-        <table className="gt-num w-full min-w-[340px] text-sm">
-          <thead className="text-xs text-[var(--gt-muted)]">
-            <tr className="border-b border-[var(--gt-line)]">
-              <th className="py-2.5 pl-2.5 pr-1 text-left font-semibold">#</th><th className="px-1 py-2.5 text-left font-semibold">ชื่อ</th>
-              <th className="px-1 py-2.5 text-center font-semibold">ชนะ–แพ้</th><th className="px-1 py-2.5 text-right font-semibold">คะแนน</th>
-              <th className="px-1 py-2.5 text-right font-semibold">SOS</th><th className="py-2.5 pl-1 pr-2.5 text-right font-semibold">SOSOS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {standings.map((s, i) => (
-              <tr key={s.athlete_id ?? `h${i}`} className="border-b border-[var(--gt-line)] last:border-0">
-                <td className="py-2.5 pl-2.5 pr-1"><span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${s.pos <= 3 ? "gt-pill-gold" : "bg-[var(--gt-surface-2)]"}`}>{s.pos}</span></td>
-                <td className="px-1 py-2.5"><span className={s.display_name ? "font-semibold" : "text-[var(--gt-muted)]"}>{s.display_name ?? "ไม่เปิดเผยชื่อ"}</span>{s.byes > 0 && <span className="ml-1.5 text-[11px] text-[var(--gt-muted)]">บาย {s.byes}</span>}</td>
-                <td className="px-1 py-2.5 text-center">{s.wins}–{s.losses}</td>
-                <td className="px-1 py-2.5 text-right text-base font-bold">{s.score}</td>
-                <td className="px-1 py-2.5 text-right">{s.sos}</td>
-                <td className="py-2.5 pl-1 pr-2.5 text-right">{s.sosos}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-2 text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย · คะแนนเท่ากันดู SOS แล้ว SOSOS · นับเฉพาะผลที่ยืนยันแล้ว</p>
+      {pools.map((pool) => (
+        <div key={pool || "all"}>
+          <PoolTitle pool={pool} />
+          <div className="gt-card mt-4 overflow-x-auto">
+            <table className="gt-num w-full min-w-[340px] text-sm">
+              <thead className="text-xs text-[var(--gt-muted)]">
+                <tr className="border-b border-[var(--gt-line)]">
+                  <th className="py-2.5 pl-2.5 pr-1 text-left font-semibold">#</th><th className="px-1 py-2.5 text-left font-semibold">ชื่อ</th>
+                  <th className="px-1 py-2.5 text-center font-semibold">ชนะ–แพ้</th><th className="px-1 py-2.5 text-right font-semibold">คะแนน</th>
+                  <th className="px-1 py-2.5 text-right font-semibold">SOS</th><th className="py-2.5 pl-1 pr-2.5 text-right font-semibold">SOSOS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {inPool(standings, pool).map((s, i) => (
+                  <tr key={s.athlete_id ?? `h${i}`} className="border-b border-[var(--gt-line)] last:border-0">
+                    <td className="py-2.5 pl-2.5 pr-1"><span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${s.pos <= 3 ? "gt-pill-gold" : "bg-[var(--gt-surface-2)]"}`}>{s.pos}</span></td>
+                    <td className="px-1 py-2.5"><span className={s.display_name ? "font-semibold" : "text-[var(--gt-muted)]"}>{s.display_name ?? "ไม่เปิดเผยชื่อ"}</span>{s.byes > 0 && <span className="ml-1.5 text-[11px] text-[var(--gt-muted)]">บาย {s.byes}</span>}</td>
+                    <td className="px-1 py-2.5 text-center">{s.wins}–{s.losses}</td>
+                    <td className="px-1 py-2.5 text-right text-base font-bold">{s.score}</td>
+                    <td className="px-1 py-2.5 text-right">{s.sos}</td>
+                    <td className="py-2.5 pl-1 pr-2.5 text-right">{s.sosos}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+      <p className="mt-2 text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย · คะแนนเท่ากันดู SOS แล้ว SOSOS · นับเฉพาะผลที่ยืนยันแล้ว{multi ? " · อันดับแยกตามสาย" : ""}</p>
     </>
   ) : <Notice title="ยังไม่มีอันดับ" body="อันดับจะแสดงเมื่อผู้ตัดสินยืนยันผลรอบแรก" icon="info" />;
 

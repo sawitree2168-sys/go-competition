@@ -12,11 +12,11 @@ export type Division = { id: string; name: string; seats_limit: number | null; e
 export type Entrant = { source_row: number; title: string; full_name: string; institution: string; division_name: string; payment_status: string };
 export type Match = {
   id: string; round_number: number; board_number: number | null; black_athlete_id: string; white_athlete_id: string;
-  winner_athlete_id: string | null; result_code: string | null; result_margin: string | null; state: string;
+  winner_athlete_id: string | null; result_code: string | null; result_margin: string | null; state: string; pool_label?: string | null;
 };
-export type Bye = { round_number: number; athlete_id: string };
+export type Bye = { round_number: number; athlete_id: string; pool_label?: string | null };
 export type Standing = {
-  pos: number; athlete_id: string | null; display_name: string | null; current_rank: string | null;
+  pool_label?: string | null; pos: number; athlete_id: string | null; display_name: string | null; current_rank: string | null;
   wins: number; losses: number; byes: number; score: number; sos: number; sosos: number;
 };
 
@@ -61,10 +61,10 @@ export async function loadDivisionPage(db: SupabaseClient | null, id: string, di
   try {
     const [page, m, b, s] = await Promise.all([
       loadEventPage(db, id),
-      db.from("gt_matches").select("id,round_number,board_number,black_athlete_id,white_athlete_id,winner_athlete_id,result_code,result_margin,state")
+      db.from("gt_matches").select("id,round_number,board_number,black_athlete_id,white_athlete_id,winner_athlete_id,result_code,result_margin,state,pool_label")
         .eq("division_id", divisionId).neq("state", "void"),
-      db.from("gt_byes").select("round_number,athlete_id").eq("division_id", divisionId),
-      db.rpc("gt_division_standings_v1", { p_division: divisionId }),
+      db.from("gt_byes").select("round_number,athlete_id,pool_label").eq("division_id", divisionId),
+      db.rpc("gt_division_standings_v2", { p_division: divisionId, p_pool: null }),
     ]);
     return { ...page, matches: (m.data ?? []) as Match[], byes: (b.data ?? []) as Bye[], standings: (s.data ?? []) as Standing[] };
   } catch {
