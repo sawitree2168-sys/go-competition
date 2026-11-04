@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Header, Icon, Shell, STONES_IMAGE, Thumb } from "./_ui/chrome";
 import ShareButton from "./_ui/ShareButton";
+import PosterViewer from "./_ui/PosterViewer";
 import { loadEventPage, publicDb } from "./_ui/data";
-import { divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
+import { divisionKey, divisionLabel, posterThumb, thaiDate } from "@/lib/division-display";
 
 // Served from cache and refreshed in the background at most every 30 s (see PUBLIC_CACHE_SECONDS).
 export const revalidate = 30;
@@ -45,7 +46,9 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
         <h1 className="mt-2 text-xl font-bold">รายละเอียดงานแข่งขัน</h1>
 
         <section className="gt-card mt-3 flex gap-3 p-3">
-          <Thumb src={event.poster_url || STONES_IMAGE} alt={event.poster_url ? `โปสเตอร์ ${event.title}` : ""} className="h-36 w-32 rounded-lg sm:h-40 sm:w-40" />
+          {event.poster_url
+            ? <PosterViewer src={event.poster_url} thumb={posterThumb(event.poster_url)} alt={`โปสเตอร์ ${event.title}`} className="h-40 w-[6.75rem] rounded-lg sm:h-48 sm:w-32" />
+            : <Thumb src={STONES_IMAGE} alt="" className="h-36 w-32 rounded-lg sm:h-40 sm:w-40" />}
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <h2 className="text-lg font-bold leading-tight sm:text-xl">{event.title}</h2>

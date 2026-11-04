@@ -3,7 +3,8 @@ import { Header, Icon, Shell, STONES_IMAGE, Thumb } from "../../_ui/chrome";
 import { loadDivisionPage, publicDb, type Match } from "../../_ui/data";
 import DivisionTabs from "../../_ui/DivisionTabs";
 import RosterList from "../../_ui/RosterList";
-import { boardSize, divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
+import PosterViewer from "../../_ui/PosterViewer";
+import { boardSize, divisionKey, divisionLabel, posterThumb, thaiDate } from "@/lib/division-display";
 
 // Served from cache and refreshed in the background at most every 30 s (see PUBLIC_CACHE_SECONDS).
 export const revalidate = 30;
@@ -158,7 +159,9 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
         </nav>
 
         <section className="gt-card mt-2 flex min-w-0 items-center gap-3 p-2.5">
-          <Thumb src={event.poster_url || STONES_IMAGE} alt="" className="h-16 w-28 rounded-lg" />
+          {event.poster_url
+            ? <PosterViewer src={event.poster_url} thumb={posterThumb(event.poster_url)} alt={`โปสเตอร์ ${event.title}`} className="h-20 w-14 rounded-lg" />
+            : <Thumb src={STONES_IMAGE} alt="" className="h-16 w-28 rounded-lg" />}
           <div className="min-w-0">
             <p className="truncate font-bold">{event.title}</p>
             <p className="mt-1 flex items-center gap-1.5 text-sm"><Icon name="calendar" className="h-4 w-4 shrink-0 text-[var(--gt-gold)]" />{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
