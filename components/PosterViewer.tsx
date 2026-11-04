@@ -1,12 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 /**
  * Poster thumbnail; one tap opens the whole poster full screen.
  * Opens fitted to the screen; + / − (or double-tap) zooms, then drag/scroll to read details.
  */
-export default function PosterViewer({ src, thumb, alt, className = "" }: { src: string; thumb: string; alt: string; className?: string }) {
+export default function PosterViewer({ src, alt, sizes, className = "", preload = false }: {
+  src: string; alt: string;
+  /** How wide the frame is on screen, e.g. "(min-width: 640px) 320px, 100vw"; the right file size is served automatically. */
+  sizes: string; className?: string; preload?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [scale, setScale] = useState(1);
   const closeBtn = useRef<HTMLButtonElement>(null);
@@ -33,9 +38,8 @@ export default function PosterViewer({ src, thumb, alt, className = "" }: { src:
     <>
       <button ref={opener} type="button" onClick={() => { setScale(1); setOpen(true); }} aria-label={`ดูโปสเตอร์เต็มจอ: ${alt}`}
         className={`group relative shrink-0 overflow-hidden ${className}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- small local thumbnail */}
-        <img src={thumb} alt={alt} className="h-full w-full object-cover object-top" />
-        <span className="absolute bottom-1.5 right-1.5 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white">
+        <Image src={src} alt={alt} fill sizes={sizes} preload={preload} className="object-cover object-top" />
+        <span className="absolute bottom-1.5 right-1.5 z-[1] grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" /></svg>
         </span>
       </button>
