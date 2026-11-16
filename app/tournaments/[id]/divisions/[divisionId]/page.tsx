@@ -168,9 +168,9 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
       <div className="relative left-1/2 w-screen -translate-x-1/2">
         <SiteBar current="/tournaments" />
         {/* Banner (design 16 Nov 2026): always dark, picture from the site owner on the right. */}
-        <section className="relative overflow-hidden bg-[#061632] text-white">
-          <div aria-hidden="true" className="absolute inset-0 bg-[url(/pairs-hero.webp)] bg-cover bg-[position:right_center] opacity-90" />
-          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,#061632_30%,rgba(6,22,50,.55)_65%,rgba(6,22,50,.1))]" />
+        <section className="relative overflow-hidden bg-[var(--gt-banner-bg)] text-white">
+          <div aria-hidden="true" className="absolute inset-0 bg-[url(/pairs-hero.webp)] bg-cover bg-[position:right_center] opacity-90 [filter:var(--gt-banner-filter)]" />
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,var(--gt-banner-bg)_30%,color-mix(in_srgb,var(--gt-banner-bg)_55%,transparent)_65%,transparent)]" />
           <div className="relative mx-auto max-w-6xl px-4 py-5 sm:py-7">
             <Link href={`/tournaments/${id}`} className="inline-flex min-h-9 items-center gap-1 text-sm text-white/80 hover:text-white hover:underline">‹ รายละเอียดงาน</Link>
             <div className="mt-1 flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
@@ -195,7 +195,9 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
         </section>
       </div>
 
-      <main className="px-4">
+      {/* Light mode: soft board picture behind the top of the content (hidden in dark mode). */}
+      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 h-56 w-screen -translate-x-1/2 bg-[url(/profile-hero-m.png)] bg-[length:auto_100%] bg-[position:right_top] bg-no-repeat opacity-[var(--gt-page-deco)] [mask-image:linear-gradient(#000_60%,transparent)] sm:h-72 sm:bg-[url(/profile-hero.webp)] sm:bg-cover" />
+      <main className="relative px-4">
         <LiveRefresh divisionId={divisionId} fingerprint={live} />
 
         <div className="mt-3 grid grid-cols-2 gap-3">

@@ -81,12 +81,12 @@ function TableCard({ m, black, white, controls }: { m: Match; black: SeatInfo; w
   return (
     <li className={`overflow-hidden rounded-2xl border-2 bg-[var(--gt-surface)] shadow-sm ${done ? "border-[var(--gt-line)]" : "border-[var(--gt-cta)]/60"}`}>
       {/* mobile header */}
-      <div className="flex items-center justify-between gap-2 px-3 pt-3 md:hidden">
-        <span className="gt-num rounded-lg bg-[var(--gt-cta)] px-3 py-1 text-base font-bold text-white">โต๊ะ {m.board_number ?? "–"}</span>
-        <span className={`rounded-full px-3 py-1 text-sm font-semibold ${done ? "bg-[var(--gt-win-bg)] text-[var(--gt-win-ink)]" : "bg-[var(--gt-cta-soft)] text-[var(--gt-cta)]"}`}>{done ? status : "รอผล"}</span>
+      <div className="flex items-center justify-between gap-2 bg-[var(--gt-cta-soft)] px-3 py-2 md:hidden">
+        <span className="gt-num rounded-lg bg-[var(--gt-btn-black)] px-3 py-1 text-base font-bold text-white">โต๊ะ {m.board_number ?? "–"}</span>
+        <span className={`rounded-full px-3 py-1 text-sm font-semibold ${done ? "bg-[var(--gt-win-bg)] text-[var(--gt-win-ink)]" : "bg-[var(--gt-surface)] text-[var(--gt-cta)]"}`}>{done ? status : "รอผล"}</span>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-3 py-3 md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-5 md:px-5 md:py-4">
-        <span className="gt-num hidden self-start rounded-lg bg-[var(--gt-cta)] px-3 py-1 text-lg font-bold text-white md:inline-block">โต๊ะ {m.board_number ?? "–"}</span>
+        <span className="gt-num hidden self-start rounded-lg bg-[var(--gt-btn-black)] px-3 py-1 text-lg font-bold text-white md:inline-block">โต๊ะ {m.board_number ?? "–"}</span>
         <Side s={black} colour="black" />
         <span className="flex h-full flex-col items-center justify-center">
           <span aria-hidden="true" className="w-px flex-1 bg-[var(--gt-line)]" />

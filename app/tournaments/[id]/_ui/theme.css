@@ -19,6 +19,7 @@
   --gt-header: #ffffff;
   --gt-win-bg: #dcf5e3; --gt-win-ink: #17723a; --gt-loss-bg: #fde2e6; --gt-loss-ink: #b4233c; --gt-table-head: #1f4ea3; --gt-avatar-top: #cfe0fb; --gt-cta: #1565d8; --gt-cta-2: #0d4fb3; --gt-cta-soft: #e5effd;
   --gt-hero-img: 1;
+  --gt-btn-black: #0b3d91; --gt-banner-bg: #0b4bc2; --gt-banner-filter: brightness(1.75) saturate(1.25) hue-rotate(-4deg); --gt-page-deco: 1;
   color-scheme: light;
   background: var(--gt-bg);
   color: var(--gt-ink);
@@ -45,6 +46,7 @@
     --gt-header: #071a3b;
     --gt-win-bg: #123d24; --gt-win-ink: #7fe0a2; --gt-loss-bg: #4a1a24; --gt-loss-ink: #ff9fb0; --gt-table-head: #16397a; --gt-avatar-top: #12305f; --gt-cta: #2f76e0; --gt-cta-2: #1f5fc4; --gt-cta-soft: #143466;
     --gt-hero-img: .18;
+    --gt-btn-black: #2f76e0; --gt-banner-bg: #061632; --gt-banner-filter: none; --gt-page-deco: 0;
     color-scheme: dark;
   }
 }
@@ -67,6 +69,7 @@
   --gt-header: #071a3b;
   --gt-win-bg: #123d24; --gt-win-ink: #7fe0a2; --gt-loss-bg: #4a1a24; --gt-loss-ink: #ff9fb0; --gt-table-head: #16397a; --gt-avatar-top: #12305f; --gt-cta: #2f76e0; --gt-cta-2: #1f5fc4; --gt-cta-soft: #143466;
   --gt-hero-img: .18;
+  --gt-btn-black: #2f76e0; --gt-banner-bg: #061632; --gt-banner-filter: none; --gt-page-deco: 0;
   color-scheme: dark;
 }
 

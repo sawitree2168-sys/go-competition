@@ -41,11 +41,11 @@ export default function DivisionTabs({ panels }: { panels: Record<TabId, React.R
 
   return (
     <>
-      <div role="tablist" aria-label="ข้อมูลรุ่น" className="gt-tabs gt-card mt-4 grid grid-cols-6 gap-0.5 sm:gap-1 p-1">
+      <div role="tablist" aria-label="ข้อมูลรุ่น" className="gt-card mt-4 grid grid-cols-6 gap-0.5 p-1 sm:gap-1">
         {TABS.map((t) => (
           <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-controls={`panel-${t.id}`} aria-selected={active === t.id}
             onClick={() => choose(t.id)}
-            className="rounded-[10px] px-0.5 py-2.5 text-center text-[13px] sm:text-[15px] font-semibold text-[var(--gt-ink)]">{t.label}</button>
+            className={`rounded-[10px] px-0.5 py-2.5 text-center text-[13px] font-semibold sm:text-[15px] ${active === t.id ? "bg-[var(--gt-cta)] text-white shadow-sm" : "text-[var(--gt-ink)] hover:bg-[var(--gt-surface-2)]"}`}>{t.label}</button>
         ))}
       </div>
       {TABS.map((t) => (
