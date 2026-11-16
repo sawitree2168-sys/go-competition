@@ -15,14 +15,18 @@ export function staffDb(): SupabaseClient | null {
   return client;
 }
 
+export type OrganizerAccess = { id: string; name: string; status: "active" | "suspended"; role: "owner" | "admin" };
+
 type StaffState =
   | { status: "loading" }
   | { status: "signed_out" }
-  | { status: "not_staff"; email: string }
-  | { status: "staff"; email: string; role: string; session: Session };
+  | { status: "not_staff"; email: string; suspended: boolean }
+  | { status: "staff"; email: string; platformRole: string | null; organizers: OrganizerAccess[]; session: Session };
 
 const Ctx = createContext<StaffState>({ status: "loading" });
 export const useStaff = () => useContext(Ctx);
+/** True for the site owner (and platform admins): sees every organiser and event. */
+export const isPlatformAdmin = (s: StaffState) => s.status === "staff" && Boolean(s.platformRole);
 
 export function StaffProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<StaffState>({ status: "loading" });
@@ -33,11 +37,15 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
     let active = true;
     const check = async (session: Session | null) => {
       if (!session) { if (active) setState({ status: "signed_out" }); return; }
-      const { data } = await db.from("gt_staff_members").select("role,active").eq("user_id", session.user.id).maybeSingle();
+      // Platform owner/admin, or a member of an organiser whose account is active.
+      const { data } = await db.rpc("gt_my_access_v1");
       if (!active) return;
       const email = session.user.email ?? "";
-      if (data?.active && (data.role === "owner" || data.role === "admin")) setState({ status: "staff", email, role: data.role, session });
-      else setState({ status: "not_staff", email });
+      const platformRole: string | null = data?.platform_role ?? null;
+      const organizers = ((data?.organizers ?? []) as OrganizerAccess[]);
+      const usable = organizers.filter((o) => o.status === "active");
+      if (platformRole || usable.length) setState({ status: "staff", email, platformRole, organizers, session });
+      else setState({ status: "not_staff", email, suspended: organizers.length > 0 });
     };
     db.auth.getSession().then(({ data }) => check(data.session));
     const { data: sub } = db.auth.onAuthStateChange((event, session) => {

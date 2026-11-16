@@ -11,8 +11,8 @@ export default function Gate({ children }: { children: React.ReactNode }) {
   if (staff.status === "not_staff")
     return (
       <div className="gt-card mx-auto mt-10 max-w-md space-y-2 p-6 text-center">
-        <h1 className="text-lg font-bold">บัญชีนี้ยังไม่มีสิทธิ์ผู้จัด</h1>
-        <p className="text-sm text-[var(--gt-muted)]">{staff.email} — ติดต่อเจ้าของระบบเพื่อขอสิทธิ์</p>
+        <h1 className="text-lg font-bold">{staff.suspended ? "บัญชีผู้จัดนี้ถูกระงับชั่วคราว" : "บัญชีนี้ยังไม่มีสิทธิ์ผู้จัด"}</h1>
+        <p className="text-sm text-[var(--gt-muted)]">{staff.email} — ติดต่อเจ้าของระบบ GO TOURNAMENT</p>
       </div>
     );
   return <>{children}</>;
