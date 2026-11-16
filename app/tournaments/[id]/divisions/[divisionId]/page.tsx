@@ -109,12 +109,17 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
 
   const friendshipDiv = divisionKey(division.name).startsWith("friendship:");
   const MEDAL: Record<string, string> = { gold: "🥇 ทอง", silver: "🥈 เงิน", bronze: "🥉 ทองแดง" };
+  const medals: Record<string, string> = {};
+  if (friendshipDiv) for (const s of standings) {
+    const a = s.athlete_id && !s.withdrawn ? friendshipAward(s.wins + s.byes, { award_scheme: "friendship_wins" }) : null;
+    if (a && s.athlete_id) medals[s.athlete_id] = MEDAL[a];
+  }
   const standingsPanel = standings.some((s) => s.wins + s.losses + s.byes > 0) ? (
-    <div className="mt-4 space-y-4">
+    <div className="relative mt-4 space-y-4 lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2">
       {pools.map((pool) => (
-        <CrossTable key={pool || "all"} title={`ผลการแข่งขัน ${label}${pool ? ` · สาย ${pool}` : ""}`}
-          rows={inPool(standings, pool)} matches={inPool(matches, pool)} byes={inPool(byes, pool)}
-          award={friendshipDiv ? (r) => { const s = r as typeof standings[number]; const a = friendshipAward(s.wins + s.byes, { award_scheme: "friendship_wins" }); return a ? MEDAL[a] : null; } : undefined} />
+        <CrossTable key={pool || "all"} title={`ตารางอันดับ ${label}${pool ? ` · สาย ${pool}` : ""}`}
+          rows={inPool(standings, pool)} matches={inPool(matches, pool)} byes={inPool(byes, pool)} medals={medals}
+          photos={Object.fromEntries([...people].map(([k, v]) => [k, v.photo ?? null]))} />
       ))}
       <p className="text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย (เสมอ ½) · คะแนนเท่ากันดู SOS แล้ว SOSOS (นับเฉพาะคู่ที่ได้เล่นจริง) · นับเฉพาะผลที่ยืนยันแล้ว{multi ? " · อันดับแยกตามสาย" : ""}</p>
     </div>
