@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { Shell } from "@/app/tournaments/[id]/_ui/chrome";
+import "@fontsource/prompt/400.css";
+import "@fontsource/prompt/600.css";
+import "@fontsource/prompt/700.css";
+import "./auth-font.css";
 
 /** Square blue mark with a black and a white stone. */
 export function LogoMark({ className = "h-11 w-11" }: { className?: string }) {
@@ -14,7 +18,7 @@ export function LogoMark({ className = "h-11 w-11" }: { className?: string }) {
 /** Login / sign-up / password pages: white top bar, blue photo panel on computers, form card. */
 export default function AuthFrame({ children, heroTitle = "ทุกการแข่งขัน\nเริ่มต้นที่นี่" }: { children: React.ReactNode; heroTitle?: string }) {
   return (
-    <div className="min-h-screen bg-[linear-gradient(160deg,var(--gt-cta-soft),transparent_60%)]">
+    <div className="gt-auth min-h-screen bg-[linear-gradient(160deg,var(--gt-cta-soft),transparent_60%)]">
       <Shell wide>
         <div className="px-3 py-4 sm:px-6 sm:py-8">
           <div className="overflow-hidden rounded-3xl border border-[var(--gt-line)] bg-[var(--gt-surface)] shadow-xl">
@@ -34,7 +38,7 @@ export default function AuthFrame({ children, heroTitle = "ทุกการแ
                 </picture>
                 <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1/2 bg-[linear-gradient(180deg,rgba(8,30,120,.45),transparent)]" />
                 <div className="relative p-10">
-                  <p className="whitespace-pre-line text-5xl font-bold leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,.35)]">{heroTitle}</p>
+                  <p className="gt-auth-hero whitespace-pre-line text-5xl font-bold leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,.35)]">{heroTitle}</p>
                   <span aria-hidden="true" className="mt-6 block h-1 w-28 rounded-full bg-[#4fb3ff]" />
                 </div>
               </div>

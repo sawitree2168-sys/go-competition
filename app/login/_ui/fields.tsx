@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 
-export const inputCls = "block min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] text-base text-[var(--gt-ink)] outline-none placeholder:text-[var(--gt-muted)] focus:border-[var(--gt-cta)] focus:ring-2 focus:ring-[var(--gt-cta)]/25";
+export const inputCls = "block min-h-[3.25rem] w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] text-[17px] text-[var(--gt-ink)] outline-none placeholder:text-[var(--gt-muted)] focus:border-[var(--gt-cta)] focus:ring-2 focus:ring-[var(--gt-cta)]/25";
 
 const PersonIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" strokeLinecap="round" /></svg>;
 const MailIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" strokeLinejoin="round" /></svg>;
@@ -23,8 +23,8 @@ export function Field({ label, icon, hint, ...rest }: Props) {
   return (
     <div>
       <label className="block">
-        <span className="font-semibold">{label}</span>
-        <span className="relative mt-1.5 block">
+        <span className="gt-auth-label">{label}</span>
+        <span className="relative mt-2 block">
           {Icon && <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--gt-muted)]"><Icon /></span>}
           <input {...rest} aria-describedby={hint ? hintId : undefined} className={`${inputCls} ${Icon ? "pl-11" : "pl-3.5"} pr-3.5`} />
         </span>
@@ -40,8 +40,8 @@ export function PasswordField({ label, hint, ...rest }: Omit<Props, "icon" | "ty
   const id = useId();
   return (
     <div>
-      <label htmlFor={id} className="block font-semibold">{label}</label>
-      <span className="relative mt-1.5 block">
+      <label htmlFor={id} className="gt-auth-label block">{label}</label>
+      <span className="relative mt-2 block">
         <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--gt-muted)]"><LockIcon /></span>
         <input {...rest} id={id} aria-describedby={hint ? `${id}-hint` : undefined} type={show ? "text" : "password"} className={`${inputCls} pl-11 pr-14`} />
         <button type="button" onClick={() => setShow((s) => !s)} aria-label={show ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"} aria-pressed={show}

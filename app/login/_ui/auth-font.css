@@ -1,0 +1,16 @@
+/* Login / sign-up / password pages: Prompt (Google Fonts, self-hosted via @fontsource/prompt, OFL-1.1).
+   Every element — inputs, buttons, select, placeholder — uses the same family; weights follow the design:
+   headings 700, field labels and buttons 600, everything else (and typed text / placeholders) 400. */
+.gt-auth,
+.gt-auth :is(input, button, select, textarea, option, a, label, p, span, h1, h2, h3),
+.gt-auth :is(input, textarea)::placeholder {
+  font-family: "Prompt", "Noto Sans Thai", system-ui, sans-serif;
+  letter-spacing: 0;
+  font-synthesis: none;
+}
+.gt-auth { font-weight: 400; line-height: 1.55; }
+.gt-auth :is(input, select, textarea) { font-weight: 400; font-size: 1.0625rem; line-height: 1.4; }
+.gt-auth :is(input, textarea)::placeholder { font-weight: 400; opacity: 1; }
+.gt-auth :is(button, .gt-cta-btn, .gt-outline-btn) { font-weight: 600; }
+.gt-auth :is(h1, .gt-auth-hero) { font-weight: 700; line-height: 1.25; }
+.gt-auth .gt-auth-label { font-weight: 600; font-size: 1.0625rem; }

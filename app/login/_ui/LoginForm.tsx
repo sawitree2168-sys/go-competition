@@ -62,21 +62,21 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
 
   return (
     <div>
-      <h1 className="text-3xl font-bold sm:text-4xl">{heading}</h1>
-      <p className="mt-1 text-[var(--gt-muted)] sm:text-lg">ยินดีต้อนรับสู่ GO TOURNAMENT</p>
-      <form onSubmit={submit} noValidate className="mt-6 space-y-4">
+      <h1 className="text-[2rem] sm:text-[2.625rem]">{heading}</h1>
+      <p className="mt-1 text-base text-[var(--gt-muted)] sm:text-lg">ยินดีต้อนรับสู่ GO TOURNAMENT</p>
+      <form onSubmit={submit} noValidate className="mt-7 space-y-5">
         <Field label="อีเมล หรือรหัสนักกีฬา" icon="person" value={id} onChange={(e) => setId(e.target.value)} placeholder="กรอกอีเมลหรือรหัสนักกีฬา"
           autoComplete="username" inputMode="email" autoCapitalize="none" spellCheck={false} />
         <PasswordField label="รหัสผ่าน" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน" autoComplete="current-password" />
         <div className="flex items-center justify-between gap-3">
-          <label className="flex min-h-11 items-center gap-2.5">
+          <label className="flex min-h-11 items-center gap-2.5 text-base">
             <input type="checkbox" checked={remember} onChange={(e) => setRem(e.target.checked)} className="h-5 w-5 accent-[var(--gt-cta)]" />
             จดจำฉัน
           </label>
           <Link href="/login/forgot" className="font-semibold text-[var(--gt-cta)] underline underline-offset-2">ลืมรหัสผ่าน?</Link>
         </div>
         <FormError text={error} />
-        <button type="submit" disabled={busy} className="gt-cta-btn flex min-h-12 w-full items-center justify-center text-lg disabled:opacity-60">
+        <button type="submit" disabled={busy} className="gt-cta-btn flex min-h-[3.25rem] w-full items-center justify-center text-[19px] disabled:opacity-60">
           {busy ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
         </button>
       </form>
@@ -84,14 +84,14 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
       {GOOGLE_ENABLED && (
         <>
           <div className="my-5 flex items-center gap-4 text-sm text-[var(--gt-muted)]"><span className="h-px flex-1 bg-[var(--gt-line)]" />หรือ<span className="h-px flex-1 bg-[var(--gt-line)]" /></div>
-          <button type="button" onClick={google} className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border-2 border-[var(--gt-cta)]/60 bg-[var(--gt-surface)] font-bold hover:bg-[var(--gt-cta-soft)]">
+          <button type="button" onClick={google} className="flex min-h-[3.25rem] w-full items-center justify-center gap-3 rounded-xl border-2 border-[var(--gt-cta)]/60 bg-[var(--gt-surface)] text-[17px] hover:bg-[var(--gt-cta-soft)]">
             <GoogleLogo />เข้าสู่ระบบด้วย Google
           </button>
         </>
       )}
 
-      <p className="mt-6 text-center">ยังไม่มีบัญชี? <Link href="/signup" className="font-bold text-[var(--gt-cta)] hover:underline">สมัครสมาชิก</Link></p>
-      {!stay && <p className="mt-3 text-center"><Link href="/tournaments" className="font-semibold text-[var(--gt-cta)] underline underline-offset-2">ดูการแข่งขันโดยไม่เข้าสู่ระบบ</Link></p>}
+      <p className="mt-6 text-center text-base">ยังไม่มีบัญชี? <Link href="/signup" className="font-semibold text-[var(--gt-cta)] hover:underline">สมัครสมาชิก</Link></p>
+      {!stay && <p className="mt-3 text-center text-base"><Link href="/tournaments" className="font-normal text-[var(--gt-cta)] underline underline-offset-2">ดูการแข่งขันโดยไม่เข้าสู่ระบบ</Link></p>}
       <p className="mt-6 rounded-xl bg-[var(--gt-cta-soft)] px-3 py-2.5 text-center text-sm text-[var(--gt-muted)]">
         กรรมการ: เปิดลิงก์ที่ได้รับจากผู้จัด แล้วกรอกรหัส 6 หลัก ไม่ต้องเข้าสู่ระบบที่หน้านี้
       </p>
