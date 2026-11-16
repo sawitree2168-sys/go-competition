@@ -30,8 +30,8 @@ export default function ResultControls({ busy, onRecord, onCancel }: {
   const btn = "min-h-12 rounded-xl text-base font-semibold disabled:opacity-50";
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,14rem)_1fr_1fr] sm:items-center">
-      <label className="col-span-2 block sm:col-span-1">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_minmax(0,14rem)] sm:items-center">
+      <label className="col-span-2 block sm:order-last sm:col-span-1">
         <span className="sr-only">วิธีชนะ</span>
         <select value={method} onChange={(e) => setMethod(e.target.value as Method)}
           className="min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 text-base">
@@ -39,13 +39,13 @@ export default function ResultControls({ busy, onRecord, onCancel }: {
         </select>
       </label>
       {winnerless ? (
-        <button type="button" disabled={busy} onClick={() => onRecord(method, null)} className={`${btn} gt-gold-btn col-span-2`}>
+        <button type="button" disabled={busy} onClick={() => onRecord(method, null)} className={`${btn} gt-gold-btn col-span-2 sm:col-span-2`}>
           บันทึก: {METHODS.find((m) => m.v === method)?.label}
         </button>
       ) : (
         <>
-          <button type="button" disabled={busy} onClick={() => win("black")} className={`${btn} bg-[var(--gt-cta)] text-white shadow-sm`}>ดำชนะ</button>
-          <button type="button" disabled={busy} onClick={() => win("white")} className={`${btn} border-2 border-[var(--gt-cta)] bg-[var(--gt-surface)] text-[var(--gt-ink)]`}>ขาวชนะ</button>
+          <button type="button" disabled={busy} onClick={() => win("black")} className={`${btn} bg-[var(--gt-btn-black)] text-white shadow-sm`}>ดำชนะ</button>
+          <button type="button" disabled={busy} onClick={() => win("white")} className={`${btn} border-2 border-[var(--gt-btn-black)] bg-[var(--gt-surface)] text-[var(--gt-ink)]`}>ขาวชนะ</button>
         </>
       )}
       {onCancel && <button type="button" onClick={onCancel} className="col-span-2 text-sm text-[var(--gt-muted)] underline sm:col-span-3">ไม่แก้</button>}
