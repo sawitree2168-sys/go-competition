@@ -38,7 +38,7 @@ export default function PosterViewer({ src, alt, sizes, className = "", preload 
     <>
       <button ref={opener} type="button" onClick={() => { setScale(1); setOpen(true); }} aria-label={`ดูโปสเตอร์เต็มจอ: ${alt}`}
         className={`group relative shrink-0 overflow-hidden ${className}`}>
-        <Image src={src} alt={alt} fill sizes={sizes} preload={preload} className="object-cover object-top" />
+        <Image src={src} alt={alt} fill sizes={sizes} preload={preload} className="object-contain" />
         <span className="absolute bottom-1.5 right-1.5 z-[1] grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" /></svg>
         </span>

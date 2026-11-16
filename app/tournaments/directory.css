@@ -1,0 +1,60 @@
+/* One unified Go scene, with space reserved for live text at every viewport. */
+.gt-dash.gt-directory { background: var(--gt-bg); }
+.gt-directory-hero { position: relative; isolation: isolate; overflow: hidden; background: #03132d; color: #fff; }
+.gt-directory-art { position: absolute; inset: 0; z-index: -2; }
+.gt-directory-art img { width: 100%; height: 100%; object-fit: cover; object-position: right center; }
+.gt-directory-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(3,19,45,.55), transparent 72%); }
+.gt-directory-hero-inner { max-width: 1152px; margin: auto; padding: 42px 32px; min-height: 270px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+.gt-directory-hero h1 { max-width: 72%; font-size: clamp(30px, 3.4vw, 44px); line-height: 1.3; font-weight: 600; text-wrap: balance; }
+.gt-directory-hero p { max-width: 65%; margin-top: 10px; color: #b6c9e5; font-size: 17px; line-height: 1.8; }
+.gt-directory-gold { width: 64px; height: 3px; margin-top: 20px; background: #edc665; border-radius: 3px; }
+.gt-directory-content { padding-top: 22px; }
+.gt-directory-tools { display: grid; grid-template-columns: minmax(0, 1fr) 170px; gap: 12px; }
+.gt-directory-search, .gt-directory-year { min-width: 0; }
+.gt-directory-tools input, .gt-directory-tools select { min-height: 46px; border-radius: 24px; }
+.gt-directory-filters { grid-column: 1 / -1; display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 7px; scrollbar-width: thin; scroll-padding-inline: 2px; }
+.gt-directory-filters button { min-height: 40px; }
+.gt-directory-results { display: flex; align-items: baseline; gap: 10px; margin: 20px 0 16px; scroll-margin-top: 16px; }
+.gt-directory-results h2 { font-size: 22px; font-weight: 600; }
+.gt-event-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.gt-event-card { min-width: 0; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); align-content: start; gap: 14px; padding: 12px; border: 1px solid var(--gt-dash-panel-line); border-radius: 16px; background: var(--gt-surface); box-shadow: 0 8px 24px -18px rgba(0,0,0,.35); }
+.gt-event-poster-link { display: block; min-width: 0; align-self: start; border-radius: 9px; overflow: hidden; }
+/* The image defines the frame: no cropping, blurred duplicates, or stretched artwork. */
+.gt-event-poster { width: 100%; overflow: hidden; border-radius: 9px; }
+.gt-event-poster > img { display: block; width: 100%; height: auto; }
+.gt-event-poster-fallback { aspect-ratio: 2 / 3; }
+.gt-event-poster-fallback > img { height: 100%; object-fit: cover; }
+.gt-event-info { min-width: 0; display: flex; flex-direction: column; align-self: stretch; }
+.gt-event-title { margin-top: 8px; font-size: 16px; line-height: 1.5; font-weight: 600; overflow-wrap: anywhere; }
+.gt-event-meta svg { margin-top: 3px; }
+.gt-event-action { text-align: center; line-height: 1.5; font-size: 12px; }
+.gt-event-placeholder { display: flex; min-height: 270px; flex-direction: column; justify-content: center; align-items: center; gap: 14px; border: 1px dashed var(--gt-line); border-radius: 16px; color: var(--gt-muted); font-size: 14px; }
+@media (min-width: 768px) and (max-width: 1023px) {
+  .gt-event-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gt-event-placeholder:last-child { display: none; }
+}
+@media (max-width: 767px) {
+  .gt-directory-hero-inner { min-height: 190px; padding: 25px 20px; }
+  .gt-directory-hero h1 { max-width: 73%; font-size: 25px; }
+  .gt-directory-hero p { max-width: 65%; margin-top: 8px; font-size: 12px; line-height: 1.9; }
+  .gt-directory-gold { width: 42px; margin-top: 14px; }
+  .gt-directory-hero::after { background: linear-gradient(90deg, rgba(3,19,45,.78), rgba(3,19,45,.15) 75%); }
+  .gt-directory-content { padding-top: 16px; }
+  .gt-directory-tools { grid-template-columns: minmax(0, 1fr) 108px; gap: 8px; }
+  .gt-directory-tools input, .gt-directory-tools select { font-size: 13px; min-height: 44px; }
+  .gt-directory-tools input { padding-left: 38px; padding-right: 10px; }
+  .gt-directory-search > svg { left: 13px; width: 17px; }
+  .gt-directory-tools select { padding-left: 14px; padding-right: 30px; }
+  .gt-directory-year > svg { right: 12px; width: 12px; }
+  .gt-directory-filters { gap: 7px; }
+  .gt-directory-filters button { font-size: 12px; padding: 0 14px; min-height: 38px; }
+  .gt-directory-results { margin: 14px 0 12px; }
+  .gt-directory-results h2 { font-size: 19px; }
+  .gt-event-grid { grid-template-columns: 1fr; gap: 16px; }
+  .gt-event-card { width: 100%; max-width: 380px; margin-inline: auto; display: flex; flex-direction: column; gap: 14px; padding: 14px; }
+  .gt-event-poster-link { width: min(100%, 220px); margin-inline: auto; align-self: center; }
+  .gt-event-info { width: 100%; }
+  .gt-event-title { font-size: 18px; }
+  .gt-event-action { font-size: 14px; }
+  .gt-event-placeholder { display: none; }
+}
