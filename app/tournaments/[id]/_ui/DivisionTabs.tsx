@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
-export type TabId = "list" | "pairs" | "results" | "standings" | "register";
+/** Switch tab from anywhere on the page (e.g. "ดูตารางอันดับ" in the news tab). */
+export const showTab = (id: TabId) => window.dispatchEvent(new CustomEvent<TabId>("gt-tab", { detail: id }));
+
+export type TabId = "list" | "pairs" | "results" | "standings" | "news" | "register";
 const TABS: { id: TabId; label: string }[] = [
-  { id: "list", label: "นักกีฬา" }, { id: "pairs", label: "จับคู่" }, { id: "results", label: "ผลแข่ง" }, { id: "standings", label: "อันดับ" }, { id: "register", label: "สมัคร" },
+  { id: "list", label: "นักกีฬา" }, { id: "pairs", label: "จับคู่" }, { id: "results", label: "ผลแข่ง" }, { id: "standings", label: "อันดับ" }, { id: "news", label: "ข่าว" }, { id: "register", label: "สมัคร" },
 ];
 const isTab = (v: string | null): v is TabId => TABS.some((t) => t.id === v);
 
@@ -24,13 +27,25 @@ export default function DivisionTabs({ panels }: { panels: Record<TabId, React.R
     window.history.replaceState(window.history.state, "", url);
   };
 
+  useEffect(() => {
+    const on = (e: Event) => {
+      const id = (e as CustomEvent<TabId>).detail;
+      if (!isTab(id)) return;
+      choose(id);
+      document.getElementById(`tab-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+    window.addEventListener("gt-tab", on);
+    return () => window.removeEventListener("gt-tab", on);
+  });
+
+
   return (
     <>
-      <div role="tablist" aria-label="ข้อมูลรุ่น" className="gt-tabs gt-card mt-4 grid grid-cols-5 gap-1 p-1">
+      <div role="tablist" aria-label="ข้อมูลรุ่น" className="gt-tabs gt-card mt-4 grid grid-cols-6 gap-0.5 sm:gap-1 p-1">
         {TABS.map((t) => (
           <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-controls={`panel-${t.id}`} aria-selected={active === t.id}
             onClick={() => choose(t.id)}
-            className="rounded-[10px] py-2.5 text-center text-[14px] sm:text-[15px] font-semibold text-[var(--gt-ink)]">{t.label}</button>
+            className="rounded-[10px] px-0.5 py-2.5 text-center text-[13px] sm:text-[15px] font-semibold text-[var(--gt-ink)]">{t.label}</button>
         ))}
       </div>
       {TABS.map((t) => (

@@ -24,6 +24,7 @@ export type BoardRow = {
   winner_id: string | null; result_code: string | null; result_margin: string | null; state: string | null;
 };
 export type Person = { name: string; institution: string; rank?: string | null; photo?: string | null };
+export type Announcement = { id: string; title: string; body: string | null; created_at: string };
 export type Bye = { round_number: number; athlete_id: string; pool_label?: string | null };
 export type Standing = {
   pool_label?: string | null; pos: number; athlete_id: string | null; display_name: string | null; current_rank: string | null;
@@ -67,15 +68,17 @@ export async function loadEventPage(db: SupabaseClient | null, id: string) {
 
 /** Everything the division page needs, fetched in a single parallel round trip. */
 export async function loadDivisionPage(db: SupabaseClient | null, id: string, divisionId: string) {
-  const empty = { event: null as EventInfo | null, divisions: [] as Division[], entrants: [] as Entrant[], matches: [] as Match[], byes: [] as Bye[], standings: [] as Standing[], people: new Map<string, Person>() };
+  const empty = { event: null as EventInfo | null, divisions: [] as Division[], entrants: [] as Entrant[], matches: [] as Match[], byes: [] as Bye[], standings: [] as Standing[], people: new Map<string, Person>(), announcements: [] as Announcement[] };
   if (!db) return empty;
   try {
-    const [page, board, s, ph] = await Promise.all([
+    const [page, board, s, ph, an] = await Promise.all([
       loadEventPage(db, id),
       db.rpc("gt_division_board_v2", { p_division: divisionId }),
       db.rpc("gt_division_standings_v3", { p_division: divisionId, p_pool: null }),
       db.rpc("gt_division_photos_v1", { p_division: divisionId }),
+      db.from("gt_announcements").select("id,title,body,created_at").eq("tournament_id", id).order("created_at", { ascending: false }).limit(30),
     ]);
+    const announcements = (an.error ? [] : an.data ?? []) as Announcement[];
     // Every entrant's photo, also before round 1 (an error here only means no photos).
     const photos = new Map(((ph.error ? [] : ph.data ?? []) as { athlete_id: string; photo: string | null }[]).map((x) => [x.athlete_id, x.photo]));
     const rows = (board.data ?? []) as BoardRow[];
@@ -95,7 +98,7 @@ export async function loadDivisionPage(db: SupabaseClient | null, id: string, di
         people.set(x.athlete_id, { name: x.display_name, institution: x.institution ?? "", rank: x.current_rank, photo: photos.get(x.athlete_id) ?? null });
       }
     }
-    return { ...page, matches, byes, standings, people };
+    return { ...page, matches, byes, standings, people, announcements };
   } catch {
     return empty;
   }

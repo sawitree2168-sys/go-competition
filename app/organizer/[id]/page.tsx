@@ -15,6 +15,55 @@ type Mode = "web" | "external" | "closed";
 
 const MODE_LABEL: Record<Mode, string> = { web: "รับสมัครผ่านเว็บนี้ (ผู้จัดอนุมัติ)", external: "ฟอร์มภายนอก เช่น Google Form", closed: "ปิดรับสมัคร" };
 
+type Notice = { id: string; title: string; body: string | null; created_at: string };
+
+function Announcements({ id }: { id: string }) {
+  const [list, setList] = useState<Notice[]>([]);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const action = useAction();
+  const load = useCallback(async () => {
+    const { data } = await staffDb()!.from("gt_announcements").select("id,title,body,created_at").eq("tournament_id", id).order("created_at", { ascending: false }).limit(50);
+    setList((data ?? []) as Notice[]);
+  }, [id]);
+  useEffect(() => { queueMicrotask(load); }, [load]);
+  const post = async () => {
+    if (!title.trim()) return action.setError("กรุณาใส่หัวข้อประกาศ");
+    const res = await action.run(() => staffDb()!.rpc("gt_staff_post_announcement_v1", { p_tournament: id, p_title: title.trim(), p_body: body.trim() }));
+    if (res) { setTitle(""); setBody(""); await load(); }
+  };
+  const remove = async (n: Notice) => {
+    const res = await action.run(() => staffDb()!.rpc("gt_staff_delete_announcement_v1", { p_id: n.id }));
+    if (res) await load();
+  };
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-semibold">หัวข้อ
+        <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} placeholder="เช่น เลื่อนเวลาเริ่มรอบที่ 3 เป็น 13:30 น." className="mt-1 block min-h-11 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 font-normal" />
+      </label>
+      <label className="block text-sm font-semibold">รายละเอียด (ไม่บังคับ)
+        <textarea value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} rows={3} className="mt-1 block w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 py-2 font-normal" />
+      </label>
+      <button type="button" onClick={post} disabled={action.busy} className="gt-gold-btn min-h-11 px-5 disabled:opacity-60">โพสต์ประกาศ</button>
+      <ErrorNote text={action.error} />
+      {list.length > 0 && (
+        <ul className="divide-y divide-[var(--gt-line)] rounded-xl border border-[var(--gt-line)]">
+          {list.map((n) => (
+            <li key={n.id} className="flex items-start gap-3 px-3 py-2.5">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">{n.title}</p>
+                {n.body && <p className="whitespace-pre-line text-sm text-[var(--gt-muted)]">{n.body}</p>}
+                <p className="text-xs text-[var(--gt-muted)]">{new Date(n.created_at).toLocaleString("th-TH", { timeZone: "Asia/Bangkok", dateStyle: "medium", timeStyle: "short" })}</p>
+              </div>
+              <button type="button" onClick={() => remove(n)} disabled={action.busy} className="min-h-10 shrink-0 px-2 text-sm font-semibold text-[var(--gt-bad)] hover:underline">ลบ</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function RegistrationSettings({ id, mode, url, onSaved }: { id: string; mode: Mode; url: string | null; onSaved: () => void }) {
   const [m, setM] = useState<Mode>(mode);
   const [u, setU] = useState(url ?? "");
@@ -193,6 +242,14 @@ function EventConsole({ id }: { id: string }) {
         </div>
         <RegistrationSettings key={`${event.registration_mode}|${event.registration_url}`} id={id} mode={event.registration_mode ?? "web"} url={event.registration_url} onSaved={load} />
         {(event.registration_mode ?? "web") === "web" && <OrganizerQueue tournamentId={id} bare />}
+      </section>
+
+      <section className="gt-card space-y-3 p-4">
+        <div>
+          <h2 className="font-bold">5. ประกาศ</h2>
+          <p className="text-sm text-[var(--gt-muted)]">ประกาศจะแสดงที่แท็บ “ข่าว” ของทุกรุ่นในงานนี้ (หน้าสาธารณะอัปเดตภายใน 30 วินาที) · สรุปผลแต่ละรอบขึ้นให้อัตโนมัติ ไม่ต้องเขียนเอง</p>
+        </div>
+        <Announcements id={id} />
       </section>
     </div>
   );
