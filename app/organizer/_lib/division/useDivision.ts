@@ -2,15 +2,19 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { staffDb, useStaff } from "../staff";
+import { pingLive, useLiveFingerprint } from "../../../tournaments/[id]/_ui/live";
 import type { Bye, DivisionData, DivisionRow, Match, Reg, Standing } from "./types";
 
-/** Loads everything for one division in parallel; `reload` refreshes after each organiser action. */
+/**
+ * Loads everything for one division in parallel; `reload` refreshes after each organiser action.
+ * Live: checks every 8 s whether anything changed (referees, other staff) and reloads by itself.
+ */
 export function useDivision(divisionId: string) {
   const staff = useStaff();
   const [data, setData] = useState<DivisionData | null>(null);
   const [missing, setMissing] = useState(false);
 
-  const reload = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
     const db = staffDb()!;
     const [dv, rg, mt, by, st] = await Promise.all([
       db.from("gt_divisions").select("id,name,tournament_id,award_scheme,friendship_gold_min_wins,friendship_silver_min_wins,friendship_bronze_min_wins").eq("id", divisionId).maybeSingle(),
@@ -26,6 +30,19 @@ export function useDivision(divisionId: string) {
     setData({ division: dv.data as DivisionRow, regs, matches: (mt.data ?? []) as Match[], byes: (by.data ?? []) as Bye[], standings: (st.data ?? []) as Standing[] });
   }, [divisionId]);
 
-  useEffect(() => { if (staff.status === "staff") queueMicrotask(reload); }, [staff.status, reload]);
-  return { data, missing, reload };
+  // After an organiser action: reload, and tell the public pages to rebuild now.
+  const reload = useCallback(async () => {
+    await fetchAll();
+    pingLive(divisionId);
+  }, [fetchAll, divisionId]);
+
+  useEffect(() => { if (staff.status === "staff") queueMicrotask(fetchAll); }, [staff.status, fetchAll]);
+
+  const { status: live } = useLiveFingerprint(async () => {
+    const { data: fp, error } = await staffDb()!.rpc("gt_division_live_v1", { p_division: divisionId });
+    if (error) throw error;
+    return fp as string | null;
+  }, () => { void fetchAll(); }, { interval: 8000, enabled: staff.status === "staff" });
+
+  return { data, missing, reload, live };
 }
