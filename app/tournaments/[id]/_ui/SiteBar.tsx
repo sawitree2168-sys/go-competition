@@ -4,8 +4,9 @@ import AuthLink from "./AuthLink";
 
 const NAV = [
   { href: "/", label: "หน้าหลัก" },
-  { href: "/tournaments", label: "รายการแข่งขัน" },
-  { href: "/tournaments?status=finished", label: "ผลการแข่งขัน" },
+  { href: "/tournaments", label: "การแข่งขัน" },
+  { href: "/athletes", label: "นักกีฬา" },
+  { href: "/go-fan", label: "GO FAN" },
 ];
 
 /** Blue site bar of the newer pages (competition list, athlete profile). */
