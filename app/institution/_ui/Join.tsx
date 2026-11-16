@@ -73,7 +73,7 @@ export default function Join({ admin, onJoined, onCancel }: { admin: boolean; on
         <fieldset className="space-y-2">
           <legend className="mb-1 font-medium">ตำแหน่งของคุณ</legend>
           <div className="flex flex-wrap gap-2">
-            {([["teacher", "ครูผู้ดูแล"], ["manager", "เจ้าของ / ผู้บริหารสถาบัน"]] as const).map(([v, l]) => (
+            {([["teacher", "ครู"], ["manager", "เจ้าของสถาบัน"]] as const).map(([v, l]) => (
               <label key={v} className={`flex min-h-12 cursor-pointer items-center gap-2 rounded-xl border px-4 ${role === v ? "border-[var(--gt-cta)] bg-[var(--gt-cta-soft)]" : "border-[var(--gt-line)]"}`}>
                 <input type="radio" name="role" checked={role === v} onChange={() => setRole(v)} className="h-5 w-5 accent-[var(--gt-cta)]" />{l}
               </label>
@@ -82,11 +82,11 @@ export default function Join({ admin, onJoined, onCancel }: { admin: boolean; on
         </fieldset>
 
         <p className="rounded-xl bg-[var(--gt-surface-2)] px-4 py-3 text-sm text-[var(--gt-muted)]">
-          {admin ? "บัญชีเจ้าของระบบ: ใช้งานได้ทันที" : "ดูข้อมูลนักเรียนและผลการแข่งขันได้ทันที · การเพิ่มนักเรียนและสมัครแข่งจะใช้ได้เมื่อเจ้าของระบบอนุมัติ (เพื่อป้องกันคนอื่นอ้างชื่อสถาบัน)"}
+          {admin ? "บัญชีเจ้าของระบบ: ใช้งานได้ทันที" : "ยืนยันแล้วใช้งานได้ทันที · ครูและเจ้าของสถาบันใช้ได้ทุกเมนูเหมือนกัน (ส่งชื่อนักเรียนแข่ง แชร์ผลงาน ติดตามการแข่ง) ต่างกันแค่ตำแหน่งที่แสดง · กรุณาเลือกเฉพาะสถาบันที่คุณสอนหรือเป็นเจ้าของจริง"}
         </p>
         {error && <p role="alert" className="text-sm text-[var(--gt-bad)]">{error}</p>}
         <div className="flex flex-wrap gap-2">
-          <button type="submit" disabled={!chosen || busy} className="gt-cta-btn min-h-12 flex-1 px-6 disabled:opacity-50">{busy ? "กำลังบันทึก…" : "เข้าใช้หน้าสถาบัน"}</button>
+          <button type="submit" disabled={!chosen || busy} className="gt-cta-btn min-h-12 flex-1 px-6 disabled:opacity-50">{busy ? "กำลังบันทึก…" : "ยืนยันสถาบันของฉัน"}</button>
           {onCancel && <button type="button" onClick={onCancel} className="gt-outline-btn min-h-12 px-5">ยกเลิก</button>}
         </div>
       </form>

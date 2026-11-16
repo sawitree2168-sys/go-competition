@@ -156,7 +156,7 @@ function OrgCard({ org, busy, onSave, reload, run }: {
 
 type TeacherRow = { academy_id: string; academy: string; user_id: string; email: string; name: string | null; role: "manager" | "teacher"; status: "pending" | "active"; created_at: string };
 
-/** Teachers who asked for an institution page: approve (they can add students and enter competitions) or remove. */
+/** Teachers using institution pages (they get in as soon as they confirm their institution): the owner can remove anyone. */
 function TeacherRequests({ run, busy }: { run: ReturnType<typeof useAction>["run"]; busy: boolean }) {
   const [rows, setRows] = useState<TeacherRow[] | null>(null);
   const load = useCallback(async () => {
@@ -178,14 +178,14 @@ function TeacherRequests({ run, busy }: { run: ReturnType<typeof useAction>["run
         {pending.length > 0 && <span className="rounded-full bg-[var(--gt-gold-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--gt-warn)]">รออนุมัติ {pending.length}</span>}
         <Link href="/institution" className="text-sm text-[var(--gt-muted)] underline">หน้าสถาบัน</Link>
       </div>
-      <p className="text-sm text-[var(--gt-muted)]">ครูที่ขอใช้หน้าสถาบัน ดูข้อมูลได้ทันที แต่เพิ่มนักเรียนและสมัครแข่งแบบกลุ่มได้หลังอนุมัติ — ตรวจว่าอีเมลเป็นครูของสถาบันนั้นจริง</p>
+      <p className="text-sm text-[var(--gt-muted)]">ครูยืนยันสถาบันของตัวเองแล้วใช้งานได้ทันที (ครูและเจ้าของสถาบันใช้ได้เหมือนกัน) — ถ้าเห็นคนที่ไม่ใช่ครูของสถาบันนั้น กด “ยกเลิกสิทธิ์” แล้วเขาจะเข้าสถาบันนั้นเองไม่ได้อีก</p>
       {rows.length ? (
         <ul className="divide-y divide-[var(--gt-line)]">
           {rows.map((r) => (
             <li key={`${r.academy_id}-${r.user_id}`} className="flex flex-wrap items-center gap-2 py-2.5 text-sm">
               <span className="min-w-0 flex-1 basis-56">
                 <span className="block font-semibold">{r.academy}</span>
-                <span className="block truncate text-[var(--gt-muted)]">{r.name ? `${r.name} · ` : ""}{r.email} · {r.role === "manager" ? "ผู้บริหาร" : "ครู"}</span>
+                <span className="block truncate text-[var(--gt-muted)]">{r.name ? `${r.name} · ` : ""}{r.email} · {r.role === "manager" ? "เจ้าของสถาบัน" : "ครู"}</span>
               </span>
               {r.status === "pending" ? (
                 <>
@@ -201,7 +201,7 @@ function TeacherRequests({ run, busy }: { run: ReturnType<typeof useAction>["run
             </li>
           ))}
         </ul>
-      ) : <p className="text-sm text-[var(--gt-muted)]">ยังไม่มีครูขอใช้หน้าสถาบัน</p>}
+      ) : <p className="text-sm text-[var(--gt-muted)]">ยังไม่มีครูยืนยันสถาบัน</p>}
     </section>
   );
 }
