@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Header, Icon, Shell, STONES_IMAGE, Thumb } from "../../_ui/chrome";
 import { loadDivisionPage, publicDb, type Match } from "../../_ui/data";
 import DivisionTabs from "../../_ui/DivisionTabs";
-import RosterList from "../../_ui/RosterList";
+import AthleteGrid, { type AthleteCard } from "../../_ui/AthleteGrid";
 import PosterViewer from "@/components/PosterViewer";
 import { boardSize, divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
 import { friendshipAward, resultLabel } from "@/lib/competition-day.mjs";
@@ -59,13 +59,25 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
   const size = boardSize(division.name, division.friendship_board_size);
   const byBoard = (a: Match, b: Match) => (a.board_number ?? 999) - (b.board_number ?? 999);
 
+  // นักกีฬา tab: imported registrations (standings rows: id, rank, photo) once the event is set up; the sign-up sheet before that.
+  const norm = (t: string) => t.replace(/\s+/g, " ").trim().toLowerCase();
+  const paymentByName = new Map(entrants.filter((e) => divisionKey(e.division_name) === divisionKey(division.name)).map((e) => [norm(e.full_name), e.payment_status]));
+  const athleteCards: AthleteCard[] = standings.length
+    ? [...standings].filter((s) => s.athlete_id).sort((x, y) => (x.display_name ?? "").localeCompare(y.display_name ?? "", "th")).map((s) => ({
+        key: s.athlete_id!, id: s.athlete_id, name: s.display_name ?? "ผู้เข้าแข่งขัน", institution: s.institution ?? "", rank: s.current_rank,
+        photo: people.get(s.athlete_id!)?.photo ?? null, payment: paymentByName.get(norm(s.display_name ?? "")) ?? null,
+      }))
+    : roster.map((r) => ({ key: String(r.key), id: null, name: r.name, institution: r.institution, rank: null, photo: null, payment: r.payment }));
   const listPanel = (
     <>
       {!lastRound && <Notice title="ยังไม่ประกาศคู่แข่งขัน" body="คู่แข่งขันจะแสดงที่แท็บจับคู่เมื่อผู้จัดประกาศ" />}
-      <RosterList rows={roster} />
+      <div className="relative lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2">
+        <AthleteGrid athletes={athleteCards} matches={matches} byes={byes} people={Object.fromEntries(people)} />
+      </div>
       <p className="mt-2 flex items-center gap-1.5 text-xs text-[var(--gt-muted)]"><Icon name="info" className="h-4 w-4 shrink-0" />รายชื่อตามที่ผู้จัดอนุญาตให้เผยแพร่ สถานะอาจเปลี่ยนแปลงภายหลัง</p>
     </>
   );
+
 
   const pools = [...new Set([...standings.map((x) => x.pool_label ?? ""), ...matches.map((m) => m.pool_label ?? ""), ...byes.map((b) => b.pool_label ?? "")])].sort();
   const multi = pools.length > 1;

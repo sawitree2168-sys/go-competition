@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 
 export type TabId = "list" | "pairs" | "results" | "standings";
 const TABS: { id: TabId; label: string }[] = [
-  { id: "list", label: "รายชื่อ" }, { id: "pairs", label: "จับคู่" }, { id: "results", label: "ผลแข่ง" }, { id: "standings", label: "อันดับ" },
+  { id: "list", label: "นักกีฬา" }, { id: "pairs", label: "จับคู่" }, { id: "results", label: "ผลแข่ง" }, { id: "standings", label: "อันดับ" },
 ];
 const isTab = (v: string | null): v is TabId => TABS.some((t) => t.id === v);
 
