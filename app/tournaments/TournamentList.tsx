@@ -1,4 +1,4 @@
-import { Shell, STONES_IMAGE } from "./[id]/_ui/chrome";
+import { Shell } from "./[id]/_ui/chrome";
 import SiteBar from "./[id]/_ui/SiteBar";
 import { publicDb } from "./[id]/_ui/data";
 import EventBrowser, { type EventCard } from "./EventBrowser";
@@ -37,16 +37,21 @@ export async function TournamentList({ current }: { current: string }) {
   return (
     <div className="min-h-screen">
       <Shell wide>
-        <div className="relative left-1/2 w-screen -translate-x-1/2"><SiteBar current={current} /></div>
-        <section className="relative overflow-hidden px-4 pb-6 pt-8 sm:px-8 sm:pb-8 sm:pt-12">
-          {/* eslint-disable-next-line @next/next/no-img-element -- decorative site photo */}
-          <img src={STONES_IMAGE} alt="" aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 h-full w-2/3 object-cover opacity-35 [mask-image:linear-gradient(to_left,black,transparent)] sm:w-1/2" />
-          <div className="relative border-l-4 border-[var(--gt-cta)] pl-4">
-            <h1 className="text-3xl font-bold leading-tight sm:text-5xl">การแข่งขันทั้งหมด</h1>
-            <p className="mt-1 text-[var(--gt-muted)] sm:text-lg">ค้นหารายการ ติดตามการแข่งขัน และดูผลย้อนหลัง</p>
-          </div>
-        </section>
-        <div className="px-4 sm:px-8"><EventBrowser events={events} serverToday={new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date())} /></div>
+        <div className="gt-dash relative left-1/2 -mb-10 min-h-screen w-screen -translate-x-1/2 overflow-hidden pb-12">
+          <SiteBar current={current} />
+          {/* eslint-disable @next/next/no-img-element -- decorative illustrations in /public */}
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[300px] overflow-hidden [mask-image:linear-gradient(to_bottom,black_55%,transparent)] sm:h-[400px]"><img src="/home-glow.webp" alt="" className="gt-home-glow absolute -right-32 -top-24 w-[760px] max-w-none sm:w-[900px]" /></div>
+          <section className="relative mx-auto grid max-w-6xl items-center gap-2 px-4 pb-5 pt-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] sm:px-8 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
+            <img src="/home-board.webp" alt="" aria-hidden="true"
+              className="pointer-events-none absolute -right-14 top-1 w-[56%] max-w-[260px] drop-shadow-[0_16px_24px_rgba(0,0,0,.35)] sm:static sm:order-2 sm:w-full sm:max-w-none" />
+            <div className="relative z-[1]">
+              <h1 className="max-w-[62%] text-[26px] font-extrabold leading-tight text-[var(--gt-dash-title)] sm:max-w-none sm:text-5xl">เลือกสนามแข่งขันของคุณ</h1>
+              <p className="mt-2 max-w-[62%] text-sm text-[var(--gt-muted)] sm:max-w-none sm:text-xl">สมัครแข่งขัน ติดตามผล และย้อนดูทุกความสำเร็จ</p>
+            </div>
+          </section>
+          {/* eslint-enable @next/next/no-img-element */}
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-8"><EventBrowser events={events} serverToday={new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date())} /></div>
+        </div>
       </Shell>
     </div>
   );

@@ -161,3 +161,13 @@
 .gt-dash details > summary { list-style: none; cursor: pointer; }
 .gt-dash details > summary::-webkit-details-marker { display: none; }
 .gt-dash details[open] .gt-acc-chev { transform: rotate(180deg); }
+
+/* Home (competition list) glow: soft in light, bright in dark. */
+.gt-home-glow { opacity: .22; }
+.gt-poster-veil { background: linear-gradient(180deg, rgba(255,255,255,.9) 0%, rgba(255,255,255,.6) 36%, rgba(255,255,255,0) 60%); }
+.gt-poster-ink { color: #0b2a6b; text-shadow: 0 2px 0 #fff; }
+@media (prefers-color-scheme: dark) { .gt:not([data-gt-theme="light"]) .gt-poster-veil { background: linear-gradient(180deg, rgba(6,18,48,.92) 0%, rgba(6,18,48,.55) 36%, rgba(6,18,48,0) 60%); } .gt:not([data-gt-theme="light"]) .gt-poster-ink { color: #fff; text-shadow: 0 2px 10px rgba(47,118,224,.8); } }
+.gt[data-gt-theme="dark"] .gt-poster-veil { background: linear-gradient(180deg, rgba(6,18,48,.92) 0%, rgba(6,18,48,.55) 36%, rgba(6,18,48,0) 60%); }
+.gt[data-gt-theme="dark"] .gt-poster-ink { color: #fff; text-shadow: 0 2px 10px rgba(47,118,224,.8); }
+@media (prefers-color-scheme: dark) { .gt:not([data-gt-theme="light"]) .gt-home-glow { opacity: .9; mix-blend-mode: screen; } }
+.gt[data-gt-theme="dark"] .gt-home-glow { opacity: .9; mix-blend-mode: screen; }

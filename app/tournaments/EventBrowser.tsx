@@ -29,24 +29,24 @@ const urlStatus = () => new URLSearchParams(window.location.search).get("status"
 const CalIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3.5" y="5" width="17" height="15" rx="2" /><path d="M3.5 10h17M8 3v4M16 3v4" strokeLinecap="round" /></svg>;
 const PinIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.5" /></svg>;
 
+const FALLBACKS = ["/posters/fallback-1.webp", "/posters/fallback-2.webp", "/posters/fallback-3.webp", "/posters/fallback-4.webp"];
+const pick = (id: string) => FALLBACKS[[...id].reduce((n, c) => (n * 31 + c.charCodeAt(0)) >>> 0, 7) % FALLBACKS.length];
+
 function Banner({ e }: { e: EventCard }) {
   if (e.poster_url) {
     return (
-      <div className="relative h-44 overflow-hidden rounded-xl bg-[#0a2f6e] sm:h-40">
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-[#0a2f6e] sm:aspect-[10/9]">
         <img src={e.poster_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-70 blur-md" />
         <img src={e.poster_url} alt={`โปสเตอร์ ${e.title}`} loading="lazy" className="relative mx-auto h-full w-auto max-w-full object-contain drop-shadow-lg" />
       </div>
     );
   }
+  // No poster yet: a Go illustration with the event name on it.
   return (
-    <div className="relative flex h-44 items-center overflow-hidden rounded-xl bg-[linear-gradient(120deg,#e9f2ff,#bcd5fb_55%,#7fb0f5)] px-5 sm:h-40">
-      <svg viewBox="0 0 200 120" aria-hidden="true" className="absolute -right-4 bottom-0 h-28 w-48 opacity-90">
-        <path d="M0 120 L200 70 L200 120 Z" fill="#d9a35e" />
-        {[[70, 104, 1], [100, 98, 0], [128, 106, 1], [150, 92, 0], [172, 100, 1], [118, 88, 0]].map(([x, y, b], i) => (
-          <ellipse key={i} cx={x} cy={y} rx="11" ry="6" fill={b ? "#111" : "#fff"} stroke={b ? "none" : "#9aa3b2"} />
-        ))}
-      </svg>
-      <p className="relative max-w-[75%] text-2xl font-bold italic leading-tight text-[#0b2a5b] [text-shadow:0_1px_0_#fff]">{e.title}</p>
+    <div className="relative aspect-square overflow-hidden rounded-xl bg-[#0b1a3a] sm:aspect-[10/9]">
+      <img src={pick(e.id)} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      <span aria-hidden="true" className="gt-poster-veil absolute inset-0" />
+      <p className="relative px-5 pt-6 text-right gt-poster-ink text-[28px] font-extrabold uppercase leading-[1.02] [transform:skewX(-8deg)] sm:text-3xl">{e.title}</p>
     </div>
   );
 }
@@ -58,11 +58,14 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
   const [picked, setPicked] = useState<Filter | null>(null);
   const filter: Filter = picked ?? (FILTERS.some((f) => f.id === fromUrl) ? (fromUrl as Filter) : "all");
   const [q, setQ] = useState("");
-  const [year, setYear] = useState("all");
+  const [pickedYear, setYear] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
   const withStatus = useMemo(() => events.map((e) => ({ ...e, status: eventStatus(e, day) as Status })), [events, day]);
   const years = useMemo(() => [...new Set(events.map((e) => thaiYear(e.event_date)).filter((y): y is number => y !== null))].sort((a, b) => b - a), [events]);
+  // This year's events first; "ทุกปี" shows the rest.
+  const thisYear = thaiYear(day);
+  const year = pickedYear ?? (thisYear !== null && years.includes(thisYear) ? String(thisYear) : "all");
 
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -88,52 +91,50 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
 
   return (
     <div>
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_13rem]">
-        <label className="relative block">
-          <span className="sr-only">ค้นหาชื่อการแข่งขัน</span>
+      <div className="grid gap-2.5 lg:flex lg:items-center lg:gap-3">
+        <label className="relative block lg:w-80">
+          <span className="sr-only">ค้นหารายการแข่งขัน</span>
           <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--gt-muted)]" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" strokeLinecap="round" /></svg>
-          <input type="search" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="ค้นหาชื่อการแข่งขัน…"
-            className="block min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] pl-12 pr-4 text-base outline-none focus:border-[var(--gt-cta)] focus:ring-2 focus:ring-[var(--gt-cta)]/25" />
+          <input type="search" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="ค้นหารายการแข่งขัน…"
+            className="block min-h-12 w-full rounded-full border border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)] pl-12 pr-4 text-base outline-none focus:border-[var(--gt-cta)] focus:ring-2 focus:ring-[var(--gt-cta)]/25" />
         </label>
-        <label className="block">
+        <label className="relative block lg:w-36">
           <span className="sr-only">ปี</span>
           <select value={year} onChange={(e) => { setYear(e.target.value); setPage(1); }}
-            className="block min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-4 text-base font-semibold outline-none focus:border-[var(--gt-cta)]">
-            <option value="all">ทุกปี</option>
-            {years.map((y) => <option key={y} value={String(y)}>พ.ศ. {y}</option>)}
+            className="block min-h-12 w-full appearance-none rounded-full border border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)] pl-5 pr-10 text-base font-semibold outline-none focus:border-[var(--gt-cta)]">
+            <option value="all" className="text-black">ทุกปี</option>
+            {years.map((y) => <option key={y} value={String(y)} className="text-black">ปี {y}</option>)}
           </select>
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </label>
-      </div>
-
-      <div role="group" aria-label="สถานะการแข่งขัน" className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:justify-center sm:gap-3">
-        {FILTERS.map((f) => (
-          <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => { setPicked(f.id); setPage(1); }}
-            className={`min-h-11 rounded-full border px-6 text-sm font-semibold sm:min-w-36 ${filter === f.id ? "border-transparent bg-[var(--gt-cta)] text-white shadow" : "border-[var(--gt-line)] bg-[var(--gt-cta-soft)]"}`}>{f.label}</button>
-        ))}
+        <span aria-hidden="true" className="hidden h-8 w-px bg-[var(--gt-dash-panel-line)] lg:block" />
+        <div role="group" aria-label="สถานะการแข่งขัน" className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:flex-1 lg:flex-nowrap">
+          {FILTERS.map((f) => (
+            <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => { setPicked(f.id); setPage(1); }}
+              className={`min-h-11 whitespace-nowrap rounded-full border px-5 text-sm font-semibold sm:flex-1 ${filter === f.id ? "border-transparent bg-[var(--gt-cta)] text-white shadow-[0_0_16px_-4px_var(--gt-cta)]" : "border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)]"}`}>{f.label}</button>
+          ))}
+        </div>
       </div>
 
       <p id="event-results" className="mt-5 scroll-mt-4 text-sm text-[var(--gt-muted)]" aria-live="polite">{shown.length ? `พบ ${shown.length} รายการ` : ""}</p>
       {slice.length ? (
-        <ul className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
           {slice.map((e) => {
             const a = action(e);
+            const mobileLabel = e.status === "open" ? "ดูรายละเอียดและสมัคร" : a.label;
             return (
-              <li key={e.id} className="gt-card flex flex-col p-2.5">
-                <Link href={e.status === "open" ? `/tournaments/${e.id}/register` : `/tournaments/${e.id}`} aria-label={e.status === "open" ? `สมัคร ${e.title}` : e.title} className="block rounded-xl"><Banner e={e} /></Link>
-                <div className="flex flex-1 flex-col px-1.5 pb-1 pt-3">
-                  <span className={`self-start rounded-full px-2.5 py-0.5 text-xs font-bold ${CHIP[e.status]}`}>{STATUS_LABEL[e.status]}</span>
-                  <h2 className="mt-1.5 text-lg font-bold leading-snug">{e.title}</h2>
-                  <p className="mt-1 flex items-center gap-2 text-sm"><CalIcon />{thaiDate(e.event_date) ?? "รออัปเดตวันแข่งขัน"}</p>
-                  <p className="mt-0.5 flex items-center gap-2 text-sm"><PinIcon />{e.venue ?? "สถานที่รอยืนยัน"}</p>
-                  {e.kinds && <p className="mt-2 border-t border-[var(--gt-line)] pt-2 text-sm font-semibold">{e.kinds}</p>}
-                  <div className={`mt-auto pt-3 ${e.status === "open" ? "grid grid-cols-2 gap-2" : ""}`}>
-                    {e.status === "open" && (
-                      <Link href={`/tournaments/${e.id}/register`} className="gt-cta-btn flex min-h-11 items-center justify-center rounded-xl px-2 text-[15px] font-bold">สมัครแข่งขัน</Link>
-                    )}
-                    <Link href={`/tournaments/${e.id}`}
-                      className={`flex min-h-11 items-center justify-center gap-1 rounded-xl px-3 text-[15px] font-bold ${a.primary && e.status !== "open" ? "gt-cta-btn" : "border border-[var(--gt-line)] bg-[var(--gt-cta-soft)] text-[var(--gt-ink)]"}`}>
-                      {e.status === "open" ? "รายละเอียด" : `${a.label} →`}
-                    </Link>
+              <li key={e.id} className="gt-dash-panel flex flex-col p-2.5">
+                <Link href={`/tournaments/${e.id}`} aria-label={e.title} className="block rounded-xl"><Banner e={e} /></Link>
+                <div className="flex flex-1 flex-col px-2 pb-1.5 pt-3">
+                  <span aria-hidden="true" className="mb-2.5 h-0.5 w-full rounded-full bg-[linear-gradient(90deg,transparent,var(--gt-cta),transparent)] opacity-60" />
+                  <span className={`self-start rounded-md px-2.5 py-0.5 text-xs font-bold ${CHIP[e.status]}`}>{STATUS_LABEL[e.status]}</span>
+                  <h2 className="mt-1.5 text-lg font-bold uppercase leading-snug sm:text-xl">{e.title}</h2>
+                  <p className="mt-1 flex items-center gap-2 text-[15px]"><CalIcon />{thaiDate(e.event_date, "short") ?? "รออัปเดตวันแข่งขัน"}</p>
+                  <p className="mt-0.5 flex items-center gap-2 text-[15px]"><PinIcon />{e.venue ?? "สถานที่รอยืนยัน"}</p>
+                  {e.kinds && <p className="mt-1 text-sm text-[var(--gt-muted)]">{e.kinds}</p>}
+                  <div className="mt-auto pt-3">
+                    <Link href={`/tournaments/${e.id}`} className="gt-cta-btn flex min-h-11 items-center justify-center gap-1.5 text-[15px] font-bold sm:hidden">{mobileLabel} <span aria-hidden="true">→</span></Link>
+                    <Link href={`/tournaments/${e.id}`} className="hidden min-h-11 items-center gap-1.5 text-[15px] font-bold text-[var(--gt-cta)] hover:underline sm:inline-flex">{e.status === "open" ? "ดูรายละเอียดและสมัคร" : a.label} <span aria-hidden="true">→</span></Link>
                   </div>
                 </div>
               </li>
