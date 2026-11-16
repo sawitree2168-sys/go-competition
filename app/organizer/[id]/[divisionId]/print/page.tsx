@@ -34,8 +34,7 @@ function Sheet({ divisionId, q }: { divisionId: string; q: Search }) {
     return (
       <div>
         {toolbar}
-        <h1 className="mb-3 text-3xl font-bold">ตารางคะแนน {title}</h1>
-        <StandingsTable rows={rows} data={data} large />
+        <StandingsTable rows={rows} data={data} large title={`ผลการแข่งขัน ${title}`} />
       </div>
     );
   }

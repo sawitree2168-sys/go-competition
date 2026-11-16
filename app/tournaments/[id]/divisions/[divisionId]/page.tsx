@@ -5,7 +5,8 @@ import DivisionTabs from "../../_ui/DivisionTabs";
 import RosterList from "../../_ui/RosterList";
 import PosterViewer from "@/components/PosterViewer";
 import { boardSize, divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
-import { resultLabel } from "@/lib/competition-day.mjs";
+import { friendshipAward, resultLabel } from "@/lib/competition-day.mjs";
+import CrossTable from "../../_ui/CrossTable";
 
 // Served from cache and refreshed in the background at most every 30 s (see PUBLIC_CACHE_SECONDS).
 export const revalidate = 30;
@@ -46,7 +47,6 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
   for (const s of standings) if (s.athlete_id && s.display_name && !people.has(s.athlete_id)) people.set(s.athlete_id, { name: s.display_name, institution: s.institution ?? "" });
   const nameOf = (athleteId: string) => people.get(athleteId)?.name ?? "ผู้เข้าแข่งขัน";
   const instOf = (athleteId: string) => people.get(athleteId)?.institution ?? "";
-  const fmt = (n: number) => (Number.isInteger(Number(n)) ? String(Number(n)) : Number(n).toFixed(1));
   const Who = ({ id: aid }: { id: string }) => (
     <span className="min-w-0"><span className="block truncate">{nameOf(aid)}</span>{instOf(aid) && <span className="block truncate text-xs font-normal text-[var(--gt-muted)]">{instOf(aid)}</span>}</span>
   );
@@ -135,38 +135,17 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
     );
   }) : <Notice title="ยังไม่มีผลที่ยืนยันแล้ว" body="ผลจะแสดงเมื่อผู้ตัดสินยืนยันผลแต่ละโต๊ะ" icon="info" />;
 
+  const friendshipDiv = divisionKey(division.name).startsWith("friendship:");
+  const MEDAL: Record<string, string> = { gold: "🥇 ทอง", silver: "🥈 เงิน", bronze: "🥉 ทองแดง" };
   const standingsPanel = standings.some((s) => s.wins + s.losses + s.byes > 0) ? (
-    <>
+    <div className="mt-4 space-y-4">
       {pools.map((pool) => (
-        <div key={pool || "all"}>
-          <PoolTitle pool={pool} />
-          <div className="gt-card mt-4 overflow-x-auto">
-            <table className="gt-num w-full min-w-[340px] text-sm">
-              <thead className="text-xs text-[var(--gt-muted)]">
-                <tr className="border-b border-[var(--gt-line)]">
-                  <th className="py-2.5 pl-2.5 pr-1 text-left font-semibold">#</th><th className="px-1 py-2.5 text-left font-semibold">ชื่อ</th>
-                  <th className="px-1 py-2.5 text-center font-semibold">ชนะ–แพ้</th><th className="px-1 py-2.5 text-right font-semibold">คะแนน</th>
-                  <th className="px-1 py-2.5 text-right font-semibold">SOS</th><th className="py-2.5 pl-1 pr-2.5 text-right font-semibold">SOSOS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inPool(standings, pool).map((s, i) => (
-                  <tr key={s.athlete_id ?? `h${i}`} className="border-b border-[var(--gt-line)] last:border-0">
-                    <td className="py-2.5 pl-2.5 pr-1">{s.pos != null && <span className={`grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${s.pos <= 3 ? "gt-pill-gold" : "bg-[var(--gt-surface-2)]"}`}>{s.pos}</span>}</td>
-                    <td className="px-1 py-2.5"><span className={s.display_name ? "font-semibold" : "text-[var(--gt-muted)]"}>{s.display_name ?? "ผู้เข้าแข่งขัน"}</span>{s.byes > 0 && <span className="ml-1.5 text-[11px] text-[var(--gt-muted)]">บาย {s.byes}</span>}{s.withdrawn && <span className="ml-1.5 text-[11px] text-[var(--gt-bad)]">ถอนตัว</span>}{s.institution && <span className="block text-xs text-[var(--gt-muted)]">{s.institution}</span>}</td>
-                    <td className="px-1 py-2.5 text-center">{s.wins}–{s.losses}{s.draws ? `–${s.draws}` : ""}</td>
-                    <td className="px-1 py-2.5 text-right text-base font-bold">{fmt(s.score)}</td>
-                    <td className="px-1 py-2.5 text-right">{fmt(s.sos)}</td>
-                    <td className="py-2.5 pl-1 pr-2.5 text-right">{fmt(s.sosos)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <CrossTable key={pool || "all"} title={`ผลการแข่งขัน ${label}${pool ? ` · สาย ${pool}` : ""}`}
+          rows={inPool(standings, pool)} matches={inPool(matches, pool)} byes={inPool(byes, pool)}
+          award={friendshipDiv ? (r) => { const s = r as typeof standings[number]; const a = friendshipAward(s.wins + s.byes, { award_scheme: "friendship_wins" }); return a ? MEDAL[a] : null; } : undefined} />
       ))}
-      <p className="mt-2 text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย (เสมอ ½) · คะแนนเท่ากันดู SOS แล้ว SOSOS (นับเฉพาะคู่ที่ได้เล่นจริง) · นับเฉพาะผลที่ยืนยันแล้ว{multi ? " · อันดับแยกตามสาย" : ""}</p>
-    </>
+      <p className="text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย (เสมอ ½) · คะแนนเท่ากันดู SOS แล้ว SOSOS (นับเฉพาะคู่ที่ได้เล่นจริง) · นับเฉพาะผลที่ยืนยันแล้ว{multi ? " · อันดับแยกตามสาย" : ""}</p>
+    </div>
   ) : <Notice title="ยังไม่มีอันดับ" body="อันดับจะแสดงเมื่อผู้ตัดสินยืนยันผลรอบแรก" icon="info" />;
 
   return (
