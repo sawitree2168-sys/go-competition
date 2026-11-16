@@ -64,6 +64,29 @@ function Announcements({ id }: { id: string }) {
   );
 }
 
+function VenueField({ id, venue, onSaved }: { id: string; venue: string | null; onSaved: () => void }) {
+  const [v, setV] = useState(venue ?? "");
+  const [saved, setSaved] = useState(false);
+  const action = useAction();
+  const save = async () => {
+    setSaved(false);
+    const res = await action.run(() => staffDb()!.rpc("gt_staff_set_venue_v1", { p_tournament: id, p_venue: v.trim() }));
+    if (res) { setSaved(true); onSaved(); }
+  };
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold">สถานที่แข่งขัน
+        <span className="mt-1 flex gap-2">
+          <input value={v} onChange={(e) => { setV(e.target.value); setSaved(false); }} maxLength={160} placeholder="เช่น ศูนย์การค้า … ชั้น 3" className="block min-h-11 min-w-0 flex-1 rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 font-normal" />
+          <button type="button" onClick={save} disabled={action.busy} className="gt-gold-btn min-h-11 shrink-0 px-4 disabled:opacity-60">บันทึก</button>
+        </span>
+      </label>
+      {saved && <p className="text-sm text-[var(--gt-ok)]">บันทึกแล้ว · แสดงในหน้ารวมการแข่งขันและหน้ารายละเอียดงาน</p>}
+      <ErrorNote text={action.error} />
+    </div>
+  );
+}
+
 function RegistrationSettings({ id, mode, url, onSaved }: { id: string; mode: Mode; url: string | null; onSaved: () => void }) {
   const [m, setM] = useState<Mode>(mode);
   const [u, setU] = useState(url ?? "");
@@ -104,7 +127,7 @@ export default function OrganizerEvent({ params }: { params: Promise<{ id: strin
 
 function EventConsole({ id }: { id: string }) {
   const staff = useStaff();
-  const [event, setEvent] = useState<{ title: string; event_date: string | null; registration_mode: Mode | null; registration_url: string | null } | null>(null);
+  const [event, setEvent] = useState<{ title: string; event_date: string | null; registration_mode: Mode | null; registration_url: string | null; venue: string | null } | null>(null);
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [entrants, setEntrants] = useState<Entrant[]>([]);
   const [regCount, setRegCount] = useState<Map<string, number>>(new Map());
@@ -116,7 +139,7 @@ function EventConsole({ id }: { id: string }) {
   const load = useCallback(async () => {
     const db = staffDb()!;
     const [ev, dv, en, rg, mt] = await Promise.all([
-      db.from("gt_tournaments").select("title,event_date,registration_mode,registration_url").eq("id", id).maybeSingle(),
+      db.from("gt_tournaments").select("title,event_date,registration_mode,registration_url,venue").eq("id", id).maybeSingle(),
       db.from("gt_divisions").select("id,name").eq("tournament_id", id),
       db.from("gt_public_entrants").select("source_row,full_name,institution,division_name").eq("tournament_id", id).order("source_row").limit(2000),
       db.from("gt_registrations").select("division_id").eq("tournament_id", id).eq("registration_status", "confirmed").limit(5000),
@@ -175,6 +198,10 @@ function EventConsole({ id }: { id: string }) {
         <h1 className="mt-1 text-xl font-bold">{event.title}</h1>
         <p className="text-sm text-[var(--gt-muted)]">{thaiDate(event.event_date)}</p>
       </div>
+
+      <section className="gt-card p-4">
+        <VenueField key={event.venue ?? ""} id={id} venue={event.venue} onSaved={load} />
+      </section>
 
       <section className="gt-card space-y-3 p-4">
         <h2 className="font-bold">1. นำเข้ารายชื่อจาก Google Form</h2>

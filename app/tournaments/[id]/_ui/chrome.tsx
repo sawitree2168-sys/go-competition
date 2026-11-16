@@ -9,11 +9,11 @@ const prompt = Prompt({ subsets: ["thai", "latin"], weight: ["400", "500", "600"
 export const STONES_IMAGE =
   "/Nkg3S2jxuCuM5tcbm-mOxrjS-oYAJ3h0pILeA0ydGh1vHU3qugB8QRDrK0NP0wGENcsQqKpiqXcIewmFOeBIL4zhSBLGBeMu_uTY0MQCVu80rwm7vVZaQsuQdiM4WhENi8mXM-zQeg31wWr99NlBxrtY0udRUXqAKAlRC9KDkMIWGi-FiWnhORh1UXDtsm2Y.jpg";
 
-export function Shell({ children, bottomBar }: { children: React.ReactNode; bottomBar?: React.ReactNode }) {
+export function Shell({ children, bottomBar, wide }: { children: React.ReactNode; bottomBar?: React.ReactNode; wide?: boolean }) {
   return (
     <div className={`gt ${prompt.variable} min-h-screen w-full`} suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
-      <div className={`mx-auto w-full max-w-2xl ${bottomBar ? "pb-28" : "pb-10"}`}>{children}</div>
+      <div className={`mx-auto w-full ${wide ? "max-w-6xl" : "max-w-2xl"} ${bottomBar ? "pb-28" : "pb-10"}`}>{children}</div>
       {bottomBar && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--gt-line)] bg-[var(--gt-surface)] pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_18px_rgba(6,22,50,.12)]">
           <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">{bottomBar}</div>
