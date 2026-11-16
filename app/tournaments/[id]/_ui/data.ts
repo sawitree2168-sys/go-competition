@@ -7,6 +7,8 @@ export const PUBLIC_CACHE_SECONDS = 30;
 export type EventInfo = {
   id: string; title: string; event_date: string | null; poster_url: string | null;
   registration_open_date: string | null; registration_close_date: string | null;
+  /** How the event takes entries: this site's form, an outside form (e.g. Google Form), or not at all. */
+  registration_mode?: "web" | "external" | "closed" | null; registration_url?: string | null;
 };
 export type Division = { id: string; name: string; seats_limit: number | null; entry_fee_thb: number | null; friendship_board_size: number | null };
 export type Entrant = { source_row: number; title: string; full_name: string; institution: string; division_name: string; payment_status: string };
@@ -50,7 +52,7 @@ export async function loadEventPage(db: SupabaseClient | null, id: string) {
   if (!db) return empty;
   try {
     const [ev, dv, en] = await Promise.all([
-      db.from("gt_tournaments").select("id,title,event_date,poster_url,registration_open_date,registration_close_date")
+      db.from("gt_tournaments").select("id,title,event_date,poster_url,registration_open_date,registration_close_date,registration_mode,registration_url")
         .eq("id", id).eq("published", true).maybeSingle(),
       db.from("gt_divisions").select("id,name,seats_limit,entry_fee_thb,friendship_board_size").eq("tournament_id", id),
       db.from("gt_public_entrants").select("source_row,title,full_name,institution,division_name,payment_status")

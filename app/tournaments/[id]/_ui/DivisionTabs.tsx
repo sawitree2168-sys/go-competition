@@ -2,16 +2,16 @@
 
 import { useState, useSyncExternalStore } from "react";
 
-export type TabId = "list" | "pairs" | "results" | "standings";
+export type TabId = "list" | "pairs" | "results" | "standings" | "register";
 const TABS: { id: TabId; label: string }[] = [
-  { id: "list", label: "นักกีฬา" }, { id: "pairs", label: "จับคู่" }, { id: "results", label: "ผลแข่ง" }, { id: "standings", label: "อันดับ" },
+  { id: "list", label: "นักกีฬา" }, { id: "pairs", label: "จับคู่" }, { id: "results", label: "ผลแข่ง" }, { id: "standings", label: "อันดับ" }, { id: "register", label: "สมัคร" },
 ];
 const isTab = (v: string | null): v is TabId => TABS.some((t) => t.id === v);
 
 const subscribe = (cb: () => void) => { window.addEventListener("popstate", cb); return () => window.removeEventListener("popstate", cb); };
 const urlTab = () => new URLSearchParams(window.location.search).get("tab");
 
-/** All four panels are rendered up front; switching only toggles visibility, so it is instant. */
+/** All panels are rendered up front; switching only toggles visibility, so it is instant. */
 export default function DivisionTabs({ panels }: { panels: Record<TabId, React.ReactNode> }) {
   const fromUrl = useSyncExternalStore(subscribe, urlTab, () => null);
   const [picked, setPicked] = useState<TabId | null>(null);
@@ -26,11 +26,11 @@ export default function DivisionTabs({ panels }: { panels: Record<TabId, React.R
 
   return (
     <>
-      <div role="tablist" aria-label="ข้อมูลรุ่น" className="gt-tabs gt-card mt-4 grid grid-cols-4 gap-1 p-1">
+      <div role="tablist" aria-label="ข้อมูลรุ่น" className="gt-tabs gt-card mt-4 grid grid-cols-5 gap-1 p-1">
         {TABS.map((t) => (
           <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-controls={`panel-${t.id}`} aria-selected={active === t.id}
             onClick={() => choose(t.id)}
-            className="rounded-[10px] py-2.5 text-center text-[15px] font-semibold text-[var(--gt-ink)]">{t.label}</button>
+            className="rounded-[10px] py-2.5 text-center text-[14px] sm:text-[15px] font-semibold text-[var(--gt-ink)]">{t.label}</button>
         ))}
       </div>
       {TABS.map((t) => (
