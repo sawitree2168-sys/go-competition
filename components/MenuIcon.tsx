@@ -1,6 +1,6 @@
 /** Line icons for the site menu and bottom bar (one consistent set instead of text symbols). */
 export type MenuIconName =
-  | "home" | "trophy" | "register" | "results" | "stats" | "athlete" | "fan" | "news" | "gallery" | "documents" | "faq" | "menu";
+  | "home" | "trophy" | "register" | "results" | "stats" | "athlete" | "fan" | "news" | "gallery" | "documents" | "faq" | "menu" | "entrants";
 
 const PATHS: Record<MenuIconName, React.ReactNode> = {
   home: <><path d="M3.5 11 12 4l8.5 7" /><path d="M5.5 9.5V20h13V9.5" /><path d="M10 20v-5.5h4V20" /></>,
@@ -18,6 +18,8 @@ const PATHS: Record<MenuIconName, React.ReactNode> = {
   gallery: <><rect x="3.5" y="4.5" width="17" height="15" rx="2" /><circle cx="9" cy="9.5" r="1.8" /><path d="m3.5 17 5-4.5 4 3.5 3-2.5 5 4" /></>,
   documents: <><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z" /><path d="M14 3v4.5h4.5" /><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5" /></>,
   faq: <><circle cx="12" cy="12" r="8.5" /><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6" /><path d="M12 16.6h.01" strokeWidth="2.6" /></>,
+  // List with people: entrants.
+  entrants: <><circle cx="8" cy="8" r="2.8" /><path d="M3 18.5c.4-3 2.4-4.8 5-4.8s4.6 1.8 5 4.8" /><path d="M14.5 7h6M14.5 11h6M15.5 15h5" /></>,
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
 };
 

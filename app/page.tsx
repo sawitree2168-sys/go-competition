@@ -2,6 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 import PosterViewer from "@/components/PosterViewer";
 import { createClient } from "@supabase/supabase-js";
+import MenuIcon from "@/components/MenuIcon";
+import AthleteAvatar from "@/components/AthleteAvatar";
+import { loadNews, loadOverview, loadRankings } from "@/lib/public-site";
+import { thaiDate } from "@/lib/division-display";
 
 // Rebuilt from the database at most every 60 s, so new tournaments and posters appear without a redeploy.
 export const revalidate = 60;
@@ -18,7 +22,10 @@ async function tournaments():Promise<Tournament[]>{
  } catch {return [];}
 }
 export default async function Home(){
- const events=await tournaments();
+ const url=process.env.NEXT_PUBLIC_SUPABASE_URL, key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+ const pub=url&&key?createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}}):null;
+ const [events,overview,top,news]=await Promise.all([tournaments(),loadOverview(pub).catch(()=>null),loadRankings(pub,5).catch(()=>null),loadNews(pub,3).catch(()=>[])]);
+ const newsIcon={announcement:"news",registration:"register",results:"results"} as const;
  const featured=events[0];
  return <main className="min-h-screen bg-[#f3f7fc] pb-20 text-[#09265b] md:pb-0">
   <header className="sticky top-0 z-30 bg-[#041b41] text-white shadow-md">
@@ -41,7 +48,7 @@ export default async function Home(){
      <div className="mt-6 flex flex-wrap gap-2"><Link href="/register" className="rounded-lg bg-gradient-to-b from-[#ffe4a1] to-[#e5ad45] px-5 py-3 text-sm font-extrabold text-[#08204a] shadow-md">สมัครแข่งขัน</Link><Link href={featured?`/tournaments/${featured.id}`:"/tournaments"} className="rounded-lg border border-white/80 bg-[#061d43]/65 px-5 py-3 text-sm font-bold text-white">ดูรายละเอียด</Link></div>
     </div>{featured?.poster_url&&<PosterViewer src={featured.poster_url} alt={"โปสเตอร์ "+featured.title} sizes="(min-width: 640px) 176px, 112px" preload className="h-[10.5rem] w-28 rounded-lg shadow-xl ring-2 ring-[#e7c778]/70 sm:h-64 sm:w-44"/>}</div></section>
    <section aria-label="เมนูด่วน" className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
-    {[{name:"สมัครแข่งขัน",href:"/register",icon:"▣"},{name:"รายชื่อผู้สมัคร",href:"/tournaments",icon:"☷"},{name:"ผลการแข่งขัน",href:"/results",icon:"🏆"},{name:"อันดับ/สถิติ",href:"/stats",icon:"▥"},{name:"ข่าวสาร",href:"/news",icon:"▤"},{name:"เอกสาร",href:"/documents",icon:"▧"},{name:"GO FAN",href:"/go-fan",icon:"★"}].map(x=><Link key={x.name} href={x.href} className="flex min-h-16 flex-col items-center justify-center gap-2 rounded-lg border border-[#d7e2f1] bg-white p-2 text-center shadow-sm transition hover:border-blue-400"><span className="text-lg font-bold text-[#0d4a9a]">{x.icon}</span><span className="text-[11px] font-semibold leading-tight sm:text-xs">{x.name}</span></Link>)}
+    {([{name:"สมัครแข่งขัน",href:"/register",icon:"register"},{name:"รายชื่อผู้สมัคร",href:"/tournaments",icon:"entrants"},{name:"ผลการแข่งขัน",href:"/results",icon:"results"},{name:"อันดับ/สถิติ",href:"/stats",icon:"stats"},{name:"ข่าวสาร",href:"/news",icon:"news"},{name:"เอกสาร",href:"/documents",icon:"documents"},{name:"GO FAN",href:"/go-fan",icon:"fan"}] as const).map(x=><Link key={x.name} href={x.href} className="flex min-h-16 flex-col items-center justify-center gap-2 rounded-lg border border-[#d7e2f1] bg-white p-2 text-center shadow-sm transition hover:border-blue-400"><MenuIcon name={x.icon} className="h-6 w-6 text-[#0d4a9a]" /><span className="text-[11px] font-semibold leading-tight sm:text-xs">{x.name}</span></Link>)}
    </section>
    <section className="mt-7">
     <div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-bold sm:text-xl">รายการแข่งขันทั้งหมด</h2><Link href="/tournaments" className="text-sm font-semibold text-blue-700">ดูทั้งหมด →</Link></div>
@@ -56,12 +63,12 @@ export default async function Home(){
     </div>
    </section>
    <section className="mt-7 grid gap-4 pb-9 lg:grid-cols-2">
-    <div className="rounded-xl border border-[#dce5f2] bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><h2 className="font-bold">ข่าวสารล่าสุด</h2><Link href="/news" className="text-xs font-semibold text-blue-700">ดูทั้งหมด →</Link></div><div className="mt-3 space-y-3">{["ประกาศเปิดรับสมัครแข่งขัน","สรุปผลการแข่งขันล่าสุด","ภาพบรรยากาศการแข่งขัน"].map((title,i)=><div key={title} className="flex gap-3 border-b border-slate-100 pb-3 last:border-0"><div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#123d79] to-[#06172f] text-2xl text-[#f5d080]">{["📣","🏆","▧"][i]}</div><div><p className="text-sm font-bold">{title}</p><p className="mt-1 text-xs text-slate-500">ข้อมูลตัวอย่าง · ยังไม่อัปเดตข่าวจริง</p></div></div>)}</div></div>
-    <div className="rounded-xl border border-[#dce5f2] bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><h2 className="font-bold">อันดับนักกีฬาประจำปี (Top 5)</h2><Link href="/stats" className="text-xs font-semibold text-blue-700">ดูทั้งหมด →</Link></div><p className="mt-2 rounded bg-amber-50 px-2 py-1 text-xs text-amber-800">ตัวอย่างตำแหน่งแสดงผล · รอข้อมูลคะแนนที่ยืนยันแล้ว</p><div className="mt-3 grid grid-cols-5 gap-2">{[1,2,3,4,5].map(n=><div key={n} className="text-center"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#e8f0fc] text-lg text-[#174a88]">♟</div><p className="mt-1 text-xs font-bold">อันดับ {n}</p><p className="text-[10px] text-slate-500">รออัปเดต</p></div>)}</div><div className="mt-4 grid grid-cols-3 gap-2 border-t pt-3 text-center">{["รายการแข่งขัน","นักกีฬา","ผลการแข่งขัน"].map(t=><div key={t} className="rounded bg-[#f2f6fc] p-2"><p className="text-lg font-bold text-[#0b3c7d]">—</p><p className="text-[10px] text-slate-600">{t}</p></div>)}</div></div>
+    <div className="rounded-xl border border-[#dce5f2] bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><h2 className="font-bold">ข่าวสารล่าสุด</h2><Link href="/news" className="text-xs font-semibold text-blue-700">ดูทั้งหมด →</Link></div><div className="mt-3 space-y-3">{news.length?news.map(n=><Link key={n.id} href={n.href} className="flex gap-3 border-b border-slate-100 pb-3 last:border-0"><div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#123d79] to-[#06172f] text-[#f5d080]"><MenuIcon name={newsIcon[n.kind]} className="h-7 w-7" /></div><div className="min-w-0"><p className="text-sm font-bold">{n.title}</p><p className="mt-1 text-xs text-slate-500">{[n.date?thaiDate(n.date,"short"):null,n.body].filter(Boolean).join(" · ")}</p></div></Link>):<p className="text-sm text-slate-500">ยังไม่มีข่าวสาร</p>}</div></div>
+    <div className="rounded-xl border border-[#dce5f2] bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><h2 className="font-bold">อันดับนักกีฬาประจำปี (Top 5)</h2><Link href="/stats" className="text-xs font-semibold text-blue-700">ดูทั้งหมด →</Link></div><p className="mt-2 text-xs text-slate-500">ปี {(top?.year??new Date().getFullYear())+543} · เรียงตามจำนวนชนะรวมจากผลการแข่งขันที่บันทึก</p><div className="mt-3 grid grid-cols-5 gap-2">{[0,1,2,3,4].map(i=>{const x=top?.rows[i];return <div key={i} className="min-w-0 text-center"><div className="relative mx-auto h-14 w-14"><AthleteAvatar src={x?.photo} name={x?.full_name??""} className="h-14 w-14 ring-2 ring-[#e8f0fc]" /><span className="absolute -left-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#0b3c7d] text-[10px] font-bold text-white">{i+1}</span></div><p className="mt-1.5 line-clamp-2 text-[11px] font-bold leading-tight">{x?x.full_name:`อันดับ ${i+1}`}</p><p className="text-[10px] text-slate-500">{x?`ชนะ ${x.wins} แพ้ ${x.losses}`:"รออัปเดต"}</p></div>})}</div><div className="mt-4 grid grid-cols-3 gap-2 border-t pt-3 text-center">{([["รายการแข่งขัน",overview?.tournaments],["นักกีฬา",overview?.athletes],["ผลการแข่งขัน",overview?.results]] as const).map(([t,n])=><div key={t} className="rounded bg-[#f2f6fc] p-2"><p className="text-lg font-bold text-[#0b3c7d]">{n==null?"—":Number(n).toLocaleString("th-TH")}</p><p className="text-[10px] text-slate-600">{t}</p></div>)}</div></div>
    </section>
   </div>
   <nav aria-label="เมนูหลักบนมือถือ" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_15px_rgba(0,0,0,0.08)] md:hidden">
-   {[{label:"หน้าแรก",href:"/",icon:"⌂"},{label:"แข่งขัน",href:"/tournaments",icon:"🏆"},{label:"GO FAN",href:"/go-fan",icon:"★"},{label:"นักกีฬา",href:"/athletes",icon:"♟"},{label:"เมนู",href:"/menu",icon:"☰"}].map(x=><Link key={x.label} href={x.href} className="flex min-h-16 flex-col items-center justify-center gap-1 text-[#09265b]"><span className="text-xl leading-none">{x.icon}</span><span className="text-[11px] font-semibold">{x.label}</span></Link>)}
+   {([{label:"หน้าแรก",href:"/",icon:"home"},{label:"แข่งขัน",href:"/tournaments",icon:"trophy"},{label:"GO FAN",href:"/go-fan",icon:"fan"},{label:"นักกีฬา",href:"/athletes",icon:"athlete"},{label:"เมนู",href:"/menu",icon:"menu"}] as const).map(x=><Link key={x.label} href={x.href} className="flex min-h-16 flex-col items-center justify-center gap-1 text-[#09265b]"><MenuIcon name={x.icon} className="h-6 w-6" /><span className="text-[11px] font-semibold">{x.label}</span></Link>)}
   </nav>
  </main>;
 }
