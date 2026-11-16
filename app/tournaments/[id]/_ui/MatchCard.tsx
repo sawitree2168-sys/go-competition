@@ -12,28 +12,13 @@ export type Seat = {
 
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
-function initials(name: string | null) {
-  const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
-  // Thai: first character of first and last name (skip leading vowels that cannot start a syllable visually)
-  const first = (s: string) => [...s.replace(/^[เแโใไ]/, "")][0] ?? "";
-  return parts.length ? first(parts[0]) + (parts.length > 1 ? first(parts[parts.length - 1]) : "") : "?";
-}
-function hue(id: string) {
-  let h = 0;
-  for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 360;
-  return h;
-}
+/** Default avatar (approved 16 Nov 2026) for athletes without a photo. */
+export const DEFAULT_AVATAR = "/avatars/default-athlete.png";
 
 export function Avatar({ seat, size = "md" }: { seat: Seat; size?: "md" | "lg" }) {
-  const dim = size === "lg" ? "h-20 w-20 sm:h-24 sm:w-24 text-2xl" : "h-14 w-14 text-lg";
-  if (seat.photo)
-    return <img src={seat.photo} alt="" loading="lazy" className={`${dim} shrink-0 rounded-full border-2 border-[var(--gt-surface)] object-cover shadow`} />;
-  return (
-    <span aria-hidden="true" style={{ background: `hsl(${hue(seat.id)} 55% 88%)`, color: `hsl(${hue(seat.id)} 45% 28%)` }}
-      className={`${dim} grid shrink-0 place-items-center rounded-full border-2 border-[var(--gt-surface)] font-bold shadow`}>
-      {initials(seat.name)}
-    </span>
-  );
+  const dim = size === "lg" ? "h-20 w-20 sm:h-24 sm:w-24" : "h-14 w-14";
+  const style = seat.photo ? "rounded-full border-2 border-[var(--gt-surface)] object-cover shadow" : "object-contain";
+  return <img src={seat.photo || DEFAULT_AVATAR} alt="" loading="lazy" className={`${dim} shrink-0 ${style}`} />;
 }
 
 function Side({ seat, colour, extra }: { seat: Seat; colour: "black" | "white"; extra?: React.ReactNode }) {
