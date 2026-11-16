@@ -8,7 +8,7 @@ import { RANKS, baht, phoneDigits, slipExt, slipProblem } from "@/lib/register-f
 import { KIND_LABEL, actionState, applicationStatus, refundLines, requestMoney, requestReason, thaiShort } from "@/lib/application-changes.mjs";
 import { BirthPicker, Ico, Label, Note, Sheet, inputCls } from "../tournaments/[id]/register/parts";
 
-type Policy = {
+export type Policy = {
   allow_withdraw: boolean; withdraw_until: string | null; refund_tiers: { until: string; percent: number }[]; refund_after_percent: number;
   allow_swap: boolean; swap_until: string | null; swap_fee: number; allow_division: boolean; division_until: string | null; division_fee: number; note: string | null;
 };

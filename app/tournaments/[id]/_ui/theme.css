@@ -112,3 +112,52 @@
   box-shadow: 0 6px 14px -8px var(--gt-cta);
 }
 .gt-cta-btn:hover:not(:disabled) { filter: brightness(1.06); }
+
+/* Event dashboard (ภาพรวมการสมัคร): hero, stat cards, seat chips. Light by default, dark below. */
+.gt {
+  --gt-dash-hero: radial-gradient(120% 90% at 85% 10%, #dbe9ff 0%, rgba(219,233,255,0) 60%), linear-gradient(180deg, #f6f9ff 0%, #eaf2ff 100%);
+  --gt-dash-title: #0b3d91; --gt-dash-eyebrow: #0b3d91; --gt-dash-glow-op: .6; --gt-dash-glow-blend: normal;
+  --gt-dash-panel: rgba(255,255,255,.88); --gt-dash-panel-line: #d3e1f5; --gt-dash-shadow: 0 10px 24px -18px rgba(11,61,145,.45);
+  --gt-dash-head: linear-gradient(180deg, #1f6fe0, #1257c4); --gt-dash-row-line: #e3ecf8;
+  --gt-chip-open-bg: #e2efff; --gt-chip-open-ink: #1565d8; --gt-chip-open-line: #b9d4fb;
+  --gt-chip-near-bg: #fff0d4; --gt-chip-near-ink: #b05f00; --gt-chip-near-line: #f6cf86;
+  --gt-chip-last-bg: #fde3e7; --gt-chip-last-ink: #c22a45; --gt-chip-last-line: #f5b5c1;
+  --gt-chip-full-bg: #eceff4; --gt-chip-full-ink: #5a6578; --gt-chip-full-line: #cfd6e2;
+  --gt-close-bg: #dcf6d9; --gt-close-ink: #1a7a2e; --gt-close-line: #9edd97;
+}
+@media (prefers-color-scheme: dark) {
+  .gt:not([data-gt-theme="light"]) {
+    --gt-dash-hero: radial-gradient(110% 90% at 80% 0%, #0f3f99 0%, rgba(15,63,153,0) 55%), linear-gradient(180deg, #071a3e 0%, #061632 100%);
+    --gt-dash-title: #ffffff; --gt-dash-eyebrow: #e6eeff; --gt-dash-glow-op: .75; --gt-dash-glow-blend: screen;
+    --gt-dash-panel: rgba(9,31,70,.78); --gt-dash-panel-line: #2a5aa8; --gt-dash-shadow: 0 0 0 1px rgba(80,140,255,.08), 0 12px 30px -20px rgba(47,118,224,.8);
+    --gt-dash-head: linear-gradient(180deg, #1b4fa8, #143f8c); --gt-dash-row-line: #17366c;
+    --gt-chip-open-bg: #123a7a; --gt-chip-open-ink: #a9cbff; --gt-chip-open-line: #2d63bd;
+    --gt-chip-near-bg: #3d300c; --gt-chip-near-ink: #ffd36b; --gt-chip-near-line: #8a6a1c;
+    --gt-chip-last-bg: #4a1626; --gt-chip-last-ink: #ffa3b6; --gt-chip-last-line: #8c2f48;
+    --gt-chip-full-bg: #222c3d; --gt-chip-full-ink: #b8c2d4; --gt-chip-full-line: #3b475c;
+    --gt-close-bg: #0e3a1f; --gt-close-ink: #8cf0a6; --gt-close-line: #2fa357;
+  }
+}
+.gt[data-gt-theme="dark"] {
+  --gt-dash-hero: radial-gradient(110% 90% at 80% 0%, #0f3f99 0%, rgba(15,63,153,0) 55%), linear-gradient(180deg, #071a3e 0%, #061632 100%);
+  --gt-dash-title: #ffffff; --gt-dash-eyebrow: #e6eeff; --gt-dash-glow-op: .75; --gt-dash-glow-blend: screen;
+  --gt-dash-panel: rgba(9,31,70,.78); --gt-dash-panel-line: #2a5aa8; --gt-dash-shadow: 0 0 0 1px rgba(80,140,255,.08), 0 12px 30px -20px rgba(47,118,224,.8);
+  --gt-dash-head: linear-gradient(180deg, #1b4fa8, #143f8c); --gt-dash-row-line: #17366c;
+  --gt-chip-open-bg: #123a7a; --gt-chip-open-ink: #a9cbff; --gt-chip-open-line: #2d63bd;
+  --gt-chip-near-bg: #3d300c; --gt-chip-near-ink: #ffd36b; --gt-chip-near-line: #8a6a1c;
+  --gt-chip-last-bg: #4a1626; --gt-chip-last-ink: #ffa3b6; --gt-chip-last-line: #8c2f48;
+  --gt-chip-full-bg: #222c3d; --gt-chip-full-ink: #b8c2d4; --gt-chip-full-line: #3b475c;
+  --gt-close-bg: #0e3a1f; --gt-close-ink: #8cf0a6; --gt-close-line: #2fa357;
+}
+.gt-dash { background: var(--gt-dash-hero); }
+.gt-dash-glow { opacity: var(--gt-dash-glow-op); mix-blend-mode: var(--gt-dash-glow-blend); }
+.gt-dash-panel { background: var(--gt-dash-panel); border: 1px solid var(--gt-dash-panel-line); border-radius: 14px; box-shadow: var(--gt-dash-shadow); backdrop-filter: blur(6px); }
+.gt-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 4.6rem; border-radius: 999px; padding: .15rem .7rem; font-weight: 600; font-size: .85rem; border: 1px solid; white-space: nowrap; }
+.gt-chip[data-tone="open"], .gt-chip[data-tone="none"] { background: var(--gt-chip-open-bg); color: var(--gt-chip-open-ink); border-color: var(--gt-chip-open-line); }
+.gt-chip[data-tone="near"] { background: var(--gt-chip-near-bg); color: var(--gt-chip-near-ink); border-color: var(--gt-chip-near-line); }
+.gt-chip[data-tone="last"] { background: var(--gt-chip-last-bg); color: var(--gt-chip-last-ink); border-color: var(--gt-chip-last-line); }
+.gt-chip[data-tone="full"] { background: var(--gt-chip-full-bg); color: var(--gt-chip-full-ink); border-color: var(--gt-chip-full-line); }
+.gt-close-chip { background: var(--gt-close-bg); color: var(--gt-close-ink); border: 1px solid var(--gt-close-line); border-radius: 12px; }
+.gt-dash details > summary { list-style: none; cursor: pointer; }
+.gt-dash details > summary::-webkit-details-marker { display: none; }
+.gt-dash details[open] .gt-acc-chev { transform: rotate(180deg); }

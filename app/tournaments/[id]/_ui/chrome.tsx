@@ -62,7 +62,7 @@ export function Thumb({ src, alt, className = "", shift = 0 }: { src: string; al
   );
 }
 
-export function Icon({ name, className = "h-5 w-5" }: { name: "calendar" | "pin" | "doc" | "chat" | "hands" | "chevron" | "users" | "grid" | "trophy" | "clock" | "search" | "info"; className?: string }) {
+export function Icon({ name, className = "h-5 w-5" }: { name: "calendar" | "pin" | "doc" | "chat" | "hands" | "chevron" | "users" | "grid" | "trophy" | "clock" | "search" | "info" | "seat" | "layers" | "filter" | "undo" | "user"; className?: string }) {
   const p: Record<string, React.ReactNode> = {
     calendar: <><rect x="3.5" y="5" width="17" height="15" rx="2.5" /><path d="M3.5 10h17M8 3v4M16 3v4M9 14.5l2 2 4-4" /></>,
     pin: <><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></>,
@@ -76,6 +76,11 @@ export function Icon({ name, className = "h-5 w-5" }: { name: "calendar" | "pin"
     clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></>,
     search: <><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></>,
     info: <><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5M12 8h.01" strokeWidth="2.4" /></>,
+    seat: <><path d="M7 11V6.5A2.5 2.5 0 0 1 9.5 4h5A2.5 2.5 0 0 1 17 6.5V11" /><path d="M4.5 11h15v4h-15zM6.5 15v5M17.5 15v5" /></>,
+    layers: <><path d="M12 3.5l8.5 4.5L12 12.5 3.5 8z" /><path d="M3.5 12L12 16.5 20.5 12M3.5 16L12 20.5 20.5 16" /></>,
+    filter: <path d="M4 5h16l-6.2 7.4V19l-3.6-1.8v-4.8z" />,
+    undo: <><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" /><path d="M4 4.5v4h4" /></>,
+    user: <><circle cx="12" cy="8.5" r="3.8" /><path d="M4.5 20c.8-4 3.8-6 7.5-6s6.7 2 7.5 6" /></>,
   };
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">{p[name]}</svg>;
 }
