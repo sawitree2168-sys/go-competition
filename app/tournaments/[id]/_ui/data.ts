@@ -70,15 +70,18 @@ export async function loadDivisionPage(db: SupabaseClient | null, id: string, di
   const empty = { event: null as EventInfo | null, divisions: [] as Division[], entrants: [] as Entrant[], matches: [] as Match[], byes: [] as Bye[], standings: [] as Standing[], people: new Map<string, Person>() };
   if (!db) return empty;
   try {
-    const [page, board, s] = await Promise.all([
+    const [page, board, s, ph] = await Promise.all([
       loadEventPage(db, id),
       db.rpc("gt_division_board_v2", { p_division: divisionId }),
       db.rpc("gt_division_standings_v3", { p_division: divisionId, p_pool: null }),
+      db.rpc("gt_division_photos_v1", { p_division: divisionId }),
     ]);
+    // Every entrant's photo, also before round 1 (an error here only means no photos).
+    const photos = new Map(((ph.error ? [] : ph.data ?? []) as { athlete_id: string; photo: string | null }[]).map((x) => [x.athlete_id, x.photo]));
     const rows = (board.data ?? []) as BoardRow[];
     const people = new Map<string, Person>();
     const add = (id: string | null, name: string | null, inst: string | null, rank: string | null, photo: string | null) => {
-      if (id && name) people.set(id, { name, institution: inst ?? "", rank, photo });
+      if (id && name) people.set(id, { name, institution: inst ?? "", rank, photo: photo ?? photos.get(id) ?? null });
     };
     for (const r of rows) { add(r.black_id, r.black_name, r.black_institution, r.black_rank, r.black_photo); add(r.white_id, r.white_name, r.white_institution, r.white_rank, r.white_photo); }
     const matches: Match[] = rows.filter((r) => r.kind === "match" && r.match_id && r.white_id).map((r) => ({
@@ -86,7 +89,13 @@ export async function loadDivisionPage(db: SupabaseClient | null, id: string, di
       winner_athlete_id: r.winner_id, result_code: r.result_code, result_margin: r.result_margin, state: r.state ?? "pending", pool_label: r.pool_label,
     }));
     const byes: Bye[] = rows.filter((r) => r.kind === "bye").map((r) => ({ round_number: r.round_number, athlete_id: r.black_id, pool_label: r.pool_label }));
-    return { ...page, matches, byes, standings: (s.data ?? []) as Standing[], people };
+    const standings = (s.data ?? []) as Standing[];
+    for (const x of standings) {
+      if (x.athlete_id && x.display_name && !people.has(x.athlete_id)) {
+        people.set(x.athlete_id, { name: x.display_name, institution: x.institution ?? "", rank: x.current_rank, photo: photos.get(x.athlete_id) ?? null });
+      }
+    }
+    return { ...page, matches, byes, standings, people };
   } catch {
     return empty;
   }
