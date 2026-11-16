@@ -58,6 +58,8 @@ function Platform() {
       </div>
       <ErrorNote text={action.error} />
 
+      <TeacherRequests run={action.run} busy={action.busy} />
+
       {orgs?.map((o) => <OrgCard key={o.id} org={o} busy={action.busy} onSave={save} reload={load} run={action.run} />)}
 
       <form onSubmit={async (e) => { e.preventDefault(); if (await save({ id: null, name: newName, status: "active", note: "" })) setNewName(""); }} className="gt-card space-y-3 p-4">
@@ -145,6 +147,58 @@ function OrgCard({ org, busy, onSave, reload, run }: {
           </ol>
         )}
       </div>
+    </section>
+  );
+}
+
+type TeacherRow = { academy_id: string; academy: string; user_id: string; email: string; name: string | null; role: "manager" | "teacher"; status: "pending" | "active"; created_at: string };
+
+/** Teachers who asked for an institution page: approve (they can add students and enter competitions) or remove. */
+function TeacherRequests({ run, busy }: { run: ReturnType<typeof useAction>["run"]; busy: boolean }) {
+  const [rows, setRows] = useState<TeacherRow[] | null>(null);
+  const load = useCallback(async () => {
+    const { data } = await staffDb()!.rpc("gt_platform_academy_staff_v1");
+    setRows((data ?? []) as TeacherRow[]);
+  }, []);
+  useEffect(() => { queueMicrotask(load); }, [load]);
+  const decide = async (r: TeacherRow, approve: boolean) => {
+    if (!approve && !window.confirm(`ยกเลิกสิทธิ์ ${r.email} ที่ ${r.academy}?`)) return;
+    const ok = await run(() => staffDb()!.rpc("gt_platform_decide_academy_staff_v1", { p_academy: r.academy_id, p_user: r.user_id, p_approve: approve }));
+    if (ok) await load();
+  };
+  if (!rows) return null;
+  const pending = rows.filter((r) => r.status === "pending");
+  return (
+    <section className="gt-card space-y-3 p-4" aria-labelledby="teach-h">
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 id="teach-h" className="mr-auto font-bold">ครูและสถาบัน</h2>
+        {pending.length > 0 && <span className="rounded-full bg-[var(--gt-gold-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--gt-warn)]">รออนุมัติ {pending.length}</span>}
+        <Link href="/institution" className="text-sm text-[var(--gt-muted)] underline">หน้าสถาบัน</Link>
+      </div>
+      <p className="text-sm text-[var(--gt-muted)]">ครูที่ขอใช้หน้าสถาบัน ดูข้อมูลได้ทันที แต่เพิ่มนักเรียนและสมัครแข่งแบบกลุ่มได้หลังอนุมัติ — ตรวจว่าอีเมลเป็นครูของสถาบันนั้นจริง</p>
+      {rows.length ? (
+        <ul className="divide-y divide-[var(--gt-line)]">
+          {rows.map((r) => (
+            <li key={`${r.academy_id}-${r.user_id}`} className="flex flex-wrap items-center gap-2 py-2.5 text-sm">
+              <span className="min-w-0 flex-1 basis-56">
+                <span className="block font-semibold">{r.academy}</span>
+                <span className="block truncate text-[var(--gt-muted)]">{r.name ? `${r.name} · ` : ""}{r.email} · {r.role === "manager" ? "ผู้บริหาร" : "ครู"}</span>
+              </span>
+              {r.status === "pending" ? (
+                <>
+                  <button type="button" disabled={busy} onClick={() => decide(r, true)} className="gt-gold-btn min-h-10 px-4">อนุมัติ</button>
+                  <button type="button" disabled={busy} onClick={() => decide(r, false)} className="min-h-10 rounded-xl border border-[var(--gt-bad)] px-3 text-[var(--gt-bad)]">ไม่อนุมัติ</button>
+                </>
+              ) : (
+                <>
+                  <span className="text-[var(--gt-ok)]">ใช้งานได้</span>
+                  <button type="button" disabled={busy} onClick={() => decide(r, false)} className="min-h-10 rounded-xl border border-[var(--gt-line)] px-3 text-xs">ยกเลิกสิทธิ์</button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : <p className="text-sm text-[var(--gt-muted)]">ยังไม่มีครูขอใช้หน้าสถาบัน</p>}
     </section>
   );
 }

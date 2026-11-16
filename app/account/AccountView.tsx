@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
 import { MEMBER_ROLES } from "@/lib/auth-routing.mjs";
 
-type Me = { email: string; name: string; role: string; institution: string | null; staff: boolean };
+type Me = { email: string; name: string; role: string; institution: string | null; staff: boolean; academies: number };
 
 /** Signed-in member's page. Linking the account to athlete records comes in the next phase. */
 export default function AccountView() {
@@ -23,6 +23,7 @@ export default function AccountView() {
         email: u.email ?? "", name: meta.display_name || meta.full_name || meta.name || (u.email ?? "").split("@")[0],
         role: meta.member_role ?? "", institution: meta.institution ?? null,
         staff: Boolean(access?.platform_role) || ((access?.organizers ?? []) as { status: string }[]).some((o) => o.status === "active"),
+        academies: ((access?.academies ?? []) as unknown[]).length,
       });
     });
   }, []);
@@ -43,7 +44,7 @@ export default function AccountView() {
   if (me.staff) next.push({ title: "หน้าผู้จัดการแข่งขัน", body: "จัดการรายการแข่งขัน จับคู่ ลงผล กรรมการ และใบสมัคร", href: "/organizer", cta: "ไปหน้าผู้จัด →" });
   else if (me.role === "organizer") next.push({ title: "รอเปิดสิทธิ์ผู้จัด", body: "แจ้งเจ้าของระบบ GO TOURNAMENT ให้เพิ่มอีเมลนี้เป็นผู้จัด แล้วเข้าสู่ระบบใหม่" });
   if (me.role === "athlete" || me.role === "parent") next.push({ title: "ผูกบัญชีกับรหัสนักกีฬา", body: "เร็ว ๆ นี้: ดูประวัติ สถิติ และใบประกาศของนักกีฬาจากบัญชีนี้ และเข้าสู่ระบบด้วยรหัสนักกีฬาได้" });
-  if (me.role === "teacher") next.push({ title: "นักกีฬาในสถาบัน", body: "เร็ว ๆ นี้: ดูรายชื่อและผลการแข่งขันของนักกีฬาในสถาบันของคุณ" });
+  if (me.academies || me.role === "teacher") next.push({ title: "หน้าสถาบัน", body: "ดูแลนักเรียน ติดตามผล สถิติ และสมัครแข่งแบบกลุ่ม", href: "/institution", cta: me.academies ? "ไปหน้าสถาบัน →" : "เลือกสถาบันของคุณ →" });
   next.push({ title: "การแข่งขันทั้งหมด", body: "ดูรายการ สมัครแข่งขัน ติดตามผล", href: "/tournaments", cta: "ดูการแข่งขัน →" });
 
   return (
