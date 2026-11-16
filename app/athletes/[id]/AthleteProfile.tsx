@@ -51,7 +51,9 @@ const Stone = ({ colour, className = "h-5 w-5" }: { colour: "black" | "white"; c
 );
 
 function Avatar({ src, size = "h-10 w-10", ring = false }: { src: string | null; size?: string; ring?: boolean }) {
-  return <img src={src || DEFAULT_AVATAR} alt="" className={`${size} shrink-0 rounded-full bg-[var(--gt-avatar-top)] object-cover ${ring ? "border-4 border-[var(--gt-surface)] shadow-[0_0_0_3px_var(--gt-cta)]" : ""}`} />;
+  // The default picture is already round with its own rim and stones: show it whole, no crop or ring.
+  if (!src) return <img src={DEFAULT_AVATAR} alt="" className={`${size} shrink-0 object-contain`} />;
+  return <img src={src} alt="" className={`${size} shrink-0 rounded-full bg-[var(--gt-avatar-top)] object-cover ${ring ? "border-4 border-[var(--gt-surface)] shadow-[0_0_0_3px_var(--gt-cta)]" : ""}`} />;
 }
 
 const PILL: Record<Outcome, { text: string; cls: string }> = {
@@ -121,7 +123,7 @@ export default function AthleteProfile({ athlete, rows, today }: { athlete: Athl
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="relative shrink-0">
               <Avatar src={athlete.photo} size="h-24 w-24 sm:h-40 sm:w-40" ring />
-              <span aria-hidden="true" className="absolute -bottom-1 right-0 flex"><Stone colour="black" className="h-6 w-6 sm:h-9 sm:w-9" /><Stone colour="white" className="-ml-2 h-6 w-6 sm:h-9 sm:w-9" /></span>
+              {athlete.photo && <span aria-hidden="true" className="absolute -bottom-1 right-0 flex"><Stone colour="black" className="h-6 w-6 sm:h-9 sm:w-9" /><Stone colour="white" className="-ml-2 h-6 w-6 sm:h-9 sm:w-9" /></span>}
             </div>
             <div className="min-w-0">
               <span className="inline-block rounded-full border border-[var(--gt-cta)]/30 bg-[var(--gt-cta-soft)] px-3 py-0.5 text-xs font-semibold text-[var(--gt-cta)] sm:text-sm">โปรไฟล์นักกีฬา</span>
