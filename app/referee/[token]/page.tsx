@@ -1,17 +1,23 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- athlete photos and a decorative picture */
 
 import { use, useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import ThemeToggle from "../../tournaments/[id]/_ui/ThemeToggle";
+import { DEFAULT_AVATAR } from "../../tournaments/[id]/_ui/MatchCard";
 import { resultLabel, staffErrorMessage } from "@/lib/competition-day.mjs";
-import MatchCard, { type Seat } from "../../tournaments/[id]/_ui/MatchCard";
-import ResultControls from "../../tournaments/[id]/_ui/ResultControls";
+import { METHODS, buildResult, formFromResult, needsWinner, summaryLine } from "@/lib/referee-result.mjs";
 import { divisionLabel, divisionSortValue } from "@/lib/division-display";
 
 type Side = { id: string; name: string | null; institution: string | null; rank?: string | null; photo?: string | null; score?: number; checked_in: boolean };
-type Table = { id: string; pool: string | null; round: number; board: number; state: string; result_code: string | null; result_margin: string | null; winner: string | null; black: Side; white: Side };
+type Table = {
+  id: string; pool: string | null; round: number; board: number; state: string; result_code: string | null; result_margin: string | null;
+  winner: string | null; note?: string | null; black: Side; white: Side;
+};
 type Division = { id: string; name: string; pending: number; last_round: number | null };
 type Opened = { referee_name: string; expires_at: string; tournament: { title: string; event_date: string | null }; divisions: Division[] };
+type Call = (fn: string, args: Record<string, unknown>) => Promise<boolean>;
 
 const ERRORS: Record<string, string> = {
   WRONG_CODE: "รหัสไม่ถูกต้อง (ใส่ผิด 8 ครั้ง ลิงก์จะถูกล็อก)",
@@ -33,6 +39,25 @@ function db(): SupabaseClient | null {
 const storeKey = (token: string) => `gt-referee-${token.slice(0, 10)}`;
 const loadCode = (token: string) => { try { return localStorage.getItem(storeKey(token)) ?? ""; } catch { return ""; } };
 const saveCode = (token: string, code: string | null) => { try { if (code) localStorage.setItem(storeKey(token), code); else localStorage.removeItem(storeKey(token)); } catch { /* private mode */ } };
+const two = (n: number) => String(n).padStart(2, "0");
+const firstName = (n: string | null) => (n ?? "").split(" ")[0] || "ผู้เล่น";
+const portalTarget = () => (document.querySelector(".gt") as HTMLElement | null) ?? document.body;
+
+function Stone({ colour, className = "h-5 w-5" }: { colour: "black" | "white"; className?: string }) {
+  return <span aria-hidden="true" className={`inline-block shrink-0 rounded-full ${className} ${colour === "black"
+    ? "bg-[radial-gradient(circle_at_35%_30%,#5b6170,#0b0d12_65%)]" : "border border-[#b7bfcc] bg-[radial-gradient(circle_at_35%_30%,#fff,#e2e6ec_70%)]"}`} />;
+}
+
+function Deco({ className }: { className: string }) {
+  return (
+    <picture>
+      <source srcSet="/referee-deco.webp" type="image/webp" />
+      <img src="/referee-deco.png" alt="" aria-hidden="true" className={`pointer-events-none select-none ${className}`} />
+    </picture>
+  );
+}
+
+/* ------------------------------------------------------------------ page */
 
 export default function RefereePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
@@ -64,42 +89,78 @@ export default function RefereePage({ params }: { params: Promise<{ token: strin
   const expired = useCallback((msg: string) => { signOut(); setError(msg); }, [signOut]);
 
   return (
-    <div className="space-y-4">
-      <header className="flex items-center gap-3">
-        <span aria-hidden="true" className="h-7 w-7 shrink-0 rounded-full bg-[radial-gradient(circle_at_35%_30%,#5b6170,#14171e_60%)]" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-bold">{opened?.tournament.title ?? "GO TOURNAMENT"}</p>
-          <p className="truncate text-sm text-[var(--gt-muted)]">{opened ? `กรรมการ: ${opened.referee_name}` : "หน้ากรรมการ"}</p>
-        </div>
-        {opened && <button type="button" onClick={signOut} className="gt-outline-btn min-h-11 px-3 text-sm">ออก</button>}
-        <ThemeToggle />
-      </header>
-      {!opened ? <CodeForm busy={busy} error={error} onSubmit={open} /> : <Console token={token} code={code} opened={opened} onExpired={expired} />}
+    <div className="relative min-h-screen overflow-x-clip bg-[linear-gradient(180deg,var(--gt-cta-soft),transparent_420px)]">
+      <TopBar opened={opened} onSignOut={signOut} />
+      <div className="mx-auto w-full max-w-6xl px-3 pb-16 pt-5 sm:px-6">
+        {!opened ? <CodeForm busy={busy} error={error} onSubmit={open} /> : <Console token={token} code={code} opened={opened} onExpired={expired} />}
+      </div>
     </div>
+  );
+}
+
+function TopBar({ opened, onSignOut }: { opened: Opened | null; onSignOut: () => void }) {
+  return (
+    <header className="bg-[linear-gradient(180deg,#0d3f8f,#0a2f6e)] text-white shadow-md">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-3 sm:px-6">
+        <span aria-hidden="true" className="flex">
+          <span className="h-7 w-7 rounded-full bg-[radial-gradient(circle_at_35%_30%,#5b6170,#0b0d12_65%)] shadow" />
+          <span className="-ml-2 mt-1 h-7 w-7 rounded-full bg-[radial-gradient(circle_at_35%_30%,#fff,#d6dbe4_60%,#9aa3b2)] shadow" />
+        </span>
+        <span className="whitespace-nowrap text-base font-bold tracking-wide sm:text-xl">GO TOURNAMENT</span>
+        <div className="ml-auto flex items-center gap-2">
+          {opened ? (
+            <details className="relative">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="currentColor"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7Z" /></svg>
+                กรรมการ <span aria-hidden="true">▾</span>
+              </summary>
+              <div className="absolute right-0 z-40 mt-2 w-64 space-y-3 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-4 text-[var(--gt-ink)] shadow-xl">
+                <div>
+                  <p className="text-xs text-[var(--gt-muted)]">กรรมการ</p>
+                  <p className="font-semibold">{opened.referee_name}</p>
+                  <p className="text-xs text-[var(--gt-muted)]">ลิงก์ใช้ได้ถึง {new Date(opened.expires_at).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+                </div>
+                <div className="flex items-center justify-between text-sm">โหมดสี <ThemeToggle /></div>
+                <button type="button" onClick={onSignOut} className="gt-outline-btn min-h-11 w-full text-sm">ออกจากหน้ากรรมการ</button>
+              </div>
+            </details>
+          ) : <span className="[&_button]:bg-white/10 [&_button]:text-white"><ThemeToggle /></span>}
+        </div>
+      </div>
+    </header>
   );
 }
 
 function CodeForm({ busy, error, onSubmit }: { busy: boolean; error: string; onSubmit: (code: string) => void }) {
   const [value, setValue] = useState("");
   return (
-    <form onSubmit={(e) => { e.preventDefault(); if (/^\d{6}$/.test(value)) onSubmit(value); }} className="gt-card mx-auto mt-6 max-w-sm space-y-4 p-6 text-center">
-      <h1 className="text-xl font-bold">ใส่รหัส 6 หลัก</h1>
-      <p className="text-sm text-[var(--gt-muted)]">รหัสอยู่ในข้อความที่ผู้จัดส่งมาพร้อมลิงก์</p>
-      <input value={value} onChange={(e) => setValue(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code"
-        aria-label="รหัส 6 หลัก" placeholder="••••••" autoFocus
-        className="gt-num min-h-16 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface-2)] text-center text-3xl tracking-[0.4em]" />
-      {error && <p role="alert" className="text-sm text-[var(--gt-bad)]">{error}</p>}
-      <button type="submit" disabled={busy || value.length !== 6} className="gt-gold-btn min-h-12 w-full disabled:opacity-60">{busy ? "กำลังตรวจสอบ…" : "เข้าใช้งาน"}</button>
-    </form>
+    <div className="relative mx-auto mt-6 max-w-md">
+      <form onSubmit={(e) => { e.preventDefault(); if (/^\d{6}$/.test(value)) onSubmit(value); }} className="gt-card relative z-10 space-y-4 p-6 text-center">
+        <h1 className="text-2xl font-bold">หน้ากรรมการ</h1>
+        <p className="text-sm text-[var(--gt-muted)]">ใส่รหัส 6 หลัก ที่ผู้จัดส่งมาพร้อมลิงก์</p>
+        <input value={value} onChange={(e) => setValue(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code"
+          aria-label="รหัส 6 หลัก" placeholder="••••••" autoFocus
+          className="gt-num min-h-16 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface-2)] text-center text-3xl tracking-[0.4em]" />
+        {error && <p role="alert" className="text-sm text-[var(--gt-bad)]">{error}</p>}
+        <button type="submit" disabled={busy || value.length !== 6} className="gt-cta-btn min-h-12 w-full disabled:opacity-60">{busy ? "กำลังตรวจสอบ…" : "เข้าใช้งาน"}</button>
+      </form>
+      <Deco className="mx-auto -mt-2 w-full max-w-sm opacity-90" />
+    </div>
   );
 }
+
+/* --------------------------------------------------------------- console */
 
 function Console({ token, code, opened, onExpired }: { token: string; code: string; opened: Opened; onExpired: (msg: string) => void }) {
   const divisions = useMemo(() => [...opened.divisions].sort((a, b) => divisionSortValue(a.name) - divisionSortValue(b.name)), [opened.divisions]);
   const [divisionId, setDivisionId] = useState(() => divisions.find((d) => d.last_round)?.id ?? divisions[0]?.id ?? "");
   const [tables, setTables] = useState<Table[] | null>(null);
   const [query, setQuery] = useState("");
+  const [tab, setTab] = useState<"pending" | "done">("pending");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mobileDetail, setMobileDetail] = useState(false);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState("");
 
   const load = useCallback(async () => {
     if (!divisionId) return;
@@ -116,82 +177,303 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
     return () => window.clearInterval(t);
   }, [load]);
 
-  const call = async (fn: string, args: Record<string, unknown>) => {
+  const call: Call = async (fn, args) => {
     const { data, error: e } = await db()!.rpc(fn, { p_token: token, p_code: code, ...args });
     if (e) { setError(staffErrorMessage(e.message)); return false; }
     if (!data?.ok) { setError(ERRORS[data?.error] ?? "ทำรายการไม่สำเร็จ"); return false; }
+    setError("");
     await load();
     return true;
   };
 
+  const all = tables ?? [];
   const q = query.trim().toLowerCase();
-  const shown = (tables ?? []).filter((t) => !q || String(t.board) === q || [t.black.name, t.white.name, t.black.institution, t.white.institution].some((x) => (x ?? "").toLowerCase().includes(q)));
-  const seats = (tables ?? []).length * 2;
-  const checked = (tables ?? []).reduce((n, t) => n + (t.black.checked_in ? 1 : 0) + (t.white.checked_in ? 1 : 0), 0);
-  const pending = (tables ?? []).filter((t) => t.state !== "verified").length;
-  const pools = [...new Set(shown.map((t) => t.pool ?? ""))];
+  const matchQ = (t: Table) => !q || String(t.board) === q.replace(/^โต๊ะ\s*/, "").replace(/^0+/, "") || [t.black.name, t.white.name, t.black.institution, t.white.institution].some((x) => (x ?? "").toLowerCase().includes(q));
+  const pending = all.filter((t) => t.state !== "verified");
+  const done = all.filter((t) => t.state === "verified");
+  const list = (tab === "pending" ? pending : done).filter(matchQ);
+  const selected = all.find((t) => t.id === selectedId) ?? list[0] ?? all[0] ?? null;
+  const round = all[0]?.round ?? null;
+  const multiPool = new Set(all.map((t) => t.pool ?? "")).size > 1;
+  const seats = all.length * 2;
+  const checked = all.reduce((n, t) => n + (t.black.checked_in ? 1 : 0) + (t.white.checked_in ? 1 : 0), 0);
+  const division = divisions.find((d) => d.id === divisionId);
 
-  return (
-    <div className="space-y-3">
-      <label className="block">
-        <span className="sr-only">เลือกรุ่น</span>
-        <select value={divisionId} onChange={(e) => { setDivisionId(e.target.value); setTables(null); }}
-          className="min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 text-base font-semibold">
-          {divisions.map((d) => <option key={d.id} value={d.id}>{divisionLabel(d.name)}{d.last_round ? ` · รอบ ${d.last_round}` : " · ยังไม่ออกคู่"}</option>)}
+  const pick = (t: Table) => { setSelectedId(t.id); setMobileDetail(true); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const step = (dir: 1 | -1) => {
+    if (!selected) return;
+    const i = all.findIndex((t) => t.id === selected.id);
+    const next = all[(i + dir + all.length) % all.length];
+    if (next) setSelectedId(next.id);
+  };
+  const afterSave = (saved: Table) => {
+    setToast(`บันทึกผล โต๊ะ${two(saved.board)} แล้ว`);
+    window.setTimeout(() => setToast(""), 3500);
+    const nextPending = pending.find((t) => t.id !== saved.id && t.board > saved.board) ?? pending.find((t) => t.id !== saved.id);
+    if (nextPending) setSelectedId(nextPending.id);
+    else { setMobileDetail(false); setTab("done"); }
+  };
+
+  const filters = (
+    <div className="grid gap-2 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)_minmax(0,1.4fr)] sm:gap-3">
+      <label className="flex min-h-12 items-center overflow-hidden rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)]">
+        <span className="h-full shrink-0 bg-[var(--gt-cta-soft)] px-3 py-3 text-sm font-medium">ประเภท</span>
+        <select value={divisionId} onChange={(e) => { setDivisionId(e.target.value); setTables(null); setSelectedId(null); }}
+          className="min-h-12 min-w-0 flex-1 bg-transparent px-3 text-base outline-none" aria-label="ประเภท / รุ่น">
+          {divisions.map((d) => <option key={d.id} value={d.id}>{divisionLabel(d.name)}{d.last_round ? "" : " · ยังไม่ออกคู่"}</option>)}
         </select>
       </label>
-      <div className="flex gap-2">
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ค้นหาชื่อ / สถาบัน / เลขโต๊ะ" aria-label="ค้นหา"
-          className="min-h-12 min-w-0 flex-1 rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 text-base" />
-        <button type="button" onClick={load} className="gt-outline-btn min-h-12 px-4">รีเฟรช</button>
+      <div className="hidden min-h-12 items-center overflow-hidden rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] sm:flex">
+        <span className="h-full shrink-0 bg-[var(--gt-cta-soft)] px-3 py-3 text-sm font-medium">รอบ</span>
+        <span className="px-3 font-medium">{round ? `รอบ${round}` : "—"}</span>
+        <span className="ml-auto pr-3 text-xs text-[var(--gt-muted)]">รอบปัจจุบัน</span>
       </div>
+      <label className="relative block">
+        <span className="sr-only">ค้นหาโต๊ะ / ชื่อนักกีฬา</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--gt-muted)]" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" strokeLinecap="round" /></svg>
+        <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ค้นหาโต๊ะ / ชื่อนักกีฬา"
+          className="block min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] pl-11 pr-3 text-base outline-none focus:border-[var(--gt-cta)]" />
+      </label>
+    </div>
+  );
+
+  const tableList = (
+    <section className="gt-card relative flex min-h-[28rem] flex-col overflow-hidden" aria-label="โต๊ะแข่งขัน">
+      <div className="flex items-baseline justify-between px-4 pt-4">
+        <h2 className="text-2xl font-bold">โต๊ะแข่งขัน</h2>
+        <span className="font-medium text-[var(--gt-cta)]">{all.length} โต๊ะ</span>
+      </div>
+      <div role="tablist" className="mx-4 mt-2 grid grid-cols-2 border-b border-[var(--gt-line)]">
+        {(["pending", "done"] as const).map((k) => (
+          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
+            className={`min-h-12 border-b-[3px] text-base font-medium ${tab === k ? "border-[var(--gt-cta)] text-[var(--gt-cta)]" : "border-transparent text-[var(--gt-muted)]"}`}>
+            {k === "pending" ? `รอผล (${pending.length})` : `บันทึกแล้ว (${done.length})`}
+          </button>
+        ))}
+      </div>
+      <p className="px-4 pt-2 text-xs text-[var(--gt-muted)]">เช็คชื่อแล้ว {checked}/{seats} คน · แตะโต๊ะเพื่อลงผล</p>
+      <ul className="relative z-10 flex-1 space-y-2.5 p-3 pb-28 lg:pb-36">
+        {list.map((t) => {
+          const active = selected?.id === t.id;
+          const isDone = t.state === "verified";
+          return (
+            <li key={t.id}>
+              <button type="button" onClick={() => pick(t)} aria-current={active ? "true" : undefined}
+                className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${active ? "border-[var(--gt-cta)] bg-[var(--gt-cta-soft)] shadow-[inset_4px_0_0_var(--gt-cta)]" : "border-[var(--gt-line)] bg-[var(--gt-surface)] hover:border-[var(--gt-cta)]/50"}`}>
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border-2 border-[var(--gt-cta)]/70 text-xl font-bold text-[var(--gt-ink)]">{two(t.board)}</span>
+                <span className="min-w-0 flex-1 space-y-1">
+                  <span className="flex items-center gap-2"><Stone colour="black" /><span className="truncate font-medium">{t.black.name ?? "—"}</span></span>
+                  <span className="flex items-center gap-2"><Stone colour="white" /><span className="truncate font-medium">{t.white.name ?? "—"}</span></span>
+                </span>
+                <span className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium ${isDone ? "bg-[var(--gt-win-bg)] text-[var(--gt-win-ink)]" : "bg-[var(--gt-cta-soft)] text-[var(--gt-cta)]"}`}>
+                  {isDone ? "บันทึกแล้ว" : "รอผล"}
+                </span>
+              </button>
+              {multiPool && <span className="sr-only">สาย {t.pool}</span>}
+            </li>
+          );
+        })}
+        {tables && !list.length && <li className="py-6 text-center text-sm text-[var(--gt-muted)]">{q ? "ไม่พบโต๊ะที่ค้นหา" : tab === "pending" ? "ลงผลครบทุกโต๊ะแล้ว" : "ยังไม่มีโต๊ะที่บันทึกผล"}</li>}
+      </ul>
+      <Deco className="absolute -bottom-2 -left-6 w-[115%] max-w-none opacity-95" />
+    </section>
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[1.75rem] font-bold leading-tight text-[var(--gt-ink)] sm:text-[2.5rem]">
+            <span className="sm:hidden">บันทึกผล</span><span className="hidden sm:inline">บันทึกผลการแข่งขัน</span>
+          </h1>
+          <p className="text-lg text-[var(--gt-cta)] sm:text-xl">{opened.tournament.title}</p>
+          {division && <p className="text-base text-[var(--gt-cta)] sm:hidden">{divisionLabel(division.name)}</p>}
+        </div>
+        <span aria-hidden="true" className="mt-3 hidden sm:flex"><Stone colour="black" className="h-9 w-9 shadow-lg" /><Stone colour="white" className="-ml-3 mt-2 h-9 w-9 shadow-lg" /></span>
+      </div>
+
+      <div className={mobileDetail ? "hidden lg:block" : ""}>{filters}</div>
+
+      {error && <p role="alert" className="rounded-xl border border-[var(--gt-bad)] bg-[var(--gt-surface)] px-4 py-3 text-sm text-[var(--gt-bad)]">{error}</p>}
+      {tables === null && <p className="py-10 text-center text-[var(--gt-muted)]" role="status">กำลังโหลด…</p>}
+      {tables?.length === 0 && <p className="gt-card p-5 text-center">รุ่นนี้ยังไม่ประกาศคู่</p>}
+
       {tables && tables.length > 0 && (
-        <p className="flex flex-wrap gap-x-4 text-sm">
-          <span>รอบ {tables[0].round}</span>
-          <span>เช็คอินแล้ว <strong className="gt-num text-[var(--gt-ok)]">{checked}</strong></span>
-          <span>ยังไม่เช็คอิน <strong className={`gt-num ${checked < seats ? "text-[var(--gt-warn)]" : ""}`}>{seats - checked}</strong></span>
-          <span>รอผล <strong className="gt-num">{pending}</strong></span>
-        </p>
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
+          <div className={mobileDetail ? "hidden lg:block" : ""}>{tableList}</div>
+          <div className={mobileDetail ? "" : "hidden lg:block"}>
+            {selected && (
+              <>
+                <div className="mb-3 grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 lg:hidden">
+                  <button type="button" onClick={() => step(-1)} aria-label="โต๊ะก่อนหน้า" className="grid h-12 w-12 place-items-center rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] text-xl">‹</button>
+                  <span className="flex min-h-12 items-center justify-center rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] font-medium">รอบ{selected.round}</span>
+                  <label className="block">
+                    <span className="sr-only">เลือกโต๊ะ</span>
+                    <select value={selected.id} onChange={(e) => setSelectedId(e.target.value)} className="min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 font-medium">
+                      {all.map((t) => <option key={t.id} value={t.id}>โต๊ะ{two(t.board)}{t.state === "verified" ? " ✓" : ""}</option>)}
+                    </select>
+                  </label>
+                  <button type="button" onClick={() => step(1)} aria-label="โต๊ะถัดไป" className="grid h-12 w-12 place-items-center rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] text-xl">›</button>
+                </div>
+                <Detail key={`${selected.id}:${selected.state}:${selected.result_code ?? ""}`} t={selected} call={call} onSaved={afterSave} />
+                <button type="button" onClick={() => setMobileDetail(false)} className="mt-4 inline-flex min-h-11 items-center gap-2 font-medium text-[var(--gt-cta)] lg:hidden">← กลับรายการโต๊ะ</button>
+              </>
+            )}
+          </div>
+        </div>
       )}
-      {error && <p role="alert" className="rounded-xl border border-[var(--gt-bad)] px-4 py-3 text-sm text-[var(--gt-bad)]">{error}</p>}
-      {tables === null && <p className="py-6 text-center text-[var(--gt-muted)]">กำลังโหลด…</p>}
-      {tables?.length === 0 && <p className="gt-card p-4 text-sm">รุ่นนี้ยังไม่ประกาศคู่</p>}
-      {pools.map((pool) => (
-        <section key={pool || "all"} className="space-y-2">
-          {pools.length > 1 && <h2 className="font-bold">สาย {pool}</h2>}
-          <ul className="space-y-3">
-            {shown.filter((t) => (t.pool ?? "") === pool).map((t) => <RefTable key={t.id} t={t} call={call} />)}
-          </ul>
-        </section>
-      ))}
-      <p className="pt-2 text-center text-xs text-[var(--gt-muted)]">มาสายเกิน 15 นาที ให้ลงผล “ชนะ เพราะคู่ไม่มา” · ลิงก์ใช้ได้ถึง {new Date(opened.expires_at).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+
+      <p className="pt-2 text-center text-xs text-[var(--gt-muted)]">มาสายเกิน 15 นาที เลือก “ชนะเพราะคู่ไม่มา” · ข้อมูลอัปเดตเองทุก 20 วินาที</p>
+      {toast && createPortal(
+        <p role="status" className="fixed inset-x-0 bottom-5 z-50 mx-auto w-fit rounded-full bg-[#0b2a5b] px-5 py-3 text-white shadow-xl">✓ {toast}</p>, portalTarget())}
     </div>
   );
 }
 
-function RefTable({ t, call }: { t: Table; call: (fn: string, args: Record<string, unknown>) => Promise<boolean> }) {
+/* ---------------------------------------------------------------- detail */
+
+function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table) => void }) {
+  const isDone = t.state === "verified";
+  const init = formFromResult(t);
+  const [editing, setEditing] = useState(!isDone);
+  const [winner, setWinner] = useState<"black" | "white" | null>(init.winner as "black" | "white" | null);
+  const [method, setMethod] = useState<string>(init.method);
+  const [margin, setMargin] = useState(init.margin);
+  const [note, setNote] = useState(t.note ?? "");
+  const [err, setErr] = useState("");
+  const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const done = t.state === "verified";
-  const run = async (fn: string, args: Record<string, unknown>) => { setBusy(true); const ok = await call(fn, args); setBusy(false); if (ok) setEditing(false); };
-  const record = (codeName: string, margin: string | null) => run("gt_referee_record_result_v1", { p_match: t.id, p_result: codeName, p_margin: margin });
-  const match = { state: t.state, result_code: t.result_code, result_margin: t.result_margin, winner_athlete_id: t.winner, black_athlete_id: t.black.id, white_athlete_id: t.white.id };
-  const seat = (p: Side): Seat => ({ id: p.id, name: p.name, institution: p.institution, rank: p.rank, photo: p.photo, score: p.score ?? 0, won: t.winner === p.id });
-  const checkButton = (side: "black" | "white") => {
-    const here = t[side].checked_in;
-    if (done) return here ? <span className="text-xs font-semibold text-[var(--gt-ok)]">✓ มาแล้ว</span> : null;
+  const names = { black: firstName(t.black.name), white: firstName(t.white.name) };
+  const summary = summaryLine({ board: t.board, winner, method, margin, names: undefined });
+  const winnerNeeded = needsWinner(method);
+
+  const check = async (side: "black" | "white") => {
+    setBusy(true);
+    await call("gt_referee_checkin_v1", { p_match: t.id, p_side: side, p_present: !t[side].checked_in });
+    setBusy(false);
+  };
+  const review = () => {
+    const r = buildResult({ winner, method, margin });
+    if (!r.ok) { setErr(r.error); return; }
+    setErr(""); setConfirming(true);
+  };
+  const save = async () => {
+    const r = buildResult({ winner, method, margin });
+    if (!r.ok) return;
+    setBusy(true);
+    const ok = await call("gt_referee_record_result_v2", { p_match: t.id, p_result: r.code, p_margin: r.margin, p_note: note.trim() || null });
+    setBusy(false);
+    if (ok) { setConfirming(false); onSaved(t); }
+  };
+
+  const player = (side: "black" | "white") => {
+    const p = t[side];
     return (
-      <button type="button" disabled={busy} onClick={() => run("gt_referee_checkin_v1", { p_match: t.id, p_side: side, p_present: !here })} aria-pressed={here}
-        className={`min-h-10 rounded-full border px-3 text-sm font-semibold ${here ? "border-[var(--gt-ok)] bg-[var(--gt-ok)] text-white" : "border-[var(--gt-line)] bg-[var(--gt-surface)] text-[var(--gt-muted)]"}`}>
-        {here ? "✓ มาแล้ว" : "เช็คอิน"}
+      <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-3 sm:p-4">
+        <img src={p.photo || DEFAULT_AVATAR} alt="" className={`h-14 w-14 shrink-0 sm:h-20 sm:w-20 ${p.photo ? "rounded-full object-cover" : "object-contain"}`} />
+        <div className="min-w-0 flex-1">
+          <p className="text-lg font-bold leading-tight text-[var(--gt-ink)] sm:text-xl">{p.name ?? "—"}</p>
+          {p.rank && <p className="text-sm text-[var(--gt-cta)]">{p.rank}</p>}
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="flex items-center gap-1.5 text-sm"><Stone colour={side} className="h-4 w-4" />หมาก{side === "black" ? "ดำ" : "ขาว"}</span>
+            {(!isDone || p.checked_in) && (
+              <button type="button" disabled={busy || isDone} onClick={() => check(side)} aria-pressed={p.checked_in}
+                className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${p.checked_in ? "border-[var(--gt-ok)] bg-[var(--gt-ok)] text-white" : "border-[var(--gt-line)] text-[var(--gt-muted)]"}`}>
+                {p.checked_in ? "✓ มาแล้ว" : "เช็คชื่อ"}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const choice = (side: "black" | "white") => {
+    const on = winner === side && winnerNeeded;
+    return (
+      <button type="button" role="radio" aria-checked={on} disabled={!winnerNeeded} onClick={() => { setWinner(side); setErr(""); }}
+        className={`flex min-h-14 items-center gap-3 rounded-2xl border-2 px-4 text-left text-base font-medium transition disabled:opacity-45 ${on ? "border-[var(--gt-cta)] bg-[var(--gt-cta-soft)]" : "border-[var(--gt-line)] bg-[var(--gt-surface)]"}`}>
+        <Stone colour={side} className="h-7 w-7" />
+        <span className="min-w-0 flex-1 truncate">หมาก{side === "black" ? "ดำ" : "ขาว"} · {names[side]}</span>
+        {on && <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--gt-cta)] text-sm text-white">✓</span>}
       </button>
     );
   };
+
+  const match = { state: t.state, result_code: t.result_code, result_margin: t.result_margin, winner_athlete_id: t.winner, black_athlete_id: t.black.id, white_athlete_id: t.white.id };
+
   return (
-    <MatchCard board={t.board} status={done ? resultLabel(match) : "รอผล"} statusTone={done ? "done" : "wait"} highlight={!done}
-      black={seat(t.black)} white={seat(t.white)} blackExtra={checkButton("black")} whiteExtra={checkButton("white")}
-      actions={done && !editing
-        ? <button type="button" onClick={() => setEditing(true)} className="min-h-11 text-sm text-[var(--gt-muted)] underline">แก้ผล</button>
-        : <ResultControls busy={busy} onRecord={record} onCancel={done ? () => setEditing(false) : undefined} />} />
+    <section className="gt-card relative overflow-hidden p-4 sm:p-6" aria-label={`โต๊ะ ${t.board}`}>
+      <span aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-40 w-56 bg-[linear-gradient(var(--gt-cta-soft)_1px,transparent_1px),linear-gradient(90deg,var(--gt-cta-soft)_1px,transparent_1px)] bg-[size:22px_22px] opacity-80 [mask-image:radial-gradient(circle_at_top_right,black,transparent_70%)]" />
+      <div className="relative flex flex-wrap items-center gap-2">
+        <span className="rounded-xl bg-[var(--gt-cta)] px-4 py-1.5 text-xl font-bold text-white">โต๊ะ{two(t.board)}</span>
+        <span className="rounded-xl bg-[var(--gt-cta-soft)] px-3 py-1.5 font-medium text-[var(--gt-cta)]">รอบ{t.round}</span>
+        {t.pool && <span className="rounded-xl bg-[var(--gt-cta-soft)] px-3 py-1.5 font-medium text-[var(--gt-cta)]">สาย {t.pool}</span>}
+        {isDone && <span className="ml-auto rounded-xl bg-[var(--gt-win-bg)] px-3 py-1.5 text-sm font-medium text-[var(--gt-win-ink)]">บันทึกแล้ว · {resultLabel(match)}</span>}
+      </div>
+
+      <div className="relative mt-4 grid items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-3">
+        {player("black")}
+        <span className="hidden text-center text-2xl font-bold text-[var(--gt-cta)] sm:block">VS</span>
+        {player("white")}
+      </div>
+
+      {isDone && !editing ? (
+        <div className="mt-5 space-y-3">
+          {t.note && <p className="rounded-xl bg-[var(--gt-cta-soft)] px-4 py-3 text-sm">หมายเหตุ: {t.note}</p>}
+          <button type="button" onClick={() => setEditing(true)} className="gt-outline-btn min-h-12 w-full">แก้ผลโต๊ะนี้</button>
+          <p className="text-center text-xs text-[var(--gt-muted)]">แก้ได้จนกว่าผู้จัดจะออกคู่รอบถัดไป</p>
+        </div>
+      ) : (
+        <div className="mt-5 space-y-4">
+          <div>
+            <h3 className="text-xl font-bold text-[var(--gt-ink)] sm:text-2xl">ใครเป็นผู้ชนะ?</h3>
+            <div role="radiogroup" aria-label="ผู้ชนะ" className="mt-2 grid gap-2 sm:grid-cols-2 sm:gap-3">{choice("black")}{choice("white")}</div>
+            {!winnerNeeded && <p className="mt-1 text-xs text-[var(--gt-muted)]">วิธีจบเกมนี้ไม่มีผู้ชนะ</p>}
+          </div>
+          <label className="grid items-center gap-1.5 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
+            <span className="font-medium">วิธีจบเกม</span>
+            <select value={method} onChange={(e) => { setMethod(e.target.value); setErr(""); }} className="min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 text-base">
+              {METHODS.map((m) => <option key={m.v} value={m.v}>{m.label}</option>)}
+            </select>
+          </label>
+          {method === "count" && (
+            <label className="grid items-center gap-1.5 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
+              <span className="font-medium">ชนะกี่แต้ม</span>
+              <input value={margin} onChange={(e) => { setMargin(e.target.value.replace(/[^\d.]/g, "").slice(0, 5)); setErr(""); }} inputMode="decimal" placeholder="เช่น 6.5"
+                className="min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 text-base" />
+            </label>
+          )}
+          <label className="grid items-start gap-1.5 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
+            <span className="font-medium sm:pt-3">หมายเหตุ (ถ้ามี)</span>
+            <textarea value={note} onChange={(e) => setNote(e.target.value.slice(0, 300))} rows={3} placeholder="ระบุหมายเหตุ (ถ้ามี)"
+              className="w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 py-2.5 text-base" />
+          </label>
+          <p className="rounded-xl bg-[var(--gt-cta-soft)] px-4 py-3 text-lg font-medium text-[var(--gt-ink)]" aria-live="polite">{summary}</p>
+          {err && <p role="alert" className="rounded-xl border border-[var(--gt-bad)] px-3 py-2 text-sm text-[var(--gt-bad)]">{err}</p>}
+          <button type="button" onClick={review} disabled={busy} className="gt-cta-btn flex min-h-14 w-full items-center justify-center text-xl disabled:opacity-60">ตรวจสอบและยืนยันผล →</button>
+          <p className="text-center text-sm text-[var(--gt-muted)]">จะมีหน้าตรวจสอบก่อนบันทึก</p>
+          {isDone && <button type="button" onClick={() => setEditing(false)} className="w-full text-sm text-[var(--gt-muted)] underline">ไม่แก้ผล</button>}
+        </div>
+      )}
+
+      {confirming && createPortal(
+        <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" className="fixed inset-0 z-50 grid place-items-center bg-black/55 p-4" onClick={() => !busy && setConfirming(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md space-y-4 rounded-2xl bg-[var(--gt-surface)] p-5 text-[var(--gt-ink)] shadow-2xl">
+            <h2 id="confirm-title" className="text-2xl font-bold">ตรวจสอบก่อนบันทึก</h2>
+            <dl className="space-y-2 rounded-xl bg-[var(--gt-cta-soft)] p-4">
+              <div className="flex gap-2"><dt className="w-20 shrink-0 text-[var(--gt-muted)]">โต๊ะ</dt><dd className="font-medium">โต๊ะ{two(t.board)} · รอบ{t.round}</dd></div>
+              <div className="flex gap-2"><dt className="w-20 shrink-0 text-[var(--gt-muted)]">หมากดำ</dt><dd className="font-medium">{t.black.name}</dd></div>
+              <div className="flex gap-2"><dt className="w-20 shrink-0 text-[var(--gt-muted)]">หมากขาว</dt><dd className="font-medium">{t.white.name}</dd></div>
+              <div className="flex gap-2"><dt className="w-20 shrink-0 text-[var(--gt-muted)]">ผล</dt><dd className="text-lg font-bold text-[var(--gt-cta)]">{summaryLine({ board: t.board, winner, method, margin, names }).replace(/^โต๊ะ\d+ · /, "")}</dd></div>
+              {note.trim() && <div className="flex gap-2"><dt className="w-20 shrink-0 text-[var(--gt-muted)]">หมายเหตุ</dt><dd>{note.trim()}</dd></div>}
+            </dl>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" disabled={busy} onClick={() => setConfirming(false)} className="gt-outline-btn min-h-12">กลับไปแก้</button>
+              <button type="button" disabled={busy} onClick={save} className="gt-cta-btn min-h-12 disabled:opacity-60">{busy ? "กำลังบันทึก…" : "ยืนยันบันทึกผล"}</button>
+            </div>
+          </div>
+        </div>, portalTarget())}
+    </section>
   );
 }
