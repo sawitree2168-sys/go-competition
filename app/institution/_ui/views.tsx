@@ -1,0 +1,324 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { staffDb } from "@/app/organizer/_lib/staff";
+import { RANK_OPTIONS } from "@/lib/competition-day.mjs";
+import { OUTCOME, achievements, amountDue, baht, portalError, studentReport, studentStats, totals } from "@/lib/institution-portal.mjs";
+import { Chip, Empty, ICONS, SectionTitle, StudentName, inputCls, selectCls, type Application, type Overview, type Rec, type Student, type Track, type View } from "./bits";
+
+type F = { filters: React.ReactNode };
+const byId = (ov: Overview) => new Map(ov.students.map((s) => [s.id, s]));
+
+/* ------------------------------------------------------------- overview */
+
+export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; records: Rec[]; track: Track[]; apps: Application[]; go: (v: View) => void } & F) {
+  const t = totals(records, ov.students);
+  const report = studentReport(records, ov.students).filter((r) => r.latest).slice(0, 3);
+  const live = track.slice(0, 4);
+  const who = byId(ov);
+  const due = amountDue(apps);
+  return (
+    <div className="relative z-10 space-y-5">
+      <SectionTitle right={filters}>ภาพรวมสถาบัน</SectionTitle>
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
+        <Tile icon={<span className="h-7 w-7 text-[var(--gt-cta)] sm:h-8 sm:w-8">{ICONS.students}</span>} n={t.students} unit="นักเรียน" />
+        <Tile icon={<span className="h-7 w-7 sm:h-8 sm:w-8">{ICONS.awards}</span>} n={t.events} unit="รายการ" />
+        <Tile icon={<span className="h-7 w-7 text-[var(--gt-cta)] sm:h-8 sm:w-8">{ICONS.tracking}</span>} n={t.games} unit="เกม" />
+        <div className="gt-card flex items-center justify-center gap-1.5 p-2 sm:gap-2 sm:p-3">
+          <span className="flex min-h-11 items-center gap-1 whitespace-nowrap rounded-xl bg-[var(--gt-win-bg)] px-2 text-[15px] font-semibold text-[var(--gt-win-ink)] sm:px-3">✓ ชนะ <b className="gt-num text-lg sm:text-xl">{t.wins}</b></span>
+          <span className="flex min-h-11 items-center gap-1 whitespace-nowrap rounded-xl bg-[var(--gt-loss-bg)] px-2 text-[15px] font-semibold text-[var(--gt-loss-ink)] sm:px-3">✕ แพ้ <b className="gt-num text-lg sm:text-xl">{t.losses}</b></span>
+        </div>
+      </div>
+
+      <section className="gt-card overflow-hidden" aria-labelledby="rep-h">
+        <header className="flex items-start gap-3 px-4 pb-3 pt-4 sm:px-6">
+          <span className="h-9 w-9 shrink-0 text-[var(--gt-cta)] sm:h-11 sm:w-11">{ICONS.awards}</span>
+          <div>
+            <h3 id="rep-h" className="text-lg font-bold sm:text-2xl">รายงานการแข่งขัน</h3>
+            <p className="text-sm text-[var(--gt-muted)]">นักเรียนที่ทำผลงานโดดเด่น</p>
+          </div>
+        </header>
+        {report.length ? <ReportTable rows={report} /> : <div className="px-4 pb-4 sm:px-6"><Empty>ยังไม่มีผลการแข่งขันในช่วงที่เลือก</Empty></div>}
+        <footer className="flex items-center justify-between gap-3 px-4 py-3 text-sm sm:px-6">
+          <span className="text-[var(--gt-muted)]">ⓘ ผลจากรายการที่เผยแพร่แล้ว</span>
+          <button type="button" onClick={() => go("reports")} className="font-semibold text-[var(--gt-cta)] underline underline-offset-4">ดูรายงานทั้งหมด →</button>
+        </footer>
+      </section>
+
+      <div className="grid gap-5 xl:grid-cols-2">
+        <section className="gt-card overflow-hidden" aria-labelledby="trk-h">
+          <header className="flex items-center gap-3 px-4 pt-4 sm:px-5">
+            <span className="h-8 w-8 text-[var(--gt-cta)]">{ICONS.tracking}</span>
+            <h3 id="trk-h" className="text-lg font-bold sm:text-xl">ติดตามผลการแข่งขัน</h3>
+          </header>
+          <div className="p-3 sm:p-4">
+            {live.length ? <TrackTable rows={live} who={who} compact /> : <Empty>ยังไม่มีนักเรียนลงแข่งในช่วงที่เลือก</Empty>}
+          </div>
+          <footer className="px-4 pb-3 text-right text-sm sm:px-5">
+            <button type="button" onClick={() => go("tracking")} className="font-semibold text-[var(--gt-cta)] underline underline-offset-4">ดูทั้งหมด →</button>
+          </footer>
+        </section>
+
+        <section className="gt-card space-y-4 p-4 sm:p-5" aria-labelledby="grp-h">
+          <header className="flex items-center gap-3">
+            <span className="h-8 w-8 text-[var(--gt-cta)]">{ICONS.students}</span>
+            <h3 id="grp-h" className="text-lg font-bold sm:text-xl">สมัครแข่งขันแบบกลุ่ม</h3>
+          </header>
+          <Steps />
+          <div className="mx-auto max-w-sm space-y-2.5">
+            <button type="button" onClick={() => go("apply")} className="gt-cta-btn flex min-h-12 w-full items-center justify-center gap-2 text-[15px]">เลือกนักเรียนเพื่อสมัคร <span aria-hidden="true">→</span></button>
+            <button type="button" onClick={() => { go("apply"); setTimeout(() => document.getElementById("pay-list")?.scrollIntoView({ behavior: "smooth" }), 80); }}
+              className="gt-outline-btn min-h-12 w-full text-[15px] font-medium">ดูรายการชำระเงิน{due ? ` · ค้าง ${baht(due)}` : ""}</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function Tile({ icon, n, unit }: { icon: React.ReactNode; n: number; unit: string }) {
+  return (
+    <div className="gt-card flex min-h-[4.25rem] items-center justify-center gap-3 p-3 sm:min-h-20">
+      {icon}<span className="gt-num text-2xl font-bold sm:text-4xl">{n}</span><span className="text-[15px] sm:text-lg">{unit}</span>
+    </div>
+  );
+}
+
+export function Steps({ at = 0 }: { at?: number }) {
+  const s = ["เลือกงาน", "ติ๊กชื่อนักเรียน", "เลือกรุ่น", "ชำระเงิน"];
+  return (
+    <ol className="grid grid-cols-4 text-center text-[13px] leading-tight sm:text-sm" aria-label="ขั้นตอนสมัคร">
+      {s.map((label, i) => (
+        <li key={label} className="relative flex flex-col items-center gap-1.5 px-1" aria-current={at === i + 1 ? "step" : undefined}>
+          {i > 0 && <span aria-hidden="true" className={`absolute top-3.5 h-0.5 ${at > i ? "bg-[var(--gt-ok)]" : "bg-[var(--gt-cta)] opacity-40"}`} style={{ left: "calc(-50% + 1.1rem)", right: "calc(50% + 1.1rem)" }} />}
+          <span className={`relative grid h-7 w-7 place-items-center rounded-full border text-sm font-semibold ${at > i + 1 ? "border-[var(--gt-ok)] bg-[var(--gt-ok)] text-white" : at === i + 1 ? "border-[var(--gt-cta)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-cta)] bg-[var(--gt-cta-soft)] text-[var(--gt-cta)]"}`}>
+            {at > i + 1 ? "✓" : i + 1}
+          </span>
+          <span className={at === i + 1 ? "font-semibold" : ""}>{label}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+type ReportRow = ReturnType<typeof studentReport>[number];
+function ReportTable({ rows, full = false }: { rows: ReportRow[]; full?: boolean }) {
+  const tone = (r: ReportRow) => (r.tone === "gold" ? "font-semibold text-[var(--gt-gold-ink)]" : r.tone === "up" ? "text-[var(--gt-win-ink)]" : "");
+  return (
+    <>
+      <table className="hidden w-full border-y border-[var(--gt-line)] text-left sm:table">
+        <thead className="bg-[var(--gt-cta-soft)] text-[15px]">
+          <tr><th className="px-6 py-2.5 font-medium">นักเรียน</th><th className="px-4 py-2.5 font-medium">ผลล่าสุด</th><th className="px-4 py-2.5 font-medium">จุดเด่น</th>{full && <th className="px-4 py-2.5 font-medium">รายการล่าสุด</th>}</tr>
+        </thead>
+        <tbody className="divide-y divide-[var(--gt-line)]">
+          {rows.map((r) => (
+            <tr key={r.student.id}>
+              <td className="px-6 py-2.5"><StudentName s={r.student} sub={full ? r.student.rank : undefined} /></td>
+              <td className="px-4 py-2.5">{r.latest?.games ? <Chip tone="win">{r.line}</Chip> : <span className="text-sm text-[var(--gt-muted)]">{r.line}</span>}</td>
+              <td className={`px-4 py-2.5 ${tone(r)}`}>{r.note}</td>
+              {full && <td className="px-4 py-2.5 text-sm text-[var(--gt-muted)]">{r.latest ? `${r.latest.title} · ${r.latest.division}` : "—"}</td>}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <ul className="divide-y divide-[var(--gt-line)] border-y border-[var(--gt-line)] sm:hidden">
+        {rows.map((r) => (
+          <li key={r.student.id} className="flex items-center gap-3 px-3 py-2.5">
+            <div className="min-w-0 flex-1">
+              <StudentName s={r.student} sub={r.latest?.games ? <span className="mt-0.5 inline-block rounded-md bg-[var(--gt-win-bg)] px-2 text-[var(--gt-win-ink)]">{r.line}</span> : r.line} />
+              {full && r.latest && <p className="mt-1 truncate pl-[3.25rem] text-xs text-[var(--gt-muted)]">{r.latest.title} · {r.latest.division}</p>}
+            </div>
+            <span className={`w-[38%] shrink-0 border-l border-[var(--gt-line)] pl-3 text-[13px] ${tone(r)}`}>{r.note}</span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function TrackTable({ rows, who, compact = false }: { rows: Track[]; who: Map<string, Student>; compact?: boolean }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-[var(--gt-line)]">
+      <table className={`w-full text-left text-sm ${compact ? "table-fixed" : ""}`}>
+        {compact && <colgroup><col /><col className="w-[6.25rem] sm:w-[8.5rem]" /><col className="w-[4.75rem]" /></colgroup>}
+        <thead className="bg-[var(--gt-cta-soft)]">
+          <tr><th className="px-3 py-2 font-medium">นักเรียน</th>{!compact && <th className="hidden px-3 py-2 font-medium md:table-cell">รายการ / รุ่น</th>}<th className="px-2 py-2 text-center font-medium">รอบ / โต๊ะ</th><th className="px-2 py-2 text-center font-medium">สถานะ</th></tr>
+        </thead>
+        <tbody className="divide-y divide-[var(--gt-line)]">
+          {rows.map((t) => {
+            const s = who.get(t.athlete_id); const o = OUTCOME[t.outcome];
+            return (
+              <tr key={`${t.athlete_id}-${t.tournament_id}-${t.division}`}>
+                <td className={`px-3 py-2 ${compact ? "" : "max-w-0"}`}>{s ? <StudentName s={s} small={compact} sub={compact ? undefined : <span className="md:hidden">{t.title} · {t.division}</span>} /> : "—"}</td>
+                {!compact && <td className="hidden px-3 py-2 md:table-cell"><Link href={`/tournaments/${t.tournament_id}`} className="hover:underline">{t.title}</Link><span className="block text-xs text-[var(--gt-muted)]">{t.division}</span></td>}
+                <td className="gt-num px-2 py-2 text-center">{compact ? <>รอบ {t.round}{t.board ? <span className="block sm:inline"><span className="hidden sm:inline"> / </span>โต๊ะ {t.board}</span> : null}</> : <span className="whitespace-nowrap">รอบ {t.round}{t.board ? ` / โต๊ะ ${t.board}` : ""}</span>}</td>
+                <td className="px-2 py-2 text-center"><Chip tone={o.tone as "win"}>{o.label}</Chip></td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------- menus */
+
+export function Students({ ov, canEdit, reload }: { ov: Overview; canEdit: boolean; reload: () => Promise<void> }) {
+  const [q, setQ] = useState("");
+  const list = useMemo(() => {
+    const k = q.trim().toLowerCase();
+    return ov.students.filter((s) => !k || `${s.name} ${s.nickname ?? ""} ${s.go_id ?? ""}`.toLowerCase().includes(k));
+  }, [ov.students, q]);
+  return (
+    <div className="space-y-4">
+      <SectionTitle>นักเรียน <span className="text-base font-normal text-[var(--gt-muted)]">{ov.students.length} คน</span></SectionTitle>
+      <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="ค้นหาชื่อ ชื่อเล่น หรือรหัสนักกีฬา" aria-label="ค้นหานักเรียน" className={inputCls} />
+      {list.length ? (
+        <ul className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+          {list.map((s) => (
+            <li key={s.id} className="gt-card flex items-center gap-3 p-3">
+              <div className="min-w-0 flex-1"><StudentName s={s} sub={[s.nickname && `“${s.nickname}”`, s.go_id].filter(Boolean).join(" · ") || undefined} /></div>
+              <span className="shrink-0 rounded-lg bg-[var(--gt-cta-soft)] px-2.5 py-1 text-sm font-semibold text-[var(--gt-cta)]">{s.rank ?? "—"}</span>
+            </li>
+          ))}
+        </ul>
+      ) : <Empty>{q ? "ไม่พบนักเรียนที่ค้นหา" : "ยังไม่มีนักเรียน — เพิ่มนักเรียนใหม่ได้ด้านล่าง หรือรายชื่อจะขึ้นเองเมื่อนักเรียนลงแข่งในนามสถาบันนี้"}</Empty>}
+      <AddStudent academyId={ov.academy.id} canEdit={canEdit} reload={reload} />
+      <p className="text-xs text-[var(--gt-muted)]">รายชื่อมาจากการแข่งขันที่ลงในนามสถาบันนี้ (ล่าสุด) และนักเรียนที่ครูเพิ่ม · ข้อมูลส่วนตัว เช่น วันเกิด เบอร์ผู้ปกครอง ไม่แสดงในหน้านี้</p>
+    </div>
+  );
+}
+
+function AddStudent({ academyId, canEdit, reload }: { academyId: string; canEdit: boolean; reload: () => Promise<void> }) {
+  const [name, setName] = useState(""); const [nick, setNick] = useState(""); const [rank, setRank] = useState("");
+  const [busy, setBusy] = useState(false); const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault(); setBusy(true); setMsg(null);
+    const { data, error } = await staffDb()!.rpc("gt_academy_add_student_v1", { p_academy: academyId, p_name: name, p_nickname: nick, p_rank: rank });
+    setBusy(false);
+    if (error || !data?.ok) { setMsg({ ok: false, text: portalError(data?.error) }); return; }
+    setMsg({ ok: true, text: `เพิ่ม ${name.trim()} แล้ว` }); setName(""); setNick(""); setRank("");
+    await reload();
+  };
+  return (
+    <form onSubmit={submit} className="gt-card space-y-3 p-4 sm:p-5" aria-labelledby="add-h">
+      <h3 id="add-h" className="text-lg font-bold">เพิ่มนักเรียนใหม่</h3>
+      {!canEdit && <p className="text-sm text-[var(--gt-warn)]">ใช้ได้เมื่อเจ้าของระบบอนุมัติสิทธิ์ครูแล้ว</p>}
+      <p className="text-sm text-[var(--gt-muted)]">สำหรับนักเรียนที่ยังไม่เคยแข่ง · นักเรียนที่เคยแข่งจะขึ้นในรายชื่อเองเมื่อลงแข่งในนามสถาบันนี้</p>
+      <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
+        <label className="block text-sm font-medium">ชื่อ–นามสกุล
+          <input required value={name} onChange={(e) => setName(e.target.value)} disabled={!canEdit} placeholder="เช่น ธนวัฒน์ ศรีสุข" className={`${inputCls} mt-1 font-normal`} />
+        </label>
+        <label className="block text-sm font-medium">ชื่อเล่น
+          <input value={nick} onChange={(e) => setNick(e.target.value)} disabled={!canEdit} maxLength={40} placeholder="ไม่บังคับ" className={`${inputCls} mt-1 font-normal`} />
+        </label>
+        <label className="block text-sm font-medium">ระดับฝีมือ
+          <select required value={rank} onChange={(e) => setRank(e.target.value)} disabled={!canEdit} className={`${selectCls} mt-1 min-h-12 w-full font-normal`}>
+            <option value="">เลือกระดับ</option>{RANK_OPTIONS.map((r: string) => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </label>
+      </div>
+      {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "text-[var(--gt-ok)]" : "text-[var(--gt-bad)]"}`}>{msg.text}</p>}
+      <button type="submit" disabled={!canEdit || busy} className="gt-cta-btn min-h-12 px-6 disabled:opacity-50">{busy ? "กำลังเพิ่ม…" : "เพิ่มนักเรียน"}</button>
+    </form>
+  );
+}
+
+export function Tracking({ ov, track, filters }: { ov: Overview; track: Track[] } & F) {
+  const pending = track.filter((t) => t.outcome === "pending").length;
+  return (
+    <div className="space-y-4">
+      <SectionTitle right={filters}>ติดตามผล</SectionTitle>
+      <p className="text-sm text-[var(--gt-muted)]">โต๊ะล่าสุดของนักเรียนแต่ละคนในแต่ละรุ่น{pending ? ` · รอผล ${pending} โต๊ะ` : ""} · กดชื่อรายการเพื่อดูผังคู่และผลแบบเรียลไทม์</p>
+      {track.length ? <TrackTable rows={track} who={byId(ov)} /> : <Empty>ยังไม่มีนักเรียนลงแข่งในช่วงที่เลือก</Empty>}
+    </div>
+  );
+}
+
+export function Awards({ ov, records, filters }: { ov: Overview; records: Rec[] } & F) {
+  const list = achievements(records, ov.students);
+  const medal = (p: number) => (p === 1 ? "🥇" : p === 2 ? "🥈" : p === 3 ? "🥉" : "");
+  return (
+    <div className="space-y-4">
+      <SectionTitle right={filters}>ผลงาน</SectionTitle>
+      {list.length ? (
+        <ul className="space-y-2.5">
+          {list.map((r) => (
+            <li key={`${r.athlete_id}-${r.division_id}`} className={`gt-card flex flex-wrap items-center gap-3 p-3 sm:flex-nowrap ${r.pos <= 3 ? "border-[var(--gt-gold)]" : ""}`}>
+              <span className="grid w-12 shrink-0 place-items-center text-2xl" aria-hidden="true">{medal(r.pos) || <span className="text-base font-semibold text-[var(--gt-muted)]">#{r.pos}</span>}</span>
+              <div className="min-w-0 flex-1"><StudentName s={r.student} sub={`${r.title} · ${r.division}`} /></div>
+              <div className="ml-auto text-right">
+                <p className={`font-semibold ${r.pos <= 3 ? "text-[var(--gt-gold-ink)]" : ""}`}>{r.label}</p>
+                <p className="text-xs text-[var(--gt-muted)]">จาก {r.field ?? "–"} คน · ชนะ {r.wins}/{r.games}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : <Empty>ยังไม่มีอันดับในช่วงที่เลือก (อันดับขึ้นเมื่อมีผลการแข่งขันที่ยืนยันแล้ว)</Empty>}
+      <p className="text-xs text-[var(--gt-muted)]">ใบประกาศดาวน์โหลดได้จากหน้าผลการแข่งขันของแต่ละรายการเมื่อผู้จัดออกใบประกาศแล้ว</p>
+    </div>
+  );
+}
+
+export function Stats({ ov, records, filters }: { ov: Overview; records: Rec[] } & F) {
+  const rows = studentStats(records, ov.students);
+  const t = totals(records, ov.students);
+  const pct = t.games ? Math.round((t.wins / t.games) * 100) : 0;
+  return (
+    <div className="space-y-4">
+      <SectionTitle right={filters}>สถิติ</SectionTitle>
+      <div className="gt-card flex flex-wrap items-center gap-x-6 gap-y-2 p-4">
+        <p className="text-sm text-[var(--gt-muted)]">ทั้งสถาบัน</p>
+        <p><b className="gt-num text-2xl">{t.games}</b> เกม</p>
+        <p className="text-[var(--gt-win-ink)]">ชนะ <b className="gt-num text-2xl">{t.wins}</b></p>
+        <p className="text-[var(--gt-loss-ink)]">แพ้ <b className="gt-num text-2xl">{t.losses}</b></p>
+        {t.draws > 0 && <p>เสมอ <b className="gt-num text-2xl">{t.draws}</b></p>}
+        <p>อัตราชนะ <b className="gt-num text-2xl">{pct}%</b></p>
+      </div>
+      <div className="gt-card overflow-x-auto">
+        <table className="w-full min-w-[34rem] text-left text-sm">
+          <thead className="bg-[var(--gt-cta-soft)]"><tr>
+            <th className="px-4 py-2.5 font-medium">นักเรียน</th><th className="px-2 py-2.5 text-center font-medium">รายการ</th><th className="px-2 py-2.5 text-center font-medium">เกม</th>
+            <th className="px-2 py-2.5 text-center font-medium">ชนะ</th><th className="px-2 py-2.5 text-center font-medium">แพ้</th><th className="w-[30%] px-4 py-2.5 font-medium">อัตราชนะ</th>
+          </tr></thead>
+          <tbody className="divide-y divide-[var(--gt-line)]">
+            {rows.map((r) => (
+              <tr key={r.student.id}>
+                <td className="px-4 py-2"><StudentName s={r.student} sub={r.student.rank} /></td>
+                <td className="gt-num px-2 text-center">{r.events}</td><td className="gt-num px-2 text-center">{r.games}</td>
+                <td className="gt-num px-2 text-center text-[var(--gt-win-ink)]">{r.wins}</td><td className="gt-num px-2 text-center text-[var(--gt-loss-ink)]">{r.losses}{r.draws ? <span className="text-[var(--gt-muted)]"> (+{r.draws} เสมอ)</span> : ""}</td>
+                <td className="px-4">
+                  {r.rate == null ? <span className="text-[var(--gt-muted)]">—</span> : (
+                    <span className="flex items-center gap-2">
+                      <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--gt-loss-bg)]" role="img" aria-label={`ชนะ ${r.rate}%`}>
+                        <span className="block h-full rounded-full bg-[var(--gt-ok)]" style={{ width: `${r.rate}%` }} />
+                      </span>
+                      <span className="gt-num w-11 text-right font-semibold">{r.rate}%</span>
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!rows.length && <div className="p-4"><Empty>ยังไม่มีนักเรียน</Empty></div>}
+      </div>
+    </div>
+  );
+}
+
+export function Reports({ ov, records, filters }: { ov: Overview; records: Rec[] } & F) {
+  const rows = studentReport(records, ov.students);
+  return (
+    <div className="space-y-4">
+      <SectionTitle right={filters}>รายงาน</SectionTitle>
+      <p className="text-sm text-[var(--gt-muted)]">ผลล่าสุดและจุดเด่นของนักเรียนทุกคน · กดชื่อเพื่อดูประวัติ สถิติ และคู่แข่งรายคน</p>
+      <section className="gt-card overflow-hidden">
+        {rows.length ? <ReportTable rows={rows} full /> : <div className="p-4"><Empty>ยังไม่มีนักเรียน</Empty></div>}
+      </section>
+      <button type="button" onClick={() => window.print()} className="gt-outline-btn min-h-11 px-5 text-sm print:hidden">พิมพ์ / บันทึกเป็น PDF</button>
+    </div>
+  );
+}
