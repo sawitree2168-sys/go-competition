@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shell, STONES_IMAGE } from "@/app/tournaments/[id]/_ui/chrome";
+import { Shell } from "@/app/tournaments/[id]/_ui/chrome";
 
 /** Square blue mark with a black and a white stone. */
 export function LogoMark({ className = "h-11 w-11" }: { className?: string }) {
@@ -27,12 +27,14 @@ export default function AuthFrame({ children, heroTitle = "ทุกการแ
               <Link href="/" className="ml-auto inline-flex min-h-11 items-center px-2 text-sm font-semibold text-[var(--gt-cta)] hover:underline sm:text-base">กลับหน้าหลัก</Link>
             </header>
             <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <div className="relative hidden min-h-[36rem] overflow-hidden bg-[#0b3b8f] lg:m-4 lg:block lg:rounded-2xl">
-                {/* eslint-disable-next-line @next/next/no-img-element -- decorative site photo */}
-                <img src={STONES_IMAGE} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-60" />
-                <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,46,120,.92)_0%,rgba(18,80,190,.55)_45%,rgba(10,40,110,.35)_100%)]" />
+              <div className="relative hidden min-h-[36rem] overflow-hidden bg-[#0a2fa0] lg:m-4 lg:block lg:rounded-2xl">
+                <picture>
+                  <source srcSet="/login-hero.webp" type="image/webp" />
+                  <img src="/login-hero.jpg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-bottom" />
+                </picture>
+                <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1/2 bg-[linear-gradient(180deg,rgba(8,30,120,.45),transparent)]" />
                 <div className="relative p-10">
-                  <p className="whitespace-pre-line text-5xl font-bold leading-tight text-white drop-shadow">{heroTitle}</p>
+                  <p className="whitespace-pre-line text-5xl font-bold leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,.35)]">{heroTitle}</p>
                   <span aria-hidden="true" className="mt-6 block h-1 w-28 rounded-full bg-[#4fb3ff]" />
                 </div>
               </div>
