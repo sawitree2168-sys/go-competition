@@ -140,6 +140,14 @@ function EventConsole({ id }: { id: string }) {
           })}
         </ul>
       </section>
+
+      <section className="gt-card flex flex-wrap items-center gap-3 p-4">
+        <div className="mr-auto min-w-0">
+          <h2 className="font-bold">3. กรรมการ</h2>
+          <p className="text-sm text-[var(--gt-muted)]">สร้างลิงก์ + รหัส 6 หลัก ให้กรรมการเช็คอินและลงผลจากมือถือ ไม่ต้องสมัครบัญชี</p>
+        </div>
+        <Link href={`/organizer/${id}/referees`} className="gt-gold-btn inline-flex min-h-12 items-center px-5">จัดการกรรมการ</Link>
+      </section>
     </div>
   );
 }
