@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { Prompt } from "next/font/google";
 import ThemeToggle, { themeBootScript } from "./ThemeToggle";
 import "./theme.css";
 
-const prompt = Prompt({ subsets: ["thai", "latin"], weight: ["400", "500", "600", "700"], variable: "--font-gt", display: "swap" });
 
 /** Existing site photo of stones on a board, reused for division and fallback poster thumbnails. */
 export const STONES_IMAGE =
@@ -11,7 +9,7 @@ export const STONES_IMAGE =
 
 export function Shell({ children, bottomBar, wide }: { children: React.ReactNode; bottomBar?: React.ReactNode; wide?: boolean }) {
   return (
-    <div className={`gt ${prompt.variable} min-h-screen w-full`} suppressHydrationWarning>
+    <div className="gt min-h-screen w-full" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       <div className={`mx-auto w-full ${wide ? "max-w-6xl" : "max-w-2xl"} ${bottomBar ? "pb-28" : "pb-10"}`}>{children}</div>
       {bottomBar && (
