@@ -121,8 +121,11 @@ export default function AthleteProfile({ athlete, rows, today, certs = [] }: { a
       <BackLink />
 
       {/* Header card */}
-      <section className="gt-card mt-3 overflow-hidden bg-[linear-gradient(120deg,var(--gt-surface),var(--gt-cta-soft))] p-4 sm:p-6">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+      <section className="gt-card relative mt-3 overflow-hidden bg-[linear-gradient(120deg,var(--gt-surface),var(--gt-cta-soft))] p-4 sm:p-6">
+        {/* Decorative backgrounds from the site owner: wide (computer) and framed (mobile); faded in dark mode. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden bg-[url(/profile-hero.webp)] bg-cover bg-[position:right_center] bg-no-repeat opacity-[var(--gt-hero-img)] sm:block xl:bg-[length:auto_150%] xl:bg-[position:right_24rem_center] xl:[mask-image:linear-gradient(to_right,#000_calc(100%-30rem),transparent_calc(100%-23rem))]" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[url(/profile-hero-m.png)] bg-[length:auto_100%] bg-[position:right_bottom] bg-no-repeat opacity-[var(--gt-hero-img)] sm:hidden" />
+        <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="relative shrink-0">
               <Avatar src={athlete.photo} size="h-24 w-24 sm:h-40 sm:w-40" ring />
