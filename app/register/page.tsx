@@ -30,7 +30,7 @@ export default async function RegisterIndex() {
       <div className="relative left-1/2 w-screen -translate-x-1/2"><SiteBar current="/tournaments" /></div>
       <main className="mx-auto max-w-4xl px-3 pt-5 sm:px-4">
         <h1 className="text-2xl font-bold sm:text-3xl">สมัครแข่งขัน</h1>
-        <p className="mt-1 text-[var(--gt-muted)]">แตะโปสเตอร์ของรายการที่ต้องการสมัคร</p>
+        <p className="mt-1 text-[var(--gt-muted)]">แตะโปสเตอร์ของรายการที่ต้องการสมัคร · สมัครแล้ว? <Link href="/my-applications" className="font-semibold text-[var(--gt-cta)] underline">ดูสถานะการสมัคร</Link></p>
         {rows.length ? (
           <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {rows.map((r) => (

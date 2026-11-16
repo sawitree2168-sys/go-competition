@@ -67,6 +67,11 @@ export default function AccountView() {
           {n.href && <Link href={n.href} className="gt-cta-btn mt-3 inline-flex min-h-11 items-center px-5">{n.cta}</Link>}
         </section>
       ))}
+      <section className="gt-card p-5">
+        <h2 className="font-bold">สถานะการสมัคร</h2>
+        <p className="mt-1 text-sm text-[var(--gt-muted)]">ใบสมัครแข่งขันในบัญชีนี้ · ขอถอนตัว เปลี่ยนคน หรือเปลี่ยนรุ่นตามเงื่อนไขของผู้จัด</p>
+        <Link href="/my-applications" className="gt-outline-btn mt-3 inline-flex min-h-11 items-center px-5 font-semibold">ดูสถานะการสมัคร</Link>
+      </section>
       <button type="button" onClick={signOut} className="gt-outline-btn min-h-12 w-full font-semibold">ออกจากระบบ</button>
     </div>
   );
