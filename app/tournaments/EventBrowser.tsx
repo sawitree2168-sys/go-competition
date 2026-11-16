@@ -35,18 +35,17 @@ const pick = (id: string) => FALLBACKS[[...id].reduce((n, c) => (n * 31 + c.char
 function Banner({ e }: { e: EventCard }) {
   if (e.poster_url) {
     return (
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-[#0a2f6e] sm:aspect-[10/9]">
-        <img src={e.poster_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-70 blur-md" />
-        <img src={e.poster_url} alt={`โปสเตอร์ ${e.title}`} loading="lazy" className="relative mx-auto h-full w-auto max-w-full object-contain drop-shadow-lg" />
+      <div className="gt-event-poster">
+        <img src={e.poster_url} alt={`โปสเตอร์ ${e.title}`} loading="lazy" decoding="async" />
       </div>
     );
   }
   // No poster yet: a Go illustration with the event name on it.
   return (
-    <div className="relative aspect-square overflow-hidden rounded-xl bg-[#0b1a3a] sm:aspect-[10/9]">
+    <div className="gt-event-poster gt-event-poster-fallback relative overflow-hidden bg-[#0b1a3a]">
       <img src={pick(e.id)} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
       <span aria-hidden="true" className="gt-poster-veil absolute inset-0" />
-      <p className="relative px-5 pt-6 text-right gt-poster-ink text-[28px] font-extrabold uppercase leading-[1.02] [transform:skewX(-8deg)] sm:text-3xl">{e.title}</p>
+      <p className="relative px-5 pt-6 text-right gt-poster-ink text-lg font-bold uppercase leading-snug">{e.title}</p>
     </div>
   );
 }
@@ -91,14 +90,14 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
 
   return (
     <div>
-      <div className="grid gap-2.5 lg:flex lg:items-center lg:gap-3">
-        <label className="relative block lg:w-80">
+      <div className="gt-directory-tools">
+        <label className="gt-directory-search relative block">
           <span className="sr-only">ค้นหารายการแข่งขัน</span>
           <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--gt-muted)]" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" strokeLinecap="round" /></svg>
           <input type="search" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="ค้นหารายการแข่งขัน…"
             className="block min-h-12 w-full rounded-full border border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)] pl-12 pr-4 text-base outline-none focus:border-[var(--gt-cta)] focus:ring-2 focus:ring-[var(--gt-cta)]/25" />
         </label>
-        <label className="relative block lg:w-36">
+        <label className="gt-directory-year relative block">
           <span className="sr-only">ปี</span>
           <select value={year} onChange={(e) => { setYear(e.target.value); setPage(1); }}
             className="block min-h-12 w-full appearance-none rounded-full border border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)] pl-5 pr-10 text-base font-semibold outline-none focus:border-[var(--gt-cta)]">
@@ -107,39 +106,46 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
           </select>
           <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </label>
-        <span aria-hidden="true" className="hidden h-8 w-px bg-[var(--gt-dash-panel-line)] lg:block" />
-        <div role="group" aria-label="สถานะการแข่งขัน" className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:flex-1 lg:flex-nowrap">
+        <div role="group" aria-label="สถานะการแข่งขัน" className="gt-directory-filters">
           {FILTERS.map((f) => (
             <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => { setPicked(f.id); setPage(1); }}
-              className={`min-h-11 whitespace-nowrap rounded-full border px-5 text-sm font-semibold sm:flex-1 ${filter === f.id ? "border-transparent bg-[var(--gt-cta)] text-white shadow-[0_0_16px_-4px_var(--gt-cta)]" : "border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)]"}`}>{f.label}</button>
+              className={`min-h-11 shrink-0 whitespace-nowrap rounded-full border px-4 text-sm font-semibold ${filter === f.id ? "border-transparent bg-[var(--gt-cta)] text-white" : "border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)]"}`}>{f.label}</button>
           ))}
         </div>
       </div>
 
-      <p id="event-results" className="mt-5 scroll-mt-4 text-sm text-[var(--gt-muted)]" aria-live="polite">{shown.length ? `พบ ${shown.length} รายการ` : ""}</p>
+      <div className="gt-directory-results" id="event-results">
+        <h2>รายการแข่งขัน</h2>
+        <p className="text-sm text-[var(--gt-muted)]" aria-live="polite">{shown.length} รายการ</p>
+      </div>
       {slice.length ? (
-        <ul className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+        <ul className="gt-event-grid">
           {slice.map((e) => {
             const a = action(e);
             const mobileLabel = e.status === "open" ? "ดูรายละเอียดและสมัคร" : a.label;
             return (
-              <li key={e.id} className="gt-dash-panel flex flex-col p-2.5">
-                <Link href={`/tournaments/${e.id}`} aria-label={e.title} className="block rounded-xl"><Banner e={e} /></Link>
-                <div className="flex flex-1 flex-col px-2 pb-1.5 pt-3">
-                  <span aria-hidden="true" className="mb-2.5 h-0.5 w-full rounded-full bg-[linear-gradient(90deg,transparent,var(--gt-cta),transparent)] opacity-60" />
+              <li key={e.id} className="gt-event-card">
+                <Link href={`/tournaments/${e.id}`} aria-label={e.title} className="gt-event-poster-link"><Banner e={e} /></Link>
+                <div className="gt-event-info">
                   <span className={`self-start rounded-md px-2.5 py-0.5 text-xs font-bold ${CHIP[e.status]}`}>{STATUS_LABEL[e.status]}</span>
-                  <h2 className="mt-1.5 text-lg font-bold uppercase leading-snug sm:text-xl">{e.title}</h2>
-                  <p className="mt-1 flex items-center gap-2 text-[15px]"><CalIcon />{thaiDate(e.event_date, "short") ?? "รออัปเดตวันแข่งขัน"}</p>
-                  <p className="mt-0.5 flex items-center gap-2 text-[15px]"><PinIcon />{e.venue ?? "สถานที่รอยืนยัน"}</p>
-                  {e.kinds && <p className="mt-1 text-sm text-[var(--gt-muted)]">{e.kinds}</p>}
+                  <h2 className="gt-event-title">{e.title}</h2>
+                  <p className="gt-event-meta mt-2 flex items-start gap-2 text-sm"><CalIcon />{thaiDate(e.event_date, "short") ?? "รออัปเดตวันแข่งขัน"}</p>
+                  <p className="gt-event-meta mt-1 flex items-start gap-2 text-sm"><PinIcon />{e.venue ?? "สถานที่รอยืนยัน"}</p>
+                  {e.kinds && <p className="mt-1 text-xs leading-relaxed text-[var(--gt-muted)]">{e.kinds}</p>}
                   <div className="mt-auto pt-3">
-                    <Link href={`/tournaments/${e.id}`} className="gt-cta-btn flex min-h-11 items-center justify-center gap-1.5 text-[15px] font-bold sm:hidden">{mobileLabel} <span aria-hidden="true">→</span></Link>
-                    <Link href={`/tournaments/${e.id}`} className="hidden min-h-11 items-center gap-1.5 text-[15px] font-bold text-[var(--gt-cta)] hover:underline sm:inline-flex">{e.status === "open" ? "ดูรายละเอียดและสมัคร" : a.label} <span aria-hidden="true">→</span></Link>
+                    <Link href={`/tournaments/${e.id}`} className="gt-cta-btn gt-event-action flex min-h-11 items-center justify-center gap-1.5 px-2 text-sm font-semibold">{mobileLabel}<span aria-hidden="true">→</span></Link>
                   </div>
                 </div>
               </li>
             );
           })}
+          {filter === "all" && !q.trim() && pages === 1 && slice.length < 3 &&
+            Array.from({ length: 3 - slice.length }, (_, i) => (
+              <li key={`future-${i}`} className="gt-event-placeholder" aria-label="พื้นที่สำหรับรายการแข่งขันในอนาคต">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" /><path d="m4 17 5-5 4 4 3-3 5 5" /><circle cx="15" cy="8" r="1.5" /></svg>
+                <p>พื้นที่สำหรับรายการถัดไป</p>
+              </li>
+            ))}
         </ul>
       ) : (
         <div className="gt-card mt-2 px-5 py-8 text-center">

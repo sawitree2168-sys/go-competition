@@ -171,3 +171,17 @@
 .gt[data-gt-theme="dark"] .gt-poster-ink { color: #fff; text-shadow: 0 2px 10px rgba(47,118,224,.8); }
 @media (prefers-color-scheme: dark) { .gt:not([data-gt-theme="light"]) .gt-home-glow { opacity: .9; mix-blend-mode: screen; } }
 .gt[data-gt-theme="dark"] .gt-home-glow { opacity: .9; mix-blend-mode: screen; }
+
+/* Keep all three mobile controls visible, including on a 320px screen. */
+.gt-sitebar-logo { min-width: 0; flex-shrink: 1; }
+.gt-sitebar-actions { flex-shrink: 0; }
+@media (max-width: 639px) {
+  .gt-sitebar > div { gap: 5px; padding: 10px 8px; }
+  .gt-sitebar-logo { gap: 6px; }
+  .gt-sitebar-name { font-size: clamp(12px, 3.3vw, 15px); letter-spacing: 0; }
+  .gt-sitebar-stones > span { width: 22px; height: 22px; }
+  .gt-sitebar-logo > span:nth-child(2) { height: 22px; }
+  .gt-sitebar-actions { gap: 0; }
+  .gt-sitebar-actions > a, .gt-sitebar-actions button { width: 44px; height: 44px; min-width: 44px; }
+  .gt-sitebar-actions > a:first-child { border-color: transparent; padding-inline: 0; }
+}
