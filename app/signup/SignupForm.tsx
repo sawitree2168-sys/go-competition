@@ -5,9 +5,29 @@ import { useState } from "react";
 import { setRemember, staffDb } from "@/app/organizer/_lib/staff";
 import { MEMBER_ROLES, authErrorMessage, destinationFor, looksLikeEmail } from "@/lib/auth-routing.mjs";
 import { Field, FormError, FormNote, PasswordField, inputCls } from "@/app/login/_ui/fields";
+import AthleteSignup from "./AthleteSignup";
 
 /** Member sign-up: name, role, institution, e-mail, password. Organiser rights are granted separately by the site owner. */
 export default function SignupForm() {
+  const [kind, setKind] = useState<"athlete" | "email">("athlete");
+  return (
+    <div>
+      <h1 className="text-3xl font-bold sm:text-4xl">สมัครสมาชิก</h1>
+      <p className="mt-1 text-[var(--gt-muted)]">สร้างบัญชี GO TOURNAMENT</p>
+      <div role="tablist" aria-label="วิธีสมัคร" className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
+        {([["athlete", "นักกีฬา (ไม่ใช้อีเมล)"], ["email", "สมัครด้วยอีเมล"]] as const).map(([k, l]) => (
+          <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
+            className={`min-h-11 rounded-xl px-2 text-[15px] font-semibold ${kind === k ? "bg-[var(--gt-cta)] text-white" : "text-[var(--gt-ink)]"}`}>{l}</button>
+        ))}
+      </div>
+      <p className="mt-2 text-sm text-[var(--gt-muted)]">{kind === "athlete" ? "นักกีฬาที่มีชื่อในทะเบียน: ยืนยันด้วยชื่อ-นามสกุล แล้วตั้งรหัสผ่าน เข้าระบบด้วยรหัส GO / เลขดั้ง / ชื่อ" : "ผู้ปกครอง ครูสถาบัน ผู้จัดการแข่งขัน"}</p>
+      <div className="mt-5">{kind === "athlete" ? <AthleteSignup /> : <EmailSignup />}</div>
+      <p className="mt-6 text-center">มีบัญชีแล้ว? <Link href="/login" className="font-bold text-[var(--gt-cta)] hover:underline">เข้าสู่ระบบ</Link></p>
+    </div>
+  );
+}
+
+function EmailSignup() {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [inst, setInst] = useState("");
@@ -64,9 +84,7 @@ export default function SignupForm() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold sm:text-4xl">สมัครสมาชิก</h1>
-      <p className="mt-1 text-[var(--gt-muted)]">สร้างบัญชี GO TOURNAMENT</p>
-      <form onSubmit={submit} noValidate className="mt-6 space-y-4">
+      <form onSubmit={submit} noValidate className="space-y-4">
         <Field label="ชื่อ-นามสกุล" icon="person" value={name} onChange={(e) => setName(e.target.value)} placeholder="ชื่อ นามสกุล" autoComplete="name" maxLength={120} />
         <label className="block">
           <span className="font-semibold">ประเภทผู้ใช้</span>
@@ -87,7 +105,6 @@ export default function SignupForm() {
         <FormError text={error} />
         <button type="submit" disabled={busy} className="gt-cta-btn flex min-h-12 w-full items-center justify-center text-lg disabled:opacity-60">{busy ? "กำลังสมัคร…" : "สมัครสมาชิก"}</button>
       </form>
-      <p className="mt-6 text-center">มีบัญชีแล้ว? <Link href="/login" className="font-bold text-[var(--gt-cta)] hover:underline">เข้าสู่ระบบ</Link></p>
     </div>
   );
 }

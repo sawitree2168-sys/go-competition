@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
 import { MEMBER_ROLES } from "@/lib/auth-routing.mjs";
 
-type Me = { email: string; name: string; role: string; institution: string | null; staff: boolean; academies: number };
+type Me = { email: string; name: string; role: string; institution: string | null; staff: boolean; academies: number; athlete: { id: string; go_id: string; name: string; rank: string | null; has_profile: boolean } | null };
 
-/** Signed-in member's page. Linking the account to athlete records comes in the next phase. */
+/** Signed-in member's page: role, GO ID for athletes, and where to go next. */
 export default function AccountView() {
   const [me, setMe] = useState<Me | null | "out">(null);
 
@@ -24,6 +24,7 @@ export default function AccountView() {
         role: meta.member_role ?? "", institution: meta.institution ?? null,
         staff: Boolean(access?.platform_role) || ((access?.organizers ?? []) as { status: string }[]).some((o) => o.status === "active"),
         academies: ((access?.academies ?? []) as unknown[]).length,
+        athlete: access?.athlete ?? null,
       });
     });
   }, []);
@@ -41,9 +42,10 @@ export default function AccountView() {
   const roleLabel = MEMBER_ROLES.find((r) => r.id === me.role)?.label ?? "สมาชิก";
   const signOut = async () => { await staffDb()?.auth.signOut(); window.location.assign("/"); };
   const next: { title: string; body: string; href?: string; cta?: string }[] = [];
+  if (me.athlete) next.push({ title: `รหัส GO ของคุณ: ${me.athlete.go_id}`, body: `ใช้รหัส GO (หรือเลขดั้ง / ชื่อ-นามสกุล) + รหัสผ่าน เพื่อเข้าสู่ระบบครั้งต่อไป · ${me.athlete.has_profile ? "ดูประวัติ สถิติ และใบประกาศได้ที่โปรไฟล์" : "โปรไฟล์ (ประวัติ สถิติ ใบประกาศ) จะเปิดเมื่อลงแข่งรายการแรกในระบบนี้"}`, href: me.athlete.has_profile ? `/athletes/${me.athlete.id}` : undefined, cta: "ดูโปรไฟล์ของฉัน →" });
   if (me.staff) next.push({ title: "หน้าผู้จัดการแข่งขัน", body: "จัดการรายการแข่งขัน จับคู่ ลงผล กรรมการ และใบสมัคร", href: "/organizer", cta: "ไปหน้าผู้จัด →" });
   else if (me.role === "organizer") next.push({ title: "รอเปิดสิทธิ์ผู้จัด", body: "แจ้งเจ้าของระบบ GO TOURNAMENT ให้เพิ่มอีเมลนี้เป็นผู้จัด แล้วเข้าสู่ระบบใหม่" });
-  if (me.role === "athlete" || me.role === "parent") next.push({ title: "ผูกบัญชีกับรหัสนักกีฬา", body: "เร็ว ๆ นี้: ดูประวัติ สถิติ และใบประกาศของนักกีฬาจากบัญชีนี้ และเข้าสู่ระบบด้วยรหัสนักกีฬาได้" });
+  if (!me.athlete && (me.role === "athlete" || me.role === "parent")) next.push({ title: "ผูกบัญชีกับรหัสนักกีฬา", body: "เร็ว ๆ นี้: ดูประวัติ สถิติ และใบประกาศของนักกีฬาจากบัญชีนี้ และเข้าสู่ระบบด้วยรหัสนักกีฬาได้" });
   if (me.academies || me.role === "teacher") next.push({ title: "หน้าสถาบัน", body: "ดูแลนักเรียน ติดตามผล สถิติ และสมัครแข่งแบบกลุ่ม", href: "/institution", cta: me.academies ? "ไปหน้าสถาบัน →" : "เลือกสถาบันของคุณ →" });
   next.push({ title: "การแข่งขันทั้งหมด", body: "ดูรายการ สมัครแข่งขัน ติดตามผล", href: "/tournaments", cta: "ดูการแข่งขัน →" });
 
@@ -56,7 +58,7 @@ export default function AccountView() {
           <span className="rounded-full bg-[var(--gt-cta)] px-3 py-0.5 font-semibold text-white">{me.staff ? "ผู้จัด / ผู้ดูแลระบบ" : roleLabel}</span>
           {me.institution && <span className="rounded-full bg-[var(--gt-cta-soft)] px-3 py-0.5">{me.institution}</span>}
         </p>
-        <p className="mt-2 text-sm text-[var(--gt-muted)]">{me.email}</p>
+        {!me.email.endsWith("@athlete.go-tournament.invalid") && <p className="mt-2 text-sm text-[var(--gt-muted)]">{me.email}</p>}
       </section>
       {next.map((n) => (
         <section key={n.title} className="gt-card p-5">

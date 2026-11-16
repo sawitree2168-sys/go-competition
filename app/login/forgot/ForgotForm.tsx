@@ -4,9 +4,65 @@ import Link from "next/link";
 import { useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
 import { authErrorMessage, looksLikeEmail } from "@/lib/auth-routing.mjs";
-import { Field, FormError, FormNote } from "../_ui/fields";
+import { Field, FormError, FormNote, PasswordField } from "../_ui/fields";
+import { setRemember } from "@/app/organizer/_lib/staff";
+import { callAthlete, identifierKind } from "@/lib/athlete-auth.mjs";
 
 export default function ForgotForm() {
+  const [kind, setKind] = useState<"athlete" | "email">("athlete");
+  return (
+    <div>
+      <h1 className="text-3xl font-bold sm:text-4xl">ลืมรหัสผ่าน</h1>
+      <div role="tablist" aria-label="ประเภทบัญชี" className="mt-4 grid grid-cols-2 gap-1 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
+        {([["athlete", "นักกีฬา (ไม่มีอีเมล)"], ["email", "บัญชีอีเมล"]] as const).map(([k, l]) => (
+          <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
+            className={`min-h-11 rounded-xl px-2 text-[15px] font-semibold ${kind === k ? "bg-[var(--gt-cta)] text-white" : "text-[var(--gt-ink)]"}`}>{l}</button>
+        ))}
+      </div>
+      <div className="mt-5">{kind === "athlete" ? <AthleteReset /> : <EmailReset />}</div>
+    </div>
+  );
+}
+
+/** Athletes without e-mail: ask the site owner for a one-time code, then set a new password here. */
+function AthleteReset() {
+  const [who, setWho] = useState("");
+  const [code, setCode] = useState("");
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault(); setError("");
+    const k = identifierKind(who);
+    if (k !== "go" && k !== "dan" && k !== "name") return setError("กรุณากรอกรหัส GO เลขดั้ง หรือชื่อ-นามสกุล");
+    const c = code.trim().toLowerCase().replace(/\s+/g, "");
+    if (!/^[a-f0-9]{24}$/.test(c)) return setError("รหัสชั่วคราวต้องเป็นตัวอักษร a–f และตัวเลข 24 ตัว ตามที่ผู้ดูแลระบบให้");
+    if (pw.length < 8) return setError("รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร");
+    if (pw !== pw2) return setError("รหัสผ่านทั้งสองช่องไม่ตรงกัน");
+    const db = staffDb(); if (!db) return setError("ระบบยังไม่พร้อม กรุณาลองใหม่ภายหลัง");
+    setBusy(true);
+    const r = await callAthlete("set-password", { identifier: who, code: c, password: pw });
+    if (!r.ok || !r.data?.session) { setBusy(false); return setError(r.data?.message ?? "ตั้งรหัสผ่านไม่สำเร็จ"); }
+    setRemember(true);
+    await db.auth.setSession(r.data.session);
+    window.location.assign("/account");
+  };
+  return (
+    <form onSubmit={submit} noValidate className="space-y-4">
+      <FormNote tone="info" text="นักกีฬาที่ไม่ได้ใช้อีเมล: ติดต่อผู้ดูแลระบบ (ครูเล็ก) เพื่อขอ “รหัสชั่วคราว” ใช้ได้ครั้งเดียวภายใน 24 ชั่วโมง แล้วตั้งรหัสผ่านใหม่ที่นี่" />
+      <Field label="รหัส GO / เลขดั้ง / ชื่อ-นามสกุล" icon="person" value={who} onChange={(e) => setWho(e.target.value)} autoCapitalize="none" spellCheck={false} />
+      <Field label="รหัสชั่วคราวจากผู้ดูแลระบบ" value={code} onChange={(e) => setCode(e.target.value)} autoCapitalize="none" spellCheck={false} autoComplete="one-time-code" placeholder="24 ตัวอักษร" />
+      <PasswordField label="รหัสผ่านใหม่" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" hint="อย่างน้อย 8 ตัวอักษร" />
+      <PasswordField label="ยืนยันรหัสผ่านใหม่" value={pw2} onChange={(e) => setPw2(e.target.value)} autoComplete="new-password" />
+      <FormError text={error} />
+      <button type="submit" disabled={busy} className="gt-cta-btn flex min-h-12 w-full items-center justify-center text-lg disabled:opacity-60">{busy ? "กำลังตั้งรหัสผ่าน…" : "ตั้งรหัสผ่านใหม่"}</button>
+      <p className="text-center"><Link href="/login" className="font-semibold text-[var(--gt-cta)] hover:underline">← กลับไปหน้าเข้าสู่ระบบ</Link></p>
+    </form>
+  );
+}
+
+function EmailReset() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -28,8 +84,7 @@ export default function ForgotForm() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold sm:text-4xl">ลืมรหัสผ่าน</h1>
-      <p className="mt-1 text-[var(--gt-muted)]">กรอกอีเมลที่ใช้สมัคร ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้</p>
+      <p className="text-[var(--gt-muted)]">กรอกอีเมลที่ใช้สมัคร ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้</p>
       {sent ? (
         <div className="mt-6 space-y-4">
           <FormNote text={`ถ้า ${email.trim()} มีบัญชีอยู่ จะได้รับอีเมลภายในไม่กี่นาที (ตรวจในโฟลเดอร์ Junk/Spam ด้วย) แล้วกดลิงก์ในอีเมลเพื่อตั้งรหัสผ่านใหม่`} />
