@@ -11,6 +11,7 @@ import PairingsBoard from "../../_ui/PairingsBoard";
 import RegisterPanel from "../../_ui/RegisterPanel";
 import NewsPanel, { type RoundItem } from "../../_ui/NewsPanel";
 import { roundNews } from "@/lib/round-news.mjs";
+import LiveRefresh from "../../_ui/LiveRefresh";
 
 // Served from cache and refreshed in the background at most every 30 s (see PUBLIC_CACHE_SECONDS).
 export const revalidate = 30;
@@ -32,7 +33,11 @@ function Notice({ title, body, icon = "clock" }: { title: string; body: string; 
 
 export default async function DivisionPage({ params }: { params: Promise<{ id: string; divisionId: string }> }) {
   const { id, divisionId } = await params;
-  const { event, divisions, entrants, matches, byes, standings, people, announcements } = await loadDivisionPage(publicDb(), id, divisionId);
+  const db = publicDb();
+  const [{ event, divisions, entrants, matches, byes, standings, people, announcements }, live] = await Promise.all([
+    loadDivisionPage(db, id, divisionId),
+    db ? db.rpc("gt_division_live_v1", { p_division: divisionId }).then((r) => (r.error ? null : (r.data as string | null)), () => null) : Promise.resolve(null),
+  ]);
   const division = divisions.find((d) => d.id === divisionId);
 
   if (!event || !division) {
@@ -198,6 +203,8 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
           </dl>
           {division.seats_limit != null && <p className="mt-2 text-right text-xs text-[var(--gt-muted)]">รับสูงสุด {division.seats_limit} คน{division.entry_fee_thb != null ? ` · ค่าสมัคร ${division.entry_fee_thb} บาท` : ""}</p>}
         </section>
+
+        <LiveRefresh divisionId={divisionId} fingerprint={live} />
 
         <div className="mt-3 grid grid-cols-2 gap-3">
           <a href={`/tournaments/${id}#rules`} className="gt-outline-btn flex min-w-0 items-center justify-center gap-2 px-2 py-3 text-sm font-semibold"><Icon name="doc" className="h-5 w-5 shrink-0 text-[var(--gt-brand)]" /><span className="truncate">คุณสมบัติและกติกา</span></a>

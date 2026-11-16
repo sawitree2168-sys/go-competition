@@ -5,6 +5,7 @@ import { use, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import ThemeToggle from "../../tournaments/[id]/_ui/ThemeToggle";
+import { pingLive } from "../../tournaments/[id]/_ui/live";
 import { DEFAULT_AVATAR } from "../../tournaments/[id]/_ui/MatchCard";
 import { resultLabel, staffErrorMessage } from "@/lib/competition-day.mjs";
 import { METHODS, buildResult, formFromResult, needsWinner, summaryLine } from "@/lib/referee-result.mjs";
@@ -173,7 +174,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
 
   useEffect(() => {
     queueMicrotask(load);
-    const t = window.setInterval(load, 20000); // other referees' check-ins and results appear without reloading
+    const t = window.setInterval(() => { if (document.visibilityState === "visible") load(); }, 10000); // other referees' and the organiser's changes appear without reloading
     return () => window.clearInterval(t);
   }, [load]);
 
@@ -182,6 +183,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
     if (e) { setError(staffErrorMessage(e.message)); return false; }
     if (!data?.ok) { setError(ERRORS[data?.error] ?? "ทำรายการไม่สำเร็จ"); return false; }
     setError("");
+    pingLive(divisionId);
     await load();
     return true;
   };

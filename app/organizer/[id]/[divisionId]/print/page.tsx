@@ -39,7 +39,9 @@ function Sheet({ divisionId, q }: { divisionId: string; q: Search }) {
     );
   }
 
-  const round = Number(q.round) || 1;
+  // round=latest: always the newest round of this pool (projector mode — follows new rounds by itself).
+  const lastOfPool = Math.max(0, ...data.matches.filter((m) => poolKey(m.pool_label) === pool).map((m) => m.round_number), ...data.byes.filter((b) => poolKey(b.pool_label) === pool).map((b) => b.round_number));
+  const round = q.round === "latest" ? lastOfPool || 1 : Number(q.round) || 1;
   const byId = new Map(data.regs.map((r) => [r.athlete_id, r]));
   const tables = data.matches.filter((m) => poolKey(m.pool_label) === pool && m.round_number === round).sort((a, b) => (a.board_number ?? 0) - (b.board_number ?? 0));
   const bye = data.byes.find((b) => poolKey(b.pool_label) === pool && b.round_number === round);

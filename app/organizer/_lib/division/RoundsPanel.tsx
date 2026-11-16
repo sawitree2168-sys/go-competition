@@ -111,7 +111,8 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
                   className={`gt-num min-h-11 min-w-11 rounded-xl border ${r === shown ? "border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] font-bold" : "border-[var(--gt-line)]"}`}>{r}</button>
               ))}
             </div>
-            <Link href={printHref} target="_blank" className="gt-outline-btn inline-flex min-h-11 items-center px-3 text-sm">พิมพ์ / ฉายจอ</Link>
+            <Link href={printHref} target="_blank" className="gt-outline-btn inline-flex min-h-11 items-center px-3 text-sm">พิมพ์</Link>
+            <Link href={`/organizer/${eventId}/${data.division.id}/print?round=latest${pool ? `&pool=${pool}` : ""}`} target="_blank" className="gt-outline-btn inline-flex min-h-11 items-center px-3 text-sm" title="อัปเดตผลและรอบใหม่เองอัตโนมัติ">ฉายจอสด</Link>
           </div>
           {latest && seats > 0 && (
             <p className="flex flex-wrap gap-x-4 text-sm">
@@ -208,71 +209,107 @@ function TableCard({ m, byId, score, editable, reload }: { m: Match; byId: Map<s
   );
 }
 
+type Slot = { board: number; side: "black" | "white" } | { board: 0; side: "bye" };
+
 function Proposal({ round, pool, regs, byId, matches, byes, score, divisionId, reload }: {
   round: number; pool: string; regs: Reg[]; byId: Map<string, Reg>; matches: Match[]; byes: { athlete_id: string }[];
   score: Map<string, number>; divisionId: string; reload: () => Promise<void>;
 }) {
   const [seed, setSeed] = useState(1);
-  const [edited, setEdited] = useState<{ seed: number; tables: Table[] } | null>(null);
-  const [pick, setPick] = useState<{ board: number; side: "black" | "white" } | null>(null);
+  const [edited, setEdited] = useState<{ seed: number; tables: Table[]; bye: string | null } | null>(null);
+  const [pick, setPick] = useState<Slot | null>(null);
   const action = useAction();
 
-  const proposal = useMemo(() => {
+  const { proposal, players } = useMemo(() => {
     const players = pairingPlayers(regs.map((r) => ({ athlete_id: r.athlete_id, rank: r.competition_rank_reference ?? r.gt_athletes?.current_rank })), matches, byes, `${divisionId}-${pool}-${round}-${seed}`);
-    return proposeSwissRound({ players, previousMatches: matches, previousByes: byes });
+    return { players, proposal: proposeSwissRound({ players, previousMatches: matches, previousByes: byes }) };
   }, [regs, matches, byes, divisionId, pool, round, seed]);
 
-  const base: Table[] = proposal.tables.map((t: { board: number; blackAthleteId: string; whiteAthleteId: string }) => ({ board: t.board, black: t.blackAthleteId, white: t.whiteAthleteId }));
-  const tables = edited && edited.seed === seed ? edited.tables : base;
+  // Automatic search gave up (very large or tangled field): start from score order and let the organiser fix it by hand.
+  const manual = proposal.requiresManualReview && proposal.reason === "search_limit_reached";
+  const base = useMemo((): { tables: Table[]; bye: string | null } => {
+    if (!proposal.requiresManualReview) {
+      return { tables: proposal.tables.map((t: { board: number; blackAthleteId: string; whiteAthleteId: string }) => ({ board: t.board, black: t.blackAthleteId, white: t.whiteAthleteId })), bye: proposal.byeAthleteId };
+    }
+    const order = [...players].sort((a: { score: number; strength: number }, b: { score: number; strength: number }) => b.score - a.score || b.strength - a.strength).map((p: { id: string }) => p.id);
+    const bye = order.length % 2 ? order.pop()! : null;
+    const tables: Table[] = [];
+    for (let i = 0; i < order.length; i += 2) tables.push({ board: i / 2 + 1, black: order[i + 1], white: order[i] });
+    return { tables, bye };
+  }, [proposal, players]);
+  const tables = edited && edited.seed === seed ? edited.tables : base.tables;
+  const bye = edited && edited.seed === seed ? edited.bye : base.bye;
   const played = useMemo(() => new Set(matches.map((m) => pairKey(m.black_athlete_id, m.white_athlete_id))), [matches]);
+  const hadBye = useMemo(() => new Set(byes.map((b) => b.athlete_id)), [byes]);
   const rematches = tables.filter((t) => played.has(pairKey(t.black, t.white))).map((t) => t.board);
 
-  const swapColours = (board: number) => setEdited({ seed, tables: tables.map((t) => (t.board === board ? { ...t, black: t.white, white: t.black } : t)) });
-  const tapPlayer = (board: number, side: "black" | "white") => {
-    if (!pick) { setPick({ board, side }); return; }
-    if (pick.board === board && pick.side === side) { setPick(null); return; }
+  const at = (tbl: Table[], b: string | null, s: Slot) => (s.side === "bye" ? b : tbl.find((t) => t.board === s.board)![s.side]);
+  const put = (tbl: Table[], s: Slot, id: string): string | null | void => {
+    if (s.side === "bye") return id;
+    tbl.find((t) => t.board === s.board)![s.side] = id;
+  };
+  const swapColours = (board: number) => setEdited({ seed, bye, tables: tables.map((t) => (t.board === board ? { ...t, black: t.white, white: t.black } : t)) });
+  const tap = (s: Slot) => {
+    if (!pick) { setPick(s); return; }
+    if (pick.board === s.board && pick.side === s.side) { setPick(null); return; }
     const next = tables.map((t) => ({ ...t }));
-    const a = next.find((t) => t.board === pick.board)!, b = next.find((t) => t.board === board)!;
-    const tmp = a[pick.side]; a[pick.side] = b[side]; b[side] = tmp;
-    setEdited({ seed, tables: next }); setPick(null);
+    let nextBye = bye;
+    const a = at(next, nextBye, pick)!, b = at(next, nextBye, s)!;
+    const r1 = put(next, pick, b); if (r1 !== undefined) nextBye = r1;
+    const r2 = put(next, s, a); if (r2 !== undefined) nextBye = r2;
+    setEdited({ seed, tables: next, bye: nextBye }); setPick(null);
   };
 
   const publish = async () => {
     const ok = await action.run(() => staffDb()!.rpc("gt_staff_publish_round_v1", {
-      p_division: divisionId, p_pool: poolArg(pool), p_round: round, p_tables: tables, p_bye: proposal.byeAthleteId,
+      p_division: divisionId, p_pool: poolArg(pool), p_round: round, p_tables: tables, p_bye: bye,
     }));
     if (ok) await reload();
   };
 
   if (regs.length < 2) return <p className="gt-card p-4 text-sm">ผู้เล่นไม่พอสำหรับออกคู่</p>;
-  if (proposal.requiresManualReview)
-    return <p className="gt-card p-4 text-sm text-[var(--gt-bad)]">จับคู่รอบที่ {round} อัตโนมัติไม่ได้โดยไม่ให้เจอคนเดิมซ้ำ กรุณาติดต่อผู้ดูแลระบบ</p>;
+  if (proposal.requiresManualReview && !manual) {
+    return (
+      <section className="gt-card space-y-2 border-[var(--gt-warn)] p-4 text-sm">
+        <h3 className="font-bold">จับคู่รอบที่ {round} ไม่ได้</h3>
+        <p>ผู้เล่น{pool ? `สาย ${pool}` : "ในรุ่นนี้"}เจอกันครบทุกคู่ที่เป็นไปได้แล้ว ระบบไม่อนุญาตให้เจอคนเดิมซ้ำ จึงถือว่าแข่งจบที่รอบ {round - 1}</p>
+        <p className="text-[var(--gt-muted)]">อันดับสุดท้ายดูได้ที่แท็บ “ตารางคะแนน” · ถ้ามีผู้เล่นถูกตัดชื่อโดยไม่ตั้งใจ ให้คืนชื่อแล้วลองใหม่</p>
+      </section>
+    );
+  }
+
+  const slotBtn = (s: Slot, id: string, colour: "black" | "white" | null) => {
+    const sel = pick?.board === s.board && pick.side === s.side;
+    return (
+      <button type="button" onClick={() => tap(s)} aria-pressed={sel}
+        className={`min-h-11 w-full rounded-lg px-1 text-left ${sel ? "bg-[var(--gt-gold-soft)] ring-2 ring-[var(--gt-gold)]" : ""}`}>
+        {colour ? <Player r={byId.get(id)} colour={colour} score={score.get(id)} />
+          : <span className="block"><strong>{nameOf(byId.get(id))}</strong> <span className="text-xs text-[var(--gt-muted)]">{schoolOf(byId.get(id))} · <span className="gt-num">{pts(score.get(id))}</span> แต้ม</span></span>}
+      </button>
+    );
+  };
 
   return (
     <section className="gt-card space-y-3 border-[var(--gt-gold)] p-4">
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="mr-auto font-bold">ร่างคู่รอบที่ {round} {pool && `· สาย ${pool}`}</h3>
-        <button type="button" onClick={() => { setSeed((s) => s + 1); setEdited(null); setPick(null); }} className="gt-outline-btn min-h-11 px-3 text-sm">สุ่มใหม่</button>
+        {edited && edited.seed === seed && <button type="button" onClick={() => { setEdited(null); setPick(null); }} className="min-h-11 px-2 text-sm text-[var(--gt-muted)] underline">กลับเป็นร่างอัตโนมัติ</button>}
+        {!manual && <button type="button" onClick={() => { setSeed((x) => x + 1); setEdited(null); setPick(null); }} className="gt-outline-btn min-h-11 px-3 text-sm">สุ่มใหม่</button>}
       </div>
+      {manual && <p className="rounded-xl bg-[var(--gt-warn-soft)] px-3 py-2 text-sm text-[var(--gt-warn)]">ระบบหาคู่อัตโนมัติไม่ทัน (ผู้เล่นมาก) — เรียงตามคะแนนให้แล้ว แตะชื่อเพื่อสลับจนไม่มีคู่ที่เคยเจอกัน แล้วกดประกาศ</p>}
       <p className="text-sm text-[var(--gt-muted)]">
-        โต๊ะ 1 = คะแนนสูงสุด · ยังไม่ประกาศจนกว่าจะกด “ประกาศคู่”{round === 1 ? " (ประกาศรอบ 1 ล่วงหน้าก่อนวันแข่งได้ ผู้ปกครองจะเห็นโต๊ะและคู่แข่งบนเว็บทันที)" : ""} · {pick ? <strong className="text-[var(--gt-ink)]">เลือกอีกคนเพื่อสลับตำแหน่ง</strong> : "แตะชื่อ 2 คนเพื่อสลับตำแหน่ง"}
+        โต๊ะ 1 = คะแนนสูงสุด · ยังไม่ประกาศจนกว่าจะกด “ประกาศคู่”{round === 1 ? " (ประกาศรอบ 1 ล่วงหน้าก่อนวันแข่งได้ ผู้ปกครองจะเห็นโต๊ะและคู่แข่งบนเว็บทันที)" : ""} · {pick ? <strong className="text-[var(--gt-ink)]">เลือกอีกคนเพื่อสลับตำแหน่ง</strong> : `แตะชื่อ 2 คนเพื่อสลับตำแหน่ง${bye ? " (รวมคนที่ได้บาย)" : ""}`}
       </p>
       <ul className="space-y-2">
         {tables.map((t) => {
           const warnSchool = sameSchool(byId.get(t.black), byId.get(t.white));
           const isRematch = rematches.includes(t.board);
-          const sel = (side: "black" | "white") => pick?.board === t.board && pick.side === side;
           return (
             <li key={t.board} className={`rounded-xl border px-3 py-2 ${isRematch ? "border-[var(--gt-bad)]" : "border-[var(--gt-line)]"}`}>
               <div className="flex items-center gap-2">
                 <span className="gt-num w-12 shrink-0 text-sm font-bold">โต๊ะ {t.board}</span>
                 <div className="grid min-w-0 flex-1 gap-1 sm:grid-cols-2">
-                  {(["black", "white"] as const).map((side) => (
-                    <button key={side} type="button" onClick={() => tapPlayer(t.board, side)} aria-pressed={sel(side)}
-                      className={`min-h-11 rounded-lg px-1 text-left ${sel(side) ? "bg-[var(--gt-gold-soft)] ring-2 ring-[var(--gt-gold)]" : ""}`}>
-                      <Player r={byId.get(t[side])} colour={side} score={score.get(t[side])} />
-                    </button>
-                  ))}
+                  {(["black", "white"] as const).map((side) => <div key={side} className="min-w-0">{slotBtn({ board: t.board, side }, t[side], side)}</div>)}
                 </div>
                 <button type="button" onClick={() => swapColours(t.board)} aria-label={`สลับสีโต๊ะ ${t.board}`} title="สลับสี" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--gt-line)]">⇄</button>
               </div>
@@ -283,12 +320,16 @@ function Proposal({ round, pool, regs, byId, matches, byes, score, divisionId, r
           );
         })}
       </ul>
-      {proposal.byeAthleteId && (
-        <p className="rounded-xl bg-[var(--gt-surface-2)] px-3 py-2 text-sm">บาย (ได้ 1 แต้ม): <strong>{nameOf(byId.get(proposal.byeAthleteId))}</strong></p>
+      {bye && (
+        <div className="rounded-xl bg-[var(--gt-surface-2)] px-3 py-2 text-sm">
+          <p className="mb-1 font-semibold">บาย (ได้ 1 แต้ม) <span className="font-normal text-[var(--gt-muted)]">· แตะเพื่อเปลี่ยนคนได้บาย</span></p>
+          {slotBtn({ board: 0, side: "bye" }, bye, null)}
+          {hadBye.has(bye) && <p className="mt-1 text-xs text-[var(--gt-warn)]">คนนี้เคยได้บายแล้ว — ปกติให้บายกับคนที่ยังไม่เคยได้</p>}
+        </div>
       )}
       <ErrorNote text={action.error} />
       <button type="button" onClick={publish} disabled={action.busy || rematches.length > 0} className="gt-gold-btn min-h-12 w-full disabled:opacity-60">
-        {action.busy ? "กำลังประกาศ…" : `ประกาศคู่รอบที่ ${round} (${tables.length} โต๊ะ)`}
+        {action.busy ? "กำลังประกาศ…" : rematches.length ? `ยังมีคู่ที่เคยเจอกัน ${rematches.length} โต๊ะ` : `ประกาศคู่รอบที่ ${round} (${tables.length} โต๊ะ)`}
       </button>
     </section>
   );

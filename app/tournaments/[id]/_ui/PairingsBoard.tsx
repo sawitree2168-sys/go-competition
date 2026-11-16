@@ -12,7 +12,10 @@ import type { Bye, Match, Person } from "./data";
 export default function PairingsBoard({ matches, byes, people }: { matches: Match[]; byes: Bye[]; people: Record<string, Person> }) {
   const rounds = useMemo(() => [...new Set([...matches.map((m) => m.round_number), ...byes.map((b) => b.round_number)])].sort((a, b) => a - b), [matches, byes]);
   const pools = useMemo(() => [...new Set(matches.map((m) => m.pool_label ?? ""))].sort(), [matches]);
-  const [round, setRound] = useState(rounds[rounds.length - 1] ?? 1);
+  // Follows the newest round as it is announced (live), unless the viewer picked an older one.
+  const latest = rounds[rounds.length - 1] ?? 1;
+  const [picked, setRound] = useState<number | null>(null);
+  const round = picked !== null && rounds.includes(picked) ? picked : latest;
   const [pool, setPool] = useState("all");
   const [q, setQ] = useState("");
 
@@ -35,7 +38,7 @@ export default function PairingsBoard({ matches, byes, people }: { matches: Matc
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-semibold">รอบ</span>
         {rounds.map((r) => (
-          <button key={r} type="button" onClick={() => setRound(r)} aria-pressed={r === round}
+          <button key={r} type="button" onClick={() => setRound(r === latest ? null : r)} aria-pressed={r === round}
             className={`gt-num min-h-11 min-w-11 rounded-xl border px-3 font-semibold ${r === round ? "border-[var(--gt-brand)] bg-[var(--gt-brand)] text-white" : "border-[var(--gt-line)] bg-[var(--gt-surface)]"}`}>{r}</button>
         ))}
         <span className={`ml-auto rounded-full px-3 py-1 text-sm font-semibold ${done ? "bg-[var(--gt-surface-2)] text-[var(--gt-muted)]" : "bg-[var(--gt-gold-soft)] text-[var(--gt-ok)]"}`}>
