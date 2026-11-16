@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { setRemember, staffDb } from "@/app/organizer/_lib/staff";
 import { authErrorMessage, destinationFor, looksLikeEmail } from "@/lib/auth-routing.mjs";
+import { callAthlete, identifierProblem } from "@/lib/athlete-auth.mjs";
 import { Field, FormError, GoogleLogo, PasswordField } from "./fields";
 
 /** Google button appears once the provider is switched on in Supabase and this flag is set on Vercel. */
@@ -29,15 +30,22 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
     const db = staffDb();
     if (!db) return setError("ระบบยังไม่พร้อม กรุณาลองใหม่ภายหลัง");
     const who = id.trim();
-    if (!who || !password) return setError("กรุณากรอกอีเมลและรหัสผ่าน");
-    if (!looksLikeEmail(who)) {
-      return setError("การเข้าสู่ระบบด้วยรหัสนักกีฬาจะใช้ได้เมื่อผูกบัญชีกับรหัสนักกีฬาแล้ว ตอนนี้กรุณาใช้อีเมล");
-    }
+    if (!who || !password) return setError("กรุณากรอกอีเมล / รหัส GO / เลขดั้ง / ชื่อ และรหัสผ่าน");
+    const problem = identifierProblem(who);
+    if (problem) return setError(problem);
     setBusy(true);
     try {
       setRemember(remember);
-      const { error: err } = await db.auth.signInWithPassword({ email: who, password });
-      if (err) { setError(authErrorMessage(err.message)); return; }
+      if (looksLikeEmail(who)) {
+        const { error: err } = await db.auth.signInWithPassword({ email: who, password });
+        if (err) { setError(authErrorMessage(err.message)); return; }
+      } else {
+        // Athletes: GO ID, dan number or full name (accounts without e-mail).
+        const r = await callAthlete("login", { identifier: who, password });
+        if (!r.ok || !r.data?.session) { setError(r.data?.message ?? "เข้าสู่ระบบไม่สำเร็จ"); return; }
+        const { error: err } = await db.auth.setSession(r.data.session);
+        if (err) { setError(authErrorMessage(err.message)); return; }
+      }
       if (stay) return;
       const { data } = await db.rpc("gt_my_access_v1");
       window.location.assign(destinationFor(data, nextParam()));
@@ -65,8 +73,8 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
       <h1 className="text-[2rem] sm:text-[2.625rem]">{heading}</h1>
       <p className="mt-1 text-base text-[var(--gt-muted)] sm:text-lg">ยินดีต้อนรับสู่ GO TOURNAMENT</p>
       <form onSubmit={submit} noValidate className="mt-7 space-y-5">
-        <Field label="อีเมล หรือรหัสนักกีฬา" icon="person" value={id} onChange={(e) => setId(e.target.value)} placeholder="กรอกอีเมลหรือรหัสนักกีฬา"
-          autoComplete="username" inputMode="email" autoCapitalize="none" spellCheck={false} />
+        <Field label="อีเมล หรือรหัสนักกีฬา" icon="person" value={id} onChange={(e) => setId(e.target.value)} placeholder="อีเมล / รหัส GO / เลขดั้ง / ชื่อ-นามสกุล"
+          hint="นักกีฬา: ใช้รหัส GO เลขทะเบียนดั้ง หรือชื่อ-นามสกุล ได้ทั้งหมด" autoComplete="username" autoCapitalize="none" spellCheck={false} />
         <PasswordField label="รหัสผ่าน" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน" autoComplete="current-password" />
         <div className="flex items-center justify-between gap-3">
           <label className="flex min-h-11 items-center gap-2.5 text-base">

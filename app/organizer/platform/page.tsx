@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "../_lib/Gate";
 import { ErrorNote, isPlatformAdmin, staffDb, useAction, useStaff } from "../_lib/staff";
+import { callAthlete, identifierKind } from "@/lib/athlete-auth.mjs";
 
 type Member = { user_id: string; email: string; role: "owner" | "admin"; active: boolean };
 type Org = { id: string; name: string; status: "active" | "suspended"; note: string | null; members: Member[]; tournaments: { id: string; title: string; published: boolean }[] };
@@ -57,6 +58,8 @@ function Platform() {
         <p className="text-sm text-[var(--gt-muted)]">ผู้จัดแต่ละรายเห็นและจัดการได้เฉพาะงานของตัวเอง ถ้าระงับ ทีมงานของผู้จัดรายนั้นจะเข้าหน้าผู้จัดไม่ได้ทันที (หน้าเว็บสาธารณะยังแสดงตามปกติ)</p>
       </div>
       <ErrorNote text={action.error} />
+
+      <AthleteAccounts />
 
       <TeacherRequests run={action.run} busy={action.busy} />
 
@@ -199,6 +202,86 @@ function TeacherRequests({ run, busy }: { run: ReturnType<typeof useAction>["run
           ))}
         </ul>
       ) : <p className="text-sm text-[var(--gt-muted)]">ยังไม่มีครูขอใช้หน้าสถาบัน</p>}
+    </section>
+  );
+}
+
+type AthleteHit = { go_id: string; full_name: string; rank: string | null; dan: boolean; has_password: boolean };
+
+/**
+ * Athlete accounts (no e-mail): look an athlete up in the register and issue a one-time code (24 h) so they can
+ * set a new password at /login/forgot → นักกีฬา. Also used when someone else signed up as this athlete:
+ * the code lets the real athlete take the account back.
+ */
+function AthleteAccounts() {
+  const [q, setQ] = useState("");
+  const [hits, setHits] = useState<AthleteHit[] | null>(null);
+  const [pick, setPick] = useState<AthleteHit | null>(null);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [issued, setIssued] = useState<{ code: string; go_id: string; full_name: string } | null>(null);
+
+  const search = async (e: React.FormEvent) => {
+    e.preventDefault(); setError(""); setHits(null); setPick(null); setIssued(null);
+    const k = identifierKind(q);
+    if (k !== "name" && k !== "go" && k !== "dan") return setError("พิมพ์ชื่อ-นามสกุล รหัส GO หรือเลขดั้ง");
+    setBusy(true);
+    const r = await callAthlete("search", k === "name" ? { name: q.replace(/\s+/g, " ").trim() } : { identifier: q });
+    setBusy(false);
+    if (!r.ok) return setError(r.data?.message ?? "ค้นหาไม่สำเร็จ");
+    setHits((r.data?.athletes ?? []) as AthleteHit[]);
+  };
+  const issue = async () => {
+    if (!pick) return;
+    if (note.trim().length < 12) return setError("กรุณาบันทึกเหตุผลอย่างน้อย 12 ตัวอักษร เช่น “ผู้ปกครองโทรมาขอ ยืนยันวันเกิดแล้ว”");
+    const { data } = await staffDb()!.auth.getSession();
+    setBusy(true); setError("");
+    const r = await callAthlete("issue", { identifier: pick.go_id, confirmed: true, note: note.trim() }, { accessToken: data.session?.access_token });
+    setBusy(false);
+    if (!r.ok) return setError(r.data?.message ?? "ออกรหัสไม่สำเร็จ");
+    setIssued({ code: r.data.code, go_id: r.data.go_id, full_name: r.data.full_name ?? pick.full_name }); setNote("");
+  };
+
+  return (
+    <section className="gt-card space-y-3 p-4" aria-labelledby="ath-h">
+      <h2 id="ath-h" className="font-bold">บัญชีนักกีฬา (ไม่ใช้อีเมล)</h2>
+      <p className="text-sm text-[var(--gt-muted)]">นักกีฬาสมัครเองด้วยชื่อ-นามสกุล (ดั้งยืนยันเลขดั้ง) แล้วเข้าระบบด้วยรหัส GO / เลขดั้ง / ชื่อ · ถ้าลืมรหัสผ่าน หรือมีคนสมัครแทนเด็ก ให้ออก “รหัสชั่วคราว” ให้เจ้าตัวตั้งรหัสผ่านใหม่ (บัญชีจะกลับมาเป็นของเจ้าตัว)</p>
+      <form onSubmit={search} className="flex flex-wrap gap-2">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ชื่อ-นามสกุล / รหัส GO / เลขดั้ง" aria-label="ค้นหานักกีฬา" className={`${input} min-w-0 flex-1`} />
+        <button type="submit" disabled={busy} className="gt-outline-btn min-h-12 px-4 disabled:opacity-60">ค้นหา</button>
+      </form>
+      {hits && !hits.length && <p className="text-sm text-[var(--gt-muted)]">ไม่พบในทะเบียน</p>}
+      {hits && hits.length > 0 && (
+        <ul className="divide-y divide-[var(--gt-line)]">
+          {hits.map((h) => (
+            <li key={h.go_id} className="flex flex-wrap items-center gap-2 py-2.5 text-sm">
+              <span className="min-w-0 flex-1 basis-56"><span className="block font-semibold">{h.full_name}</span>
+                <span className="block text-[var(--gt-muted)]">{h.go_id}{h.rank ? ` · ${h.rank}` : ""}{h.dan ? " · มีเลขดั้ง" : ""}</span></span>
+              <span className={h.has_password ? "text-[var(--gt-ok)]" : "text-[var(--gt-muted)]"}>{h.has_password ? "มีบัญชีแล้ว" : "ยังไม่สมัคร"}</span>
+              <button type="button" onClick={() => { setPick(h); setIssued(null); setError(""); }} className="gt-outline-btn min-h-10 px-3 text-xs">ออกรหัสชั่วคราว</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {pick && !issued && (
+        <div className="space-y-2 rounded-xl bg-[var(--gt-surface-2)] p-3 text-sm">
+          <p>ออกรหัสชั่วคราวให้ <strong>{pick.full_name}</strong> ({pick.go_id}) — ตรวจว่าเป็นตัวจริงก่อน (เช่น โทรคุยกับผู้ปกครอง)</p>
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={500} placeholder="เหตุผล / วิธีที่ยืนยันตัว (อย่างน้อย 12 ตัวอักษร)" className="w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 py-2" />
+          <div className="flex gap-2">
+            <button type="button" onClick={issue} disabled={busy} className="gt-gold-btn min-h-11 px-4 disabled:opacity-60">ออกรหัส (ใช้ได้ 24 ชม.)</button>
+            <button type="button" onClick={() => setPick(null)} className="min-h-11 px-3 text-[var(--gt-muted)] underline">ยกเลิก</button>
+          </div>
+        </div>
+      )}
+      {issued && (
+        <div className="space-y-1 rounded-xl border-2 border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] p-3 text-sm text-[var(--gt-gold-ink)]">
+          <p>รหัสชั่วคราวของ <strong>{issued.full_name}</strong> ({issued.go_id})</p>
+          <p className="gt-num select-all break-all text-2xl font-bold tracking-wider">{issued.code}</p>
+          <p>แจ้งเจ้าตัวให้ไปที่ หน้าเข้าสู่ระบบ → ลืมรหัสผ่าน → นักกีฬา · ใช้ได้ครั้งเดียวภายใน 24 ชั่วโมง · รหัสนี้แสดงครั้งเดียว</p>
+        </div>
+      )}
+      {error && <p role="alert" className="text-sm text-[var(--gt-bad)]">{error}</p>}
     </section>
   );
 }
