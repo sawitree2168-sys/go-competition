@@ -7,6 +7,8 @@ import { DEFAULT_AVATAR } from "@/app/tournaments/[id]/_ui/MatchCard";
 import { divisionLabel, thaiDate } from "@/lib/division-display";
 import { decided, headToHead, isForfeit, opponents, outcome, percent, summary } from "@/lib/athlete-profile.mjs";
 import { thaiYear } from "@/lib/event-list.mjs";
+import Certificates from "./Certificates";
+import type { Cert } from "./certificate-draw";
 
 export type Athlete = { id: string; full_name: string; institution: string | null; current_rank: string | null; photo: string | null };
 export type GameRow = {
@@ -15,7 +17,7 @@ export type GameRow = {
   opponent_institution: string | null; opponent_rank: string | null; opponent_photo: string | null;
   winner_id: string | null; result_code: string | null; result_margin: string | null; state: string;
 };
-type Tab = "history" | "stats" | "h2h";
+type Tab = "history" | "stats" | "h2h" | "certs";
 type Outcome = ReturnType<typeof outcome>;
 type Decided = GameRow & { outcome: Outcome };
 
@@ -23,6 +25,7 @@ const TABS: { id: Tab; label: string; short: string }[] = [
   { id: "history", label: "ประวัติการแข่งขัน", short: "ประวัติแข่ง" },
   { id: "stats", label: "สถิติ", short: "สถิติ" },
   { id: "h2h", label: "ประวัติการพบกัน", short: "พบกัน" },
+  { id: "certs", label: "ใบประกาศ", short: "ใบประกาศ" },
 ];
 const noop = () => () => {};
 const param = (k: string) => () => new URLSearchParams(window.location.search).get(k);
@@ -104,7 +107,7 @@ const divHref = (r: GameRow, tab = "standings") => `/tournaments/${r.tournament_
 
 /* ---------- page ---------- */
 
-export default function AthleteProfile({ athlete, rows, today }: { athlete: Athlete; rows: GameRow[]; today: string }) {
+export default function AthleteProfile({ athlete, rows, today, certs = [] }: { athlete: Athlete; rows: GameRow[]; today: string; certs?: Cert[] }) {
   const urlTab = useSyncExternalStore(noop, param("tab"), () => null);
   const [picked, setPicked] = useState<Tab | null>(null);
   const tab: Tab = picked ?? (TABS.some((t) => t.id === urlTab) ? (urlTab as Tab) : "history");
@@ -145,10 +148,10 @@ export default function AthleteProfile({ athlete, rows, today }: { athlete: Athl
       </section>
 
       {/* Tabs */}
-      <div role="tablist" aria-label="ข้อมูลนักกีฬา" className="mt-5 grid grid-cols-3 gap-1.5 border-b border-[var(--gt-line)] sm:flex sm:gap-2">
+      <div role="tablist" aria-label="ข้อมูลนักกีฬา" className="mt-5 grid grid-cols-4 gap-1 border-b border-[var(--gt-line)] sm:flex sm:gap-2">
         {TABS.map((t) => (
           <button key={t.id} id={`ptab-${t.id}`} role="tab" type="button" aria-selected={tab === t.id} aria-controls={`ppanel-${t.id}`} onClick={() => choose(t.id)}
-            className={`min-h-12 rounded-t-xl border border-b-0 px-2 text-sm font-bold sm:px-6 sm:text-base ${tab === t.id ? "border-transparent bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)] bg-[var(--gt-cta-soft)]"}`}>
+            className={`min-h-12 rounded-t-xl border border-b-0 px-1 text-[13px] font-bold sm:px-6 sm:text-base ${tab === t.id ? "border-transparent bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)] bg-[var(--gt-cta-soft)]"}`}>
             <span className="sm:hidden">{t.short}</span><span className="hidden sm:inline">{t.label}</span>
           </button>
         ))}
@@ -158,6 +161,7 @@ export default function AthleteProfile({ athlete, rows, today }: { athlete: Athl
         {tab === "history" && <History athlete={athlete} rows={rows} years={years} today={today} />}
         {tab === "stats" && <Stats athlete={athlete} rows={rows} years={years} />}
         {tab === "h2h" && <H2H athlete={athlete} rows={rows} years={years} />}
+        {tab === "certs" && <Certificates certs={certs} name={athlete.full_name} athleteId={athlete.id} />}
       </div>
     </div>
   );
