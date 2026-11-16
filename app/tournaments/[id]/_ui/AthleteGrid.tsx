@@ -76,7 +76,7 @@ export default function AthleteGrid({ athletes, matches, byes, people }: { athle
           return (
             <li key={a.key} className="gt-card flex gap-3 overflow-hidden p-2.5 sm:flex-col sm:gap-0 sm:p-0">
               <div className="shrink-0 rounded-xl bg-[linear-gradient(180deg,var(--gt-avatar-top),var(--gt-surface-2))] p-2 sm:rounded-none sm:py-3">
-                <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" className={`mx-auto h-20 w-20 rounded-full sm:h-28 sm:w-28 ${a.photo ? "object-cover" : "object-contain"}`} />
+                <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" className={`mx-auto h-20 w-20 sm:h-28 sm:w-28 ${a.photo ? "rounded-full object-cover" : "object-contain"}`} />
               </div>
               <div className="min-w-0 flex-1 space-y-1 sm:px-3 sm:py-3">
                 {a.id
@@ -136,7 +136,7 @@ function History({ athlete, matches, byes, people, onClose }: { athlete: Athlete
     <div role="dialog" aria-modal="true" aria-label={`ประวัติการแข่งขัน ${athlete.name}`} onClick={onClose} className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
       <div onClick={(e) => e.stopPropagation()} className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-[var(--gt-surface)] p-4 shadow-2xl">
         <div className="flex items-center gap-3">
-          <img src={athlete.photo || DEFAULT_AVATAR} alt="" className={`h-16 w-16 rounded-full ${athlete.photo ? "object-cover" : "object-contain"}`} />
+          <img src={athlete.photo || DEFAULT_AVATAR} alt="" className={`h-16 w-16 ${athlete.photo ? "rounded-full object-cover" : "object-contain"}`} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-lg font-bold">{athlete.name}</p>
             <p className="truncate text-sm text-[var(--gt-muted)]">{athlete.institution}</p>
