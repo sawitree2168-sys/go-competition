@@ -44,8 +44,8 @@ export default function ResultControls({ busy, onRecord, onCancel }: {
         </button>
       ) : (
         <>
-          <button type="button" disabled={busy} onClick={() => win("black")} className={`${btn} bg-[#0b2a5b] text-white`}>ดำชนะ</button>
-          <button type="button" disabled={busy} onClick={() => win("white")} className={`${btn} border-2 border-[#0b2a5b] bg-white text-[#0b2a5b]`}>ขาวชนะ</button>
+          <button type="button" disabled={busy} onClick={() => win("black")} className={`${btn} bg-[var(--gt-cta)] text-white shadow-sm`}>ดำชนะ</button>
+          <button type="button" disabled={busy} onClick={() => win("white")} className={`${btn} border-2 border-[var(--gt-cta)] bg-[var(--gt-surface)] text-[var(--gt-ink)]`}>ขาวชนะ</button>
         </>
       )}
       {onCancel && <button type="button" onClick={onCancel} className="col-span-2 text-sm text-[var(--gt-muted)] underline sm:col-span-3">ไม่แก้</button>}
