@@ -44,7 +44,7 @@ export default function Join({ admin, onJoined, onCancel }: { admin: boolean; on
           <BoardLogo className="h-14 w-14" />
           <div>
             <h1 className="text-2xl font-bold">เลือกสถาบันของคุณ</h1>
-            <p className="text-sm text-[var(--gt-muted)]">สำหรับครูและผู้บริหารสถาบันที่ส่งนักเรียนลงแข่ง</p>
+            <p className="text-sm text-[var(--gt-muted)]">สำหรับครูและเจ้าของสถาบันที่ส่งนักเรียนลงแข่ง</p>
           </div>
         </div>
 
