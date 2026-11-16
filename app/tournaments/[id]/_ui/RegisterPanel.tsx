@@ -13,10 +13,21 @@ type Mode = "web" | "external" | "closed";
 type Application = {
   id: string; division_id: string; division_name: string; full_name: string; rank_label: string; club: string | null;
   status: "pending" | "approved" | "rejected"; created_at: string; photo_path: string | null;
+  // From the poster sign-up page (private: organisers only).
+  mode?: "new" | "existing" | null; go_id?: string | null; birth_date?: string | null; phone?: string | null; school?: string | null;
+  school_level?: string | null; academies?: string[]; show_in_academy?: boolean | null; rank_source?: "self" | "results" | null;
+  fee?: number | null; slip_path?: string | null; slip_mime?: string | null; reference?: string;
+};
+
+const ageFrom = (birth: string | null | undefined) => {
+  if (!birth) return null;
+  const [y, m, d] = birth.split("-").map(Number), now = new Date();
+  return now.getFullYear() - y - ((now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) ? 1 : 0);
 };
 
 /** Pending photos: private bucket, only the event's organisers can view. Approved copies: public avatar bucket. */
 const PENDING_BUCKET = "gt-application-photos";
+const SLIP_BUCKET = "gt-payment-slips";
 const AVATAR_BUCKET = "gt-athlete-avatars";
 
 const bangkokToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
@@ -49,7 +60,7 @@ export default function RegisterPanel(props: {
     <div className="mt-5 space-y-4">
       <div className="border-l-4 border-[var(--gt-cta)] pl-3">
         <h2 className="text-2xl font-bold leading-tight">สมัครแข่งขัน</h2>
-        <p className="text-sm text-[var(--gt-muted)]">กรอกข้อมูลนักกีฬา เพื่อส่งให้ผู้จัดตรวจสอบ · {props.divisionLabel}</p>
+        <p className="text-sm text-[var(--gt-muted)]">{props.divisionLabel}</p>
       </div>
       <ApplyArea {...props} />
       <OrganizerQueue tournamentId={props.tournamentId} divisionId={props.divisionId} />
@@ -113,11 +124,23 @@ function ApplyArea(props: Parameters<typeof RegisterPanel>[0]) {
     );
   }
 
+  // Sign-ups (with payment and slip) happen on the poster sign-up page; this division is pre-selected there.
+  return (
+    <section className="gt-card space-y-3 p-4">
+      <p className="flex items-start gap-2.5"><InfoIcon /><span><span className="block font-semibold">เปิดรับสมัครรุ่นนี้</span>
+        <span className="block text-sm text-[var(--gt-muted)]">กรอกข้อมูลนักกีฬา (หรือค้นหาชื่อถ้าเคยแข่งแล้ว) ชำระเงิน แนบสลิป แล้วกดยืนยัน</span></span></p>
+      <a href={`/tournaments/${props.tournamentId}/register?division=${props.divisionId}`} className="gt-cta-btn inline-flex min-h-12 w-full items-center justify-center px-5 text-lg sm:w-auto">สมัครรุ่นนี้ →</a>
+    </section>
+  );
+}
+
+/** Older in-page form (kept for reference; the poster sign-up page replaced it). */
+export function LegacyApply({ divisionId }: { divisionId: string }) {
   return (
     <>
       <StepChips />
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
-        <ApplyForm divisionId={props.divisionId} />
+        <ApplyForm divisionId={divisionId} />
         <StepsCard />
       </div>
     </>
@@ -249,6 +272,13 @@ export function OrganizerQueue({ tournamentId, divisionId, bare }: { tournamentI
   const [rows, setRows] = useState<Application[] | null>(null);
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const [zoom, setZoom] = useState<{ src: string; name: string } | null>(null);
+  const openSlip = async (r: Application) => {
+    if (!r.slip_path) return;
+    const { data } = await staffDb()!.storage.from(SLIP_BUCKET).createSignedUrl(r.slip_path, 600);
+    if (!data?.signedUrl) return setError("เปิดสลิปไม่สำเร็จ กรุณาลองใหม่");
+    if (r.slip_mime === "application/pdf") window.open(data.signedUrl, "_blank", "noopener");
+    else setZoom({ src: data.signedUrl, name: `สลิป ${r.full_name}` });
+  };
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
 
@@ -257,7 +287,7 @@ export function OrganizerQueue({ tournamentId, divisionId, bare }: { tournamentI
     if (!db) return;
     const { data: s } = await db.auth.getSession();
     if (!s.session) return;
-    const { data, error: err } = await db.rpc("gt_staff_list_applications_v1", { p_tournament: tournamentId, p_division: divisionId ?? null });
+    const { data, error: err } = await db.rpc("gt_staff_list_applications_v2", { p_tournament: tournamentId, p_division: divisionId ?? null });
     if (err) return;
     const list = (data ?? []) as Application[];
     setRows(list);
@@ -329,7 +359,24 @@ export function OrganizerQueue({ tournamentId, divisionId, bare }: { tournamentI
                       <span className="rounded-full bg-[var(--gt-cta-soft)] px-2.5 py-0.5 text-xs font-semibold text-[var(--gt-cta)]">{r.rank_label}</span>
                       {!divisionId && <span className="text-xs text-[var(--gt-muted)]">{r.division_name}</span>}
                     </p>
-                    <p className="truncate text-sm text-[var(--gt-muted)]">{r.club ?? "อิสระ"}{r.photo_path ? " · มีรูป" : ""}</p>
+                    <p className="truncate text-sm text-[var(--gt-muted)]">{r.academies?.length ? r.academies.join(" • ") : r.club ?? "อิสระ"}{r.photo_path ? " · มีรูป" : ""}</p>
+                    {r.mode && (
+                      <p className="text-sm">
+                        {[
+                          r.mode === "existing" ? `ข้อมูลเดิม ${r.go_id ?? ""}` : "สมัครใหม่",
+                          ageFrom(r.birth_date) !== null && `อายุ ${ageFrom(r.birth_date)} ปี`,
+                          [r.school, r.school_level].filter(Boolean).join(" "),
+                          r.rank_source === "results" && "ระดับ: ตามผลที่ผู้จัดรับรอง",
+                          r.reference && `อ้างอิง ${r.reference}`,
+                        ].filter(Boolean).join(" · ")}
+                        {r.phone && <> · <a href={`tel:${r.phone}`} className="font-semibold text-[var(--gt-cta)] underline">{r.phone}</a></>}
+                      </p>
+                    )}
+                    {r.mode && (Number(r.fee) > 0 ? (
+                      <p className="text-sm">ค่าสมัคร {Number(r.fee).toLocaleString("th-TH")} บาท · {r.slip_path
+                        ? <button type="button" onClick={() => openSlip(r)} className="font-semibold text-[var(--gt-cta)] underline">ดูสลิป</button>
+                        : <span className="text-[var(--gt-bad)]">ไม่มีสลิป</span>}</p>
+                    ) : <p className="text-sm text-[var(--gt-muted)]">ไม่มีค่าสมัคร</p>)}
                   </div>
                   <span className="gt-pill-gold hidden px-2.5 py-0.5 text-xs font-semibold sm:inline">รอตรวจสอบ</span>
                   <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
@@ -351,7 +398,7 @@ export function OrganizerQueue({ tournamentId, divisionId, bare }: { tournamentI
             </ul>
           </details>
         )}
-        <p className="mt-3 text-xs text-[var(--gt-muted)]">อนุมัติแล้ว ระบบจะเพิ่มชื่อ (และรูป ถ้ามี) เข้ารุ่นนี้ สถานะชำระเงิน: รอตรวจสอบ · หน้าสาธารณะอัปเดตภายใน 30 วินาที</p>
+        <p className="mt-3 text-xs text-[var(--gt-muted)]">ตรวจสลิปแล้วกดอนุมัติ: ระบบเพิ่มชื่อ (และรูป ถ้ามี) เข้ารุ่นนี้ บันทึกว่าตรวจการชำระแล้ว และเพิ่มเข้ารายชื่อนักเรียนของสถาบันที่ผู้สมัครเลือก · เบอร์โทร วันเกิด และสลิป เห็นเฉพาะผู้จัด · หน้าสาธารณะอัปเดตภายใน 30 วินาที</p>
       </div>
       {zoom && createPortal(
         <div role="dialog" aria-modal="true" aria-label={`รูป ${zoom.name}`} onClick={() => setZoom(null)} className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-6">
