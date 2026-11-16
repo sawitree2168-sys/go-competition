@@ -9,6 +9,8 @@ import { friendshipAward, resultLabel } from "@/lib/competition-day.mjs";
 import CrossTable from "../../_ui/CrossTable";
 import PairingsBoard from "../../_ui/PairingsBoard";
 import RegisterPanel from "../../_ui/RegisterPanel";
+import NewsPanel, { type RoundItem } from "../../_ui/NewsPanel";
+import { roundNews } from "@/lib/round-news.mjs";
 
 // Served from cache and refreshed in the background at most every 30 s (see PUBLIC_CACHE_SECONDS).
 export const revalidate = 30;
@@ -30,7 +32,7 @@ function Notice({ title, body, icon = "clock" }: { title: string; body: string; 
 
 export default async function DivisionPage({ params }: { params: Promise<{ id: string; divisionId: string }> }) {
   const { id, divisionId } = await params;
-  const { event, divisions, entrants, matches, byes, standings, people } = await loadDivisionPage(publicDb(), id, divisionId);
+  const { event, divisions, entrants, matches, byes, standings, people, announcements } = await loadDivisionPage(publicDb(), id, divisionId);
   const division = divisions.find((d) => d.id === divisionId);
 
   if (!event || !division) {
@@ -138,6 +140,18 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
     </div>
   ) : <Notice title="ยังไม่มีอันดับ" body="อันดับจะแสดงเมื่อผู้ตัดสินยืนยันผลรอบแรก" icon="info" />;
 
+  // ข่าว tab: one automatic summary per finished round (per pool), newest first.
+  const newsPeople = Object.fromEntries([...people].map(([k, v]) => [k, { name: v.name, rank: v.rank ?? null }]));
+  const roundItems: RoundItem[] = pools.flatMap((pool) =>
+    roundNews({ matches: inPool(matches, pool), byes: inPool(byes, pool), people: newsPeople })
+      .map((it) => ({ ...it, pool, key: `${pool}-${it.round}` })))
+    .sort((a, b) => b.round - a.round || a.pool.localeCompare(b.pool));
+  const newsPanel = (
+    <div className="relative lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2">
+      <NewsPanel rounds={roundItems} notices={announcements} multiPool={multi} />
+    </div>
+  );
+
   return (
     <Shell
       bottomBar={<>
@@ -191,7 +205,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
         </div>
 
         <DivisionTabs panels={{
-          list: listPanel, pairs: pairsPanel, results: resultsPanel, standings: standingsPanel,
+          list: listPanel, pairs: pairsPanel, results: resultsPanel, standings: standingsPanel, news: newsPanel,
           register: (
             <div className="relative lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2">
               <RegisterPanel tournamentId={id} divisionId={divisionId} divisionLabel={label}
