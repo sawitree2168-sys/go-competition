@@ -15,15 +15,21 @@ export function groupStandings(rows: Standing[]) {
 }
 
 /** ตารางไขว้ of one pool: opponent rank + result per round, like the organisers' result sheet. */
+/** ตารางอันดับ of one pool (approved blue–white design): rank, athlete, score, round pills, SOS, SOSOS. */
 export function StandingsTable({ rows, data, large = false, title }: { rows: Standing[]; data: DivisionData; large?: boolean; title?: string }) {
   const friendship = data.division.award_scheme === "friendship_wins";
   const pool = poolKey(rows[0]?.pool_label);
+  const medals: Record<string, string> = {};
+  if (friendship) for (const s of rows) {
+    const a = s.athlete_id && !s.withdrawn ? friendshipAward(s.wins + s.byes, data.division) : null;
+    if (a && s.athlete_id) medals[s.athlete_id] = MEDAL[a];
+  }
+  const photos = Object.fromEntries(data.regs.map((r) => [r.athlete_id, r.gt_athletes?.avatar_url ?? null]));
   return (
-    <CrossTable large={large} title={title ?? `ผลการแข่งขัน ${divisionLabel(data.division.name)}${pool ? ` · สาย ${pool}` : ""}`}
-      rows={rows} rounds={TOTAL_ROUNDS}
+    <CrossTable large={large} title={title ?? `ตารางอันดับ ${divisionLabel(data.division.name)}${pool ? ` · สาย ${pool}` : ""}`}
+      rows={rows} rounds={TOTAL_ROUNDS} medals={medals} photos={photos}
       matches={data.matches.filter((m) => poolKey(m.pool_label) === pool)}
-      byes={data.byes.filter((b) => poolKey(b.pool_label) === pool)}
-      award={friendship ? (r) => { const s = r as Standing; const a = friendshipAward(s.wins + s.byes, data.division); return a ? MEDAL[a] : null; } : undefined} />
+      byes={data.byes.filter((b) => poolKey(b.pool_label) === pool)} />
   );
 }
 
