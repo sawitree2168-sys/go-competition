@@ -1,8 +1,5 @@
 import Link from "next/link";
 import { Shell } from "@/app/tournaments/[id]/_ui/chrome";
-import "@fontsource/prompt/400.css";
-import "@fontsource/prompt/600.css";
-import "@fontsource/prompt/700.css";
 import "./auth-font.css";
 
 /** Square blue mark with a black and a white stone. */

@@ -3,13 +3,21 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Site typography (16 Nov 2026): Prompt everywhere, three weights only.
+     Main headings 600 (font-bold and heavier), sub-headings / labels / buttons 500 (font-semibold, font-medium),
+     body, details and typed text 400. Nothing on the site is heavier than 600. */
+  --font-weight-medium: 500;
+  --font-weight-semibold: 500;
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 600;
+  --font-weight-black: 600;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Prompt", "Noto Sans Thai", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +30,24 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Prompt", "Noto Sans Thai", system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0;
+  font-synthesis: none;   /* never fake a bold that is not loaded */
+}
+
+/* Menus, tables, forms, buttons and placeholders all use the same family. */
+button, input, select, textarea, optgroup, option, table, th, td, label, nav, a {
+  font-family: inherit;
+}
+input, select, textarea { font-weight: 400; }
+::placeholder { font-family: inherit; font-weight: 400; }
+button { font-weight: 500; }
+th { font-weight: 500; }
+b, strong { font-weight: 600; }   /* browsers default these to 700 */
+@layer base {
+  /* Defaults only: a page may set its own heading weight with a class (never above 600). */
+  h1, h2 { font-weight: 600; line-height: 1.3; }
+  h3, h4, h5, h6 { font-weight: 500; line-height: 1.35; }
 }

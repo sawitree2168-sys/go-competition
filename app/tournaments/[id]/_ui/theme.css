@@ -21,7 +21,7 @@
   color-scheme: light;
   background: var(--gt-bg);
   color: var(--gt-ink);
-  font-family: var(--font-gt), "Prompt", "Noto Sans Thai", system-ui, sans-serif;
+  font-family: "Prompt", "Noto Sans Thai", system-ui, sans-serif;
   overflow-x: clip;
 }
 @media (prefers-color-scheme: dark) {
@@ -70,7 +70,7 @@
 .gt-card { background: var(--gt-surface); border: 1px solid var(--gt-line); border-radius: 14px; }
 .gt-gold-btn {
   background: linear-gradient(180deg, var(--gt-gold-2), var(--gt-gold));
-  color: #10264f; font-weight: 700; border-radius: 12px;
+  color: #10264f; font-weight: 500; border-radius: 12px;
   box-shadow: 0 2px 0 rgba(110, 74, 12, .25);
 }
 .gt-outline-btn { border: 1.5px solid var(--gt-brand); color: var(--gt-ink); border-radius: 12px; background: var(--gt-surface); }
@@ -101,7 +101,7 @@
 
 /* Blue action button (registration form, approve). */
 .gt-cta-btn {
-  border-radius: 12px; font-weight: 700; color: #fff;
+  border-radius: 12px; font-weight: 500; color: #fff;
   background: linear-gradient(180deg, var(--gt-cta), var(--gt-cta-2));
   box-shadow: 0 6px 14px -8px var(--gt-cta);
 }
