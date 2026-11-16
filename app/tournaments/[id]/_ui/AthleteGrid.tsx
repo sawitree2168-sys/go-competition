@@ -3,6 +3,7 @@
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { DEFAULT_AVATAR } from "./MatchCard";
 import { shortRank } from "./CrossTable";
 import { resultLabel } from "@/lib/competition-day.mjs";
@@ -78,7 +79,9 @@ export default function AthleteGrid({ athletes, matches, byes, people }: { athle
                 <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" className={`mx-auto h-20 w-20 rounded-full sm:h-28 sm:w-28 ${a.photo ? "object-cover" : "object-contain"}`} />
               </div>
               <div className="min-w-0 flex-1 space-y-1 sm:px-3 sm:py-3">
-                <p className="truncate text-lg font-bold leading-tight">{a.name}</p>
+                {a.id
+                  ? <Link href={`/athletes/${a.id}`} className="block truncate text-lg font-bold leading-tight hover:underline">{a.name}</Link>
+                  : <p className="truncate text-lg font-bold leading-tight">{a.name}</p>}
                 <p className="truncate text-sm text-[var(--gt-muted)]">{a.institution || "—"}</p>
                 <p className="flex flex-wrap items-center gap-2">
                   {k && <span className="rounded-full bg-[var(--gt-surface-2)] px-2.5 py-0.5 text-sm font-bold text-[var(--gt-brand)]">{k.replace(/d$/, " Dan").replace(/k$/, " Kyu")}</span>}
@@ -156,6 +159,9 @@ function History({ athlete, matches, byes, people, onClose }: { athlete: Athlete
             </li>
           ))}
         </ol>
+        {athlete.id && (
+          <Link href={`/athletes/${athlete.id}`} className="gt-cta-btn mt-4 flex min-h-12 items-center justify-center gap-1">ดูโปรไฟล์และสถิติทุกรายการ →</Link>
+        )}
       </div>
     </div>
   );
