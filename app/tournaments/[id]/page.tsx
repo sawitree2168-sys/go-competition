@@ -56,7 +56,7 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
             </div>
             {opens && <span className="gt-pill-gold mt-2 inline-block px-3 py-0.5 text-sm font-medium">เปิดรับสมัคร {opens}</span>}
             <p className="mt-2 flex items-center gap-2 text-sm"><Icon name="calendar" className="h-5 w-5 text-[var(--gt-gold)]" />{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
-            <p className="mt-1 flex items-center gap-2 text-sm"><Icon name="pin" className="h-5 w-5 text-[var(--gt-gold)]" />สถานที่รอยืนยัน</p>
+            <p className="mt-1 flex items-center gap-2 text-sm"><Icon name="pin" className="h-5 w-5 text-[var(--gt-gold)]" />{event.venue ?? "สถานที่รอยืนยัน"}</p>
           </div>
         </section>
 

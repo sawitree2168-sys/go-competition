@@ -1,39 +1,91 @@
 import Link from "next/link";
-import PosterViewer from "@/components/PosterViewer";
-import { createClient } from "@supabase/supabase-js";
+import { Shell, STONES_IMAGE } from "./[id]/_ui/chrome";
+import ThemeToggle from "./[id]/_ui/ThemeToggle";
+import { publicDb } from "./[id]/_ui/data";
+import EventBrowser, { type EventCard } from "./EventBrowser";
+import { divisionKey } from "@/lib/division-display";
+import { divisionKinds } from "@/lib/event-list.mjs";
 
-type Event = { id:string;title:string;event_date:string|null;start_at:string|null;poster_url:string|null;status:string|null;registration_open_date:string|null;registration_close_date:string|null };
-
-// Rebuilt from the database at most every 30 s, so new posters and tournaments appear without a redeploy.
+// Rebuilt from the database at most every 30 s, so new posters and events appear without a redeploy.
 export const revalidate = 30;
 
-/** Thai status from the published dates (the raw DB status such as "draft" is internal). */
-function statusLabel(e:Event):{text:string;cls:string}{
- const today=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Bangkok"});
- if(e.event_date&&today>e.event_date)return {text:"จบการแข่งขันแล้ว",cls:"bg-slate-100 text-slate-700"};
- if(e.event_date&&today===e.event_date)return {text:"กำลังแข่งขันวันนี้",cls:"bg-rose-100 text-rose-800"};
- if(e.registration_open_date&&today<e.registration_open_date)return {text:"รอเปิดรับสมัคร",cls:"bg-blue-100 text-blue-800"};
- if(e.registration_close_date&&today>e.registration_close_date)return {text:"ปิดรับสมัครแล้ว",cls:"bg-amber-100 text-amber-900"};
- if(e.registration_open_date)return {text:"เปิดรับสมัคร",cls:"bg-green-100 text-green-800"};
- return {text:"รออัปเดต",cls:"bg-slate-100 text-slate-700"};
+type Row = {
+  id: string; title: string; event_date: string | null; poster_url: string | null; venue?: string | null;
+  registration_open_date: string | null; registration_close_date: string | null; registration_mode?: string | null;
+};
+
+async function loadEvents(): Promise<EventCard[]> {
+  const db = publicDb();
+  if (!db) return [];
+  try {
+    const ev = await db.from("gt_tournaments").select("id,title,event_date,poster_url,registration_open_date,registration_close_date,registration_mode,venue")
+      .eq("published", true).order("event_date", { ascending: false, nullsFirst: true }).limit(300);
+    const rows = (ev.data ?? []) as unknown as Row[];
+    if (!rows.length) return [];
+    const dv = await db.from("gt_divisions").select("tournament_id,name").in("tournament_id", rows.map((r) => r.id)).limit(3000);
+    const keys = new Map<string, string[]>();
+    for (const d of (dv.data ?? []) as { tournament_id: string; name: string }[]) keys.set(d.tournament_id, [...(keys.get(d.tournament_id) ?? []), divisionKey(d.name)]);
+    return rows.map((r) => ({
+      id: r.id, title: r.title, event_date: r.event_date, poster_url: r.poster_url, venue: r.venue ?? null,
+      registration_open_date: r.registration_open_date, registration_close_date: r.registration_close_date,
+      registration_mode: r.registration_mode ?? null, kinds: divisionKinds(keys.get(r.id) ?? []),
+    }));
+  } catch {
+    return [];
+  }
 }
-async function getEvents():Promise<Event[]> {
- const url=process.env.NEXT_PUBLIC_SUPABASE_URL, key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
- if(!url||!key)return [];
- try {const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});const {data,error}=await db.from("gt_tournaments").select("id,title,event_date,start_at,poster_url,status,registration_open_date,registration_close_date").eq("published",true).order("start_at",{ascending:false}).limit(30);if(error)return [];return data??[];}catch{return [];}
+
+const NAV = [
+  { href: "/", label: "หน้าหลัก" },
+  { href: "/tournaments", label: "รายการแข่งขัน", current: true },
+  { href: "/tournaments?status=finished", label: "ผลการแข่งขัน" },
+];
+
+function SiteBar() {
+  return (
+    <header className="bg-[linear-gradient(180deg,#0d3f8f,#0a2f6e)] text-white shadow-md">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+        <Link href="/" className="flex items-center gap-3" aria-label="GO TOURNAMENT หน้าหลัก">
+          <span aria-hidden="true" className="flex">
+            <span className="h-7 w-7 rounded-full bg-[radial-gradient(circle_at_35%_30%,#5b6170,#0b0d12_65%)] shadow" />
+            <span className="-ml-2 mt-1 h-7 w-7 rounded-full bg-[radial-gradient(circle_at_35%_30%,#fff,#d6dbe4_60%,#9aa3b2)] shadow" />
+          </span>
+          <span aria-hidden="true" className="h-7 w-px bg-white/40" />
+          <span className="text-lg font-bold tracking-wide sm:text-xl">GO TOURNAMENT</span>
+        </Link>
+        <nav aria-label="เมนูหลัก" className="ml-auto hidden items-center gap-1 md:flex">
+          {NAV.map((n) => (
+            <Link key={n.href} href={n.href} aria-current={n.current ? "page" : undefined}
+              className={`rounded-lg px-4 py-2 text-[15px] font-semibold ${n.current ? "bg-[#1f6fe0]" : "hover:bg-white/10"}`}>{n.label}</Link>
+          ))}
+        </nav>
+        <div className="ml-auto flex items-center gap-1 md:ml-2">
+          <span className="[&_button]:bg-white/10 [&_button]:text-white"><ThemeToggle /></span>
+          <Link href="/menu" aria-label="เมนู" className="grid h-11 w-11 place-items-center rounded-lg hover:bg-white/10 md:hidden">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
 }
-const demos=[{title:"ZEER GO KYU WAR 2026",date:"5 ธันวาคม 2569",place:"เซียร์ รังสิต",divisions:"1–2K · 3–4K · 5–6K · 7–8K · 9–12K · Friendship 9×9 / 13×13"},{title:"รายการแข่งขันตัวอย่าง",date:"รออัปเดต",place:"รออัปเดต",divisions:"รอประกาศรุ่นแข่งขัน"}];
-const dateText=(s:string|null)=>s?new Date(s+"T12:00:00").toLocaleDateString("th-TH",{day:"numeric",month:"long",year:"numeric"}):"รออัปเดตวันแข่งขัน";
-export default async function TournamentList(){
- const events=await getEvents();
- return <main className="min-h-screen bg-[#edf3fa] pb-24 text-[#09244e]">
- <header className="sticky top-0 z-30 bg-[#041b3c] text-white shadow-md"><div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4"><Link href="/" className="text-sm font-bold text-[#f2cf83]">‹ หน้าแรก</Link><span className="text-base font-extrabold tracking-wide">GO TOURNAMENT</span><Link href="/menu" className="text-sm">เมนู ☰</Link></div></header>
- <div className="mx-auto max-w-6xl px-4 py-6">
- <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#061a39] via-[#103d78] to-[#061a39] px-5 py-8 text-white shadow-lg sm:px-9"><p className="text-xs font-bold tracking-[.22em] text-[#f5d58d]">GO TOURNAMENT</p><h1 className="mt-2 text-3xl font-extrabold sm:text-4xl">รายการแข่งขันหมากล้อม</h1><p className="mt-3 max-w-xl text-sm text-blue-100">ค้นหางานแข่งขัน ดูรายละเอียด รุ่นที่เปิดรับสมัคร และติดตามสถานะการแข่งขันได้ในหน้าเดียว</p></div>
- <div className="mt-6 flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-extrabold">รายการแข่งขันทั้งหมด</h2><span className="rounded-full bg-white px-3 py-1 text-xs text-slate-600">{events.length?events.length+" รายการที่เผยแพร่":"กำลังเตรียมข้อมูลรายการจริง"}</span></div>
- <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
- {events.length?events.map(e=><article key={e.id} className="overflow-hidden rounded-xl border border-[#d8e2ee] bg-white shadow-sm">{e.poster_url?<PosterViewer src={e.poster_url} alt={"โปสเตอร์ "+e.title} sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw" className="block h-72 w-full bg-[#061c40] sm:h-80"/>:<div className="flex h-72 items-center justify-center bg-gradient-to-br from-[#061c40] to-[#174b8b] text-center text-[#f1d48b] sm:h-80"><div><div className="text-5xl">🏆</div><p className="mt-2 text-xs">รออัปเดตโปสเตอร์</p></div></div>}<div className="p-4"><h3 className="min-h-12 text-lg font-extrabold">{e.title}</h3><p className="mt-2 text-sm text-slate-600">📅 {dateText(e.event_date)}</p><p className="mt-2"><span className={"rounded-full px-3 py-1 text-xs font-bold "+statusLabel(e).cls}>{statusLabel(e).text}</span></p><Link href={`/tournaments/${e.id}`} className="mt-4 block rounded-lg bg-[#0754bf] px-4 py-3 text-center text-sm font-bold text-white">ดูรายละเอียดการแข่งขัน →</Link></div></article>):demos.map((e,i)=><article key={i} className="overflow-hidden rounded-xl border border-[#d8e2ee] bg-white shadow-sm"><div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-[#061c40] via-[#123d75] to-[#061a39]"><span className="text-6xl" aria-hidden="true">🏆</span><span className="absolute right-3 top-3 rounded bg-[#ffe0a1] px-2 py-1 text-xs font-bold text-[#49340b]">โครงตัวอย่าง</span></div><div className="p-4"><h3 className="text-lg font-extrabold">{e.title}</h3><p className="mt-2 text-sm text-slate-600">📅 {e.date}</p><p className="mt-1 text-sm text-slate-600">📍 {e.place}</p><p className="mt-2 text-xs text-slate-500">{e.divisions}</p><div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-center text-sm font-bold text-amber-900">รออัปเดตข้อมูลในระบบ · ยังไม่เปิดสมัครผ่านหน้านี้</div></div></article>)}
- </div>
- <section className="mt-8 rounded-xl border border-[#d9e4f0] bg-white p-5"><h2 className="text-lg font-extrabold">ข้อมูลในหน้ารายการแข่งขัน</h2><p className="mt-2 text-sm leading-7 text-slate-600">แต่ละรายการจะมีโปสเตอร์ วันและสถานที่แข่งขัน รุ่นแข่งขัน ค่าสมัคร กำหนดรับสมัคร รายชื่อผู้สมัคร และปุ่มสมัครแข่งขัน โดยข้อมูลที่ยังไม่เผยแพร่จะแสดงสถานะรออัปเดต</p></section>
- </div><nav className="fixed inset-x-0 bottom-0 grid grid-cols-4 border-t bg-white py-3 text-center text-xs font-bold shadow-lg sm:hidden"><Link href="/">⌂<span className="block">หน้าแรก</span></Link><Link href="/tournaments" className="text-[#b38326]">🏆<span className="block">แข่งขัน</span></Link><Link href="/go-fan">★<span className="block">GO FAN</span></Link><Link href="/menu">☰<span className="block">เมนู</span></Link></nav></main>;
+
+export default async function TournamentList() {
+  const events = await loadEvents();
+  return (
+    <div className="min-h-screen">
+      <Shell wide>
+        <div className="relative left-1/2 w-screen -translate-x-1/2"><SiteBar /></div>
+        <section className="relative overflow-hidden px-4 pb-6 pt-8 sm:px-8 sm:pb-8 sm:pt-12">
+          {/* eslint-disable-next-line @next/next/no-img-element -- decorative site photo */}
+          <img src={STONES_IMAGE} alt="" aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 h-full w-2/3 object-cover opacity-35 [mask-image:linear-gradient(to_left,black,transparent)] sm:w-1/2" />
+          <div className="relative border-l-4 border-[var(--gt-cta)] pl-4">
+            <h1 className="text-3xl font-bold leading-tight sm:text-5xl">การแข่งขันทั้งหมด</h1>
+            <p className="mt-1 text-[var(--gt-muted)] sm:text-lg">ค้นหารายการ ติดตามการแข่งขัน และดูผลย้อนหลัง</p>
+          </div>
+        </section>
+        <div className="px-4 sm:px-8"><EventBrowser events={events} serverToday={new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date())} /></div>
+      </Shell>
+    </div>
+  );
 }
