@@ -13,7 +13,7 @@ export default function RefereeLayout({ children }: { children: React.ReactNode 
   return (
     <div className="gt min-h-screen w-full" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
-      <main className="mx-auto w-full max-w-2xl px-4 pb-16 pt-4">{children}</main>
+      <main className="w-full">{children}</main>
     </div>
   );
 }
