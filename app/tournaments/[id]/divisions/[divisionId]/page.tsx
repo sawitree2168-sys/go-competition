@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Header, Icon, Shell, STONES_IMAGE, Thumb } from "../../_ui/chrome";
+import { Header, Icon, Shell } from "../../_ui/chrome";
+import SiteBar from "../../_ui/SiteBar";
+import { TOTAL_ROUNDS } from "@/app/organizer/_lib/division/types";
 import { loadDivisionPage, publicDb, type Match } from "../../_ui/data";
 import DivisionTabs from "../../_ui/DivisionTabs";
 import AthleteGrid, { type AthleteCard } from "../../_ui/AthleteGrid";
-import PosterViewer from "@/components/PosterViewer";
 import { boardSize, divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
 import { friendshipAward, resultLabel } from "@/lib/competition-day.mjs";
 import CrossTable from "../../_ui/CrossTable";
@@ -93,7 +94,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
   const inPool = <T extends { pool_label?: string | null }>(rows: T[], pool: string) => rows.filter((x) => (x.pool_label ?? "") === pool);
 
   const pairsPanel = rounds.length
-    ? <PairingsBoard matches={matches} byes={byes} people={Object.fromEntries(people)} />
+    ? <div className="relative lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2"><PairingsBoard matches={matches} byes={byes} people={Object.fromEntries(people)} tournamentId={id} divisionId={divisionId} /></div>
     : <Notice title="ยังไม่ประกาศคู่แข่งขัน" body="ผู้ตัดสินจะจับคู่แบบสวิส: โต๊ะ 1 คือผู้มีคะแนนสูงสุด" />;
 
   const verified = matches.filter((m) => m.state === "verified");
@@ -164,46 +165,37 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
         <a href="?tab=register" className="gt-gold-btn flex min-w-0 flex-1 items-center justify-center gap-2 py-3 text-base"><span className="truncate">สมัครรุ่นนี้</span> <Icon name="chevron" className="h-4 w-4 shrink-0" /></a>
       </>}
     >
-      <Header backHref={`/tournaments/${id}`} backLabel="กลับรายละเอียดงาน" />
-
-      <main className="px-4">
-        <nav aria-label="ตำแหน่งหน้า" className="mt-1 truncate text-[15px] font-bold">
-          <Link href={`/tournaments/${id}`} className="hover:underline">รายละเอียดงาน</Link><span className="mx-1.5 text-[var(--gt-muted)]">/</span><span>{label}</span>
-        </nav>
-
-        <section className="gt-card mt-2 flex min-w-0 items-center gap-3 p-2.5">
-          {event.poster_url
-            ? <PosterViewer src={event.poster_url} alt={`โปสเตอร์ ${event.title}`} sizes="56px" className="h-20 w-14 rounded-lg" />
-            : <Thumb src={STONES_IMAGE} alt="" className="h-16 w-28 rounded-lg" />}
-          <div className="min-w-0">
-            <p className="truncate font-bold">{event.title}</p>
-            <p className="mt-1 flex items-center gap-1.5 text-sm"><Icon name="calendar" className="h-4 w-4 shrink-0 text-[var(--gt-gold)]" />{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
-          </div>
-        </section>
-
-        <section className="gt-card mt-3 p-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <Thumb src={STONES_IMAGE} alt="" shift={divisions.indexOf(division)} className="h-14 w-24 rounded-[10px]" />
-            <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-bold leading-tight sm:text-2xl">{label}</h1>
-              <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${lastRound ? "gt-pill-gold" : "border border-[var(--gt-line)] bg-[var(--gt-surface-2)] text-[var(--gt-brand)]"}`}>{lastRound ? `กำลังแข่ง · รอบ ${lastRound}` : "ก่อนแข่งขัน"}</span>
+      <div className="relative left-1/2 w-screen -translate-x-1/2">
+        <SiteBar current="/tournaments" />
+        {/* Banner (design 16 Nov 2026): always dark, picture from the site owner on the right. */}
+        <section className="relative overflow-hidden bg-[#061632] text-white">
+          <div aria-hidden="true" className="absolute inset-0 bg-[url(/pairs-hero.webp)] bg-cover bg-[position:right_center] opacity-90" />
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,#061632_30%,rgba(6,22,50,.55)_65%,rgba(6,22,50,.1))]" />
+          <div className="relative mx-auto max-w-6xl px-4 py-5 sm:py-7">
+            <Link href={`/tournaments/${id}`} className="inline-flex min-h-9 items-center gap-1 text-sm text-white/80 hover:text-white hover:underline">‹ รายละเอียดงาน</Link>
+            <div className="mt-1 flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
+              <div className="min-w-0 lg:border-r lg:border-white/25 lg:pr-8">
+                <h1 className="text-[1.65rem] font-bold leading-tight sm:text-4xl">{event.title}</h1>
+                <p className="mt-1 text-[15px] text-[#9cc3ff] sm:text-lg">{label} • ระบบจับคู่สวิส • กระดาน {size}×{size}</p>
+                <p className="mt-0.5 flex items-center gap-1.5 text-sm text-white/75"><Icon name="calendar" className="h-4 w-4 shrink-0" />{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
+              </div>
+              <ul className="flex flex-wrap gap-2">
+                {[
+                  { icon: "users" as const, t: `นักกีฬา ${athleteCards.length || roster.length} คน` },
+                  { icon: "trophy" as const, t: lastRound ? `รอบ ${lastRound} / ${Math.max(TOTAL_ROUNDS, lastRound)}` : "ยังไม่เริ่ม" },
+                  { icon: "grid" as const, t: `แข่งขันแล้ว ${matches.filter((m) => m.state === "verified").length} เกม`, wide: true },
+                ].map((c) => (
+                  <li key={c.t} className={`${"wide" in c ? "hidden sm:inline-flex" : "inline-flex"} min-h-9 items-center gap-2 rounded-full border border-white/50 bg-white/5 px-3 text-sm font-medium backdrop-blur-sm sm:min-h-10 sm:px-4 sm:text-[15px]`}>
+                    <Icon name={c.icon} className="h-5 w-5 shrink-0" />{c.t}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-          <dl className="mt-3 grid grid-cols-3 gap-2">
-            {[
-              { icon: "users" as const, k: "ผู้สมัคร", v: `${roster.length} คน` },
-              { icon: "grid" as const, k: "กระดาน", v: `${size}×${size}` },
-              { icon: "trophy" as const, k: "แข่งแล้ว", v: `${lastRound} รอบ` },
-            ].map((s) => (
-              <div key={s.k} className="flex min-w-0 items-center gap-1.5 rounded-xl border border-[var(--gt-line)] px-2 py-2">
-                <Icon name={s.icon} className="h-5 w-5 shrink-0 text-[var(--gt-gold)]" />
-                <div className="min-w-0"><dt className="truncate text-[11px] text-[var(--gt-muted)]">{s.k}</dt><dd className="gt-num truncate font-bold">{s.v}</dd></div>
-              </div>
-            ))}
-          </dl>
-          {division.seats_limit != null && <p className="mt-2 text-right text-xs text-[var(--gt-muted)]">รับสูงสุด {division.seats_limit} คน{division.entry_fee_thb != null ? ` · ค่าสมัคร ${division.entry_fee_thb} บาท` : ""}</p>}
         </section>
+      </div>
 
+      <main className="px-4">
         <LiveRefresh divisionId={divisionId} fingerprint={live} />
 
         <div className="mt-3 grid grid-cols-2 gap-3">
