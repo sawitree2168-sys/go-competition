@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { proposeSwissRound } from "@/lib/swiss-round.mjs";
-import { RESULT_OPTIONS, absentInRound, pairingPlayers, resultLabel, roundState, scoresFrom } from "@/lib/competition-day.mjs";
+import { absentInRound, pairingPlayers, resultLabel, roundState, scoresFrom } from "@/lib/competition-day.mjs";
 import { ErrorNote, staffDb, useAction } from "../staff";
+import MatchCard, { type Seat } from "../../../tournaments/[id]/_ui/MatchCard";
+import ResultControls from "../../../tournaments/[id]/_ui/ResultControls";
 import { TOTAL_ROUNDS, isWithdrawn, nameOf, poolArg, poolKey, poolName, pts, schoolOf, type DivisionData, type Match, type Reg } from "./types";
 
 type Table = { board: number; black: string; white: string };
@@ -64,6 +66,7 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
 
   const roundMatches = matches.filter((m) => m.round_number === shown).sort((a, b) => (a.board_number ?? 0) - (b.board_number ?? 0));
   const roundBye = byes.find((b) => b.round_number === shown);
+  const { score: scoreBefore } = scoresFrom(everyone.map((r) => r.athlete_id), matches.filter((x) => x.round_number < shown), byes.filter((x) => x.round_number < shown));
   const latest = shown === state.lastRound;
   const hasResults = roundMatches.some((m) => m.state === "verified");
   const seats = roundMatches.length * 2;
@@ -119,7 +122,7 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
           )}
           {!latest && <p className="text-sm text-[var(--gt-muted)]">รอบเก่า: ดูได้อย่างเดียว (แก้ผลได้เฉพาะรอบล่าสุดก่อนออกคู่รอบถัดไป)</p>}
           <ul className="space-y-2">
-            {roundMatches.map((m) => <TableCard key={m.id} m={m} byId={byId} score={score} editable={latest} reload={reload} />)}
+            {roundMatches.map((m) => <TableCard key={m.id} m={m} byId={byId} score={scoreBefore} editable={latest} reload={reload} />)}
             {roundBye && (
               <li className="gt-card flex items-center gap-3 px-4 py-3 text-sm">
                 <span className="w-14 shrink-0 font-semibold text-[var(--gt-muted)]">บาย</span>
@@ -167,66 +170,41 @@ function Player({ r, colour, score }: { r?: Reg; colour: "black" | "white"; scor
 
 function TableCard({ m, byId, score, editable, reload }: { m: Match; byId: Map<string, Reg>; score: Map<string, number>; editable: boolean; reload: () => Promise<void> }) {
   const action = useAction();
-  const [sheet, setSheet] = useState(false);
+  const [editing, setEditing] = useState(false);
   const done = m.state === "verified";
 
   const record = async (code: string, margin: string | null) => {
     const ok = await action.run(() => staffDb()!.rpc("gt_staff_record_result_v1", { p_match: m.id, p_result: code, p_margin: margin }));
-    if (ok) { setSheet(false); await reload(); }
+    if (ok) { setEditing(false); await reload(); }
   };
   const checkin = async (side: "black" | "white", present: boolean) => {
     const ok = await action.run(() => staffDb()!.rpc("gt_staff_checkin_v1", { p_match: m.id, p_side: side, p_present: present }));
     if (ok) await reload();
   };
-
-  const seat = (side: "black" | "white") => {
-    const id = side === "black" ? m.black_athlete_id : m.white_athlete_id;
+  const seat = (id: string): Seat => {
+    const r = byId.get(id);
+    return { id, name: nameOf(r), institution: schoolOf(r), rank: r?.gt_athletes?.current_rank ?? null, photo: r?.gt_athletes?.avatar_url ?? null, score: score.get(id) ?? 0, won: m.winner_athlete_id === id };
+  };
+  const checkButton = (side: "black" | "white") => {
     const here = side === "black" ? m.black_checkin_at : m.white_checkin_at;
-    const won = m.winner_athlete_id === id;
+    if (!editable || done) return here ? <span className="text-xs font-semibold text-[var(--gt-ok)]">✓ มาแล้ว</span> : null;
     return (
-      <div className={`flex items-center gap-2 rounded-lg px-1 py-1 ${won ? "bg-[var(--gt-gold-soft)]" : ""}`}>
-        <div className="min-w-0 flex-1"><Player r={byId.get(id)} colour={side} score={score.get(id)} /></div>
-        {editable && !done ? (
-          <button type="button" disabled={action.busy} onClick={() => checkin(side, !here)} aria-pressed={Boolean(here)}
-            className={`min-h-11 shrink-0 rounded-xl border px-3 text-sm font-semibold ${here ? "border-[var(--gt-ok)] bg-[var(--gt-ok)] text-white" : "border-[var(--gt-line)] text-[var(--gt-muted)]"}`}>
-            {here ? "✓ มาแล้ว" : "เช็คอิน"}
-          </button>
-        ) : here ? <span className="shrink-0 text-xs text-[var(--gt-ok)]">✓ มา</span> : null}
-      </div>
+      <button type="button" disabled={action.busy} onClick={() => checkin(side, !here)} aria-pressed={Boolean(here)}
+        className={`min-h-10 rounded-full border px-3 text-sm font-semibold ${here ? "border-[var(--gt-ok)] bg-[var(--gt-ok)] text-white" : "border-[var(--gt-line)] bg-[var(--gt-surface)] text-[var(--gt-muted)]"}`}>
+        {here ? "✓ มาแล้ว" : "เช็คอิน"}
+      </button>
     );
   };
+  const actions = !editable ? null : done && !editing
+    ? <button type="button" onClick={() => setEditing(true)} className="min-h-11 text-sm text-[var(--gt-muted)] underline">แก้ผล</button>
+    : <ResultControls busy={action.busy} onRecord={record} onCancel={done ? () => setEditing(false) : undefined} />;
 
   return (
-    <li className={`gt-card space-y-2 px-3 py-3 ${done ? "" : "border-[var(--gt-warn)]"}`}>
-      <div className="flex items-center justify-between gap-2 px-1">
-        <span className="gt-num font-bold">โต๊ะ {m.board_number}</span>
-        {done ? <span className="text-sm font-semibold text-[var(--gt-ok)]">{resultLabel(m)}</span> : <span className="text-xs text-[var(--gt-warn)]">รอผล</span>}
-      </div>
-      <div className="grid gap-1 sm:grid-cols-2">{seat("black")}{seat("white")}</div>
-      {editable && !sheet && (
-        done
-          ? <button type="button" onClick={() => setSheet(true)} className="min-h-11 text-sm text-[var(--gt-muted)] underline">แก้ผล</button>
-          : (
-            <div className="grid grid-cols-3 gap-2">
-              <button type="button" disabled={action.busy} onClick={() => record("black_win", null)} className="min-h-12 rounded-xl border border-black bg-[#14171e] text-sm font-semibold text-white disabled:opacity-50">ดำชนะ</button>
-              <button type="button" disabled={action.busy} onClick={() => record("white_win", null)} className="min-h-12 rounded-xl border border-[#9aa3b2] bg-white text-sm font-semibold text-[#14171e] disabled:opacity-50">ขาวชนะ</button>
-              <button type="button" onClick={() => setSheet(true)} className="min-h-12 rounded-xl border border-[var(--gt-line)] text-sm font-semibold">ผลอื่น…</button>
-            </div>
-          )
-      )}
-      {sheet && (
-        <div className="space-y-1 rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface-2)] p-2" role="group" aria-label={`เลือกผลโต๊ะ ${m.board_number}`}>
-          {RESULT_OPTIONS.map((o) => (
-            <button key={o.label} type="button" disabled={action.busy} onClick={() => record(o.code, o.margin)}
-              className="flex min-h-12 w-full items-center justify-between rounded-lg bg-[var(--gt-surface)] px-3 text-left text-[15px] disabled:opacity-50">
-              <span>{o.label}</span><span className="gt-num text-sm text-[var(--gt-muted)]">{o.score}</span>
-            </button>
-          ))}
-          <button type="button" onClick={() => setSheet(false)} className="min-h-11 w-full text-sm text-[var(--gt-muted)] underline">ปิด</button>
-        </div>
-      )}
-      <ErrorNote text={action.error} />
-    </li>
+    <>
+      <MatchCard board={m.board_number} status={done ? resultLabel(m) : "รอผล"} statusTone={done ? "done" : "wait"} highlight={!done}
+        black={seat(m.black_athlete_id)} white={seat(m.white_athlete_id)} blackExtra={checkButton("black")} whiteExtra={checkButton("white")}
+        actions={actions && <>{actions}<ErrorNote text={action.error} /></>} />
+    </>
   );
 }
 

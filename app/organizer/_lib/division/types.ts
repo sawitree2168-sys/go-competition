@@ -1,6 +1,6 @@
 export const TOTAL_ROUNDS = 5;
 
-export type Athlete = { full_name: string; school_name: string | null; current_rank: string | null; go_id: string | null };
+export type Athlete = { full_name: string; school_name: string | null; current_rank: string | null; go_id: string | null; avatar_url?: string | null };
 export type Reg = {
   athlete_id: string; pool_label: string | null; payment_status: string; competition_rank_reference: string | null;
   registration_status: string; display_institution: string | null; gt_athletes: Athlete | null;

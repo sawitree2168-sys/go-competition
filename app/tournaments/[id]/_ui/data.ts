@@ -17,11 +17,11 @@ export type Match = {
 /** One row of gt_division_board_v1: a table (kind "match") or a bye, with real names and registered institution. */
 export type BoardRow = {
   kind: "match" | "bye"; match_id: string | null; pool_label: string | null; round_number: number; board_number: number | null;
-  black_id: string; black_name: string | null; black_institution: string | null;
-  white_id: string | null; white_name: string | null; white_institution: string | null;
+  black_id: string; black_name: string | null; black_institution: string | null; black_rank: string | null; black_photo: string | null;
+  white_id: string | null; white_name: string | null; white_institution: string | null; white_rank: string | null; white_photo: string | null;
   winner_id: string | null; result_code: string | null; result_margin: string | null; state: string | null;
 };
-export type Person = { name: string; institution: string };
+export type Person = { name: string; institution: string; rank?: string | null; photo?: string | null };
 export type Bye = { round_number: number; athlete_id: string; pool_label?: string | null };
 export type Standing = {
   pool_label?: string | null; pos: number; athlete_id: string | null; display_name: string | null; current_rank: string | null;
@@ -70,13 +70,15 @@ export async function loadDivisionPage(db: SupabaseClient | null, id: string, di
   try {
     const [page, board, s] = await Promise.all([
       loadEventPage(db, id),
-      db.rpc("gt_division_board_v1", { p_division: divisionId }),
+      db.rpc("gt_division_board_v2", { p_division: divisionId }),
       db.rpc("gt_division_standings_v3", { p_division: divisionId, p_pool: null }),
     ]);
     const rows = (board.data ?? []) as BoardRow[];
     const people = new Map<string, Person>();
-    const add = (id: string | null, name: string | null, inst: string | null) => { if (id && name) people.set(id, { name, institution: inst ?? "" }); };
-    for (const r of rows) { add(r.black_id, r.black_name, r.black_institution); add(r.white_id, r.white_name, r.white_institution); }
+    const add = (id: string | null, name: string | null, inst: string | null, rank: string | null, photo: string | null) => {
+      if (id && name) people.set(id, { name, institution: inst ?? "", rank, photo });
+    };
+    for (const r of rows) { add(r.black_id, r.black_name, r.black_institution, r.black_rank, r.black_photo); add(r.white_id, r.white_name, r.white_institution, r.white_rank, r.white_photo); }
     const matches: Match[] = rows.filter((r) => r.kind === "match" && r.match_id && r.white_id).map((r) => ({
       id: r.match_id!, round_number: r.round_number, board_number: r.board_number, black_athlete_id: r.black_id, white_athlete_id: r.white_id!,
       winner_athlete_id: r.winner_id, result_code: r.result_code, result_margin: r.result_margin, state: r.state ?? "pending", pool_label: r.pool_label,

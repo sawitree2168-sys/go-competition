@@ -7,6 +7,7 @@ import PosterViewer from "@/components/PosterViewer";
 import { boardSize, divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
 import { friendshipAward, resultLabel } from "@/lib/competition-day.mjs";
 import CrossTable from "../../_ui/CrossTable";
+import PairingsBoard from "../../_ui/PairingsBoard";
 
 // Served from cache and refreshed in the background at most every 30 s (see PUBLIC_CACHE_SECONDS).
 export const revalidate = 30;
@@ -71,38 +72,9 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
   const PoolTitle = ({ pool }: { pool: string }) => multi ? <h2 className="mt-5 rounded-xl bg-[var(--gt-surface-2)] px-3 py-1.5 text-base font-bold">สาย {pool || "–"}</h2> : null;
   const inPool = <T extends { pool_label?: string | null }>(rows: T[], pool: string) => rows.filter((x) => (x.pool_label ?? "") === pool);
 
-  const pairsPanel = rounds.length ? pools.map((pool) => {
-    const pm = inPool(matches, pool), pb = inPool(byes, pool);
-    const pr = [...new Set([...pm.map((m) => m.round_number), ...pb.map((b) => b.round_number)])].sort((a, b) => b - a);
-    return (
-      <div key={pool || "all"}>
-        <PoolTitle pool={pool} />
-        {pr.map((r) => (
-          <section key={r} className="mt-4">
-            <h2 className="text-lg font-bold">รอบที่ {r}</h2>
-            <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1.5">
-              {pm.filter((m) => m.round_number === r).sort(byBoard).map((m) => (
-                <li key={m.id} className="gt-card flex min-w-0 items-center gap-3 px-3 py-2.5">
-                  <span className="gt-num w-14 shrink-0 text-sm font-semibold text-[var(--gt-muted)]">โต๊ะ {m.board_number ?? "–"}</span>
-                  <span className="grid min-w-0 flex-1 gap-1 text-[15px]">
-                    <span className="flex min-w-0 items-center gap-2"><Stone color="b" /><Who id={m.black_athlete_id} /></span>
-                    <span className="flex min-w-0 items-center gap-2"><Stone color="w" /><Who id={m.white_athlete_id} /></span>
-                  </span>
-                </li>
-              ))}
-              {pb.filter((b) => b.round_number === r).map((b) => (
-                <li key={b.athlete_id} className="flex min-w-0 items-center gap-3 rounded-xl border border-dashed border-[var(--gt-line)] px-3 py-2.5">
-                  <span className="w-14 shrink-0 text-sm font-semibold text-[var(--gt-muted)]">บาย</span>
-                  <span className="min-w-0 flex-1"><Who id={b.athlete_id} /></span>
-                  <span className="shrink-0 text-xs text-[var(--gt-muted)]">+1 คะแนน</span>
-                </li>
-              ))}
-            </ol>
-          </section>
-        ))}
-      </div>
-    );
-  }) : <Notice title="ยังไม่ประกาศคู่แข่งขัน" body="ผู้ตัดสินจะจับคู่แบบสวิส: โต๊ะ 1 คือผู้มีคะแนนสูงสุด" />;
+  const pairsPanel = rounds.length
+    ? <PairingsBoard matches={matches} byes={byes} people={Object.fromEntries(people)} />
+    : <Notice title="ยังไม่ประกาศคู่แข่งขัน" body="ผู้ตัดสินจะจับคู่แบบสวิส: โต๊ะ 1 คือผู้มีคะแนนสูงสุด" />;
 
   const verified = matches.filter((m) => m.state === "verified");
   const resultsPanel = verified.length ? pools.map((pool) => {

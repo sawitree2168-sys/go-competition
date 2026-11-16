@@ -3,10 +3,12 @@
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import ThemeToggle from "../../tournaments/[id]/_ui/ThemeToggle";
-import { RESULT_OPTIONS, resultLabel, staffErrorMessage } from "@/lib/competition-day.mjs";
+import { resultLabel, staffErrorMessage } from "@/lib/competition-day.mjs";
+import MatchCard, { type Seat } from "../../tournaments/[id]/_ui/MatchCard";
+import ResultControls from "../../tournaments/[id]/_ui/ResultControls";
 import { divisionLabel, divisionSortValue } from "@/lib/division-display";
 
-type Side = { id: string; name: string | null; institution: string | null; checked_in: boolean };
+type Side = { id: string; name: string | null; institution: string | null; rank?: string | null; photo?: string | null; score?: number; checked_in: boolean };
 type Table = { id: string; pool: string | null; round: number; board: number; state: string; result_code: string | null; result_margin: string | null; winner: string | null; black: Side; white: Side };
 type Division = { id: string; name: string; pending: number; last_round: number | null };
 type Opened = { referee_name: string; expires_at: string; tournament: { title: string; event_date: string | null }; divisions: Division[] };
@@ -157,7 +159,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
       {pools.map((pool) => (
         <section key={pool || "all"} className="space-y-2">
           {pools.length > 1 && <h2 className="font-bold">สาย {pool}</h2>}
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {shown.filter((t) => (t.pool ?? "") === pool).map((t) => <RefTable key={t.id} t={t} call={call} />)}
           </ul>
         </section>
@@ -169,59 +171,27 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
 
 function RefTable({ t, call }: { t: Table; call: (fn: string, args: Record<string, unknown>) => Promise<boolean> }) {
   const [busy, setBusy] = useState(false);
-  const [sheet, setSheet] = useState(false);
+  const [editing, setEditing] = useState(false);
   const done = t.state === "verified";
-  const run = async (fn: string, args: Record<string, unknown>) => { setBusy(true); const ok = await call(fn, args); setBusy(false); if (ok) setSheet(false); };
+  const run = async (fn: string, args: Record<string, unknown>) => { setBusy(true); const ok = await call(fn, args); setBusy(false); if (ok) setEditing(false); };
   const record = (codeName: string, margin: string | null) => run("gt_referee_record_result_v1", { p_match: t.id, p_result: codeName, p_margin: margin });
   const match = { state: t.state, result_code: t.result_code, result_margin: t.result_margin, winner_athlete_id: t.winner, black_athlete_id: t.black.id, white_athlete_id: t.white.id };
-
-  const seat = (side: "black" | "white") => {
-    const p = t[side];
-    const won = t.winner === p.id;
+  const seat = (p: Side): Seat => ({ id: p.id, name: p.name, institution: p.institution, rank: p.rank, photo: p.photo, score: p.score ?? 0, won: t.winner === p.id });
+  const checkButton = (side: "black" | "white") => {
+    const here = t[side].checked_in;
+    if (done) return here ? <span className="text-xs font-semibold text-[var(--gt-ok)]">✓ มาแล้ว</span> : null;
     return (
-      <div className={`flex items-center gap-2 rounded-lg px-1 py-1 ${won ? "bg-[var(--gt-gold-soft)]" : ""}`}>
-        <span aria-label={side === "black" ? "ดำ" : "ขาว"} className={`h-5 w-5 shrink-0 rounded-full border ${side === "black" ? "border-black bg-[#14171e]" : "border-[#9aa3b2] bg-white"}`} />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold">{p.name ?? "—"}</span>
-          <span className="block truncate text-xs text-[var(--gt-muted)]">{p.institution || "—"}</span>
-        </span>
-        {!done ? (
-          <button type="button" disabled={busy} onClick={() => run("gt_referee_checkin_v1", { p_match: t.id, p_side: side, p_present: !p.checked_in })} aria-pressed={p.checked_in}
-            className={`min-h-11 shrink-0 rounded-xl border px-3 text-sm font-semibold ${p.checked_in ? "border-[var(--gt-ok)] bg-[var(--gt-ok)] text-white" : "border-[var(--gt-line)] text-[var(--gt-muted)]"}`}>
-            {p.checked_in ? "✓ มาแล้ว" : "เช็คอิน"}
-          </button>
-        ) : p.checked_in ? <span className="shrink-0 text-xs text-[var(--gt-ok)]">✓ มา</span> : null}
-      </div>
+      <button type="button" disabled={busy} onClick={() => run("gt_referee_checkin_v1", { p_match: t.id, p_side: side, p_present: !here })} aria-pressed={here}
+        className={`min-h-10 rounded-full border px-3 text-sm font-semibold ${here ? "border-[var(--gt-ok)] bg-[var(--gt-ok)] text-white" : "border-[var(--gt-line)] bg-[var(--gt-surface)] text-[var(--gt-muted)]"}`}>
+        {here ? "✓ มาแล้ว" : "เช็คอิน"}
+      </button>
     );
   };
-
   return (
-    <li className={`gt-card space-y-2 px-3 py-3 ${done ? "" : "border-[var(--gt-warn)]"}`}>
-      <div className="flex items-center justify-between gap-2 px-1">
-        <span className="gt-num text-lg font-bold">โต๊ะ {t.board}</span>
-        {done ? <span className="text-sm font-semibold text-[var(--gt-ok)]">{resultLabel(match)}</span> : <span className="text-xs text-[var(--gt-warn)]">รอผล</span>}
-      </div>
-      {seat("black")}{seat("white")}
-      {!sheet && (done
-        ? <button type="button" onClick={() => setSheet(true)} className="min-h-11 text-sm text-[var(--gt-muted)] underline">แก้ผล</button>
-        : (
-          <div className="grid grid-cols-3 gap-2">
-            <button type="button" disabled={busy} onClick={() => record("black_win", null)} className="min-h-12 rounded-xl border border-black bg-[#14171e] text-sm font-semibold text-white disabled:opacity-50">ดำชนะ</button>
-            <button type="button" disabled={busy} onClick={() => record("white_win", null)} className="min-h-12 rounded-xl border border-[#9aa3b2] bg-white text-sm font-semibold text-[#14171e] disabled:opacity-50">ขาวชนะ</button>
-            <button type="button" onClick={() => setSheet(true)} className="min-h-12 rounded-xl border border-[var(--gt-line)] text-sm font-semibold">ผลอื่น…</button>
-          </div>
-        ))}
-      {sheet && (
-        <div className="space-y-1 rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface-2)] p-2" role="group" aria-label={`เลือกผลโต๊ะ ${t.board}`}>
-          {RESULT_OPTIONS.map((o) => (
-            <button key={o.label} type="button" disabled={busy} onClick={() => record(o.code, o.margin)}
-              className="flex min-h-12 w-full items-center justify-between rounded-lg bg-[var(--gt-surface)] px-3 text-left text-[15px] disabled:opacity-50">
-              <span>{o.label}</span><span className="gt-num text-sm text-[var(--gt-muted)]">{o.score}</span>
-            </button>
-          ))}
-          <button type="button" onClick={() => setSheet(false)} className="min-h-11 w-full text-sm text-[var(--gt-muted)] underline">ปิด</button>
-        </div>
-      )}
-    </li>
+    <MatchCard board={t.board} status={done ? resultLabel(match) : "รอผล"} statusTone={done ? "done" : "wait"} highlight={!done}
+      black={seat(t.black)} white={seat(t.white)} blackExtra={checkButton("black")} whiteExtra={checkButton("white")}
+      actions={done && !editing
+        ? <button type="button" onClick={() => setEditing(true)} className="min-h-11 text-sm text-[var(--gt-muted)] underline">แก้ผล</button>
+        : <ResultControls busy={busy} onRecord={record} onCancel={done ? () => setEditing(false) : undefined} />} />
   );
 }
