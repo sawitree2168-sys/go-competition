@@ -119,17 +119,20 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
             const a = action(e);
             return (
               <li key={e.id} className="gt-card flex flex-col p-2.5">
-                <Banner e={e} />
+                <Link href={e.status === "open" ? `/tournaments/${e.id}/register` : `/tournaments/${e.id}`} aria-label={e.status === "open" ? `สมัคร ${e.title}` : e.title} className="block rounded-xl"><Banner e={e} /></Link>
                 <div className="flex flex-1 flex-col px-1.5 pb-1 pt-3">
                   <span className={`self-start rounded-full px-2.5 py-0.5 text-xs font-bold ${CHIP[e.status]}`}>{STATUS_LABEL[e.status]}</span>
                   <h2 className="mt-1.5 text-lg font-bold leading-snug">{e.title}</h2>
                   <p className="mt-1 flex items-center gap-2 text-sm"><CalIcon />{thaiDate(e.event_date) ?? "รออัปเดตวันแข่งขัน"}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-sm"><PinIcon />{e.venue ?? "สถานที่รอยืนยัน"}</p>
                   {e.kinds && <p className="mt-2 border-t border-[var(--gt-line)] pt-2 text-sm font-semibold">{e.kinds}</p>}
-                  <div className="mt-auto pt-3">
+                  <div className={`mt-auto pt-3 ${e.status === "open" ? "grid grid-cols-2 gap-2" : ""}`}>
+                    {e.status === "open" && (
+                      <Link href={`/tournaments/${e.id}/register`} className="gt-cta-btn flex min-h-11 items-center justify-center rounded-xl px-2 text-[15px] font-bold">สมัครแข่งขัน</Link>
+                    )}
                     <Link href={`/tournaments/${e.id}`}
-                      className={`flex min-h-11 items-center justify-center gap-1 rounded-xl px-3 text-[15px] font-bold ${a.primary ? "gt-cta-btn" : "border border-[var(--gt-line)] bg-[var(--gt-cta-soft)] text-[var(--gt-ink)]"}`}>
-                      {a.label} →
+                      className={`flex min-h-11 items-center justify-center gap-1 rounded-xl px-3 text-[15px] font-bold ${a.primary && e.status !== "open" ? "gt-cta-btn" : "border border-[var(--gt-line)] bg-[var(--gt-cta-soft)] text-[var(--gt-ink)]"}`}>
+                      {e.status === "open" ? "รายละเอียด" : `${a.label} →`}
                     </Link>
                   </div>
                 </div>

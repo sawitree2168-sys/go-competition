@@ -162,7 +162,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
     <Shell
       bottomBar={<>
         <a href={`/tournaments/${id}#contact`} className="gt-outline-btn flex min-w-0 flex-1 items-center justify-center gap-2 py-3 text-[15px] font-semibold"><Icon name="chat" className="h-6 w-6 shrink-0 text-[var(--gt-brand)]" /><span className="truncate">ติดต่อผู้จัด</span></a>
-        <a href="?tab=register" className="gt-gold-btn flex min-w-0 flex-1 items-center justify-center gap-2 py-3 text-base"><span className="truncate">สมัครรุ่นนี้</span> <Icon name="chevron" className="h-4 w-4 shrink-0" /></a>
+        <a href={`/tournaments/${id}/register?division=${divisionId}`} className="gt-gold-btn flex min-w-0 flex-1 items-center justify-center gap-2 py-3 text-base"><span className="truncate">สมัครรุ่นนี้</span> <Icon name="chevron" className="h-4 w-4 shrink-0" /></a>
       </>}
     >
       <div className="relative left-1/2 w-screen -translate-x-1/2">

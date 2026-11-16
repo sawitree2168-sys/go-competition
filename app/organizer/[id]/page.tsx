@@ -7,6 +7,7 @@ import { ErrorNote, staffDb, useAction, useStaff } from "../_lib/staff";
 import { divisionKey, divisionLabel, divisionSortValue, thaiDate } from "@/lib/division-display";
 import { mapEntrantsToDivisions } from "@/lib/competition-day.mjs";
 import { OrganizerQueue } from "@/app/tournaments/[id]/_ui/RegisterPanel";
+import PaymentSettings from "./PaymentSettings";
 
 type Division = { id: string; name: string };
 type Entrant = { source_row: number; full_name: string; institution: string; division_name: string };
@@ -315,10 +316,10 @@ function EventConsole({ id }: { id: string }) {
       <section className="gt-card space-y-4 p-4">
         <div>
           <h2 className="font-bold">4. การรับสมัคร</h2>
-          <p className="text-sm text-[var(--gt-muted)]">เลือกวิธีรับสมัครของงานนี้ ผู้สมัครกรอกที่แท็บ “สมัคร” ของแต่ละรุ่น แล้วอนุมัติหรือปฏิเสธได้ที่นี่</p>
+          <p className="text-sm text-[var(--gt-muted)]">เลือกวิธีรับสมัครของงานนี้ · รับผ่านเว็บ: ผู้สมัครกดโปสเตอร์ / ปุ่ม “สมัครแข่งขัน” กรอกข้อมูล โอนเงิน แนบสลิป แล้วอนุมัติหรือปฏิเสธได้ที่นี่</p>
         </div>
         <RegistrationSettings key={`${event.registration_mode}|${event.registration_url}`} id={id} mode={event.registration_mode ?? "web"} url={event.registration_url} onSaved={load} />
-        {(event.registration_mode ?? "web") === "web" && <OrganizerQueue tournamentId={id} bare />}
+        {(event.registration_mode ?? "web") === "web" && <><PaymentSettings id={id} /><OrganizerQueue tournamentId={id} bare /></>}
       </section>
 
       <section className="gt-card space-y-3 p-4">

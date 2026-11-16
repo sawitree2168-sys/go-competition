@@ -37,7 +37,7 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
           <Icon name="calendar" className="h-6 w-6 shrink-0 text-[var(--gt-brand)]" />
           <span className="truncate">{opens ? `เปิดรับสมัคร ${opens}` : "รอประกาศวันรับสมัคร"}</span>
         </span>
-        <Link href="/register" className="gt-gold-btn flex items-center gap-2 px-6 py-3 text-base">สมัครแข่งขัน <Icon name="chevron" className="h-4 w-4" /></Link>
+        <Link href={`/tournaments/${id}/register`} className="gt-gold-btn flex items-center gap-2 px-6 py-3 text-base">สมัครแข่งขัน <Icon name="chevron" className="h-4 w-4" /></Link>
       </>}
     >
       <Header backHref="/tournaments" backLabel="กลับรายการแข่งขัน" />
