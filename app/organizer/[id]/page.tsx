@@ -6,10 +6,47 @@ import Gate from "../_lib/Gate";
 import { ErrorNote, staffDb, useAction, useStaff } from "../_lib/staff";
 import { divisionKey, divisionLabel, divisionSortValue, thaiDate } from "@/lib/division-display";
 import { mapEntrantsToDivisions } from "@/lib/competition-day.mjs";
+import { OrganizerQueue } from "@/app/tournaments/[id]/_ui/RegisterPanel";
 
 type Division = { id: string; name: string };
 type Entrant = { source_row: number; full_name: string; institution: string; division_name: string };
 type ImportResult = { source_row: number; outcome: string };
+type Mode = "web" | "external" | "closed";
+
+const MODE_LABEL: Record<Mode, string> = { web: "รับสมัครผ่านเว็บนี้ (ผู้จัดอนุมัติ)", external: "ฟอร์มภายนอก เช่น Google Form", closed: "ปิดรับสมัคร" };
+
+function RegistrationSettings({ id, mode, url, onSaved }: { id: string; mode: Mode; url: string | null; onSaved: () => void }) {
+  const [m, setM] = useState<Mode>(mode);
+  const [u, setU] = useState(url ?? "");
+  const [saved, setSaved] = useState(false);
+  const action = useAction();
+  const save = async () => {
+    setSaved(false);
+    const res = await action.run(() => staffDb()!.rpc("gt_staff_set_registration_mode_v1", { p_tournament: id, p_mode: m, p_url: m === "external" ? u.trim() : null }));
+    if (res) { setSaved(true); onSaved(); }
+  };
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {(Object.keys(MODE_LABEL) as Mode[]).map((k) => (
+          <label key={k} className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm ${m === k ? "border-[var(--gt-brand)] font-semibold" : "border-[var(--gt-line)]"}`}>
+            <input type="radio" name="reg-mode" checked={m === k} onChange={() => { setM(k); setSaved(false); }} />{MODE_LABEL[k]}
+          </label>
+        ))}
+      </div>
+      {m === "external" && (
+        <label className="block text-sm">ลิงก์แบบฟอร์ม (ไม่บังคับ)
+          <input value={u} onChange={(e) => { setU(e.target.value); setSaved(false); }} placeholder="https://forms.gle/…" className="mt-1 block min-h-11 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3" />
+        </label>
+      )}
+      <div className="flex items-center gap-3">
+        <button type="button" onClick={save} disabled={action.busy} className="gt-gold-btn min-h-11 px-5 disabled:opacity-60">บันทึก</button>
+        {saved && <span className="text-sm text-[var(--gt-ok)]">บันทึกแล้ว · หน้าสาธารณะอัปเดตภายใน 30 วินาที</span>}
+      </div>
+      <ErrorNote text={action.error} />
+    </div>
+  );
+}
 
 export default function OrganizerEvent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -18,7 +55,7 @@ export default function OrganizerEvent({ params }: { params: Promise<{ id: strin
 
 function EventConsole({ id }: { id: string }) {
   const staff = useStaff();
-  const [event, setEvent] = useState<{ title: string; event_date: string | null } | null>(null);
+  const [event, setEvent] = useState<{ title: string; event_date: string | null; registration_mode: Mode | null; registration_url: string | null } | null>(null);
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [entrants, setEntrants] = useState<Entrant[]>([]);
   const [regCount, setRegCount] = useState<Map<string, number>>(new Map());
@@ -30,7 +67,7 @@ function EventConsole({ id }: { id: string }) {
   const load = useCallback(async () => {
     const db = staffDb()!;
     const [ev, dv, en, rg, mt] = await Promise.all([
-      db.from("gt_tournaments").select("title,event_date").eq("id", id).maybeSingle(),
+      db.from("gt_tournaments").select("title,event_date,registration_mode,registration_url").eq("id", id).maybeSingle(),
       db.from("gt_divisions").select("id,name").eq("tournament_id", id),
       db.from("gt_public_entrants").select("source_row,full_name,institution,division_name").eq("tournament_id", id).order("source_row").limit(2000),
       db.from("gt_registrations").select("division_id").eq("tournament_id", id).eq("registration_status", "confirmed").limit(5000),
@@ -147,6 +184,15 @@ function EventConsole({ id }: { id: string }) {
           <p className="text-sm text-[var(--gt-muted)]">สร้างลิงก์ + รหัส 6 หลัก ให้กรรมการเช็คอินและลงผลจากมือถือ ไม่ต้องสมัครบัญชี</p>
         </div>
         <Link href={`/organizer/${id}/referees`} className="gt-gold-btn inline-flex min-h-12 items-center px-5">จัดการกรรมการ</Link>
+      </section>
+
+      <section className="gt-card space-y-4 p-4">
+        <div>
+          <h2 className="font-bold">4. การรับสมัคร</h2>
+          <p className="text-sm text-[var(--gt-muted)]">เลือกวิธีรับสมัครของงานนี้ ผู้สมัครกรอกที่แท็บ “สมัคร” ของแต่ละรุ่น แล้วอนุมัติหรือปฏิเสธได้ที่นี่</p>
+        </div>
+        <RegistrationSettings key={`${event.registration_mode}|${event.registration_url}`} id={id} mode={event.registration_mode ?? "web"} url={event.registration_url} onSaved={load} />
+        {(event.registration_mode ?? "web") === "web" && <OrganizerQueue tournamentId={id} bare />}
       </section>
     </div>
   );

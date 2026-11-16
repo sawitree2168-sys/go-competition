@@ -8,6 +8,7 @@ import { boardSize, divisionKey, divisionLabel, thaiDate } from "@/lib/division-
 import { friendshipAward, resultLabel } from "@/lib/competition-day.mjs";
 import CrossTable from "../../_ui/CrossTable";
 import PairingsBoard from "../../_ui/PairingsBoard";
+import RegisterPanel from "../../_ui/RegisterPanel";
 
 // Served from cache and refreshed in the background at most every 30 s (see PUBLIC_CACHE_SECONDS).
 export const revalidate = 30;
@@ -141,7 +142,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
     <Shell
       bottomBar={<>
         <a href={`/tournaments/${id}#contact`} className="gt-outline-btn flex min-w-0 flex-1 items-center justify-center gap-2 py-3 text-[15px] font-semibold"><Icon name="chat" className="h-6 w-6 shrink-0 text-[var(--gt-brand)]" /><span className="truncate">ติดต่อผู้จัด</span></a>
-        <Link href="/register" className="gt-gold-btn flex min-w-0 flex-1 items-center justify-center gap-2 py-3 text-base"><span className="truncate">สมัครรุ่นนี้</span> <Icon name="chevron" className="h-4 w-4 shrink-0" /></Link>
+        <a href="?tab=register" className="gt-gold-btn flex min-w-0 flex-1 items-center justify-center gap-2 py-3 text-base"><span className="truncate">สมัครรุ่นนี้</span> <Icon name="chevron" className="h-4 w-4 shrink-0" /></a>
       </>}
     >
       <Header backHref={`/tournaments/${id}`} backLabel="กลับรายละเอียดงาน" />
@@ -189,7 +190,16 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
           <a href={`/tournaments/${id}#schedule`} className="gt-outline-btn flex min-w-0 items-center justify-center gap-2 px-2 py-3 text-sm font-semibold"><Icon name="calendar" className="h-5 w-5 shrink-0 text-[var(--gt-brand)]" /><span className="truncate">กำหนดการ</span></a>
         </div>
 
-        <DivisionTabs panels={{ list: listPanel, pairs: pairsPanel, results: resultsPanel, standings: standingsPanel }} />
+        <DivisionTabs panels={{
+          list: listPanel, pairs: pairsPanel, results: resultsPanel, standings: standingsPanel,
+          register: (
+            <div className="relative lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2">
+              <RegisterPanel tournamentId={id} divisionId={divisionId} divisionLabel={label}
+                mode={event.registration_mode ?? "web"} url={event.registration_url ?? null}
+                openDate={event.registration_open_date} closeDate={event.registration_close_date} />
+            </div>
+          ),
+        }} />
       </main>
     </Shell>
   );
