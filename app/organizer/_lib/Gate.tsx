@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { staffDb, useStaff, ErrorNote } from "./staff";
+import Link from "next/link";
+import { staffDb, useStaff } from "./staff";
+import LoginForm from "@/app/login/_ui/LoginForm";
 
 /** Shows the page only to signed-in owners/admins; everyone else gets the sign-in form. */
 export default function Gate({ children }: { children: React.ReactNode }) {
@@ -13,44 +14,19 @@ export default function Gate({ children }: { children: React.ReactNode }) {
       <div className="gt-card mx-auto mt-10 max-w-md space-y-2 p-6 text-center">
         <h1 className="text-lg font-bold">{staff.suspended ? "บัญชีผู้จัดนี้ถูกระงับชั่วคราว" : "บัญชีนี้ยังไม่มีสิทธิ์ผู้จัด"}</h1>
         <p className="text-sm text-[var(--gt-muted)]">{staff.email} — ติดต่อเจ้าของระบบ GO TOURNAMENT</p>
+        <div className="grid grid-cols-2 gap-2 pt-2">
+          <Link href="/account" className="gt-outline-btn flex min-h-11 items-center justify-center font-semibold">บัญชีของฉัน</Link>
+          <button type="button" onClick={() => staffDb()?.auth.signOut()} className="gt-outline-btn min-h-11 font-semibold">ออกจากระบบ</button>
+        </div>
       </div>
     );
   return <>{children}</>;
 }
 
 function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const db = staffDb();
-    if (!db) { setError("ยังไม่ได้ตั้งค่าการเชื่อมต่อฐานข้อมูล"); return; }
-    setBusy(true); setError("");
-    const { error } = await db.auth.signInWithPassword({ email: email.trim(), password });
-    setBusy(false);
-    if (error) setError(/invalid/i.test(error.message) ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : "เข้าสู่ระบบไม่สำเร็จ: " + error.message);
-  };
-
   return (
-    <form onSubmit={submit} className="gt-card mx-auto mt-10 max-w-md space-y-4 p-6">
-      <h1 className="text-xl font-bold">เข้าสู่ระบบผู้จัด</h1>
-      <label className="block space-y-1">
-        <span className="text-sm font-medium">อีเมล</span>
-        <input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)}
-          className="min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-3 text-base" />
-      </label>
-      <label className="block space-y-1">
-        <span className="text-sm font-medium">รหัสผ่าน</span>
-        <input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)}
-          className="min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-3 text-base" />
-      </label>
-      <ErrorNote text={error} />
-      <button type="submit" disabled={busy} className="gt-gold-btn min-h-12 w-full text-base disabled:opacity-60">
-        {busy ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
-      </button>
-    </form>
+    <div className="gt-card mx-auto mt-8 max-w-md p-6">
+      <LoginForm stay heading="เข้าสู่ระบบผู้จัด" />
+    </div>
   );
 }

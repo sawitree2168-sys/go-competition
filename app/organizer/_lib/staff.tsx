@@ -6,12 +6,34 @@ import { staffErrorMessage } from "@/lib/competition-day.mjs";
 
 let client: SupabaseClient | null = null;
 
-/** One browser client for the organiser pages; the login is kept in this browser until sign-out. */
+const AUTH_KEY = "gt-organizer-auth";
+const EPHEMERAL = "gt-auth-ephemeral";   // set when "จดจำฉัน" was not ticked
+const ALIVE_COOKIE = "gt-auth-alive";    // browser-session cookie: gone when the browser is closed
+
+/** "จดจำฉัน": keep the login after the browser is closed (true) or only until then (false). */
+export function setRemember(remember: boolean) {
+  try {
+    if (remember) localStorage.removeItem(EPHEMERAL);
+    else {
+      localStorage.setItem(EPHEMERAL, "1");
+      document.cookie = `${ALIVE_COOKIE}=1; path=/; SameSite=Lax`;
+    }
+  } catch { /* storage blocked: default behaviour */ }
+}
+
+/** One browser client for every signed-in page (organisers, members); shared session, kept until sign-out. */
 export function staffDb(): SupabaseClient | null {
   if (client) return client;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
-  client = createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: "gt-organizer-auth" } });
+  try {
+    // Not remembered and the browser has been closed since: start signed out.
+    if (localStorage.getItem(EPHEMERAL) === "1" && !document.cookie.split("; ").some((c) => c.startsWith(`${ALIVE_COOKIE}=`))) {
+      localStorage.removeItem(AUTH_KEY);
+      localStorage.removeItem(EPHEMERAL);
+    }
+  } catch { /* storage blocked */ }
+  client = createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: AUTH_KEY } });
   return client;
 }
 
