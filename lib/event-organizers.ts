@@ -15,3 +15,7 @@ const EVENTS = new Map<string, EventOrganizer>([
   ["LOTUS’S × BUDDY GO Championship 2026", BUDDY],
 ].map(([title, organizer]) => [key(title as string), organizer as EventOrganizer]));
 export const eventOrganizer = (title: string): EventOrganizer | null => EVENTS.get(key(title)) ?? null;
+
+/** Approved event artwork; landscape posters retain their full native proportions. */
+export const eventPoster = (title: string): string | null => key(title) === key("LOTUS’S × BUDDY GO Championship 2026")
+  ? "/posters/buddy-go-2026-results.webp" : null;
