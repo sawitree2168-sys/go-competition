@@ -1,4 +1,5 @@
 import EventOrganizer from "@/components/EventOrganizer";
+import "./division-refresh.css";
 import Link from "next/link";
 import { Header, Icon, Shell } from "../../_ui/chrome";
 import SiteBar from "../../_ui/SiteBar";
@@ -172,14 +173,15 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
       <div className="relative left-1/2 w-screen -translate-x-1/2">
         <SiteBar current="/tournaments" />
         {/* Banner (design 16 Nov 2026): always dark, picture from the site owner on the right. */}
-        <section className="relative overflow-hidden bg-[var(--gt-banner-bg)] text-white">
-          <div aria-hidden="true" className="absolute inset-0 bg-[url(/pairs-hero.webp)] bg-cover bg-[position:right_center] opacity-90 [filter:var(--gt-banner-filter)]" />
-          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,var(--gt-banner-bg)_30%,color-mix(in_srgb,var(--gt-banner-bg)_55%,transparent)_65%,transparent)]" />
+        <section className="gt-division-hero relative overflow-hidden text-white">
+          <div aria-hidden="true" className="gt-division-hero-image absolute inset-0 bg-[url(/pairs-hero.webp)] bg-cover bg-[position:right_center]" />
+          <div aria-hidden="true" className="gt-division-hero-shade absolute inset-0" />
           <div className="relative mx-auto max-w-6xl px-4 py-5 sm:py-7">
             <Link href={`/tournaments/${id}`} className="inline-flex min-h-9 items-center gap-1 text-sm text-white/80 hover:text-white hover:underline">‹ รายละเอียดงาน</Link>
             <div className="mt-1 flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
               <div className="min-w-0 lg:border-r lg:border-white/25 lg:pr-8">
-                <h1 className="text-[1.65rem] font-bold leading-tight sm:text-4xl">{event.title}</h1>
+                <span className="gt-division-eyebrow">✦ GO TOURNAMENT · COMPETITION DIVISION</span>
+                <h1 className="gt-division-title text-[1.65rem] font-bold leading-tight sm:text-4xl">{event.title}</h1>
                 <EventOrganizer title={event.title} onDark />
                 <p className="mt-1 text-[15px] text-[#9cc3ff] sm:text-lg">{label} • ระบบจับคู่สวิส • กระดาน {size}×{size}</p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-sm text-white/75"><Icon name="calendar" className="h-4 w-4 shrink-0" />{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
@@ -202,7 +204,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
 
       {/* Light mode: soft board picture behind the top of the content (hidden in dark mode). */}
       <div aria-hidden="true" className="pointer-events-none absolute left-1/2 h-56 w-screen -translate-x-1/2 bg-[url(/profile-hero-m.png)] bg-[length:auto_100%] bg-[position:right_top] bg-no-repeat opacity-[var(--gt-page-deco)] [mask-image:linear-gradient(#000_60%,transparent)] sm:h-72 sm:bg-[url(/profile-hero.webp)] sm:bg-cover" />
-      <main className="relative px-4">
+      <main className="gt-division-main relative px-4">
         <LiveRefresh divisionId={divisionId} fingerprint={live} />
 
         <div className="mt-3 grid grid-cols-2 gap-3">
