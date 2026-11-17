@@ -224,7 +224,7 @@ function Flow({ event, divisions, today, header, initialDivision, sheetNames }: 
           <div className="flex flex-wrap gap-2 px-4 pb-4">
             <Link href={`/tournaments/${event.id}`} className="gt-cta-btn inline-flex min-h-12 flex-1 items-center justify-center px-5">กลับหน้ารายการแข่งขัน</Link>
             <button type="button" onClick={reset} className="gt-outline-btn min-h-12 flex-1 px-5 font-semibold">สมัครอีกคน</button>
-            <Link href={`/my-applications?ref=${done.reference}`} className="gt-outline-btn inline-flex min-h-12 basis-full items-center justify-center px-5 font-semibold">ดูสถานะ / ขอถอนตัว เปลี่ยนคน เปลี่ยนรุ่น</Link>
+            <Link href={`/my-applications?name=${encodeURIComponent(done.name)}&division=${division}`} className="gt-outline-btn inline-flex min-h-12 basis-full items-center justify-center px-5 font-semibold">ดูสถานะ / ขอถอนตัว เปลี่ยนคน เปลี่ยนรุ่น</Link>
           </div>
         </section>
       </div>
