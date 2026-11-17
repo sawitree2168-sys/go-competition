@@ -60,6 +60,7 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
   const [q, setQ] = useState("");
   const [pickedYear, setYear] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [view, setView] = useState<"cards" | "list">("cards");
 
   const withStatus = useMemo(() => events.map((e) => ({ ...e, status: (e.archived ? "finished" : eventStatus(e, day)) as Status })), [events, day]);
   const years = useMemo(() => [...new Set(events.map((e) => thaiYear(e.event_date)).filter((y): y is number => y !== null))].sort((a, b) => b - a), [events]);
@@ -115,11 +116,19 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
       </div>
 
       <div className="gt-directory-results" id="event-results">
-        <h2>รายการแข่งขัน</h2>
-        <p className="text-sm text-[var(--gt-muted)]" aria-live="polite">{shown.length} รายการ</p>
+        <div className="gt-directory-results-heading">
+          <h2>รายการแข่งขัน</h2>
+          <p className="text-sm text-[var(--gt-muted)]" aria-live="polite">{shown.length} รายการ</p>
+        </div>
+        <div role="group" aria-label="รูปแบบการแสดงรายการแข่งขัน" className="gt-directory-view-toggle">
+          <button type="button" aria-pressed={view === "cards"} onClick={() => setView("cards")} className={view === "cards" ? "is-active" : ""}>▦ การ์ด</button>
+          <button type="button" aria-pressed={view === "list"} onClick={() => setView("list")} className={view === "list" ? "is-active" : ""}>☷ ตาราง / ลิสต์</button>
+        </div>
       </div>
       {slice.length ? (
-        <ul className="gt-event-grid">
+        <div className={view === "list" ? "gt-event-list-wrap" : undefined}>
+          {view === "list" && <div className="gt-event-list-head" aria-hidden="true"><span>โปสเตอร์</span><span>รายการแข่งขัน</span><span>วันที่แข่งขัน</span><span>สถานะ</span><span>รายละเอียด</span></div>}
+          <ul className={view === "list" ? "gt-event-grid gt-event-list" : "gt-event-grid"}>
           {slice.map((e) => {
             const a = action(e);
             const mobileLabel = e.status === "open" ? "ดูรายละเอียดและสมัคร" : a.label;
@@ -147,7 +156,8 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
                 <p>พื้นที่สำหรับรายการถัดไป</p>
               </li>
             ))}
-        </ul>
+          </ul>
+        </div>
       ) : (
         <div className="gt-card mt-2 px-5 py-8 text-center">
           <p className="font-semibold">{events.length ? "ไม่พบการแข่งขันที่ตรงกับเงื่อนไข" : "ยังไม่มีรายการแข่งขันที่เผยแพร่"}</p>
