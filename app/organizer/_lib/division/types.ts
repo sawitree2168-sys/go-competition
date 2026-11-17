@@ -20,6 +20,8 @@ export type DivisionRow = {
   friendship_gold_min_wins: number | null; friendship_silver_min_wins: number | null; friendship_bronze_min_wins: number | null;
   /** null = the old default of 5 rounds (see roundsOf) */
   total_rounds: number | null;
+  /** the event's bye rule for SOS (embedded from gt_tournaments) */
+  gt_tournaments?: { bye_sos_mode: string | null } | null;
 };
 
 export type DivisionData = { division: DivisionRow; regs: Reg[]; matches: Match[]; byes: Bye[]; standings: Standing[] };
