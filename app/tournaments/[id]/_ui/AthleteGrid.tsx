@@ -87,7 +87,7 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
           return (
             <li key={a.key} className="gt-card gt-athlete-card flex min-w-0 flex-col gap-0 overflow-hidden p-0">
               <div className="shrink-0 bg-[linear-gradient(180deg,var(--gt-avatar-top),var(--gt-surface-2))] px-2 pb-2 pt-4 sm:py-4">
-                <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" className={`mx-auto h-20 w-20 sm:h-28 sm:w-28 ${a.photo ? "rounded-full object-cover" : "object-contain"}`} />
+                <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`mx-auto h-20 w-20 sm:h-28 sm:w-28 ${a.photo ? "rounded-full object-cover" : "object-contain"}`} />
               </div>
               <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2.5 py-3 text-center sm:px-3">
                 {a.id
@@ -181,7 +181,7 @@ function History({ athlete, historicalResults, matches, byes, people, onClose }:
     <div role="dialog" aria-modal="true" aria-label={`ประวัติการแข่งขัน ${athlete.name}`} onClick={onClose} className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
       <div onClick={(e) => e.stopPropagation()} className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-[var(--gt-surface)] p-4 shadow-2xl">
         <div className="flex items-center gap-3">
-          <img src={athlete.photo || DEFAULT_AVATAR} alt="" className={`h-16 w-16 ${athlete.photo ? "rounded-full object-cover" : "object-contain"}`} />
+          <img src={athlete.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-16 w-16 ${athlete.photo ? "rounded-full object-cover" : "object-contain"}`} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-lg font-bold">{athlete.name}</p>
             <p className="text-xs text-[var(--gt-muted)]">สถาบันที่สมัครรายการปัจจุบัน</p>
