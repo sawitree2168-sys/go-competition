@@ -96,7 +96,7 @@ function RegistrationSettings({ id, mode, url, onSaved }: { id: string; mode: Mo
   const action = useAction();
   const save = async () => {
     setSaved(false);
-    const res = await action.run(() => staffDb()!.rpc("gt_staff_set_registration_mode_v1", { p_tournament: id, p_mode: m, p_url: m === "external" ? u.trim() : null }));
+    const res = await action.run(() => staffDb()!.rpc("gt_staff_set_registration_mode_v1", { p_tournament: id, p_mode: m, p_url: m === "closed" ? null : u.trim() }));
     if (res) { setSaved(true); onSaved(); }
   };
   return (
@@ -108,8 +108,8 @@ function RegistrationSettings({ id, mode, url, onSaved }: { id: string; mode: Mo
           </label>
         ))}
       </div>
-      {m === "external" && (
-        <label className="block text-sm">ลิงก์แบบฟอร์ม (ไม่บังคับ)
+      {m !== "closed" && (
+        <label className="block text-sm">{m === "web" ? "ลิงก์ Google Form เพิ่มเติม (ไม่บังคับ) · ผู้สมัครเลือกได้ว่าจะสมัครในเว็บหรือในฟอร์ม" : "ลิงก์แบบฟอร์ม (ไม่บังคับ)"}
           <input value={u} onChange={(e) => { setU(e.target.value); setSaved(false); }} placeholder="https://forms.gle/…" className="mt-1 block min-h-11 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3" />
         </label>
       )}

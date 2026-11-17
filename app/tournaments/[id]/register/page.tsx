@@ -4,6 +4,8 @@ import { Shell } from "../_ui/chrome";
 import SiteBar from "../_ui/SiteBar";
 import { loadEventPage, publicDb } from "../_ui/data";
 import RegisterFlow from "./RegisterFlow";
+import { nameKey } from "@/lib/register-form.mjs";
+import { divisionKey } from "@/lib/division-display";
 
 export const revalidate = 30;
 
@@ -17,7 +19,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function RegisterPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ division?: string }> }) {
   const { id } = await params;
   const { division } = await searchParams;
-  const { event, divisions } = await loadEventPage(publicDb(), id);
+  const db = publicDb();
+  const [{ event, divisions, entrants }, pay] = await Promise.all([
+    loadEventPage(db, id),
+    db ? db.rpc("gt_event_payment_public_v1", { p_tournament: id }).then((r) => (r.error ? null : r.data), () => null) : null,
+  ]);
+  const payReady = Boolean(pay) || divisions.every((d) => !d.entry_fee_thb || Number(d.entry_fee_thb) === 0);
+  const sheetNames: Record<string, string[]> = {};
+  for (const d of divisions) sheetNames[d.id] = entrants.filter((e) => divisionKey(e.division_name) === divisionKey(d.name)).map((e) => nameKey(e.full_name));
 
   return (
     <Shell wide>
@@ -31,6 +40,7 @@ export default async function RegisterPage({ params, searchParams }: { params: P
               mode: event.registration_mode ?? "web", url: event.registration_url ?? null,
               open: event.registration_open_date, close: event.registration_close_date }}
             initialDivision={divisions.some((d) => d.id === division) ? division : undefined}
+            payReady={payReady} sheetNames={sheetNames}
             divisions={divisions.map((d) => ({ id: d.id, name: d.name, fee: d.entry_fee_thb === null ? null : Number(d.entry_fee_thb), seats: d.seats_limit }))}
           />
         ) : (

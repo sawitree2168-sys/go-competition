@@ -8,7 +8,7 @@ import PosterViewer from "@/components/PosterViewer";
 import { registrationWindow } from "@/lib/competition-day.mjs";
 import { divisionLabel, thaiDate } from "@/lib/division-display";
 import {
-  RANKS, SCHOOL_LEVELS, ageOn, baht, checkStep1, checkStep2, divisionFit, firstStep, phoneDigits, reasonText, slipExt, slipProblem,
+  RANKS, SCHOOL_LEVELS, ageOn, nameKey, baht, checkStep1, checkStep2, divisionFit, firstStep, phoneDigits, reasonText, slipExt, slipProblem,
 } from "@/lib/register-form.mjs";
 import PhotoCropper from "../_ui/PhotoCropper";
 import { AcademyPicker, Avatar, BirthPicker, Ico, Label, Note, Section, Sheet, inputCls } from "./parts";
@@ -26,7 +26,13 @@ const bangkokToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ba
 const noop = () => () => {};
 const uuid = () => crypto.randomUUID();
 
-export default function RegisterFlow({ event, divisions, initialDivision }: { event: EventProps; divisions: Div[]; initialDivision?: string }) {
+export default function RegisterFlow({ event, divisions, initialDivision, payReady, sheetNames }: {
+  event: EventProps; divisions: Div[]; initialDivision?: string;
+  /** Organiser confirmed the payment account (or every division is free). */
+  payReady: boolean;
+  /** Names already on the organiser's sheet (Google Form), by division id, as nameKey(). */
+  sheetNames: Record<string, string[]>;
+}) {
   const today = useSyncExternalStore(noop, bangkokToday, () => "");
   const win = today ? registrationWindow(event.open, event.close, today) : "open";
   const fees = divisions.map((d) => d.fee).filter((f): f is number => f !== null);
@@ -48,8 +54,12 @@ export default function RegisterFlow({ event, divisions, initialDivision }: { ev
     </section>
   );
 
-  if (event.mode !== "web" || win !== "open" || divisions.length === 0) {
-    const msg = event.mode === "external" ? { t: "งานนี้รับสมัครผ่านช่องทางของผู้จัด", b: event.url ? "กดปุ่มด้านล่างเพื่อไปยังแบบฟอร์มสมัคร" : "ดูช่องทางสมัครที่รายละเอียดงาน หรือติดต่อผู้จัด" }
+  const waitPay = event.mode === "web" && win === "open" && divisions.length > 0 && !payReady;
+  if (event.mode !== "web" || win !== "open" || divisions.length === 0 || waitPay) {
+    const msg = waitPay
+      ? event.url ? { t: "สมัครผ่าน Google Form ของผู้จัด", b: "การสมัครและชำระเงินผ่านเว็บนี้จะเปิดเมื่อผู้จัดยืนยันบัญชีรับเงินแล้ว ระหว่างนี้สมัครได้ที่แบบฟอร์มด้านล่าง รายชื่อจะขึ้นในหน้ารายชื่อผู้สมัครเช่นกัน" }
+        : { t: "ยังไม่เปิดชำระเงินผ่านเว็บ", b: "ผู้จัดกำลังยืนยันบัญชีรับเงิน กรุณากลับมาอีกครั้ง หรือติดต่อผู้จัด" }
+      : event.mode === "external" ? { t: "งานนี้รับสมัครผ่านช่องทางของผู้จัด", b: event.url ? "กดปุ่มด้านล่างเพื่อไปยังแบบฟอร์มสมัคร" : "ผู้จัดยังไม่ได้ใส่ลิงก์แบบฟอร์มสมัคร กรุณาติดต่อผู้จัด" }
       : event.mode === "closed" ? { t: "ปิดรับสมัครแล้ว", b: "ติดต่อผู้จัดหากมีข้อสงสัย" }
       : win === "not_yet" ? { t: "ยังไม่เปิดรับสมัคร", b: `เปิดรับสมัคร ${thaiDate(event.open) ?? event.open}` }
       : win === "ended" ? { t: "ปิดรับสมัครแล้ว", b: `ปิดรับสมัครเมื่อ ${thaiDate(event.close) ?? event.close}` }
@@ -61,17 +71,27 @@ export default function RegisterFlow({ event, divisions, initialDivision }: { ev
           <h2 className="text-lg font-bold">{msg.t}</h2>
           <p className="text-[var(--gt-muted)]">{msg.b}</p>
           <div className="flex flex-wrap justify-center gap-2">
-            {event.mode === "external" && event.url && <a href={event.url} target="_blank" rel="noopener noreferrer" className="gt-cta-btn inline-flex min-h-12 items-center px-5">ไปที่แบบฟอร์มสมัคร →</a>}
+            {(event.mode === "external" || waitPay) && event.url && <a href={event.url} target="_blank" rel="noopener noreferrer" className="gt-cta-btn inline-flex min-h-12 items-center px-5">สมัครผ่าน Google Form →</a>}
             <Link href={`/tournaments/${event.id}`} className="gt-outline-btn inline-flex min-h-12 items-center px-5 font-semibold">รายละเอียดงาน</Link>
           </div>
         </section>
       </div>
     );
   }
-  return <Flow event={event} divisions={divisions} today={today} header={header} initialDivision={initialDivision} />;
+  return (
+    <>
+      {event.url && (
+        <p className="gt-card mb-3 flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+          <span>สมัครได้ 2 ทาง: กรอกในหน้านี้ หรือผ่าน Google Form ของผู้จัด · รายชื่อจากทั้งสองทางรวมอยู่ในหน้ารายชื่อผู้สมัคร</span>
+          <a href={event.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--gt-cta)] underline">สมัครผ่าน Google Form →</a>
+        </p>
+      )}
+      <Flow event={event} divisions={divisions} today={today} header={header} initialDivision={initialDivision} sheetNames={sheetNames} />
+    </>
+  );
 }
 
-function Flow({ event, divisions, today, header, initialDivision }: { event: EventProps; divisions: Div[]; today: string; header: React.ReactNode; initialDivision?: string }) {
+function Flow({ event, divisions, today, header, initialDivision, sheetNames }: { event: EventProps; divisions: Div[]; today: string; header: React.ReactNode; initialDivision?: string; sheetNames: Record<string, string[]> }) {
   const [tab, setTab] = useState<"new" | "existing">("new");
   const [step, setStep] = useState<1 | 2>(1);
   const [done, setDone] = useState<Done | null>(null);
@@ -115,23 +135,27 @@ function Flow({ event, divisions, today, header, initialDivision }: { event: Eve
   const name = tab === "new" ? `${firstName.trim()} ${lastName.trim()}`.trim() : found?.full_name ?? "";
   const shownPhoto = tab === "new" ? photo?.url ?? null : found?.photo ?? null;
   const inst = tab === "new" ? academies.join(" • ") : found?.institution ?? "";
+  // Already entered for this division through the organiser's Google Form.
+  const onSheet = Boolean(name && division && (sheetNames[division] ?? []).includes(nameKey(name)));
 
   const jumpTop = () => requestAnimationFrame(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   const fail = (codes: string[]) => { setErrors(codes); setStep(firstStep(codes) as 1 | 2); jumpTop(); };
   // Items fixed since the last try drop off the list; reasons only the server knows stay until the next try.
-  const live = new Set([...checkStep1(form), ...(step === 2 ? checkStep2(form, { fee, paymentReady }) : [])]);
-  const CLIENT = ["NAME", "BIRTH", "PHOTO_CONSENT", "ACADEMY", "ATHLETE", "MODE", "RANK", "PHONE", "DIVISION", "SLIP", "ACCEPT", "PAYMENT_NOT_READY"];
+  const live = new Set([...checkStep1(form), ...(step === 2 ? checkStep2(form, { fee, paymentReady }) : []), ...(onSheet ? ["SHEET_DUPLICATE"] : [])]);
+  const CLIENT = ["SHEET_DUPLICATE", "NAME", "BIRTH", "PHOTO_CONSENT", "ACADEMY", "ATHLETE", "MODE", "RANK", "PHONE", "DIVISION", "SLIP", "ACCEPT", "PAYMENT_NOT_READY"];
   const shown = errors.filter((c) => !CLIENT.includes(c) || live.has(c));
   const has = (c: string) => shown.includes(c);
 
   const next = () => {
     const e = checkStep1(form);
+    if (onSheet) e.push("SHEET_DUPLICATE");
     if (e.length) return fail(e);
     setErrors([]); setStep(2); jumpTop();
   };
 
   const submit = async () => {
     const e = [...checkStep1(form), ...checkStep2(form, { fee, paymentReady })];
+    if (onSheet) e.push("SHEET_DUPLICATE");
     if (e.length) return fail(e);
     const db = staffDb();
     if (!db) return fail(["NETWORK"]);
