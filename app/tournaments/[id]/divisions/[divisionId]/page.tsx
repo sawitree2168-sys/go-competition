@@ -2,7 +2,7 @@ import EventOrganizer from "@/components/EventOrganizer";
 import Link from "next/link";
 import { Header, Icon, Shell } from "../../_ui/chrome";
 import SiteBar from "../../_ui/SiteBar";
-import { TOTAL_ROUNDS } from "@/app/organizer/_lib/division/types";
+import { roundsOf } from "@/lib/competition-day.mjs";
 import { loadDivisionPage, publicDb, type Match } from "../../_ui/data";
 import DivisionTabs from "../../_ui/DivisionTabs";
 import AthleteGrid, { type AthleteCard } from "../../_ui/AthleteGrid";
@@ -143,7 +143,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
     <div className="relative mt-4 space-y-4 lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2">
       {pools.map((pool) => (
         <CrossTable key={pool || "all"} title={`ตารางอันดับ ${label}${pool ? ` · สาย ${pool}` : ""}`}
-          rows={inPool(standings, pool)} matches={inPool(matches, pool)} byes={inPool(byes, pool)} medals={medals}
+          rows={inPool(standings, pool)} matches={inPool(matches, pool)} byes={inPool(byes, pool)} medals={medals} rounds={roundsOf(division)}
           photos={Object.fromEntries([...people].map(([k, v]) => [k, v.photo ?? null]))} />
       ))}
       <p className="text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย (เสมอ ½) · คะแนนเท่ากันดู SOS แล้ว SOSOS (นับเฉพาะคู่ที่ได้เล่นจริง) · นับเฉพาะผลที่ยืนยันแล้ว{multi ? " · อันดับแยกตามสาย" : ""}</p>
@@ -187,7 +187,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
               <ul className="flex flex-wrap gap-2">
                 {[
                   { icon: "users" as const, t: `นักกีฬา ${athleteCards.length || roster.length} คน` },
-                  { icon: "trophy" as const, t: lastRound ? `รอบ ${lastRound} / ${Math.max(TOTAL_ROUNDS, lastRound)}` : "ยังไม่เริ่ม" },
+                  { icon: "trophy" as const, t: lastRound ? `รอบ ${lastRound} / ${Math.max(roundsOf(division), lastRound)}` : "ยังไม่เริ่ม" },
                   { icon: "grid" as const, t: `แข่งขันแล้ว ${matches.filter((m) => m.state === "verified").length} เกม`, wide: true },
                 ].map((c) => (
                   <li key={c.t} className={`${"wide" in c ? "hidden sm:inline-flex" : "inline-flex"} min-h-9 items-center gap-2 rounded-full border border-white/50 bg-white/5 px-3 text-sm font-medium backdrop-blur-sm sm:min-h-10 sm:px-4 sm:text-[15px]`}>

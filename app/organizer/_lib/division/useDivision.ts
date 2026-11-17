@@ -17,7 +17,7 @@ export function useDivision(divisionId: string) {
   const fetchAll = useCallback(async () => {
     const db = staffDb()!;
     const [dv, rg, mt, by, st] = await Promise.all([
-      db.from("gt_divisions").select("id,name,tournament_id,award_scheme,friendship_gold_min_wins,friendship_silver_min_wins,friendship_bronze_min_wins").eq("id", divisionId).maybeSingle(),
+      db.from("gt_divisions").select("id,name,tournament_id,award_scheme,friendship_gold_min_wins,friendship_silver_min_wins,friendship_bronze_min_wins,total_rounds").eq("id", divisionId).maybeSingle(),
       db.from("gt_registrations").select("athlete_id,pool_label,payment_status,competition_rank_reference,registration_status,display_institution,gt_athletes(full_name,school_name,current_rank,go_id,avatar_url)")
         .eq("division_id", divisionId).in("registration_status", ["confirmed", "withdrawn"]).limit(2000),
       db.from("gt_matches").select("id,round_number,board_number,black_athlete_id,white_athlete_id,winner_athlete_id,result_code,result_margin,state,pool_label,black_checkin_at,white_checkin_at")
