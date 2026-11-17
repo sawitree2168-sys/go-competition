@@ -1,5 +1,6 @@
 import EventOrganizer from "@/components/EventOrganizer";
 import "./division-refresh.css";
+import "./division-premium.css";
 import Link from "next/link";
 import { Header, Icon, Shell } from "../../_ui/chrome";
 import SiteBar from "../../_ui/SiteBar";
@@ -174,25 +175,25 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
         <SiteBar current="/tournaments" />
         {/* Banner (design 16 Nov 2026): always dark, picture from the site owner on the right. */}
         <section className="gt-division-hero relative overflow-hidden text-white">
-          <div aria-hidden="true" className="gt-division-hero-image absolute inset-0 bg-[url(/division-go-blue.svg)] bg-cover bg-[position:right_center]" />
+          <div aria-hidden="true" className="gt-division-hero-image absolute inset-0 bg-[url(/division-go-premium.svg)] bg-cover bg-[position:right_center]" />
           <div aria-hidden="true" className="gt-division-hero-shade absolute inset-0" />
           <div className="relative mx-auto max-w-6xl px-4 py-5 sm:py-7">
             <Link href={`/tournaments/${id}`} className="inline-flex min-h-9 items-center gap-1 text-sm text-white/80 hover:text-white hover:underline">‹ รายละเอียดงาน</Link>
             <div className="mt-1 flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
               <div className="min-w-0 lg:border-r lg:border-white/25 lg:pr-8">
                 <span className="gt-division-eyebrow">✦ GO TOURNAMENT · COMPETITION DIVISION</span>
-                <h1 className="gt-division-title text-[1.65rem] font-bold leading-tight sm:text-4xl">{event.title}</h1>
+                <h1 className="gt-division-title text-[1.75rem] font-extrabold leading-tight sm:text-4xl">{event.title}</h1>
                 <EventOrganizer title={event.title} onDark />
-                <p className="mt-1 text-[15px] text-[#9cc3ff] sm:text-lg">{label} • ระบบจับคู่สวิส • กระดาน {size}×{size}</p>
-                <p className="mt-0.5 flex items-center gap-1.5 text-sm text-white/75"><Icon name="calendar" className="h-4 w-4 shrink-0" />{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
+                <p className="gt-division-subtitle mt-1 text-[15px] sm:text-lg">{label} • ระบบจับคู่สวิส • กระดาน {size}×{size}</p>
+                <p className="gt-division-date mt-0.5 flex items-center gap-1.5 text-sm"><Icon name="calendar" className="h-4 w-4 shrink-0" />{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
               </div>
-              <ul className="flex flex-wrap gap-2">
+              <ul className="gt-division-stat-list flex flex-wrap gap-2">
                 {[
                   { icon: "users" as const, t: `นักกีฬา ${athleteCards.length || roster.length} คน` },
                   { icon: "trophy" as const, t: lastRound ? `รอบ ${lastRound} / ${Math.max(roundsOf(division), lastRound)}` : "ยังไม่เริ่ม" },
                   { icon: "grid" as const, t: `แข่งขันแล้ว ${matches.filter((m) => m.state === "verified").length} เกม`, wide: true },
                 ].map((c) => (
-                  <li key={c.t} className={`${"wide" in c ? "hidden sm:inline-flex" : "inline-flex"} min-h-9 items-center gap-2 rounded-full border border-white/50 bg-white/5 px-3 text-sm font-medium backdrop-blur-sm sm:min-h-10 sm:px-4 sm:text-[15px]`}>
+                  <li key={c.t} className={`${"wide" in c ? "inline-flex" : "inline-flex"} gt-division-stat min-h-9 items-center gap-2 rounded-full px-3 text-sm font-medium sm:min-h-10 sm:px-4 sm:text-[15px]`}>
                     <Icon name={c.icon} className="h-5 w-5 shrink-0" />{c.t}
                   </li>
                 ))}
@@ -203,7 +204,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
       </div>
 
       {/* Light mode: soft board picture behind the top of the content (hidden in dark mode). */}
-      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 h-56 w-screen -translate-x-1/2 bg-[url(/profile-hero-m.png)] bg-[length:auto_100%] bg-[position:right_top] bg-no-repeat opacity-[var(--gt-page-deco)] [mask-image:linear-gradient(#000_60%,transparent)] sm:h-72 sm:bg-[url(/profile-hero.webp)] sm:bg-cover" />
+      <div aria-hidden="true" className="gt-division-page-art pointer-events-none absolute left-1/2 w-screen -translate-x-1/2" />
       <main className="gt-division-main relative px-4">
         <LiveRefresh divisionId={divisionId} fingerprint={live} />
 
