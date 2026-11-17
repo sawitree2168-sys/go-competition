@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { friendshipAward, roundsOf } from "@/lib/competition-day.mjs";
+import { byeRule, friendshipAward, roundsOf } from "@/lib/competition-day.mjs";
 import { poolKey, poolName, type DivisionData, type Standing } from "./types";
 import CrossTable from "../../../tournaments/[id]/_ui/CrossTable";
 import { divisionLabel } from "@/lib/division-display";
@@ -39,7 +39,7 @@ export default function StandingsPanel({ data, eventId }: { data: DivisionData; 
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--gt-muted)]">
-        {friendship ? "เฟรนชิพ: เหรียญตามจำนวนชนะ (บายนับเป็นชนะ)" : "เรียงตาม แต้ม → SOS (ผลรวมแต้มคู่แข่งที่ได้เล่นจริง) → SOSOS · ชนะเพราะคู่ไม่มา และบาย ไม่นับใน SOS"} · นับเฉพาะโต๊ะที่กรอกผลแล้ว
+        {friendship ? "เฟรนชิพ: เหรียญตามจำนวนชนะ (บายนับเป็นชนะ)" : `เรียงตาม แต้ม → SOS (ผลรวมแต้มคู่แข่งที่ได้เล่นจริง) → SOSOS · ชนะเพราะคู่ไม่มา ไม่นับใน SOS · ${byeRule(data.division.gt_tournaments?.bye_sos_mode).short}`} · นับเฉพาะโต๊ะที่กรอกผลแล้ว
       </p>
       {groups.map(([pool, rows]) => (
         <section key={pool || "all"} className="space-y-2">

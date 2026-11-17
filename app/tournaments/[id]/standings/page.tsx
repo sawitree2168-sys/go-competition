@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { byeRule } from "@/lib/competition-day.mjs";
 
 export const dynamic = "force-dynamic";
 
-type Event = { id: string; title: string; event_date: string | null };
+type Event = { id: string; title: string; event_date: string | null; bye_sos_mode: string | null };
 type Division = { id: string; name: string };
 type Row = {
   pos: number | null; pool_label: string | null; withdrawn: boolean; draws: number; athlete_id: string | null; display_name: string | null; current_rank: string | null;
@@ -20,7 +21,7 @@ async function load(id: string): Promise<{ event: Event | null; standings: Divis
   if (!url || !key) return { event: null, standings: [] };
   try {
     const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: event, error } = await db.from("gt_tournaments").select("id,title,event_date").eq("id", id).eq("published", true).maybeSingle();
+    const { data: event, error } = await db.from("gt_tournaments").select("id,title,event_date,bye_sos_mode").eq("id", id).eq("published", true).maybeSingle();
     if (error || !event) return { event: null, standings: [] };
     const { data: divisions } = await db.from("gt_divisions").select("id,name").eq("tournament_id", id).order("name");
     const standings = await Promise.all((divisions ?? []).map(async (division: Division) => {
@@ -68,7 +69,7 @@ export default async function Standings({ params }: { params: Promise<{ id: stri
             <section className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
               <h2 className="text-sm font-extrabold text-amber-900">วิธีจัดอันดับ</h2>
               <p className="mt-1 text-sm text-amber-800">
-                คะแนน = จำนวนเกมที่ชนะ + บาย (บายได้ 1 คะแนน, เสมอได้ ½) ถ้าคะแนนเท่ากัน ตัดสินด้วย SOS (ผลรวมคะแนนของคู่แข่งที่ได้เล่นจริง บายไม่นับใน SOS) แล้วจึง SOSOS
+                คะแนน = จำนวนเกมที่ชนะ + บาย (บายได้ 1 คะแนน, เสมอได้ ½) ถ้าคะแนนเท่ากัน ตัดสินด้วย SOS (ผลรวมคะแนนของคู่แข่งที่ได้เล่นจริง · {byeRule(event.bye_sos_mode).short}) แล้วจึง SOSOS
                 นับเฉพาะผลที่ผู้ตัดสินยืนยันแล้ว ผู้เข้าแข่งขันที่ไม่ได้เปิดโปรไฟล์สาธารณะจะแสดงเฉพาะคะแนนโดยไม่แสดงชื่อ
               </p>
             </section>

@@ -10,6 +10,7 @@ import { OrganizerQueue } from "@/app/tournaments/[id]/_ui/RegisterPanel";
 import PaymentSettings from "./PaymentSettings";
 import { ChangePolicy, ChangeRequests } from "./ChangeRequests";
 import IdentityMatches from "./IdentityMatches";
+import ByeRuleSetting from "./ByeRuleSetting";
 
 type Division = { id: string; name: string };
 type Entrant = { source_row: number; full_name: string; institution: string; division_name: string };
@@ -180,7 +181,7 @@ export default function OrganizerEvent({ params }: { params: Promise<{ id: strin
 
 function EventConsole({ id }: { id: string }) {
   const staff = useStaff();
-  const [event, setEvent] = useState<{ title: string; event_date: string | null; registration_mode: Mode | null; registration_url: string | null; venue: string | null; certificates_open: boolean; certificate_signers: Signer[] | null } | null>(null);
+  const [event, setEvent] = useState<{ title: string; event_date: string | null; registration_mode: Mode | null; registration_url: string | null; venue: string | null; certificates_open: boolean; certificate_signers: Signer[] | null; bye_sos_mode: string | null } | null>(null);
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [entrants, setEntrants] = useState<Entrant[]>([]);
   const [regCount, setRegCount] = useState<Map<string, number>>(new Map());
@@ -192,7 +193,7 @@ function EventConsole({ id }: { id: string }) {
   const load = useCallback(async () => {
     const db = staffDb()!;
     const [ev, dv, en, rg, mt] = await Promise.all([
-      db.from("gt_tournaments").select("title,event_date,registration_mode,registration_url,venue,certificates_open,certificate_signers").eq("id", id).maybeSingle(),
+      db.from("gt_tournaments").select("title,event_date,registration_mode,registration_url,venue,certificates_open,certificate_signers,bye_sos_mode").eq("id", id).maybeSingle(),
       db.from("gt_divisions").select("id,name").eq("tournament_id", id),
       db.from("gt_public_entrants").select("source_row,full_name,institution,division_name").eq("tournament_id", id).order("source_row").limit(2000),
       db.from("gt_registrations").select("division_id").eq("tournament_id", id).eq("registration_status", "confirmed").limit(5000),
@@ -277,6 +278,7 @@ function EventConsole({ id }: { id: string }) {
 
       <section className="space-y-2">
         <h2 className="font-bold">2. เลือกรุ่นเพื่อจับสาย ออกคู่ และกรอกผล</h2>
+        <ByeRuleSetting key={event.bye_sos_mode ?? "none"} id={id} mode={event.bye_sos_mode} onSaved={load} />
         <ul className="grid gap-2 sm:grid-cols-2">
           {divisions.map((d) => {
             const inDb = regCount.get(d.id) ?? 0, inSheet = sheetCount.get(d.id) ?? 0;
