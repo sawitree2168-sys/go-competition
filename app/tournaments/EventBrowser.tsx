@@ -8,7 +8,7 @@ import { thaiDate } from "@/lib/division-display";
 
 export type EventCard = {
   id: string; title: string; event_date: string | null; poster_url: string | null; venue: string | null;
-  registration_open_date: string | null; registration_close_date: string | null; registration_mode: string | null; kinds: string;
+  registration_open_date: string | null; registration_close_date: string | null; registration_mode: string | null; kinds: string; href?: string; archived?: boolean;
 };
 type Filter = "all" | "open" | "live" | "finished";
 type Status = ReturnType<typeof eventStatus>;
@@ -60,11 +60,10 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
   const [pickedYear, setYear] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
-  const withStatus = useMemo(() => events.map((e) => ({ ...e, status: eventStatus(e, day) as Status })), [events, day]);
+  const withStatus = useMemo(() => events.map((e) => ({ ...e, status: (e.archived ? "finished" : eventStatus(e, day)) as Status })), [events, day]);
   const years = useMemo(() => [...new Set(events.map((e) => thaiYear(e.event_date)).filter((y): y is number => y !== null))].sort((a, b) => b - a), [events]);
-  // This year's events first; "ทุกปี" shows the rest.
-  const thisYear = thaiYear(day);
-  const year = pickedYear ?? (thisYear !== null && years.includes(thisYear) ? String(thisYear) : "all");
+  // The directory opens on every year, including imported historical events.
+  const year = pickedYear ?? "all";
 
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -125,15 +124,15 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
             const mobileLabel = e.status === "open" ? "ดูรายละเอียดและสมัคร" : a.label;
             return (
               <li key={e.id} className="gt-event-card">
-                <Link href={`/tournaments/${e.id}`} aria-label={e.title} className="gt-event-poster-link"><Banner e={e} /></Link>
+                <Link href={e.href ?? `/tournaments/${e.id}`} aria-label={e.title} className="gt-event-poster-link"><Banner e={e} /></Link>
                 <div className="gt-event-info">
                   <span className={`self-start rounded-md px-2.5 py-0.5 text-xs font-bold ${CHIP[e.status]}`}>{STATUS_LABEL[e.status]}</span>
                   <h2 className="gt-event-title">{e.title}</h2>
                   <p className="gt-event-meta mt-2 flex items-start gap-2 text-sm"><CalIcon />{thaiDate(e.event_date, "short") ?? "รออัปเดตวันแข่งขัน"}</p>
-                  <p className="gt-event-meta mt-1 flex items-start gap-2 text-sm"><PinIcon />{e.venue ?? "สถานที่รอยืนยัน"}</p>
+                  {!e.archived && <p className="gt-event-meta mt-1 flex items-start gap-2 text-sm"><PinIcon />{e.venue ?? "สถานที่รอยืนยัน"}</p>}
                   {e.kinds && <p className="mt-1 text-xs leading-relaxed text-[var(--gt-muted)]">{e.kinds}</p>}
                   <div className="mt-auto pt-3">
-                    <Link href={`/tournaments/${e.id}`} className="gt-cta-btn gt-event-action flex min-h-11 items-center justify-center gap-1.5 px-2 text-sm font-semibold">{mobileLabel}<span aria-hidden="true">→</span></Link>
+                    <Link href={e.href ?? `/tournaments/${e.id}`} className="gt-cta-btn gt-event-action flex min-h-11 items-center justify-center gap-1.5 px-2 text-sm font-semibold">{mobileLabel}<span aria-hidden="true">→</span></Link>
                   </div>
                 </div>
               </li>

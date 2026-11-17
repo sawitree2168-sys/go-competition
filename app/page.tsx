@@ -4,5 +4,5 @@ import { TournamentList } from "./tournaments/TournamentList";
 export const revalidate = 30;
 
 export default function Home() {
-  return <TournamentList current="/tournaments" />;
+  return <TournamentList current="/" />;
 }

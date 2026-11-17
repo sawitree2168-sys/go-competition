@@ -13,7 +13,7 @@ export function Shell({ children, bottomBar, wide }: { children: React.ReactNode
       <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       <div className={`mx-auto w-full ${wide ? "max-w-6xl" : "max-w-2xl"} ${bottomBar ? "pb-28" : "pb-10"}`}>{children}</div>
       {bottomBar && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--gt-line)] bg-[var(--gt-surface)] pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_18px_rgba(6,22,50,.12)]">
+        <div className="gt-mobile-bottom-action fixed inset-x-0 bottom-0 z-30 border-t border-[var(--gt-line)] bg-[var(--gt-surface)] pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_18px_rgba(6,22,50,.12)]">
           <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">{bottomBar}</div>
         </div>
       )}

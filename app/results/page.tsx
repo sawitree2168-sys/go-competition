@@ -13,17 +13,25 @@ const isUpcoming = (p: ResultPerson) => !!p.upcoming?.length;
 
 // ผลการแข่งขัน: recorded results of past events, by event and division. Every player when the whole standings sheet is on
 // file; players who are also entered in an upcoming event get a ★ and a bold name (ครูเล็ก, 17 Nov 2026).
-export default async function ResultsPage({ searchParams }: { searchParams: Promise<{ only?: string }> }) {
-  const { only } = await searchParams;
+export default async function ResultsPage({ searchParams }: { searchParams: Promise<{ only?: string; event?: string }> }) {
+  const { only, event: selectedEvent } = await searchParams;
   const onlyUpcoming = only === "upcoming";
-  const events = await loadResults(publicDb());
+  const allEvents = await loadResults(publicDb());
+  const events = selectedEvent ? allEvents.filter((e) => e.title === selectedEvent) : allEvents;
+  const resultsHref = (upcoming: boolean) => {
+    const params = new URLSearchParams();
+    if (selectedEvent) params.set("event", selectedEvent);
+    if (upcoming) params.set("only", "upcoming");
+    return `/results${params.size ? `?${params}` : ""}`;
+  };
   const upcomingTitles = [...new Set(events.flatMap((e) => e.divisions.flatMap((d) => d.people.flatMap((p) => p.upcoming ?? []))))];
   const upcomingLabel = upcomingTitles.join(" / ");
 
   return (
     <PublicPage icon="results" title="ผลการแข่งขัน" sub="อันดับและผลชนะ–แพ้ของทุกรุ่น จากผลการแข่งขันที่บันทึกไว้" current="/tournaments?status=finished">
       <div className="flex flex-wrap gap-2">
-        <Link href="/tournaments?status=finished" className="gt-outline-btn inline-flex min-h-11 items-center px-4 font-semibold">ดูผลของรายการที่แข่งบนเว็บนี้ →</Link>
+        {selectedEvent && <Link href="/results" className="gt-outline-btn inline-flex min-h-11 items-center px-4 font-semibold">ผลการแข่งขันทุกรายการ</Link>}
+        <Link href="/tournaments?status=finished" className="gt-outline-btn inline-flex min-h-11 items-center px-4 font-semibold">รายการที่จบการแข่งขัน →</Link>
       </div>
 
       {upcomingTitles.length > 0 && (
@@ -33,8 +41,8 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
             <span><b>ชื่อตัวหนา + ดาว</b> = สมัครแข่ง <b>{upcomingLabel}</b> ด้วย</span>
           </p>
           <div className="gt-tabs flex gap-1 rounded-full p-1 text-sm" aria-label="เลือกการแสดงผล">
-            <Link href="/results" aria-current={onlyUpcoming ? undefined : "page"} className="inline-flex min-h-10 items-center rounded-full px-4 font-semibold">ทุกคน</Link>
-            <Link href="/results?only=upcoming" aria-current={onlyUpcoming ? "page" : undefined} className="inline-flex min-h-10 items-center rounded-full px-4 font-semibold">เฉพาะผู้สมัครครั้งนี้</Link>
+            <Link href={resultsHref(false)} aria-current={onlyUpcoming ? undefined : "page"} className="inline-flex min-h-10 items-center rounded-full px-4 font-semibold">ทุกคน</Link>
+            <Link href={resultsHref(true)} aria-current={onlyUpcoming ? "page" : undefined} className="inline-flex min-h-10 items-center rounded-full px-4 font-semibold">เฉพาะผู้สมัครครั้งนี้</Link>
           </div>
         </div>
       )}
