@@ -29,11 +29,14 @@ const noop = () => () => {};
 const when = (iso: string) => new Date(iso).toLocaleString("th-TH", { timeZone: "Asia/Bangkok", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 const TONE = { ok: "bg-[var(--gt-win-bg)] text-[var(--gt-win-ink)]", bad: "bg-[var(--gt-loss-bg)] text-[var(--gt-loss-ink)]", wait: "bg-[var(--gt-warn-soft)] text-[var(--gt-warn)]" } as const;
 
-export default function MyApplications({ initialRef }: { initialRef: string }) {
+export type DivisionOption = { id: string; name: string; event: string };
+
+export default function MyApplications({ divisions, initialName, initialDivision }: { divisions: DivisionOption[]; initialName: string; initialDivision: string }) {
   const today = useSyncExternalStore(noop, bangkokToday, () => "");
   const [mine, setMine] = useState<App[] | null>(null);
   const [found, setFound] = useState<App[]>([]);
-  const [ref, setRef] = useState(initialRef.toUpperCase());
+  const [fullName, setFullName] = useState(initialName);
+  const [division, setDivision] = useState(divisions.some((d) => d.id === initialDivision) ? initialDivision : divisions.length === 1 ? divisions[0].id : "");
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
@@ -51,15 +54,31 @@ export default function MyApplications({ initialRef }: { initialRef: string }) {
   }, []);
   useEffect(() => { queueMicrotask(loadMine); }, [loadMine]);
 
+  const show = (data: { application: Omit<App, "access"> }, p: string) => {
+    const app = { ...data.application, access: { kind: "code" as const, reference: data.application.reference, phone: phoneDigits(p) } };
+    setFound((list) => [app, ...list.filter((x) => x.id !== app.id)]);
+  };
+  // Name + division + phone (the phone keeps strangers from opening someone else's entry).
+  const find = async () => {
+    const db = staffDb();
+    if (!db) return;
+    if (fullName.trim().length < 2 || !division) return setMsg("กรอกชื่อ-นามสกุล และเลือกรุ่นแข่งขัน");
+    setBusy(true); setMsg("");
+    const { data, error } = await db.rpc("gt_application_find_v1", { p_name: fullName, p_division: division, p_phone: phoneDigits(phone) });
+    setBusy(false);
+    if (error || !data?.ok) {
+      return setMsg(data?.error === "NOT_FOUND"
+        ? "ไม่พบใบสมัคร ตรวจชื่อ-นามสกุล รุ่น และเบอร์โทรให้ตรงกับตอนสมัคร · ถ้าสมัครผ่าน Google Form ดูชื่อได้ที่หน้ารายชื่อผู้สมัครของรายการ"
+        : requestReason(data?.error ?? "NETWORK"));
+    }
+    show(data, phone);
+  };
+  // After a request: reload the same entry (the hidden code from the first lookup).
   const lookup = useCallback(async (r: string, p: string) => {
     const db = staffDb();
     if (!db) return;
-    setBusy(true); setMsg("");
-    const { data, error } = await db.rpc("gt_application_status_v1", { p_reference: r, p_phone: phoneDigits(p) });
-    setBusy(false);
-    if (error || !data?.ok) return setMsg(requestReason(data?.error ?? "NETWORK"));
-    const app = { ...(data.application as Omit<App, "access">), access: { kind: "code" as const, reference: r, phone: phoneDigits(p) } };
-    setFound((list) => [app, ...list.filter((x) => x.id !== app.id)]);
+    const { data } = await db.rpc("gt_application_status_v1", { p_reference: r, p_phone: p });
+    if (data?.ok) setFound((list) => list.map((x) => (x.access.kind === "code" && x.access.reference === r ? { ...(data.application as Omit<App, "access">), access: x.access } : x)));
   }, []);
 
   const refresh = async (app: App) => {
@@ -74,10 +93,18 @@ export default function MyApplications({ initialRef }: { initialRef: string }) {
 
   return (
     <div className="mt-4 space-y-4 pb-10">
-      <form onSubmit={(e) => { e.preventDefault(); lookup(ref.trim(), phone); }} className="gt-card space-y-3 p-4">
-        <p className="font-semibold">ค้นหาใบสมัครด้วยเลขอ้างอิง</p>
-        <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-          <div><Label text="เลขอ้างอิง (6 ตัว)" htmlFor="ref" /><input id="ref" value={ref} onChange={(e) => setRef(e.target.value.toUpperCase())} maxLength={12} autoComplete="off" placeholder="เช่น 3F9A1C" className={`${inputCls} gt-num uppercase tracking-widest`} /></div>
+      <form onSubmit={(e) => { e.preventDefault(); find(); }} className="gt-card space-y-3 p-4">
+        <p className="font-semibold">ค้นหาใบสมัคร</p>
+        <div><Label text="ชื่อ-นามสกุลผู้สมัคร" htmlFor="fn" /><input id="fn" value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={120} autoComplete="name" placeholder="เช่น ภูภูมิ คัมภีรพงศ์" className={inputCls} /></div>
+        <div><Label text="รุ่นแข่งขัน" htmlFor="dv" />
+          <select id="dv" value={division} onChange={(e) => setDivision(e.target.value)} className={inputCls}>
+            <option value="">เลือกรุ่นแข่งขัน</option>
+            {[...new Set(divisions.map((d) => d.event))].map((ev) => (
+              <optgroup key={ev} label={ev}>{divisions.filter((d) => d.event === ev).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</optgroup>
+            ))}
+          </select>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <div><Label text="เบอร์โทรที่ใช้สมัคร" htmlFor="rph" /><input id="rph" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" maxLength={20} placeholder="08x-xxx-xxxx" className={inputCls} /></div>
           <button type="submit" disabled={busy} className="gt-cta-btn min-h-12 px-6 disabled:opacity-60">{busy ? "…" : "ค้นหา"}</button>
         </div>
@@ -86,7 +113,7 @@ export default function MyApplications({ initialRef }: { initialRef: string }) {
       </form>
 
       {mine === null && found.length === 0 ? <p className="text-center text-[var(--gt-muted)]" role="status">กำลังโหลด…</p>
-        : apps.length === 0 ? <p className="gt-card p-6 text-center text-[var(--gt-muted)]">ยังไม่มีใบสมัครที่แสดง กรอกเลขอ้างอิงและเบอร์โทรด้านบน</p>
+        : apps.length === 0 ? <p className="gt-card p-6 text-center text-[var(--gt-muted)]">ยังไม่มีใบสมัครที่แสดง กรอกชื่อ-นามสกุล รุ่นแข่งขัน และเบอร์โทรด้านบน</p>
         : apps.map((a) => <AppCard key={a.id} app={a} today={today} onAsk={(kind) => setSheet({ app: a, kind })} onChanged={() => refresh(a)} />)}
 
       {sheet && <RequestSheet app={sheet.app} kind={sheet.kind} today={today} onClose={() => setSheet(null)} onDone={() => { const a = sheet.app; setSheet(null); refresh(a); }} />}
@@ -107,11 +134,11 @@ function AppCard({ app, today, onAsk, onChanged }: { app: App; today: string; on
     setBusy(false); onChanged();
   };
   return (
-    <section className="gt-card overflow-hidden" aria-label={`ใบสมัคร ${app.reference}`}>
+    <section className="gt-card overflow-hidden" aria-label={`ใบสมัคร ${app.full_name}`}>
       <div className="flex items-start gap-3 border-b border-[var(--gt-line)] p-4">
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-lg font-bold">{app.title}</h2>
-          <p className="text-sm text-[var(--gt-muted)]">รหัสใบสมัคร <span className="gt-num font-semibold">{app.reference}</span> · {when(app.created_at)}</p>
+          <p className="text-sm text-[var(--gt-muted)]">สมัครเมื่อ {when(app.created_at)}</p>
         </div>
         <span className={`shrink-0 rounded-2xl px-3 py-1 text-sm font-semibold ${TONE[st.tone as keyof typeof TONE]}`}>{st.label}</span>
       </div>
@@ -229,7 +256,7 @@ function RequestSheet({ app, kind, today, onClose, onDone }: { app: App; kind: K
         <div className="space-y-4">
           <div className="rounded-xl bg-[var(--gt-surface-2)] p-3 text-sm">
             <p className="font-semibold">{app.full_name} · {divisionLabel(app.division)}</p>
-            <p className="text-[var(--gt-muted)]">{app.title} · รหัส {app.reference}</p>
+            <p className="text-[var(--gt-muted)]">{app.title} · {app.full_name}</p>
           </div>
 
           {kind === "withdraw" && (
