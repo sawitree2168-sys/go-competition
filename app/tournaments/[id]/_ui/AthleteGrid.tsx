@@ -51,12 +51,14 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
   }, [open]);
 
   return (
-    <section className="mt-4 space-y-3">
-      <div>
-        <h2 className="flex items-center gap-2 text-xl font-bold"><span aria-hidden="true" className="h-6 w-1.5 rounded-full bg-[var(--gt-brand)]" />นักกีฬา
+    <section className="gt-division-athletes mt-4 space-y-3">
+      <div className="gt-division-athletes-heading">
+        <div className="min-w-0">
+          <h2 className="flex items-center gap-2 text-xl font-bold"><span aria-hidden="true" className="h-6 w-1.5 rounded-full bg-[var(--gt-brand)]" />นักกีฬา
           <span className="gt-num rounded-full bg-[var(--gt-surface-2)] px-2.5 py-0.5 text-sm font-semibold">{athletes.length} คน</span></h2>
-        <p className="text-sm text-[var(--gt-muted)]">รู้จักผู้เข้าแข่งขัน และดูประวัติการแข่งขัน</p>
-        <div role="group" aria-label="รูปแบบรายชื่อนักกีฬา" className="mt-3 inline-flex gap-1 rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
+          <p className="text-sm text-[var(--gt-muted)]">รู้จักผู้เข้าแข่งขัน และดูประวัติการแข่งขัน</p>
+        </div>
+        <div role="group" aria-label="รูปแบบรายชื่อนักกีฬา" className="gt-division-view-toggle">
           <button type="button" onClick={() => setView("cards")} aria-pressed={view === "cards"} className={"min-h-10 rounded-lg px-4 text-sm font-semibold " + (view === "cards" ? "bg-[linear-gradient(120deg,#168bff,#0752bb)] text-white" : "text-[var(--gt-ink)]")}>▦ การ์ด</button>
           <button type="button" onClick={() => setView("list")} aria-pressed={view === "list"} className={"min-h-10 rounded-lg px-4 text-sm font-semibold " + (view === "list" ? "bg-[linear-gradient(120deg,#168bff,#0752bb)] text-white" : "text-[var(--gt-ink)]")}>☷ ตาราง / ลิสต์</button>
         </div>
@@ -83,7 +85,7 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
           const pay = payBadge(a.payment);
           const k = shortRank(a.rank);
           return (
-            <li key={a.key} className="gt-card flex gap-3 overflow-hidden p-2.5 sm:flex-col sm:gap-0 sm:p-0">
+            <li key={a.key} className="gt-card gt-athlete-card flex gap-3 overflow-hidden p-2.5 sm:flex-col sm:gap-0 sm:p-0">
               <div className="shrink-0 rounded-xl bg-[linear-gradient(180deg,var(--gt-avatar-top),var(--gt-surface-2))] p-2 sm:rounded-none sm:py-3">
                 <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" className={`mx-auto h-20 w-20 sm:h-28 sm:w-28 ${a.photo ? "rounded-full object-cover" : "object-contain"}`} />
               </div>
@@ -105,7 +107,7 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
         })}
       </ul>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)]">
+        <div className="gt-athlete-table overflow-hidden rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)]">
           <div className="hidden grid-cols-[40px_54px_minmax(0,1.5fr)_minmax(0,1fr)_92px_138px] items-center gap-3 border-b border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-3 py-3 text-xs font-semibold text-[var(--gt-muted)] lg:grid">
             <span>ลำดับ</span><span>รูป</span><span>ชื่อ–นามสกุล</span><span>สถาบัน</span><span>ระดับ</span><span>รายละเอียด</span>
           </div>
