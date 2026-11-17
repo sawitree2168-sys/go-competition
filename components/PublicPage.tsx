@@ -9,6 +9,7 @@ export default function PublicPage({ icon, title, sub, children, current }: { ic
     <Shell wide>
       <div className="relative left-1/2 w-screen -translate-x-1/2"><SiteBar current={current} /></div>
       <main className="mx-auto max-w-4xl px-3 pb-10 pt-5 sm:px-4">
+        <Link href="/" className="mb-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--gt-brand)]"><span aria-hidden="true">←</span> กลับหน้าแรก</Link>
         <h1 className="flex items-center gap-3 text-2xl font-bold sm:text-3xl">
           <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[var(--gt-cta-soft)] text-[var(--gt-cta)]"><MenuIcon name={icon} className="h-6 w-6" /></span>
           {title}

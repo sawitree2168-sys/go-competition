@@ -213,7 +213,7 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
 
       </div>
       {win.tone !== "closed" && event.registration_mode !== "closed" && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--gt-dash-panel-line)] bg-[var(--gt-surface)] px-3 pb-[max(.75rem,env(safe-area-inset-bottom))] pt-3 md:hidden">
+        <div className="gt-mobile-bottom-action fixed inset-x-0 bottom-0 z-30 border-t border-[var(--gt-dash-panel-line)] bg-[var(--gt-surface)] px-3 pb-[max(.75rem,env(safe-area-inset-bottom))] pt-3 md:hidden">
           <Link href={`/tournaments/${id}/register`} className="gt-cta-btn flex min-h-12 items-center justify-center gap-2 text-lg">สมัครแข่งขัน <Icon name="chevron" className="h-4 w-4" /></Link>
         </div>
       )}

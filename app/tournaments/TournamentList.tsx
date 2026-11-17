@@ -3,6 +3,7 @@ import { Shell } from "./[id]/_ui/chrome";
 import SiteBar from "./[id]/_ui/SiteBar";
 import { publicDb } from "./[id]/_ui/data";
 import EventBrowser, { type EventCard } from "./EventBrowser";
+import { loadResults } from "@/lib/public-site";
 import { divisionKey } from "@/lib/division-display";
 import { divisionKinds } from "@/lib/event-list.mjs";
 
@@ -15,18 +16,31 @@ async function loadEvents(): Promise<EventCard[]> {
   const db = publicDb();
   if (!db) return [];
   try {
-    const ev = await db.from("gt_tournaments").select("id,title,event_date,poster_url,registration_open_date,registration_close_date,registration_mode,venue")
-      .eq("published", true).order("event_date", { ascending: false, nullsFirst: true }).limit(300);
+    const [ev, history] = await Promise.all([
+      db.from("gt_tournaments").select("id,title,event_date,poster_url,registration_open_date,registration_close_date,registration_mode,venue")
+        .eq("published", true).order("event_date", { ascending: false, nullsFirst: true }).limit(300),
+      loadResults(db),
+    ]);
     const rows = (ev.data ?? []) as unknown as Row[];
-    if (!rows.length) return [];
-    const dv = await db.from("gt_divisions").select("tournament_id,name").in("tournament_id", rows.map((r) => r.id)).limit(3000);
+    const dv = rows.length
+      ? await db.from("gt_divisions").select("tournament_id,name").in("tournament_id", rows.map((r) => r.id)).limit(3000)
+      : { data: [] };
     const keys = new Map<string, string[]>();
     for (const d of (dv.data ?? []) as { tournament_id: string; name: string }[]) keys.set(d.tournament_id, [...(keys.get(d.tournament_id) ?? []), divisionKey(d.name)]);
-    return rows.map((r) => ({
+    const current: EventCard[] = rows.map((r) => ({
       id: r.id, title: r.title, event_date: r.event_date, poster_url: r.poster_url, venue: r.venue ?? null,
       registration_open_date: r.registration_open_date, registration_close_date: r.registration_close_date,
       registration_mode: r.registration_mode ?? null, kinds: divisionKinds(keys.get(r.id) ?? []),
     }));
+    const key = (title: string) => title.normalize("NFC").replace(/\s+/g, "").toLowerCase();
+    const published = new Set(current.map((e) => key(e.title)));
+    const archived: EventCard[] = history.filter((e) => !published.has(key(e.title))).map((e) => ({
+      id: `history:${e.title}`, title: e.title, event_date: e.date, poster_url: null, venue: null,
+      registration_open_date: null, registration_close_date: null, registration_mode: "closed",
+      kinds: `${e.divisions.length} รุ่น • ${e.divisions.reduce((n, d) => n + d.people.length, 0)} คน`,
+      href: `/results?event=${encodeURIComponent(e.title)}`, archived: true,
+    }));
+    return [...current, ...archived];
   } catch {
     return [];
   }

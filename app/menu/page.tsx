@@ -15,14 +15,6 @@ const entries: { label: string; href: string; icon: MenuIconName; desc: string }
   {label:"คำถามที่พบบ่อย",href:"/faq",icon:"faq",desc:"คำแนะนำการใช้งาน"},
 ];
 
-const tabs: { label: string; href: string; icon: MenuIconName }[] = [
-  {label:"หน้าแรก",href:"/",icon:"home"},
-  {label:"แข่งขัน",href:"/tournaments",icon:"trophy"},
-  {label:"GO FAN",href:"/go-fan",icon:"fan"},
-  {label:"นักกีฬา",href:"/athletes",icon:"athlete"},
-  {label:"เมนู",href:"/menu",icon:"menu"},
-];
-
 export default function MenuPage() {
   return (
     <main className="min-h-screen bg-[#edf3fa] pb-24 text-[#09265b]">
@@ -48,14 +40,7 @@ export default function MenuPage() {
           ))}
         </nav>
       </div>
-      <nav aria-label="เมนูหลักบนมือถือ" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_15px_rgba(0,0,0,0.08)] md:hidden">
-        {tabs.map(tab=>(
-          <Link key={tab.href} href={tab.href} aria-current={tab.href==="/menu"?"page":undefined} className={`flex min-h-16 flex-col items-center justify-center gap-1 ${tab.href==="/menu"?"text-[#b38326]":"text-[#09265b]"}`}>
-            <MenuIcon name={tab.icon} className="h-6 w-6" />
-            <span className="text-[11px] font-semibold">{tab.label}</span>
-          </Link>
-        ))}
-      </nav>
+
     </main>
   );
 }
