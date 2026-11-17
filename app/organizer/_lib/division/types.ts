@@ -3,6 +3,8 @@ export type Athlete = { full_name: string; school_name: string | null; current_r
 export type Reg = {
   athlete_id: string; pool_label: string | null; payment_status: string; competition_rank_reference: string | null;
   registration_status: string; display_institution: string | null; gt_athletes: Athlete | null;
+  /** round the organiser confirmed the player is here for, after missing a round (รายชื่อพักรอ) */
+  present_for_round?: number | null;
 };
 export type Match = {
   id: string; round_number: number; board_number: number | null; black_athlete_id: string; white_athlete_id: string;
