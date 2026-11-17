@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { divisionSortValue } from "@/lib/division-display";
+import { divisionKey, divisionSortValue } from "@/lib/division-display";
 
 /** Seconds a public read may be served from cache. Results and entrant syncs appear within this window. */
 export const PUBLIC_CACHE_SECONDS = 30;
@@ -11,7 +11,7 @@ export type EventInfo = {
   registration_mode?: "web" | "external" | "closed" | null; registration_url?: string | null; venue?: string | null;
 };
 export type Division = { id: string; name: string; seats_limit: number | null; entry_fee_thb: number | null; friendship_board_size: number | null };
-export type Entrant = { source_row: number; title: string; full_name: string; institution: string; division_name: string; payment_status: string };
+export type Entrant = { source_row: number; title: string; full_name: string; institution: string; division_name: string; payment_status: string; source?: "web" };
 export type Match = {
   id: string; round_number: number; board_number: number | null; black_athlete_id: string; white_athlete_id: string;
   winner_athlete_id: string | null; result_code: string | null; result_margin: string | null; state: string; pool_label?: string | null;
@@ -47,6 +47,26 @@ export function publicDb(): SupabaseClient | null {
 
 const sortDivisions = (rows: Division[]) => [...rows].sort((a, b) => divisionSortValue(a.name) - divisionSortValue(b.name));
 
+const nameKey = (s: string) => s.replace(/[\s\u200b-\u200d\ufeff]+/g, "").toLowerCase();
+
+/**
+ * Sheet (Google Form) rows plus sign-ups made on this website, as one list.
+ * A person on both lists for the same division is shown once (the sheet row wins).
+ */
+export async function withWebEntrants(db: SupabaseClient, id: string, divisions: Division[], sheet: Entrant[]): Promise<Entrant[]> {
+  const { data, error } = await db.rpc("gt_public_web_entrants_v1", { p_tournament: id });
+  if (error || !Array.isArray(data) || !data.length) return sheet;
+  const divName = new Map(divisions.map((d) => [d.id, d.name]));
+  const seen = new Set(sheet.map((e) => `${divisionKey(e.division_name)}|${nameKey(e.full_name)}`));
+  const web: Entrant[] = [];
+  (data as { full_name: string; institution: string; division_id: string; payment_status: string }[]).forEach((w, i) => {
+    const division_name = divName.get(w.division_id);
+    if (!division_name || seen.has(`${divisionKey(division_name)}|${nameKey(w.full_name)}`)) return;
+    web.push({ source_row: -(i + 1), title: "", full_name: w.full_name, institution: w.institution, division_name, payment_status: w.payment_status, source: "web" });
+  });
+  return [...sheet, ...web];
+}
+
 /** Event, divisions and entrants in one parallel round trip. Event is null when not published. */
 export async function loadEventPage(db: SupabaseClient | null, id: string) {
   const empty = { event: null as EventInfo | null, divisions: [] as Division[], entrants: [] as Entrant[] };
@@ -60,7 +80,8 @@ export async function loadEventPage(db: SupabaseClient | null, id: string) {
         .eq("tournament_id", id).order("source_row", { ascending: true }).limit(1000),
     ]);
     if (ev.error || !ev.data) return empty;
-    return { event: ev.data as EventInfo, divisions: sortDivisions((dv.data ?? []) as Division[]), entrants: (en.data ?? []) as Entrant[] };
+    const divisions = sortDivisions((dv.data ?? []) as Division[]);
+    return { event: ev.data as EventInfo, divisions, entrants: await withWebEntrants(db, id, divisions, (en.data ?? []) as Entrant[]) };
   } catch {
     return empty;
   }
