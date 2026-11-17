@@ -17,17 +17,17 @@
 .gt-directory-results { display: flex; align-items: baseline; gap: 10px; margin: 20px 0 16px; scroll-margin-top: 16px; }
 .gt-directory-results h2 { font-size: 22px; font-weight: 600; }
 .gt-event-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
-.gt-event-card { min-width: 0; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); align-content: start; gap: 14px; padding: 12px; border: 1px solid var(--gt-dash-panel-line); border-radius: 16px; background: var(--gt-surface); box-shadow: 0 8px 24px -18px rgba(0,0,0,.35); }
-.gt-event-poster-link { display: block; min-width: 0; align-self: start; border-radius: 9px; overflow: hidden; }
+.gt-event-card { min-width: 0; display: flex; flex-direction: column; gap: 14px; padding: 12px; border: 1px solid var(--gt-dash-panel-line); border-radius: 16px; background: var(--gt-surface); box-shadow: 0 8px 24px -18px rgba(0,0,0,.35); }
+.gt-event-poster-link { display: block; width: 100%; min-width: 0; border-radius: 9px; overflow: hidden; }
 /* The image defines the frame: no cropping, blurred duplicates, or stretched artwork. */
 .gt-event-poster { width: 100%; overflow: hidden; border-radius: 9px; }
 .gt-event-poster > img { display: block; width: 100%; height: auto; }
 .gt-event-poster-fallback { aspect-ratio: 2 / 3; }
 .gt-event-poster-fallback > img { height: 100%; object-fit: cover; }
-.gt-event-info { min-width: 0; display: flex; flex-direction: column; align-self: stretch; }
-.gt-event-title { margin-top: 8px; font-size: 16px; line-height: 1.5; font-weight: 600; overflow-wrap: anywhere; }
+.gt-event-info { flex: 1; width: 100%; min-width: 0; display: flex; flex-direction: column; align-self: stretch; }
+.gt-event-title { margin-top: 8px; font-size: 18px; line-height: 1.5; font-weight: 600; overflow-wrap: anywhere; }
 .gt-event-meta svg { margin-top: 3px; }
-.gt-event-action { text-align: center; line-height: 1.5; font-size: 12px; }
+.gt-event-action { text-align: center; line-height: 1.5; font-size: 14px; }
 .gt-event-placeholder { display: flex; min-height: 270px; flex-direction: column; justify-content: center; align-items: center; gap: 14px; border: 1px dashed var(--gt-line); border-radius: 16px; color: var(--gt-muted); font-size: 14px; }
 @media (min-width: 768px) and (max-width: 1023px) {
   .gt-event-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -52,7 +52,6 @@
   .gt-directory-results h2 { font-size: 19px; }
   .gt-event-grid { grid-template-columns: 1fr; gap: 16px; }
   .gt-event-card { width: 100%; max-width: 380px; margin-inline: auto; display: flex; flex-direction: column; gap: 14px; padding: 14px; }
-  .gt-event-poster-link { width: min(100%, 220px); margin-inline: auto; align-self: center; }
   .gt-event-info { width: 100%; }
   .gt-event-title { font-size: 18px; }
   .gt-event-action { font-size: 14px; }
