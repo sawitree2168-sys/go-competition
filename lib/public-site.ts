@@ -16,7 +16,7 @@ export type ResultEvent = { title: string; date: string | null; complete?: boole
 export type NewsItem = { id: string; kind: "announcement" | "registration" | "results"; title: string; body: string | null; date: string | null; href: string };
 
 /** Placeholder picture for athletes without a photo. */
-export const AVATAR = "/avatars/go-approved.svg";
+export const AVATAR = "/avatars/go-approved-original.webp";
 
 export async function loadOverview(db: SupabaseClient | null): Promise<Overview | null> {
   if (!db) return null;
