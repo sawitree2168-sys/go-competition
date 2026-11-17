@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- athlete photos and a decorative picture */
 import Link from "next/link";
-import { DEFAULT_AVATAR } from "../../tournaments/[id]/_ui/MatchCard";
+import AthleteAvatar from "@/components/AthleteAvatar";
 
 export type Student = { id: string; name: string; nickname: string | null; rank: string | null; photo: string | null; go_id: string | null; added: boolean };
 export type Rec = {
@@ -38,8 +38,7 @@ export const MENU: { id: Exclude<View, "home">; title: string; sub: string; tone
 ];
 
 export function Avatar({ src, className = "h-10 w-10" }: { src: string | null; className?: string }) {
-  if (!src) return <img src={DEFAULT_AVATAR} alt="" loading="lazy" className={`${className} shrink-0`} />;
-  return <img src={src} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`${className} shrink-0 rounded-full border-2 border-white object-cover shadow-sm`} />;
+  return <AthleteAvatar src={src} name="นักกีฬา" className={`${className} ${src ? "border-2 border-white shadow-sm" : ""}`} />;
 }
 
 export function StudentName({ s, sub, small = false }: { s: Student; sub?: React.ReactNode; small?: boolean }) {
