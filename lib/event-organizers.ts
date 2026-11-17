@@ -18,4 +18,4 @@ export const eventOrganizer = (title: string): EventOrganizer | null => EVENTS.g
 
 /** Approved event artwork; landscape posters retain their full native proportions. */
 export const eventPoster = (title: string): string | null => key(title) === key("LOTUS’S × BUDDY GO Championship 2026")
-  ? "/posters/buddy-go-2026-results.webp" : null;
+  ? "/posters/buddy-go-2026-results-v2.webp" : null;
