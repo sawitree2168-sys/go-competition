@@ -80,25 +80,25 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
       </div>
 
       {view === "cards" ? (
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {shown.map((a) => {
           const pay = payBadge(a.payment);
           const k = shortRank(a.rank);
           return (
-            <li key={a.key} className="gt-card gt-athlete-card flex gap-3 overflow-hidden p-2.5 sm:flex-col sm:gap-0 sm:p-0">
-              <div className="shrink-0 rounded-xl bg-[linear-gradient(180deg,var(--gt-avatar-top),var(--gt-surface-2))] p-2 sm:rounded-none sm:py-3">
+            <li key={a.key} className="gt-card gt-athlete-card flex min-w-0 flex-col gap-0 overflow-hidden p-0">
+              <div className="shrink-0 bg-[linear-gradient(180deg,var(--gt-avatar-top),var(--gt-surface-2))] px-2 pb-2 pt-4 sm:py-4">
                 <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" className={`mx-auto h-20 w-20 sm:h-28 sm:w-28 ${a.photo ? "rounded-full object-cover" : "object-contain"}`} />
               </div>
-              <div className="min-w-0 flex-1 space-y-1 sm:px-3 sm:py-3">
+              <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2.5 py-3 text-center sm:px-3">
                 {a.id
-                  ? <Link href={`/athletes/${a.id}`} className="block truncate text-lg font-bold leading-tight hover:underline">{a.name}</Link>
-                  : <p className="truncate text-lg font-bold leading-tight">{a.name}</p>}
-                <p className="truncate text-sm text-[var(--gt-muted)]">{a.institution || "—"}</p>
-                <p className="flex flex-wrap items-center gap-2">
+                  ? <Link href={`/athletes/${a.id}`} className="block min-h-10 break-words text-sm font-semibold leading-snug hover:underline sm:text-lg">{a.name}</Link>
+                  : <p className="min-h-10 break-words text-sm font-semibold leading-snug sm:text-lg">{a.name}</p>}
+                <p className="line-clamp-2 min-h-7 break-words text-xs text-[var(--gt-muted)] sm:text-sm">{a.institution || "—"}</p>
+                <p className="flex flex-wrap items-center justify-center gap-1.5">
                   {k && <span className="rounded-full bg-[var(--gt-surface-2)] px-2.5 py-0.5 text-sm font-bold text-[var(--gt-brand)]">{k.replace(/d$/, " Dan").replace(/k$/, " Kyu")}</span>}
                   {pay && <span className={`text-xs font-semibold ${pay.cls}`}>{pay.text}</span>}
                 </p>
-                <button type="button" onClick={() => setOpen(a)} className="mt-1 flex min-h-10 w-full items-center justify-center gap-1 rounded-lg bg-[var(--gt-surface-2)] text-sm font-semibold text-[var(--gt-brand)]">
+                <button type="button" onClick={() => setOpen(a)} className="mt-auto flex min-h-10 w-full items-center justify-center gap-1 rounded-lg border border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-2 text-xs font-semibold text-[var(--gt-brand)] sm:text-sm">
                   ดูประวัติการแข่งขัน <span aria-hidden="true">→</span>
                 </button>
               </div>
