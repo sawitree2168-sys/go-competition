@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- posters come from storage URLs of any size */
 
+import EventOrganizer from "@/components/EventOrganizer";
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { STATUS_LABEL, eventStatus, thaiYear } from "@/lib/event-list.mjs";
@@ -128,6 +129,7 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
                 <div className="gt-event-info">
                   <span className={`self-start rounded-md px-2.5 py-0.5 text-xs font-bold ${CHIP[e.status]}`}>{STATUS_LABEL[e.status]}</span>
                   <h2 className="gt-event-title">{e.title}</h2>
+                  <EventOrganizer title={e.title} compact />
                   <p className="gt-event-meta mt-2 flex items-start gap-2 text-sm"><CalIcon />{thaiDate(e.event_date, "short") ?? "รออัปเดตวันแข่งขัน"}</p>
                   {!e.archived && <p className="gt-event-meta mt-1 flex items-start gap-2 text-sm"><PinIcon />{e.venue ?? "สถานที่รอยืนยัน"}</p>}
                   {e.kinds && <p className="mt-1 text-xs leading-relaxed text-[var(--gt-muted)]">{e.kinds}</p>}

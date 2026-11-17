@@ -1,3 +1,4 @@
+import EventOrganizer from "@/components/EventOrganizer";
 import Link from "next/link";
 import type { Metadata } from "next";
 import PublicPage from "@/components/PublicPage";
@@ -59,6 +60,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
             return (
               <section key={e.title} id={encodeURIComponent(e.title)} className="scroll-mt-4">
                 <h2 className="text-xl font-bold">{e.title}</h2>
+                <EventOrganizer title={e.title} />
                 <p className="text-sm text-[var(--gt-muted)]">
                   {thaiDate(e.date) ?? "ไม่ระบุวันที่"} · {e.divisions.length} รุ่น · {e.complete ? `ผู้เข้าแข่งขันทั้งหมด ${all} คน` : `${all} คนที่บันทึกไว้`}
                   {marked > 0 && <> · <span className="font-semibold text-[var(--gt-chip-near-ink)]">★ สมัครครั้งนี้ {marked} คน</span></>}

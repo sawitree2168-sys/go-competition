@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- athlete photos come from arbitrary storage URLs */
 
+import EventOrganizer from "@/components/EventOrganizer";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
@@ -153,6 +154,7 @@ function History({ athlete, historicalResults, matches, byes, people, onClose }:
             <li key={`${event.title}-${division}`} className="rounded-xl border border-[var(--gt-line)] p-3">
               <p className="text-xs text-[var(--gt-muted)]">{thaiDate(event.date) ?? "ไม่ระบุวันที่"}</p>
               <p className="mt-1 font-bold">{event.title}</p>
+              <EventOrganizer title={event.title} compact />
               <p className="mt-1 whitespace-pre-wrap break-words text-sm text-[var(--gt-muted)]">สถาบันในรายการนี้: {person.institution?.trim() || "ไม่ระบุในข้อมูลการแข่งขัน"}</p>
               <p className="text-sm text-[var(--gt-muted)]">{division}{person.placing != null ? ` · อันดับ ${person.placing}` : ""}</p>
               <div className="mt-2 flex flex-wrap gap-2 text-sm font-bold">

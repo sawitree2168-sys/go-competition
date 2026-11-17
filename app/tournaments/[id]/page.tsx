@@ -1,3 +1,4 @@
+import EventOrganizer from "@/components/EventOrganizer";
 import Link from "next/link";
 import { Header, Icon, Shell } from "./_ui/chrome";
 import SiteBar from "./_ui/SiteBar";
@@ -117,6 +118,7 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
               </span>
             </div>
             <h1 className="mt-3 max-w-[78%] text-[34px] font-extrabold leading-[1.08] tracking-tight sm:max-w-[60%] sm:text-5xl lg:text-6xl">{event.title}</h1>
+            <EventOrganizer title={event.title} onDark />
             <span aria-hidden="true" className="mt-4 block h-[3px] w-40 rounded-full bg-[#e9c46a] sm:w-52" />
             <p className="mt-4 flex items-center gap-3 text-lg sm:text-xl"><Icon name="calendar" className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />{weekdayDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
             <p className="mt-2 flex items-center gap-3 text-lg text-[#b9cdf3] sm:text-xl"><Icon name="pin" className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />{event.venue ?? "สถานที่รอยืนยัน"}</p>

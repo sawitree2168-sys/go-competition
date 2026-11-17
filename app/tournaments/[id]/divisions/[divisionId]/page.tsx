@@ -1,3 +1,4 @@
+import EventOrganizer from "@/components/EventOrganizer";
 import Link from "next/link";
 import { Header, Icon, Shell } from "../../_ui/chrome";
 import SiteBar from "../../_ui/SiteBar";
@@ -179,6 +180,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
             <div className="mt-1 flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
               <div className="min-w-0 lg:border-r lg:border-white/25 lg:pr-8">
                 <h1 className="text-[1.65rem] font-bold leading-tight sm:text-4xl">{event.title}</h1>
+                <EventOrganizer title={event.title} onDark />
                 <p className="mt-1 text-[15px] text-[#9cc3ff] sm:text-lg">{label} • ระบบจับคู่สวิส • กระดาน {size}×{size}</p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-sm text-white/75"><Icon name="calendar" className="h-4 w-4 shrink-0" />{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
               </div>
