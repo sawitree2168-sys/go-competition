@@ -39,7 +39,7 @@ export const MENU: { id: Exclude<View, "home">; title: string; sub: string; tone
 
 export function Avatar({ src, className = "h-10 w-10" }: { src: string | null; className?: string }) {
   if (!src) return <img src={DEFAULT_AVATAR} alt="" loading="lazy" className={`${className} shrink-0`} />;
-  return <img src={src} alt="" loading="lazy" className={`${className} shrink-0 rounded-full border-2 border-white object-cover shadow-sm`} />;
+  return <img src={src} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`${className} shrink-0 rounded-full border-2 border-white object-cover shadow-sm`} />;
 }
 
 export function StudentName({ s, sub, small = false }: { s: Student; sub?: React.ReactNode; small?: boolean }) {
