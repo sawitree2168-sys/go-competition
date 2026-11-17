@@ -126,9 +126,41 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
         </div>
       </div>
       {slice.length ? (
-        <div className={view === "list" ? "gt-event-list-wrap" : undefined}>
-          {view === "list" && <div className="gt-event-list-head" aria-hidden="true"><span>โปสเตอร์</span><span>รายการแข่งขัน</span><span>วันที่แข่งขัน</span><span>สถานะ</span><span>รายละเอียด</span></div>}
-          <ul className={view === "list" ? "gt-event-grid gt-event-list" : "gt-event-grid"}>
+        view === "list" ? (
+          <div className="overflow-hidden rounded-2xl border border-[var(--gt-dash-panel-line)] bg-[var(--gt-surface)]">
+            <div className="hidden grid-cols-[80px_minmax(0,1.5fr)_minmax(0,1fr)_110px_140px] gap-4 border-b border-[var(--gt-dash-panel-line)] bg-[var(--gt-surface-2)] px-4 py-3 text-xs text-[var(--gt-muted)] lg:grid">
+              <span>โปสเตอร์</span><span>ชื่อรายการแข่งขัน</span><span>วันและสถานที่</span><span>สถานะ</span><span>รายละเอียด</span>
+            </div>
+            <ul className="divide-y divide-[var(--gt-dash-panel-line)]" aria-label="การแข่งขันแบบตารางและลิสต์">
+              {slice.map((e) => {
+                const a = action(e);
+                const href = e.href ?? ("/tournaments/" + e.id);
+                return (
+                  <li key={e.id} className="grid grid-cols-[76px_minmax(0,1fr)] items-start gap-3 p-3 sm:grid-cols-[90px_minmax(0,1fr)_auto] lg:grid-cols-[80px_minmax(0,1.5fr)_minmax(0,1fr)_110px_140px] lg:items-center lg:gap-4 lg:px-4">
+                    <Link href={href} className="block h-[88px] w-[76px] overflow-hidden rounded-lg sm:w-[90px] lg:h-[68px] lg:w-[80px]" aria-label={e.title}>
+                      <img src={e.poster_url ?? pick(e.id)} alt={"โปสเตอร์ " + e.title} loading="lazy" className="h-full w-full object-cover" />
+                    </Link>
+                    <div className="min-w-0 space-y-1">
+                      <Link href={href} className="block break-words text-sm font-semibold leading-relaxed hover:underline">{e.title}</Link>
+                      <div className="text-xs text-[var(--gt-muted)]"><EventOrganizer title={e.title} compact /></div>
+                      <p className="flex items-center gap-1 text-xs text-[var(--gt-muted)] lg:hidden"><CalIcon />{thaiDate(e.event_date, "short") ?? "รอวันแข่งขัน"}</p>
+                      {!e.archived && <p className="text-xs text-[var(--gt-muted)] lg:hidden">{e.venue ?? "สถานที่รอยืนยัน"}</p>}
+                      <span className={"inline-flex rounded-md px-2 py-0.5 text-xs lg:hidden " + CHIP[e.status]}>{STATUS_LABEL[e.status]}</span>
+                      <div className="pt-1 sm:hidden"><Link href={href} className="inline-flex min-h-9 items-center rounded-lg bg-[var(--gt-cta)] px-3 text-xs font-semibold text-white">{a.label} →</Link></div>
+                    </div>
+                    <div className="hidden text-xs leading-relaxed text-[var(--gt-muted)] lg:block">
+                      <p className="flex items-center gap-2"><CalIcon />{thaiDate(e.event_date, "short") ?? "รอวันแข่งขัน"}</p>
+                      {!e.archived && <p className="mt-1 flex items-start gap-2"><PinIcon />{e.venue ?? "สถานที่รอยืนยัน"}</p>}
+                    </div>
+                    <span className={"hidden w-fit rounded-md px-2.5 py-1 text-xs lg:inline-flex " + CHIP[e.status]}>{STATUS_LABEL[e.status]}</span>
+                    <Link href={href} className="gt-cta-btn hidden min-h-10 items-center justify-center px-3 text-center text-xs font-semibold sm:inline-flex">{a.label} →</Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : (
+          <ul className="gt-event-grid" aria-label="การแข่งขันแบบการ์ด">
           {slice.map((e) => {
             const a = action(e);
             const mobileLabel = e.status === "open" ? "ดูรายละเอียดและสมัคร" : a.label;
@@ -157,7 +189,7 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
               </li>
             ))}
           </ul>
-        </div>
+        )
       ) : (
         <div className="gt-card mt-2 px-5 py-8 text-center">
           <p className="font-semibold">{events.length ? "ไม่พบการแข่งขันที่ตรงกับเงื่อนไข" : "ยังไม่มีรายการแข่งขันที่เผยแพร่"}</p>
