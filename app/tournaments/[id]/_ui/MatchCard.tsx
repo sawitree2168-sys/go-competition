@@ -14,7 +14,7 @@ export type Seat = {
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 /** Default avatar (approved 16 Nov 2026) for athletes without a photo. */
-export const DEFAULT_AVATAR = "/avatars/default-athlete.png";
+export const DEFAULT_AVATAR = "/avatars/go-approved.svg";
 
 export function Avatar({ seat, size = "md" }: { seat: Seat; size?: "md" | "lg" }) {
   const dim = size === "lg" ? "h-20 w-20 sm:h-24 sm:w-24" : "h-14 w-14";
