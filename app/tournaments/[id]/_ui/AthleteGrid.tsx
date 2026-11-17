@@ -33,6 +33,7 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
   const [q, setQ] = useState("");
   const [rank, setRank] = useState("all");
   const [page, setPage] = useState(1);
+  const [view, setView] = useState<"cards" | "list">("cards");
   const [open, setOpen] = useState<AthleteCard | null>(null);
   const query = useDeferredValue(q.trim().toLowerCase());
   const ranks = useMemo(() => [...new Set(athletes.map((a) => shortRank(a.rank)).filter(Boolean) as string[])]
@@ -55,6 +56,10 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
         <h2 className="flex items-center gap-2 text-xl font-bold"><span aria-hidden="true" className="h-6 w-1.5 rounded-full bg-[var(--gt-brand)]" />นักกีฬา
           <span className="gt-num rounded-full bg-[var(--gt-surface-2)] px-2.5 py-0.5 text-sm font-semibold">{athletes.length} คน</span></h2>
         <p className="text-sm text-[var(--gt-muted)]">รู้จักผู้เข้าแข่งขัน และดูประวัติการแข่งขัน</p>
+        <div role="group" aria-label="รูปแบบรายชื่อนักกีฬา" className="mt-3 inline-flex gap-1 rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
+          <button type="button" onClick={() => setView("cards")} aria-pressed={view === "cards"} className={"min-h-10 rounded-lg px-4 text-sm font-semibold " + (view === "cards" ? "bg-[linear-gradient(120deg,#168bff,#0752bb)] text-white" : "text-[var(--gt-ink)]")}>▦ การ์ด</button>
+          <button type="button" onClick={() => setView("list")} aria-pressed={view === "list"} className={"min-h-10 rounded-lg px-4 text-sm font-semibold " + (view === "list" ? "bg-[linear-gradient(120deg,#168bff,#0752bb)] text-white" : "text-[var(--gt-ink)]")}>☷ ตาราง / ลิสต์</button>
+        </div>
       </div>
       <div className="flex gap-2">
         <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3">
@@ -72,6 +77,7 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
         )}
       </div>
 
+      {view === "cards" ? (
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((a) => {
           const pay = payBadge(a.payment);
@@ -98,6 +104,40 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
           );
         })}
       </ul>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)]">
+          <div className="hidden grid-cols-[40px_54px_minmax(0,1.5fr)_minmax(0,1fr)_92px_138px] items-center gap-3 border-b border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-3 py-3 text-xs font-semibold text-[var(--gt-muted)] lg:grid">
+            <span>ลำดับ</span><span>รูป</span><span>ชื่อ–นามสกุล</span><span>สถาบัน</span><span>ระดับ</span><span>รายละเอียด</span>
+          </div>
+          <ol className="divide-y divide-[var(--gt-line)]" aria-label="รายชื่อนักกีฬาแบบตารางและลิสต์">
+            {shown.map((a, i) => {
+              const pay = payBadge(a.payment);
+              const k = shortRank(a.rank);
+              return (
+                <li key={a.key} className="grid grid-cols-[40px_48px_minmax(0,1fr)] items-center gap-2 px-3 py-3 sm:grid-cols-[40px_54px_minmax(0,1fr)_auto] lg:grid-cols-[40px_54px_minmax(0,1.5fr)_minmax(0,1fr)_92px_138px] lg:gap-3">
+                  <span className="gt-num text-center text-xs text-[var(--gt-muted)]">{(current - 1) * PAGE + i + 1}</span>
+                  <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }} className="h-12 w-12 rounded-full bg-[var(--gt-surface-2)] object-contain" />
+                  <div className="min-w-0">
+                    {a.id ? <Link href={"/athletes/" + a.id} className="block break-words text-sm font-semibold hover:underline">{a.name}</Link> : <span className="block break-words text-sm font-semibold">{a.name}</span>}
+                    <p className="mt-1 break-words text-xs text-[var(--gt-muted)] lg:hidden">{a.institution || "—"}</p>
+                    <div className="mt-1 flex flex-wrap gap-2 lg:hidden">
+                      {k && <span className="text-xs font-semibold text-[var(--gt-brand)]">{k.replace(/d$/, " Dan").replace(/k$/, " Kyu")}</span>}
+                      {pay && <span className={"text-xs " + pay.cls}>{pay.text}</span>}
+                    </div>
+                    <button type="button" onClick={() => setOpen(a)} className="mt-2 min-h-9 rounded-lg bg-[var(--gt-surface-2)] px-3 text-xs font-semibold text-[var(--gt-brand)] sm:hidden">ดูประวัติ →</button>
+                  </div>
+                  <p className="hidden min-w-0 break-words text-xs text-[var(--gt-muted)] lg:block">{a.institution || "—"}</p>
+                  <div className="hidden flex-wrap gap-1 lg:flex">
+                    {k && <span className="rounded-lg bg-[var(--gt-surface-2)] px-2 py-1 text-xs font-semibold text-[var(--gt-brand)]">{k.replace(/d$/, " Dan").replace(/k$/, " Kyu")}</span>}
+                    {pay && <span className={"text-xs " + pay.cls}>{pay.text}</span>}
+                  </div>
+                  <button type="button" onClick={() => setOpen(a)} className="hidden min-h-10 rounded-lg border border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-2 text-xs font-semibold text-[var(--gt-brand)] sm:block">ดูประวัติแข่งขัน →</button>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
       {!filtered.length && <p className="gt-card p-4 text-center text-sm text-[var(--gt-muted)]">ไม่พบนักกีฬาที่ค้นหา</p>}
 
       {pages > 1 && (
