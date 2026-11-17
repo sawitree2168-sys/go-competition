@@ -39,7 +39,7 @@ export default function StandingsPanel({ data, eventId }: { data: DivisionData; 
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--gt-muted)]">
-        {friendship ? "เฟรนชิพ: เหรียญตามจำนวนชนะ (บายนับเป็นชนะ)" : "เรียงตาม แต้ม → SOS (ผลรวมแต้มคู่แข่งที่ได้เล่นจริง) → SOSOS · ชนะเพราะคู่ไม่มา ไม่นับใน SOS · รอบบายนับเป็นคู่สมมติที่มีแต้มเท่าตัวเอง"} · นับเฉพาะโต๊ะที่กรอกผลแล้ว
+        {friendship ? "เฟรนชิพ: เหรียญตามจำนวนชนะ (บายนับเป็นชนะ)" : "เรียงตาม แต้ม → SOS (ผลรวมแต้มคู่แข่งที่ได้เล่นจริง) → SOSOS · ชนะเพราะคู่ไม่มา และบาย ไม่นับใน SOS"} · นับเฉพาะโต๊ะที่กรอกผลแล้ว
       </p>
       {groups.map(([pool, rows]) => (
         <section key={pool || "all"} className="space-y-2">

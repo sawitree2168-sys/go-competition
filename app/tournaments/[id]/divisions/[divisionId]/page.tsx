@@ -146,7 +146,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
           rows={inPool(standings, pool)} matches={inPool(matches, pool)} byes={inPool(byes, pool)} medals={medals} rounds={roundsOf(division)}
           photos={Object.fromEntries([...people].map(([k, v]) => [k, v.photo ?? null]))} />
       ))}
-      <p className="text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย (เสมอ ½) · คะแนนเท่ากันดู SOS แล้ว SOSOS (นับคู่ที่ได้เล่นจริง · รอบบายนับเป็นคู่สมมติที่มีแต้มเท่าตัวเอง) · นับเฉพาะผลที่ยืนยันแล้ว{multi ? " · อันดับแยกตามสาย" : ""}</p>
+      <p className="text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย (เสมอ ½) · คะแนนเท่ากันดู SOS แล้ว SOSOS (นับเฉพาะคู่ที่ได้เล่นจริง บายไม่นับใน SOS) · นับเฉพาะผลที่ยืนยันแล้ว{multi ? " · อันดับแยกตามสาย" : ""}</p>
     </div>
   ) : <Notice title="ยังไม่มีอันดับ" body="อันดับจะแสดงเมื่อผู้ตัดสินยืนยันผลรอบแรก" icon="info" />;
 

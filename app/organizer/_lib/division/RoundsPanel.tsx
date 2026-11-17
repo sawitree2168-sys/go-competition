@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { proposeSwissRound } from "@/lib/swiss-round.mjs";
+import { floatedAthletes, institutionKeys, proposeSwissRound, surnameKey } from "@/lib/swiss-round.mjs";
 import { absentInRound, pairingPlayers, recommendedRounds, resultLabel, roundState, roundsOf, roundsWarning, scoresFrom } from "@/lib/competition-day.mjs";
 import { ErrorNote, staffDb, useAction } from "../staff";
 import MatchCard, { type Seat } from "../../../tournaments/[id]/_ui/MatchCard";
@@ -11,8 +11,13 @@ import { isWithdrawn, nameOf, poolArg, poolKey, poolName, pts, schoolOf, type Di
 
 type Table = { board: number; black: string; white: string };
 const pairKey = (a: string, b: string) => [a, b].sort().join("|");
+// Same rules as the pairing engine: one club under different spellings, brothers and sisters by surname.
 const sameSchool = (a?: Reg, b?: Reg) => {
-  const x = schoolOf(a).trim().toLowerCase(), y = schoolOf(b).trim().toLowerCase();
+  const x = institutionKeys(schoolOf(a)), y = institutionKeys(schoolOf(b));
+  return x.some((k: string) => y.includes(k));
+};
+const sameSurname = (a?: Reg, b?: Reg) => {
+  const x = surnameKey(nameOf(a)), y = surnameKey(nameOf(b));
   return Boolean(x) && x === y;
 };
 
@@ -224,7 +229,7 @@ function Proposal({ round, pool, regs, byId, matches, byes, score, divisionId, r
   const action = useAction();
 
   const { proposal, players } = useMemo(() => {
-    const players = pairingPlayers(regs.map((r) => ({ athlete_id: r.athlete_id, rank: r.competition_rank_reference ?? r.gt_athletes?.current_rank })), matches, byes, `${divisionId}-${pool}-${round}-${seed}`);
+    const players = pairingPlayers(regs.map((r) => ({ athlete_id: r.athlete_id, rank: r.competition_rank_reference ?? r.gt_athletes?.current_rank, institution: schoolOf(r), full_name: nameOf(r) })), matches, byes, `${divisionId}-${pool}-${round}-${seed}`);
     return { players, proposal: proposeSwissRound({ players, previousMatches: matches, previousByes: byes }) };
   }, [regs, matches, byes, divisionId, pool, round, seed]);
 
@@ -245,6 +250,7 @@ function Proposal({ round, pool, regs, byId, matches, byes, score, divisionId, r
   const played = useMemo(() => new Set(matches.map((m) => pairKey(m.black_athlete_id, m.white_athlete_id))), [matches]);
   const hadBye = useMemo(() => new Set(byes.map((b) => b.athlete_id)), [byes]);
   const rematches = tables.filter((t) => played.has(pairKey(t.black, t.white))).map((t) => t.board);
+  const movedBefore = useMemo(() => floatedAthletes(matches, byes), [matches, byes]);
 
   const at = (tbl: Table[], b: string | null, s: Slot) => (s.side === "bye" ? b : tbl.find((t) => t.board === s.board)![s.side]);
   const put = (tbl: Table[], s: Slot, id: string): string | null | void => {
@@ -306,7 +312,16 @@ function Proposal({ round, pool, regs, byId, matches, byes, score, divisionId, r
       <ul className="space-y-2">
         {tables.map((t) => {
           const warnSchool = sameSchool(byId.get(t.black), byId.get(t.white));
+          const warnFamily = sameSurname(byId.get(t.black), byId.get(t.white));
+          const gap = Math.abs((score.get(t.black) ?? 0) - (score.get(t.white) ?? 0));
+          const again = gap ? [t.black, t.white].filter((id) => movedBefore.has(id)) : [];
           const isRematch = rematches.includes(t.board);
+          const notes = [
+            gap ? `ข้ามกลุ่มคะแนน (ต่างกัน ${pts(gap)} แต้ม)` : "",
+            again.length ? `${again.map((id) => nameOf(byId.get(id))).join(", ")} เคยถูกปัดข้ามกลุ่มแล้ว` : "",
+            warnSchool ? "สถาบันเดียวกัน" : "",
+            warnFamily ? "นามสกุลเดียวกัน (พี่น้อง?)" : "",
+          ].filter(Boolean);
           return (
             <li key={t.board} className={`rounded-xl border px-3 py-2 ${isRematch ? "border-[var(--gt-bad)]" : "border-[var(--gt-line)]"}`}>
               <div className="flex items-center gap-2">
@@ -316,8 +331,8 @@ function Proposal({ round, pool, regs, byId, matches, byes, score, divisionId, r
                 </div>
                 <button type="button" onClick={() => swapColours(t.board)} aria-label={`สลับสีโต๊ะ ${t.board}`} title="สลับสี" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[var(--gt-line)]">⇄</button>
               </div>
-              {(warnSchool || isRematch) && (
-                <p className={`mt-1 text-xs ${isRematch ? "text-[var(--gt-bad)]" : "text-[var(--gt-warn)]"}`}>{isRematch ? "เคยเจอกันแล้ว — ต้องสลับก่อนประกาศ" : "สถาบันเดียวกัน"}</p>
+              {(notes.length > 0 || isRematch) && (
+                <p className={`mt-1 text-xs ${isRematch ? "text-[var(--gt-bad)]" : "text-[var(--gt-warn)]"}`}>{isRematch ? "เคยเจอกันแล้ว — ต้องสลับก่อนประกาศ" : notes.join(" · ")}</p>
               )}
             </li>
           );
