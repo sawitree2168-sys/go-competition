@@ -1,0 +1,69 @@
+
+/* GO TOURNAMENT - tournament division redesign. Shared bright-blue visual identity. */
+.gt-division-hero { isolation:isolate; background:linear-gradient(112deg,#057be8 0%,#0857c9 45%,#0741a8 100%); border-bottom:3px solid #f4c665; box-shadow:0 7px 24px rgba(0,84,188,.15); }
+.gt-division-hero-image { opacity:.65; background-position:right 43%; filter:saturate(1.26) brightness(1.27); z-index:-2; }
+.gt-division-hero-shade { z-index:-1; background:linear-gradient(100deg,rgba(3,92,199,.98) 0%,rgba(3,92,199,.94) 32%,rgba(7,101,214,.66) 63%,rgba(1,67,179,.16) 100%); }
+.gt-division-hero::after { position:absolute; content:""; inset:auto 0 0; height:24px; pointer-events:none; background:linear-gradient(90deg,transparent,rgba(255,219,127,.5),transparent); opacity:.65; }
+.gt-division-eyebrow { display:inline-block; margin:3px 0 10px; padding:5px 13px; font-size:11px; letter-spacing:.07em; color:#ffe9ab; border:1px solid rgba(255,227,149,.65); border-radius:999px; background:rgba(8,43,124,.28); }
+.gt-division-title { color:#fff; text-shadow:0 3px 14px rgba(0,40,136,.3); }
+.gt-division-hero li { border-color:rgba(242,210,137,.65); background:rgba(2,65,153,.36); box-shadow:0 2px 12px rgba(2,31,101,.14); }
+.gt-division-main { isolation:isolate; padding-bottom:42px; }
+.gt-division-main::before { content:""; position:absolute; z-index:-1; pointer-events:none; inset:-22px -50vw -60px; background:radial-gradient(ellipse 48% 26% at 85% 0%,rgba(73,180,255,.25),transparent 85%), linear-gradient(180deg,rgba(226,243,255,.68),transparent 430px); }
+.gt-division-main > .mt-3.grid > a { border:1px solid #89bafd; background:linear-gradient(140deg,#fff,#e9f4ff); color:#0748ac; box-shadow:0 5px 12px rgba(29,104,209,.12); }
+.gt-division-main > .mt-3.grid > a:hover { border-color:#f0c363; box-shadow:0 6px 16px rgba(24,105,214,.2); }
+.gt-division-main [role=tablist] { border-color:#b4d5ff; background:linear-gradient(100deg,#fff,#e8f3ff); box-shadow:0 8px 24px rgba(15,98,206,.11); }
+.gt-division-main [role=tablist] [aria-selected=true] { background:linear-gradient(125deg,#1590ff,#0651ba); box-shadow:0 3px 10px rgba(9,92,200,.3); }
+.gt-division-main [role=tabpanel] { padding-top:6px; }
+.gt-division-athletes { position:relative; border:1px solid #b7d7ff; border-radius:22px; padding:18px; background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(230,243,255,.85)); box-shadow:0 12px 30px rgba(21,105,208,.1); }
+.gt-division-athletes-heading { position:relative; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px 15px; border-bottom:1px solid #cbdfff; }
+.gt-division-athletes-heading h2 { color:#0754be; }
+.gt-division-athletes-heading h2 > span:first-child { background:linear-gradient(#ffd978,#e6a51e); }
+.gt-division-athletes-title { display:flex; align-items:center; gap:8px; font-size:21px; font-weight:600; }
+.gt-division-view-toggle { display:flex; gap:4px; padding:4px; border:1px solid #a7caff; border-radius:12px; background:rgba(255,255,255,.86); box-shadow:0 4px 12px rgba(29,102,186,.12); }
+.gt-division-view-toggle button { min-height:42px; border-radius:9px; padding:0 13px; color:#0754b6; font-size:13px; font-weight:500; white-space:nowrap; }
+.gt-division-view-toggle button[aria-pressed=true] { color:#fff; background:linear-gradient(125deg,#168ffe,#0745bb); box-shadow:0 2px 8px rgba(11,102,202,.32); }
+.gt-division-athletes input[type=search] { border-radius:14px; }
+.gt-division-athletes .gt-athlete-card { overflow:hidden; border:1px solid #b6d5fb; border-radius:16px; background:linear-gradient(155deg,#fff,#f7fbff); box-shadow:0 7px 17px rgba(22,96,190,.12); transition:transform .16s,border-color .16s; }
+.gt-division-athletes .gt-athlete-card:hover { transform:translateY(-2px); border-color:#eec25e; }
+.gt-division-athletes .gt-athlete-card > div:first-child { background:linear-gradient(135deg,#cee8ff,#ebf5ff 68%,#fff4d8); }
+.gt-division-athletes .gt-athlete-table { border:1px solid #b6d5fb; background:rgba(255,255,255,.96); }
+.gt-division-athletes .gt-athlete-table > div:first-child { color:#fff; background:linear-gradient(115deg,#0d75e5,#0753be); }
+.gt-division-athletes .gt-athlete-table li:hover { background:#edf6ff; }
+.gt[data-gt-theme=dark] .gt-division-main::before { background:radial-gradient(ellipse 50% 28% at 84% 0%,rgba(19,89,200,.25),transparent 85%),linear-gradient(180deg,rgba(4,35,82,.4),transparent 430px); }
+.gt[data-gt-theme=dark] .gt-division-main > .mt-3.grid > a,
+.gt[data-gt-theme=dark] .gt-division-main [role=tablist] { background:linear-gradient(120deg,#103b79,#0b2757); color:#fff; border-color:#3265a9; }
+.gt[data-gt-theme=dark] .gt-division-athletes { background:linear-gradient(155deg,rgba(9,42,91,.96),rgba(4,27,63,.98)); border-color:#315da0; box-shadow:0 12px 34px rgba(0,11,38,.4); }
+.gt[data-gt-theme=dark] .gt-division-athletes-heading { border-color:#2c558b; }
+.gt[data-gt-theme=dark] .gt-division-athletes-heading h2 { color:#f2cb71; }
+.gt[data-gt-theme=dark] .gt-division-view-toggle { background:#0c2d62; border-color:#3562a1; }
+.gt[data-gt-theme=dark] .gt-division-view-toggle button { color:#d8e9ff; }
+.gt[data-gt-theme=dark] .gt-division-view-toggle button[aria-pressed=true] { color:#fff; }
+.gt[data-gt-theme=dark] .gt-division-athletes .gt-athlete-card { background:linear-gradient(155deg,#11376f,#091e45); border-color:#315da0; }
+.gt[data-gt-theme=dark] .gt-division-athletes .gt-athlete-card > div:first-child { background:linear-gradient(140deg,#174d92,#0e2d60); }
+.gt[data-gt-theme=dark] .gt-division-athletes .gt-athlete-table { background:#0b2757; border-color:#315da0; }
+.gt[data-gt-theme=dark] .gt-division-athletes .gt-athlete-table li:hover { background:#173b76; }
+@media (prefers-color-scheme:dark) {
+.gt:not([data-gt-theme=light]) .gt-division-main::before { background:linear-gradient(180deg,rgba(4,35,82,.4),transparent 430px); }
+.gt:not([data-gt-theme=light]) .gt-division-main > .mt-3.grid > a,
+.gt:not([data-gt-theme=light]) .gt-division-main [role=tablist] { background:linear-gradient(120deg,#103b79,#0b2757); color:#fff; border-color:#3265a9; }
+.gt:not([data-gt-theme=light]) .gt-division-athletes { background:linear-gradient(155deg,rgba(9,42,91,.96),rgba(4,27,63,.98)); border-color:#315da0; }
+.gt:not([data-gt-theme=light]) .gt-division-athletes-heading { border-color:#2c558b; }
+.gt:not([data-gt-theme=light]) .gt-division-athletes-heading h2 { color:#f2cb71; }
+.gt:not([data-gt-theme=light]) .gt-division-view-toggle { background:#0c2d62; border-color:#3562a1; }
+.gt:not([data-gt-theme=light]) .gt-division-view-toggle button { color:#d8e9ff; }
+.gt:not([data-gt-theme=light]) .gt-division-view-toggle button[aria-pressed=true] { color:#fff; }
+.gt:not([data-gt-theme=light]) .gt-division-athletes .gt-athlete-card { background:linear-gradient(155deg,#11376f,#091e45); border-color:#315da0; }
+.gt:not([data-gt-theme=light]) .gt-division-athletes .gt-athlete-card > div:first-child { background:linear-gradient(140deg,#174d92,#0e2d60); }
+.gt:not([data-gt-theme=light]) .gt-division-athletes .gt-athlete-table { background:#0b2757; border-color:#315da0; }
+.gt:not([data-gt-theme=light]) .gt-division-athletes .gt-athlete-table li:hover { background:#173b76; }
+}
+@media (max-width:767px){
+ .gt-division-hero-image { opacity:.42; background-position:70% center; }
+ .gt-division-hero-shade { background:linear-gradient(90deg,rgba(5,93,207,.98),rgba(5,93,207,.78)); }
+ .gt-division-eyebrow { font-size:9px; letter-spacing:0; padding:5px 9px; }
+ .gt-division-athletes { padding:10px; border-radius:16px; }
+ .gt-division-athletes-heading { padding:9px 4px 13px; }
+ .gt-division-view-toggle { width:100%; }
+ .gt-division-view-toggle button { flex:1; }
+ .gt-division-athletes .gt-athlete-card:hover { transform:none; }
+}
