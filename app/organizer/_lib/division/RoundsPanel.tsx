@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { floatedAthletes, institutionKeys, proposeSwissRound, surnameKey } from "@/lib/swiss-round.mjs";
-import { absentInRound, pairingPlayers, recommendedRounds, resultLabel, roundState, roundsOf, roundsWarning, scoresFrom } from "@/lib/competition-day.mjs";
+import { noShowResult, pairingPlayers, waitingList, recommendedRounds, resultLabel, roundState, roundsOf, roundsWarning, scoresFrom } from "@/lib/competition-day.mjs";
 import { ErrorNote, staffDb, useAction } from "../staff";
 import MatchCard, { type Seat } from "../../../tournaments/[id]/_ui/MatchCard";
 import ResultControls from "../../../tournaments/[id]/_ui/ResultControls";
@@ -78,8 +78,9 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
   const seats = roundMatches.length * 2;
   const checkedIn = roundMatches.reduce((n, m) => n + (m.black_checkin_at ? 1 : 0) + (m.white_checkin_at ? 1 : 0), 0);
   const printHref = `/organizer/${eventId}/${data.division.id}/print?round=${shown}${pool ? `&pool=${pool}` : ""}`;
-  // Players who did not come to the last round and are still in: offer to remove them before pairing the next one.
-  const noShows = state.nextRound && state.lastRound ? absentInRound(matches, state.lastRound).filter((id: string) => regs.some((r) => r.athlete_id === id)) : [];
+  // รายชื่อพักรอ: not checked in at an open table, or absent in the last round and not yet decided.
+  const waiting = (state.lastRound ? waitingList(everyone, matches, state.lastRound) : []) as Waiting[];
+  const undecided = waiting.filter((w: { kind: string }) => w.kind === "absent");
 
   return (
     <div className="space-y-4">
@@ -92,22 +93,14 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
 
       <RoundsSetting divisionId={data.division.id} saved={data.division.total_rounds} rounds={totalRounds} players={regs.length} played={state.lastRound} reload={reload} />
 
-      {noShows.length > 0 && (
-        <section className="gt-card space-y-2 border-[var(--gt-warn)] p-4">
-          <h3 className="font-bold">ไม่มาแข่งรอบที่ {state.lastRound}</h3>
-          <p className="text-sm text-[var(--gt-muted)]">ถ้ายังไม่มา ให้ตัดชื่อออกก่อนออกคู่รอบถัดไป แต้มที่ได้ไปแล้วยังเก็บไว้</p>
-          <ul className="space-y-2">
-            {noShows.map((id: string) => (
-              <li key={id} className="flex items-center gap-3">
-                <span className="min-w-0 flex-1"><strong>{nameOf(byId.get(id))}</strong> <span className="text-sm text-[var(--gt-muted)]">{schoolOf(byId.get(id))}</span></span>
-                <button type="button" disabled={action.busy} onClick={() => withdraw(id, true)} className="min-h-11 rounded-xl border border-[var(--gt-bad)] px-3 text-sm font-semibold text-[var(--gt-bad)]">ตัดชื่อ</button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <WaitingList entries={waiting} lastRound={state.lastRound} byId={byId} divisionId={data.division.id} reload={reload} />
 
-      {state.nextRound && <Proposal key={`${state.nextRound}-${matches.length}-${regs.length}`} round={state.nextRound} pool={pool} regs={regs} byId={byId} matches={matches} byes={byes} score={score} divisionId={data.division.id} reload={async () => { setOpenRound(null); await reload(); }} />}
+      {state.nextRound && undecided.length > 0 && (
+        <p role="status" className="gt-card border-[var(--gt-warn)] p-4 text-sm font-semibold text-[var(--gt-warn)]">
+          ตรวจรายชื่อพักรอให้ครบก่อน ({undecided.length} คน) แล้วจึงจับคู่รอบที่ {state.nextRound}
+        </p>
+      )}
+      {state.nextRound && undecided.length === 0 && <Proposal key={`${state.nextRound}-${matches.length}-${regs.length}`} round={state.nextRound} pool={pool} regs={regs} byId={byId} matches={matches} byes={byes} score={score} divisionId={data.division.id} reload={async () => { setOpenRound(null); await reload(); }} />}
 
       {state.lastRound > 0 && (
         <section className="space-y-3">
@@ -126,7 +119,7 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
             <p className="flex flex-wrap gap-x-4 text-sm">
               <span>เช็คอินแล้ว <strong className="gt-num text-[var(--gt-ok)]">{checkedIn}</strong></span>
               <span>ยังไม่เช็คอิน <strong className={`gt-num ${checkedIn < seats ? "text-[var(--gt-warn)]" : ""}`}>{seats - checkedIn}</strong></span>
-              <span className="text-[var(--gt-muted)]">มาสายเกิน 15 นาที ให้ลงผล “ชนะ เพราะคู่ไม่มา”</span>
+              <span className="text-[var(--gt-muted)]">ยังไม่มาเกิน 15 นาที กด “คู่ชนะบาย” ในรายชื่อพักรอ (ไม่ต้องจับคู่ใหม่)</span>
             </p>
           )}
           {!latest && <p className="text-sm text-[var(--gt-muted)]">รอบเก่า: ดูได้อย่างเดียว (แก้ผลได้เฉพาะรอบล่าสุดก่อนออกคู่รอบถัดไป)</p>}
@@ -388,6 +381,73 @@ function RoundsSetting({ divisionId, saved, rounds, players, played, reload }: {
       {need > 0 && <p className="text-[var(--gt-muted)]">ผู้เล่น {players} คน แนะนำ {need} รอบ (ให้เหลือผู้ชนะรวดคนเดียว)</p>}
       {warn && <p role="alert" className="font-semibold text-[var(--gt-warn)]">⚠ {warn.text}</p>}
       {action.error && <p role="alert" className="text-[var(--gt-bad)]">{action.error}</p>}
+    </section>
+  );
+}
+
+type Waiting = { kind: "not_here" | "absent"; athlete_id: string; round: number; board: number | null; match_id: string | null; side: "black" | "white" | null; opponentHere: boolean };
+
+/**
+ * รายชื่อพักรอ (ครูเล็ก, 17 Nov 2026). During a round: who has not checked in yet (มาแล้ว / คู่ชนะบาย after
+ * 15 minutes — no new pairing). After it: who did not come; before pairing the next round the organiser
+ * decides each one: here for the next round, or withdrawn ("ไม่มาแข่งแน่"). Points already earned stay.
+ */
+function WaitingList({ entries, lastRound, byId, divisionId, reload }: {
+  entries: Waiting[]; lastRound: number; byId: Map<string, Reg>; divisionId: string; reload: () => Promise<void>;
+}) {
+  const action = useAction();
+  if (!entries.length) return null;
+  const run = async (fn: () => PromiseLike<{ data: unknown; error: { message: string } | null }>) => { if (await action.run(fn)) await reload(); };
+  const notHere = entries.filter((w) => w.kind === "not_here");
+  const absent = entries.filter((w) => w.kind === "absent");
+  const who = (w: Waiting) => (
+    <span className="min-w-0 flex-1">
+      <strong>{nameOf(byId.get(w.athlete_id))}</strong>
+      <span className="block text-xs text-[var(--gt-muted)]">{schoolOf(byId.get(w.athlete_id)) || "—"}{w.board ? ` · โต๊ะ ${w.board}` : ""}</span>
+    </span>
+  );
+  const btn = "min-h-11 rounded-xl border px-3 text-sm font-semibold disabled:opacity-50";
+  return (
+    <section className="gt-card space-y-3 border-[var(--gt-warn)] p-4">
+      <h3 className="font-bold">รายชื่อพักรอ</h3>
+      {notHere.length > 0 && (
+        <details open={notHere.length <= 10}>
+          <summary className="cursor-pointer text-sm font-semibold">ยังไม่มา รอบที่ {lastRound} · {notHere.length} คน</summary>
+          <p className="mt-1 text-xs text-[var(--gt-muted)]">มาแล้วกด “มาแล้ว” · ยังไม่มาเกิน 15 นาที กด “คู่ชนะบาย” (ไม่ต้องจับคู่ใหม่)</p>
+          <ul className="mt-2 space-y-2">
+            {notHere.map((w) => (
+              <li key={`${w.match_id}-${w.side}`} className="flex flex-wrap items-center gap-2">
+                {who(w)}
+                <button type="button" disabled={action.busy} className={`${btn} border-[var(--gt-ok)] text-[var(--gt-ok)]`}
+                  onClick={() => run(() => staffDb()!.rpc("gt_staff_checkin_v1", { p_match: w.match_id, p_side: w.side, p_present: true }))}>มาแล้ว</button>
+                <button type="button" disabled={action.busy} className={`${btn} border-[var(--gt-warn)] text-[var(--gt-warn)]`}
+                  onClick={() => {
+                    const text = w.opponentHere ? `${nameOf(byId.get(w.athlete_id))} ไม่มาเกิน 15 นาที ให้คู่แข่งชนะบาย?` : "ไม่มาทั้งคู่? (ทั้งสองคนแพ้)";
+                    if (window.confirm(text)) run(() => staffDb()!.rpc("gt_staff_record_result_v1", { p_match: w.match_id, p_result: noShowResult(w.side!, w.opponentHere), p_margin: null }));
+                  }}>{w.opponentHere ? "คู่ชนะบาย" : "ไม่มาทั้งคู่"}</button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {absent.length > 0 && (
+        <div>
+          <p className="text-sm font-semibold">ไม่มาแข่งรอบที่ {lastRound} · ตรวจก่อนจับคู่รอบที่ {lastRound + 1}</p>
+          <p className="text-xs text-[var(--gt-muted)]">มาแล้วกด “มาแข่งรอบ {lastRound + 1}” · ตรวจแล้วไม่มาแข่งแน่ กด “ตัดชื่อ” (แต้มที่ได้ไปแล้วยังเก็บไว้)</p>
+          <ul className="mt-2 space-y-2">
+            {absent.map((w) => (
+              <li key={w.athlete_id} className="flex flex-wrap items-center gap-2">
+                {who(w)}
+                <button type="button" disabled={action.busy} className={`${btn} border-[var(--gt-ok)] text-[var(--gt-ok)]`}
+                  onClick={() => run(() => staffDb()!.rpc("gt_staff_confirm_present_v1", { p_division: divisionId, p_athlete: w.athlete_id, p_round: lastRound + 1 }))}>มาแข่งรอบ {lastRound + 1}</button>
+                <button type="button" disabled={action.busy} className={`${btn} border-[var(--gt-bad)] text-[var(--gt-bad)]`}
+                  onClick={() => { if (window.confirm(`ตัดชื่อ ${nameOf(byId.get(w.athlete_id))}? (ไม่มาแข่งแน่)`)) run(() => staffDb()!.rpc("gt_staff_set_withdrawn_v1", { p_division: divisionId, p_athlete: w.athlete_id, p_withdrawn: true })); }}>ตัดชื่อ</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <ErrorNote text={action.error} />
     </section>
   );
 }
