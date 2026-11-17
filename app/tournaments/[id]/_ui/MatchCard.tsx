@@ -13,12 +13,13 @@ export type Seat = {
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 /** Default avatar (approved 16 Nov 2026) for athletes without a photo. */
+import AthleteAvatar from "@/components/AthleteAvatar";
 export const DEFAULT_AVATAR = "/avatars/default-athlete.png";
 
 export function Avatar({ seat, size = "md" }: { seat: Seat; size?: "md" | "lg" }) {
   const dim = size === "lg" ? "h-20 w-20 sm:h-24 sm:w-24" : "h-14 w-14";
   const style = seat.photo ? "rounded-full border-2 border-[var(--gt-surface)] object-cover shadow" : "object-contain";
-  return <img src={seat.photo || DEFAULT_AVATAR} alt="" loading="lazy" className={`${dim} shrink-0 ${style}`} />;
+  return <AthleteAvatar src={seat.photo} name={seat.name ?? "นักกีฬา"} className={`${dim} ${style}`} />;
 }
 
 function Side({ seat, colour, extra }: { seat: Seat; colour: "black" | "white"; extra?: React.ReactNode }) {
