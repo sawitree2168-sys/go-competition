@@ -1,13 +1,14 @@
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
 import AuthLink from "./AuthLink";
+import MenuIcon from "@/components/MenuIcon";
 
 const NAV = [
-  { href: "/", label: "หน้าหลัก" },
-  { href: "/tournaments", label: "การแข่งขัน" },
-  { href: "/athletes", label: "นักกีฬา" },
-  { href: "/go-fan", label: "GO FAN" },
-];
+  { href: "/", label: "หน้าหลัก", icon: "home" },
+  { href: "/tournaments", label: "การแข่งขัน", icon: "trophy" },
+  { href: "/athletes", label: "นักกีฬา", icon: "athlete" },
+  { href: "/go-fan", label: "GO FAN", icon: "fan" },
+] as const;
 
 /** Blue site bar of the newer pages (competition list, athlete profile). */
 export default function SiteBar({ current }: { current?: string }) {
@@ -25,7 +26,7 @@ export default function SiteBar({ current }: { current?: string }) {
         <nav aria-label="เมนูหลัก" className="ml-auto hidden items-center gap-1 lg:flex">
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} aria-current={n.href === current ? "page" : undefined}
-              className={`rounded-lg px-4 py-2 text-[15px] font-semibold ${n.href === current ? "bg-[#1f6fe0]" : "hover:bg-white/10"}`}>{n.label}</Link>
+              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-[15px] font-semibold ${n.href === current ? "bg-[#1f6fe0]" : "hover:bg-white/10"}`}><MenuIcon name={n.icon} className="h-4 w-4" />{n.label}</Link>
           ))}
         </nav>
         <div className="gt-sitebar-actions ml-auto flex shrink-0 items-center gap-1.5 lg:ml-2">
