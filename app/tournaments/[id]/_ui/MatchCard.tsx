@@ -1,3 +1,4 @@
+import AthleteAvatar from "@/components/AthleteAvatar";
 /* eslint-disable @next/next/no-img-element -- athlete photos come from arbitrary storage URLs; plain <img> keeps the card server-safe */
 /**
  * One table of a round, styled like the approved "จับคู่ & ผล" mockup:
@@ -13,7 +14,6 @@ export type Seat = {
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 /** Default avatar (approved 16 Nov 2026) for athletes without a photo. */
-import AthleteAvatar from "@/components/AthleteAvatar";
 export const DEFAULT_AVATAR = "/avatars/default-athlete.png";
 
 export function Avatar({ seat, size = "md" }: { seat: Seat; size?: "md" | "lg" }) {
