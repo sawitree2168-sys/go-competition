@@ -9,6 +9,7 @@ import { mapEntrantsToDivisions } from "@/lib/competition-day.mjs";
 import { OrganizerQueue } from "@/app/tournaments/[id]/_ui/RegisterPanel";
 import PaymentSettings from "./PaymentSettings";
 import { ChangePolicy, ChangeRequests } from "./ChangeRequests";
+import IdentityMatches from "./IdentityMatches";
 
 type Division = { id: string; name: string };
 type Entrant = { source_row: number; full_name: string; institution: string; division_name: string };
@@ -321,6 +322,7 @@ function EventConsole({ id }: { id: string }) {
         </div>
         <RegistrationSettings key={`${event.registration_mode}|${event.registration_url}`} id={id} mode={event.registration_mode ?? "web"} url={event.registration_url} onSaved={load} />
         {(event.registration_mode ?? "web") === "web" && <><PaymentSettings id={id} /><OrganizerQueue tournamentId={id} bare /><ChangePolicy id={id} /><ChangeRequests id={id} /></>}
+        <IdentityMatches id={id} />
       </section>
 
       <section className="gt-card space-y-3 p-4">

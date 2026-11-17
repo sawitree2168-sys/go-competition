@@ -11,6 +11,8 @@ export const metadata: Metadata = { title: "ผลการแข่งขัน
 
 const medal = (p: number | null) => (p === 1 ? "🥇" : p === 2 ? "🥈" : p === 3 ? "🥉" : null);
 const isUpcoming = (p: ResultPerson) => !!p.upcoming?.length;
+/** Name looks like an upcoming entrant (same surname, spelt differently) but nobody has confirmed it is the same person. */
+const isPending = (p: ResultPerson) => !isUpcoming(p) && !!p.pending?.length;
 
 // ผลการแข่งขัน: recorded results of past events, by event and division. Every player when the whole standings sheet is on
 // file; players who are also entered in an upcoming event get a ★ and a bold name (ครูเล็ก, 17 Nov 2026).
@@ -39,7 +41,8 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         <div className="gt-card mt-4 flex flex-wrap items-center justify-between gap-3 p-4">
           <p className="flex items-center gap-2 text-sm">
             <Star />
-            <span><b>ชื่อตัวหนา + ดาว</b> = สมัครแข่ง <b>{upcomingLabel}</b> ด้วย</span>
+            <span><b>ชื่อตัวหนา + ดาว</b> = สมัครแข่ง <b>{upcomingLabel}</b> ด้วย
+              <span className="block text-[var(--gt-muted)]"><Pending /> รอยืนยันตัวตน = นามสกุลตรงกับผู้สมัครแต่ชื่อสะกดต่างกัน รอผู้สมัครหรือผู้จัดยืนยัน</span></span>
           </p>
           <div className="gt-tabs flex gap-1 rounded-full p-1 text-sm" aria-label="เลือกการแสดงผล">
             <Link href={resultsHref(false)} aria-current={onlyUpcoming ? undefined : "page"} className="inline-flex min-h-10 items-center rounded-full px-4 font-semibold">ทุกคน</Link>
@@ -97,6 +100,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
                                       {up && <Star title={`สมัคร ${(p.upcoming ?? []).join(", ")}`} />}
                                       {p.athlete_id ? <Link href={`/athletes/${p.athlete_id}`} className="text-[var(--gt-cta)] underline">{p.full_name}</Link> : <span>{p.full_name}</span>}
                                     </span>
+                                    {isPending(p) && <span className="mt-0.5 block"><Pending title={`ชื่อคล้ายผู้สมัคร ${(p.pending ?? []).join(", ")} รอยืนยันว่าเป็นคนเดียวกันหรือไม่`} /></span>}
                                     {p.institution && <span className={`block text-xs text-[var(--gt-muted)] ${up ? "pl-6" : ""}`}>{p.institution}</span>}
                                   </td>
                                   <td className="gt-num whitespace-nowrap px-3 py-2 text-right align-top">{p.wins}–{p.losses}{p.byes ? <span className="block text-xs text-[var(--gt-muted)]">บาย {p.byes}</span> : null}</td>
@@ -118,6 +122,14 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         <p className="gt-card mt-5 p-6 text-center text-[var(--gt-muted)]">ยังไม่มีผลการแข่งขันที่บันทึกไว้</p>
       )}
     </PublicPage>
+  );
+}
+
+function Pending({ title }: { title?: string }) {
+  return (
+    <span title={title} className="inline-flex items-center rounded-full border border-dashed border-[var(--gt-chip-near-line)] px-2 py-px text-xs font-semibold text-[var(--gt-chip-near-ink)]">
+      ? รอยืนยันตัวตน
+    </span>
   );
 }
 

@@ -173,6 +173,7 @@ function AppCard({ app, today, onAsk, onChanged }: { app: App; today: string; on
             {r.decision_note && <span className="text-[var(--gt-muted)]"> · {r.decision_note}</span>}
           </p>
         ))}
+        <IdentityCheck app={app} />
         {active && (
           <details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)} className="rounded-xl bg-[var(--gt-surface-2)] px-3 py-2 text-sm">
             <summary className="cursor-pointer font-semibold">เงื่อนไขถอนตัว / เปลี่ยนคน / เปลี่ยนรุ่น ของงานนี้</summary>
@@ -187,6 +188,60 @@ function AppCard({ app, today, onAsk, onChanged }: { app: App; today: string; on
         <span className="text-sm text-[var(--gt-muted)]">ค่าสมัคร <b className="gt-num text-lg text-[var(--gt-ink)]">{Number(app.fee ?? 0).toLocaleString("th-TH")} ฿</b></span>
       </div>
     </section>
+  );
+}
+
+type IdMatch = { event_title: string; division: string; player_ref: string; result_name: string; institution: string | null;
+  decision: "same" | "different" | null; decided_by: "organizer" | "applicant" | null };
+
+/** ยืนยันตัวตน: a past result under a name spelt slightly differently (same surname). Only the family knows whether it is
+ *  them, a sibling or a twin, so it is starred on the results page only after they (or the organiser) say so. */
+function IdentityCheck({ app }: { app: App }) {
+  const [list, setList] = useState<IdMatch[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const who = useMemo(() => (app.access.kind === "code" ? { reference: app.access.reference, phone: app.access.phone } : { application_id: app.id }), [app]);
+  const load = useCallback(async () => {
+    const db = staffDb();
+    if (!db) return;
+    const { data } = await db.rpc("gt_application_identity_matches_v1", { p: who });
+    setList(data?.ok ? (data.matches as IdMatch[]) : []);
+  }, [who]);
+  useEffect(() => { queueMicrotask(load); }, [load]);
+  if (!list.length) return null;
+  const groups = [...list.reduce((m, x) => m.set(x.result_name, [...(m.get(x.result_name) ?? []), x]), new Map<string, IdMatch[]>())];
+  const answer = async (m: IdMatch, decision: "same" | "different") => {
+    setBusy(true); setErr("");
+    const { data } = await staffDb()!.rpc("gt_application_set_identity_match_v1", { p: { ...who, event_title: m.event_title, player_ref: m.player_ref, decision } });
+    setBusy(false);
+    if (!data?.ok) setErr(data?.error === "DECIDED" ? "ผู้จัดยืนยันรายการนี้แล้ว หากไม่ถูกต้องกรุณาติดต่อผู้จัด" : "บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง");
+    await load();
+  };
+  return (
+    <div className="space-y-2 rounded-xl border border-[var(--gt-chip-near-line)] bg-[var(--gt-chip-near-bg)] p-3 text-sm">
+      <p className="font-semibold">ผลการแข่งขันนี้เป็นของ {app.full_name} หรือไม่?</p>
+      <p className="text-[var(--gt-muted)]">พบชื่อที่นามสกุลเดียวกันแต่สะกดต่างกันเล็กน้อย อาจเขียนผิด หรือเป็นพี่น้อง/ฝาแฝด กรุณาตอบเพื่อให้ผลงานแสดงถูกคน</p>
+      {err && <p role="alert" className="text-[var(--gt-bad)]">{err}</p>}
+      {groups.map(([name, rows]) => {
+        const d = rows[0];
+        return (
+          <div key={name} className="rounded-lg bg-[var(--gt-surface)] p-3">
+            <p className="font-semibold">{name}</p>
+            <ul className="text-xs text-[var(--gt-muted)]">{rows.map((r) => <li key={r.event_title + r.player_ref}>{r.event_title} · {divisionLabel(r.division)}{r.institution ? ` · ${r.institution}` : ""}</li>)}</ul>
+            {d.decided_by === "organizer" ? (
+              <p className="mt-2 font-semibold">{d.decision === "same" ? "✓ ผู้จัดยืนยันแล้วว่าเป็นคนเดียวกัน" : "✕ ผู้จัดยืนยันแล้วว่าเป็นคนละคน"}</p>
+            ) : (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button type="button" disabled={busy} onClick={() => answer(d, "same")} aria-pressed={d.decision === "same"}
+                  className={`min-h-11 rounded-xl border px-4 font-semibold disabled:opacity-60 ${d.decision === "same" ? "border-[var(--gt-ok)] bg-[var(--gt-win-bg)] text-[var(--gt-win-ink)]" : "border-[var(--gt-line)]"}`}>ใช่ คนนี้คือฉัน / ลูกของฉัน</button>
+                <button type="button" disabled={busy} onClick={() => answer(d, "different")} aria-pressed={d.decision === "different"}
+                  className={`min-h-11 rounded-xl border px-4 font-semibold disabled:opacity-60 ${d.decision === "different" ? "border-[var(--gt-ink)] bg-[var(--gt-surface-2)]" : "border-[var(--gt-line)]"}`}>ไม่ใช่ คนละคน</button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
