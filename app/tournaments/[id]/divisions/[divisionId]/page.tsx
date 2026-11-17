@@ -73,9 +73,10 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
   // นักกีฬา tab: imported registrations (standings rows: id, rank, photo) once the event is set up; the sign-up sheet before that.
   const norm = (t: string) => t.replace(/\s+/g, " ").trim().toLowerCase();
   const paymentByName = new Map(entrants.filter((e) => divisionKey(e.division_name) === divisionKey(division.name)).map((e) => [norm(e.full_name), e.payment_status]));
+  const institutionByName = new Map(entrants.filter((e) => divisionKey(e.division_name) === divisionKey(division.name)).map((e) => [norm(e.full_name), e.institution]));
   const athleteCards: AthleteCard[] = standings.length
     ? [...standings].filter((s) => s.athlete_id).sort((x, y) => (x.display_name ?? "").localeCompare(y.display_name ?? "", "th")).map((s) => ({
-        key: s.athlete_id!, id: s.athlete_id, name: s.display_name ?? "ผู้เข้าแข่งขัน", institution: s.institution ?? "", rank: s.current_rank,
+        key: s.athlete_id!, id: s.athlete_id, name: s.display_name ?? "ผู้เข้าแข่งขัน", institution: institutionByName.get(norm(s.display_name ?? "")) ?? s.institution ?? "", rank: s.current_rank,
         photo: people.get(s.athlete_id!)?.photo ?? null, payment: paymentByName.get(norm(s.display_name ?? "")) ?? null,
       }))
     : roster.map((r) => ({ key: String(r.key), id: null, name: r.name, institution: r.institution, rank: null, photo: null, payment: r.payment }));

@@ -141,7 +141,8 @@ function History({ athlete, historicalResults, matches, byes, people, onClose }:
           <img src={athlete.photo || DEFAULT_AVATAR} alt="" className={`h-16 w-16 ${athlete.photo ? "rounded-full object-cover" : "object-contain"}`} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-lg font-bold">{athlete.name}</p>
-            <p className="truncate text-sm text-[var(--gt-muted)]">{athlete.institution}</p>
+            <p className="text-xs text-[var(--gt-muted)]">สถาบันที่สมัครรายการปัจจุบัน</p>
+            <p className="text-sm text-[var(--gt-muted)]">{athlete.institution || "ไม่ระบุสถาบัน"}</p>
           </div>
           <button type="button" onClick={onClose} aria-label="ปิด" className="grid h-11 w-11 place-items-center rounded-full border border-[var(--gt-line)]">✕</button>
         </div>
@@ -152,6 +153,7 @@ function History({ athlete, historicalResults, matches, byes, people, onClose }:
             <li key={`${event.title}-${division}`} className="rounded-xl border border-[var(--gt-line)] p-3">
               <p className="text-xs text-[var(--gt-muted)]">{thaiDate(event.date) ?? "ไม่ระบุวันที่"}</p>
               <p className="mt-1 font-bold">{event.title}</p>
+              <p className="mt-1 whitespace-pre-wrap break-words text-sm text-[var(--gt-muted)]">สถาบันในรายการนี้: {person.institution?.trim() || "ไม่ระบุในข้อมูลการแข่งขัน"}</p>
               <p className="text-sm text-[var(--gt-muted)]">{division}{person.placing != null ? ` · อันดับ ${person.placing}` : ""}</p>
               <div className="mt-2 flex flex-wrap gap-2 text-sm font-bold">
                 <span className="rounded-lg bg-[var(--gt-win-bg)] px-3 py-1 text-[var(--gt-win-ink)]">ชนะ {person.wins}</span>
