@@ -12,7 +12,7 @@ const NAV = [
 /** Blue site bar of the newer pages (competition list, athlete profile). */
 export default function SiteBar({ current }: { current?: string }) {
   return (
-    <header className="gt-sitebar bg-[linear-gradient(180deg,#0d3f8f,#0a2f6e)] text-white shadow-md">
+    <header className="gt-sitebar bg-[linear-gradient(105deg,#0785ee_0%,#0866d9_48%,#054ebd_100%)] text-white shadow-md">
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-3 sm:gap-3 sm:px-4">
         <Link href="/" className="gt-sitebar-logo flex items-center gap-3" aria-label="GO TOURNAMENT หน้าหลัก">
           <span aria-hidden="true" className="gt-sitebar-stones flex">
