@@ -174,7 +174,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
         <SiteBar current="/tournaments" />
         {/* Banner (design 16 Nov 2026): always dark, picture from the site owner on the right. */}
         <section className="gt-division-hero relative overflow-hidden text-white">
-          <div aria-hidden="true" className="gt-division-hero-image absolute inset-0 bg-[url(/pairs-hero.webp)] bg-cover bg-[position:right_center]" />
+          <div aria-hidden="true" className="gt-division-hero-image absolute inset-0 bg-[url(/division-go-blue.svg)] bg-cover bg-[position:right_center]" />
           <div aria-hidden="true" className="gt-division-hero-shade absolute inset-0" />
           <div className="relative mx-auto max-w-6xl px-4 py-5 sm:py-7">
             <Link href={`/tournaments/${id}`} className="inline-flex min-h-9 items-center gap-1 text-sm text-white/80 hover:text-white hover:underline">‹ รายละเอียดงาน</Link>
