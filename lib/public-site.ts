@@ -6,8 +6,11 @@ import { thaiDate } from "@/lib/division-display";
 export type Overview = { tournaments: number; athletes: number; results: number };
 export type RankRow = { pos: number; go_id: string; full_name: string; rank: string | null; athlete_id: string | null; photo: string | null; wins: number; losses: number; events: number };
 export type Rankings = { year: number; rows: RankRow[] };
-export type ResultPerson = { placing: number | null; go_id: string; full_name: string; athlete_id: string | null; wins: number; losses: number; byes: number };
-export type ResultEvent = { title: string; date: string | null; divisions: { division: string; people: ResultPerson[] }[] };
+/** upcoming = titles of upcoming events this player is also entered in (matched by name), else null. */
+export type ResultPerson = { placing: number | null; go_id: string; full_name: string; institution?: string | null; athlete_id: string | null;
+  wins: number; losses: number; byes: number; points?: number | null; sos?: number | null; upcoming?: string[] | null };
+/** complete = every player of the event is listed (a whole standings sheet), not only the linked ones. */
+export type ResultEvent = { title: string; date: string | null; complete?: boolean; divisions: { division: string; people: ResultPerson[] }[] };
 export type NewsItem = { id: string; kind: "announcement" | "registration" | "results"; title: string; body: string | null; date: string | null; href: string };
 
 /** Placeholder picture for athletes without a photo. */
