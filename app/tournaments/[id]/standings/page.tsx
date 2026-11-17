@@ -68,7 +68,7 @@ export default async function Standings({ params }: { params: Promise<{ id: stri
             <section className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
               <h2 className="text-sm font-extrabold text-amber-900">วิธีจัดอันดับ</h2>
               <p className="mt-1 text-sm text-amber-800">
-                คะแนน = จำนวนเกมที่ชนะ + บาย (บายได้ 1 คะแนน, เสมอได้ ½) ถ้าคะแนนเท่ากัน ตัดสินด้วย SOS (ผลรวมคะแนนของคู่แข่งที่ได้เล่นจริง) แล้วจึง SOSOS
+                คะแนน = จำนวนเกมที่ชนะ + บาย (บายได้ 1 คะแนน, เสมอได้ ½) ถ้าคะแนนเท่ากัน ตัดสินด้วย SOS (ผลรวมคะแนนของคู่แข่งที่ได้เล่นจริง รอบบายนับเป็นคู่สมมติที่มีแต้มเท่าตัวเอง) แล้วจึง SOSOS
                 นับเฉพาะผลที่ผู้ตัดสินยืนยันแล้ว ผู้เข้าแข่งขันที่ไม่ได้เปิดโปรไฟล์สาธารณะจะแสดงเฉพาะคะแนนโดยไม่แสดงชื่อ
               </p>
             </section>
