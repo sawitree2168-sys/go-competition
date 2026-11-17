@@ -1,8 +1,8 @@
 
 /* GO TOURNAMENT - tournament division redesign. Shared bright-blue visual identity. */
 .gt-division-hero { isolation:isolate; background:linear-gradient(112deg,#057be8 0%,#0857c9 45%,#0741a8 100%); border-bottom:3px solid #f4c665; box-shadow:0 7px 24px rgba(0,84,188,.15); }
-.gt-division-hero-image { opacity:.65; background-position:right 43%; filter:saturate(1.26) brightness(1.27); z-index:-2; }
-.gt-division-hero-shade { z-index:-1; background:linear-gradient(100deg,rgba(3,92,199,.98) 0%,rgba(3,92,199,.94) 32%,rgba(7,101,214,.66) 63%,rgba(1,67,179,.16) 100%); }
+.gt-division-hero-image { opacity:.96; background-position:center; filter:none; z-index:-2; }
+.gt-division-hero-shade { z-index:-1; background:linear-gradient(100deg,rgba(3,81,191,.62) 0%,rgba(3,80,181,.73) 34%,rgba(7,101,214,.3) 66%,rgba(1,67,179,.05) 100%); }
 .gt-division-hero::after { position:absolute; content:""; inset:auto 0 0; height:24px; pointer-events:none; background:linear-gradient(90deg,transparent,rgba(255,219,127,.5),transparent); opacity:.65; }
 .gt-division-eyebrow { display:inline-block; margin:3px 0 10px; padding:5px 13px; font-size:11px; letter-spacing:.07em; color:#ffe9ab; border:1px solid rgba(255,227,149,.65); border-radius:999px; background:rgba(8,43,124,.28); }
 .gt-division-title { color:#fff; text-shadow:0 3px 14px rgba(0,40,136,.3); }
@@ -58,8 +58,8 @@
 .gt:not([data-gt-theme=light]) .gt-division-athletes .gt-athlete-table li:hover { background:#173b76; }
 }
 @media (max-width:767px){
- .gt-division-hero-image { opacity:.42; background-position:70% center; }
- .gt-division-hero-shade { background:linear-gradient(90deg,rgba(5,93,207,.98),rgba(5,93,207,.78)); }
+ .gt-division-hero-image { opacity:.9; background-position:64% center; }
+ .gt-division-hero-shade { background:linear-gradient(90deg,rgba(5,93,207,.65),rgba(5,93,207,.52)); }
  .gt-division-eyebrow { font-size:9px; letter-spacing:0; padding:5px 9px; }
  .gt-division-athletes { padding:10px; border-radius:16px; }
  .gt-division-athletes-heading { padding:9px 4px 13px; }
