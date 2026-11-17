@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { friendshipAward } from "@/lib/competition-day.mjs";
-import { TOTAL_ROUNDS, poolKey, poolName, type DivisionData, type Standing } from "./types";
+import { friendshipAward, roundsOf } from "@/lib/competition-day.mjs";
+import { poolKey, poolName, type DivisionData, type Standing } from "./types";
 import CrossTable from "../../../tournaments/[id]/_ui/CrossTable";
 import { divisionLabel } from "@/lib/division-display";
 
@@ -27,7 +27,7 @@ export function StandingsTable({ rows, data, large = false, title }: { rows: Sta
   const photos = Object.fromEntries(data.regs.map((r) => [r.athlete_id, r.gt_athletes?.avatar_url ?? null]));
   return (
     <CrossTable large={large} title={title ?? `ตารางอันดับ ${divisionLabel(data.division.name)}${pool ? ` · สาย ${pool}` : ""}`}
-      rows={rows} rounds={TOTAL_ROUNDS} medals={medals} photos={photos}
+      rows={rows} rounds={roundsOf(data.division)} medals={medals} photos={photos}
       matches={data.matches.filter((m) => poolKey(m.pool_label) === pool)}
       byes={data.byes.filter((b) => poolKey(b.pool_label) === pool)} />
   );

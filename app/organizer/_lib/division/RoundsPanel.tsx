@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { proposeSwissRound } from "@/lib/swiss-round.mjs";
-import { absentInRound, pairingPlayers, resultLabel, roundState, scoresFrom } from "@/lib/competition-day.mjs";
+import { absentInRound, pairingPlayers, recommendedRounds, resultLabel, roundState, roundsOf, roundsWarning, scoresFrom } from "@/lib/competition-day.mjs";
 import { ErrorNote, staffDb, useAction } from "../staff";
 import MatchCard, { type Seat } from "../../../tournaments/[id]/_ui/MatchCard";
 import ResultControls from "../../../tournaments/[id]/_ui/ResultControls";
-import { TOTAL_ROUNDS, isWithdrawn, nameOf, poolArg, poolKey, poolName, pts, schoolOf, type DivisionData, type Match, type Reg } from "./types";
+import { isWithdrawn, nameOf, poolArg, poolKey, poolName, pts, schoolOf, type DivisionData, type Match, type Reg } from "./types";
 
 type Table = { board: number; black: string; white: string };
 const pairKey = (a: string, b: string) => [a, b].sort().join("|");
@@ -48,7 +48,8 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
   const matches = useMemo(() => data.matches.filter((m) => poolKey(m.pool_label) === pool), [data.matches, pool]);
   const byes = useMemo(() => data.byes.filter((b) => poolKey(b.pool_label) === pool), [data.byes, pool]);
   const byId = useMemo(() => new Map(everyone.map((r) => [r.athlete_id, r])), [everyone]);
-  const state = roundState(matches, byes, TOTAL_ROUNDS);
+  const totalRounds = roundsOf(data.division);
+  const state = roundState(matches, byes, totalRounds);
   const { score } = scoresFrom(everyone.map((r) => r.athlete_id), matches, byes);
   const [openRound, setOpenRound] = useState<number | null>(null);
   const shown = openRound ?? state.lastRound;
@@ -79,10 +80,12 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
     <div className="space-y-4">
       <div className="gt-card flex flex-wrap items-center gap-x-4 gap-y-1 p-4 text-sm">
         <span>ผู้เล่น <strong className="gt-num">{regs.length}</strong> คน{withdrawn.length > 0 && <span className="text-[var(--gt-muted)]"> (ตัดชื่อแล้ว {withdrawn.length})</span>}</span>
-        <span>ออกคู่แล้ว <strong className="gt-num">{state.lastRound}</strong> / {TOTAL_ROUNDS} รอบ</span>
+        <span>ออกคู่แล้ว <strong className="gt-num">{state.lastRound}</strong> / {totalRounds} รอบ</span>
         {state.pending > 0 && <span className="text-[var(--gt-warn)]">รอผล {state.pending} โต๊ะ</span>}
         {state.complete && <span className="font-semibold text-[var(--gt-ok)]">แข่งครบทุกรอบแล้ว</span>}
       </div>
+
+      <RoundsSetting divisionId={data.division.id} saved={data.division.total_rounds} rounds={totalRounds} players={regs.length} played={state.lastRound} reload={reload} />
 
       {noShows.length > 0 && (
         <section className="gt-card space-y-2 border-[var(--gt-warn)] p-4">
@@ -331,6 +334,45 @@ function Proposal({ round, pool, regs, byId, matches, byes, score, divisionId, r
       <button type="button" onClick={publish} disabled={action.busy || rematches.length > 0} className="gt-gold-btn min-h-12 w-full disabled:opacity-60">
         {action.busy ? "กำลังประกาศ…" : rematches.length ? `ยังมีคู่ที่เคยเจอกัน ${rematches.length} โต๊ะ` : `ประกาศคู่รอบที่ ${round} (${tables.length} โต๊ะ)`}
       </button>
+    </section>
+  );
+}
+
+/**
+ * จำนวนรอบของรุ่น: the organiser's number (default 5), with the recommended number for this many players
+ * and a warning when it is too few (several undefeated players) or too many (rematches in the last rounds).
+ */
+function RoundsSetting({ divisionId, saved, rounds, players, played, reload }: {
+  divisionId: string; saved: number | null; rounds: number; players: number; played: number; reload: () => Promise<void>;
+}) {
+  const [value, setValue] = useState(String(rounds));
+  const action = useAction();
+  const n = Number(value);
+  const need = recommendedRounds(players);
+  const warn = roundsWarning(rounds, players);
+  const save = async (to: number) => {
+    const res = await action.run<{ ok: boolean; error?: string; played?: number }>(() => staffDb()!.rpc("gt_staff_set_division_rounds_v1", { p_division: divisionId, p_rounds: to }));
+    if (!res) return;
+    if (!res.data?.ok) return action.setError(res.data?.error === "BELOW_PLAYED" ? `ออกคู่ไปแล้ว ${res.data.played} รอบ ตั้งน้อยกว่านั้นไม่ได้` : "บันทึกไม่สำเร็จ");
+    await reload();
+  };
+  return (
+    <section className={`gt-card space-y-2 p-4 text-sm ${warn ? "border-[var(--gt-warn)]" : ""}`}>
+      <div className="flex flex-wrap items-center gap-2">
+        <label htmlFor={`rounds-${divisionId}`} className="font-semibold">จำนวนรอบของรุ่นนี้</label>
+        <select id={`rounds-${divisionId}`} value={value} onChange={(e) => setValue(e.target.value)} disabled={action.busy}
+          className="min-h-11 rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3">
+          {Array.from({ length: 15 }, (_, i) => i + 1).filter((r) => r >= Math.max(1, played)).map((r) => <option key={r} value={r}>{r} รอบ</option>)}
+        </select>
+        {n !== rounds && <button type="button" disabled={action.busy} onClick={() => save(n)} className="gt-cta-btn min-h-11 rounded-xl px-4 font-semibold">บันทึก</button>}
+        {need > 0 && need !== rounds && played < need && (
+          <button type="button" disabled={action.busy} onClick={() => save(need)} className="gt-outline-btn min-h-11 px-3">ใช้ {need} รอบตามที่แนะนำ</button>
+        )}
+        {saved == null && <span className="text-[var(--gt-muted)]">(ค่าเริ่มต้น)</span>}
+      </div>
+      {need > 0 && <p className="text-[var(--gt-muted)]">ผู้เล่น {players} คน แนะนำ {need} รอบ (ให้เหลือผู้ชนะรวดคนเดียว)</p>}
+      {warn && <p role="alert" className="font-semibold text-[var(--gt-warn)]">⚠ {warn.text}</p>}
+      {action.error && <p role="alert" className="text-[var(--gt-bad)]">{action.error}</p>}
     </section>
   );
 }

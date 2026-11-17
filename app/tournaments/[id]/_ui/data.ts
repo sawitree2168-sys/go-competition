@@ -10,7 +10,7 @@ export type EventInfo = {
   /** How the event takes entries: this site's form, an outside form (e.g. Google Form), or not at all. */
   registration_mode?: "web" | "external" | "closed" | null; registration_url?: string | null; venue?: string | null;
 };
-export type Division = { id: string; name: string; seats_limit: number | null; entry_fee_thb: number | null; friendship_board_size: number | null };
+export type Division = { id: string; name: string; seats_limit: number | null; entry_fee_thb: number | null; friendship_board_size: number | null; total_rounds?: number | null };
 export type Entrant = { source_row: number; title: string; full_name: string; institution: string; division_name: string; payment_status: string; source?: "web" };
 export type Match = {
   id: string; round_number: number; board_number: number | null; black_athlete_id: string; white_athlete_id: string;
@@ -75,7 +75,7 @@ export async function loadEventPage(db: SupabaseClient | null, id: string) {
     const [ev, dv, en] = await Promise.all([
       db.from("gt_tournaments").select("id,title,event_date,poster_url,registration_open_date,registration_close_date,registration_mode,registration_url,venue")
         .eq("id", id).eq("published", true).maybeSingle(),
-      db.from("gt_divisions").select("id,name,seats_limit,entry_fee_thb,friendship_board_size").eq("tournament_id", id),
+      db.from("gt_divisions").select("id,name,seats_limit,entry_fee_thb,friendship_board_size,total_rounds").eq("tournament_id", id),
       db.from("gt_public_entrants").select("source_row,title,full_name,institution,division_name,payment_status")
         .eq("tournament_id", id).order("source_row", { ascending: true }).limit(1000),
     ]);

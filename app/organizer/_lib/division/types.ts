@@ -1,4 +1,3 @@
-export const TOTAL_ROUNDS = 5;
 
 export type Athlete = { full_name: string; school_name: string | null; current_rank: string | null; go_id: string | null; avatar_url?: string | null };
 export type Reg = {
@@ -19,6 +18,8 @@ export type Standing = {
 export type DivisionRow = {
   id: string; name: string; tournament_id: string; award_scheme: string | null;
   friendship_gold_min_wins: number | null; friendship_silver_min_wins: number | null; friendship_bronze_min_wins: number | null;
+  /** null = the old default of 5 rounds (see roundsOf) */
+  total_rounds: number | null;
 };
 
 export type DivisionData = { division: DivisionRow; regs: Reg[]; matches: Match[]; byes: Bye[]; standings: Standing[] };

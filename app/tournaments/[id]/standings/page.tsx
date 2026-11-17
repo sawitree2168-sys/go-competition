@@ -6,12 +6,14 @@ export const dynamic = "force-dynamic";
 type Event = { id: string; title: string; event_date: string | null };
 type Division = { id: string; name: string };
 type Row = {
-  pos: number; athlete_id: string | null; display_name: string | null; current_rank: string | null;
+  pos: number | null; pool_label: string | null; withdrawn: boolean; draws: number; athlete_id: string | null; display_name: string | null; current_rank: string | null;
   wins: number; losses: number; byes: number; score: number; sos: number; sosos: number;
 };
 type DivisionStandings = { division: Division; rows: Row[]; failed: boolean };
 
-// Standings come from gt_division_standings_v1: verified results + byes only, tie-break SOS then SOSOS.
+// Standings come from gt_division_standings_v3, the same function as the division page and the organiser screens
+// (17 Nov 2026: v1 did not know draws, forfeits or withdrawn players, so the two pages could disagree).
+// Verified results + byes only, tie-break SOS then SOSOS; forfeits and byes do not count in SOS.
 // Names of athletes without a public profile are withheld by the database function itself.
 async function load(id: string): Promise<{ event: Event | null; standings: DivisionStandings[] }> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -22,7 +24,7 @@ async function load(id: string): Promise<{ event: Event | null; standings: Divis
     if (error || !event) return { event: null, standings: [] };
     const { data: divisions } = await db.from("gt_divisions").select("id,name").eq("tournament_id", id).order("name");
     const standings = await Promise.all((divisions ?? []).map(async (division: Division) => {
-      const { data, error } = await db.rpc("gt_division_standings_v1", { p_division: division.id });
+      const { data, error } = await db.rpc("gt_division_standings_v3", { p_division: division.id, p_pool: null });
       return { division, rows: (data ?? []) as Row[], failed: Boolean(error) };
     }));
     return { event, standings };
@@ -66,7 +68,7 @@ export default async function Standings({ params }: { params: Promise<{ id: stri
             <section className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
               <h2 className="text-sm font-extrabold text-amber-900">วิธีจัดอันดับ</h2>
               <p className="mt-1 text-sm text-amber-800">
-                คะแนน = จำนวนเกมที่ชนะ + บาย (บายได้ 1 คะแนน) ถ้าคะแนนเท่ากัน ตัดสินด้วย SOS (ผลรวมคะแนนของคู่แข่งทุกคน) แล้วจึง SOSOS
+                คะแนน = จำนวนเกมที่ชนะ + บาย (บายได้ 1 คะแนน, เสมอได้ ½) ถ้าคะแนนเท่ากัน ตัดสินด้วย SOS (ผลรวมคะแนนของคู่แข่งที่ได้เล่นจริง) แล้วจึง SOSOS
                 นับเฉพาะผลที่ผู้ตัดสินยืนยันแล้ว ผู้เข้าแข่งขันที่ไม่ได้เปิดโปรไฟล์สาธารณะจะแสดงเฉพาะคะแนนโดยไม่แสดงชื่อ
               </p>
             </section>
@@ -105,13 +107,15 @@ export default async function Standings({ params }: { params: Promise<{ id: stri
                           {rows.map((r, i) => (
                             <tr key={r.athlete_id ?? `hidden-${i}`} className="border-t border-slate-100">
                               <td className="px-3 py-3">
-                                <span className={`inline-grid h-7 w-7 place-items-center rounded-full text-xs font-extrabold ${medal(r.pos)}`}>{r.pos}</span>
+                                <span className={`inline-grid h-7 w-7 place-items-center rounded-full text-xs font-extrabold ${medal(r.pos ?? 0)}`}>{r.pos ?? "–"}</span>
                               </td>
                               <td className="px-3 py-3">
                                 <span className={r.display_name ? "font-bold" : "text-slate-500"}>{r.display_name ?? "ผู้เข้าแข่งขัน (ไม่เปิดเผยชื่อ)"}</span>
+                                {r.pool_label && <span className="ml-2 text-xs text-slate-500">สาย {r.pool_label}</span>}
+                                {r.withdrawn && <span className="ml-2 text-xs text-slate-500">(ถอนตัว)</span>}
                                 {r.current_rank && <span className="ml-2 rounded bg-[#f6ead0] px-1.5 py-0.5 text-[11px] font-bold text-[#6b4a12]">{r.current_rank}</span>}
                               </td>
-                              <td className="px-3 py-3 text-center">{r.wins}–{r.losses}</td>
+                              <td className="px-3 py-3 text-center">{r.wins}–{r.losses}{r.draws ? ` (เสมอ ${r.draws})` : ""}</td>
                               <td className="px-3 py-3 text-center">{r.byes || "–"}</td>
                               <td className="px-3 py-3 text-right text-base font-extrabold">{r.score}</td>
                               <td className="px-3 py-3 text-right">{r.sos}</td>
