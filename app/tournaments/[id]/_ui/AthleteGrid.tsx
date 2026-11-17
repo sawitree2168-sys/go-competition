@@ -93,13 +93,13 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
                 {a.id
                   ? <Link href={`/athletes/${a.id}`} className="block min-h-10 break-words text-sm font-semibold leading-snug hover:underline sm:text-lg">{a.name}</Link>
                   : <p className="min-h-10 break-words text-sm font-semibold leading-snug sm:text-lg">{a.name}</p>}
-                <p className="line-clamp-2 min-h-7 break-words text-xs text-[var(--gt-muted)] sm:text-sm">{a.institution || "—"}</p>
+                <p className="gt-athlete-institution flex min-h-7 items-start gap-1 break-words text-xs text-[var(--gt-muted)] sm:text-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true"><path d="M3 21V8l9-5 9 5v13M7 21v-8h10v8M9 9h.01M12 9h.01M15 9h.01" /></svg><span className="min-w-0">{a.institution || "ไม่ระบุสถาบัน"}</span></p>
                 <p className="flex flex-wrap items-center justify-center gap-1.5">
                   {k && <span className="rounded-full bg-[var(--gt-surface-2)] px-2.5 py-0.5 text-sm font-bold text-[var(--gt-brand)]">{k.replace(/d$/, " Dan").replace(/k$/, " Kyu")}</span>}
                   {pay && <span className={`text-xs font-semibold ${pay.cls}`}>{pay.text}</span>}
                 </p>
                 <button type="button" onClick={() => setOpen(a)} className="mt-auto flex min-h-10 w-full items-center justify-center gap-1 rounded-lg border border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-2 text-xs font-semibold text-[var(--gt-brand)] sm:text-sm">
-                  ดูประวัติการแข่งขัน <span aria-hidden="true">→</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0" aria-hidden="true"><path d="M4 20V13M10 20V7M16 20V11M22 20V3" /></svg><span>ดูประวัติการแข่งขัน</span>
                 </button>
               </div>
             </li>
