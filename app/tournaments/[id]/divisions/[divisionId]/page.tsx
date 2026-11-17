@@ -13,6 +13,7 @@ import RegisterPanel from "../../_ui/RegisterPanel";
 import NewsPanel, { type RoundItem } from "../../_ui/NewsPanel";
 import { roundNews } from "@/lib/round-news.mjs";
 import LiveRefresh from "../../_ui/LiveRefresh";
+import { loadResults } from "@/lib/public-site";
 
 // Served from cache and refreshed in the background at most every 30 s (see PUBLIC_CACHE_SECONDS).
 export const revalidate = 30;
@@ -35,9 +36,10 @@ function Notice({ title, body, icon = "clock" }: { title: string; body: string; 
 export default async function DivisionPage({ params }: { params: Promise<{ id: string; divisionId: string }> }) {
   const { id, divisionId } = await params;
   const db = publicDb();
-  const [{ event, divisions, entrants, matches, byes, standings, people, announcements }, live] = await Promise.all([
+  const [{ event, divisions, entrants, matches, byes, standings, people, announcements }, live, historicalResults] = await Promise.all([
     loadDivisionPage(db, id, divisionId),
     db ? db.rpc("gt_division_live_v1", { p_division: divisionId }).then((r) => (r.error ? null : (r.data as string | null)), () => null) : Promise.resolve(null),
+    loadResults(db),
   ]);
   const division = divisions.find((d) => d.id === divisionId);
 
@@ -81,7 +83,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
     <>
       {!lastRound && <Notice title="ยังไม่ประกาศคู่แข่งขัน" body="คู่แข่งขันจะแสดงที่แท็บจับคู่เมื่อผู้จัดประกาศ" />}
       <div className="relative lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2">
-        <AthleteGrid athletes={athleteCards} matches={matches} byes={byes} people={Object.fromEntries(people)} />
+        <AthleteGrid athletes={athleteCards} historicalResults={historicalResults} matches={matches} byes={byes} people={Object.fromEntries(people)} />
       </div>
       <p className="mt-2 flex items-center gap-1.5 text-xs text-[var(--gt-muted)]"><Icon name="info" className="h-4 w-4 shrink-0" />รายชื่อตามที่ผู้จัดอนุญาตให้เผยแพร่ สถานะอาจเปลี่ยนแปลงภายหลัง</p>
     </>

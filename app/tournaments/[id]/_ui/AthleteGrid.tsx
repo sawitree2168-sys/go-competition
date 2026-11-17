@@ -8,6 +8,8 @@ import { DEFAULT_AVATAR } from "./MatchCard";
 import { shortRank } from "./CrossTable";
 import { resultLabel } from "@/lib/competition-day.mjs";
 import type { Bye, Match, Person } from "./data";
+import type { ResultEvent } from "@/lib/public-site";
+import { thaiDate } from "@/lib/division-display";
 
 /** One athlete of the division (from imported registrations, or from the sign-up sheet before import). */
 export type AthleteCard = { key: string; id: string | null; name: string; institution: string; rank: string | null; photo: string | null; payment: string | null };
@@ -26,7 +28,7 @@ function payBadge(s: string | null) {
  * แท็บ "นักกีฬา" (approved design 16 Nov 2026): count, search by name/institution, rank filter,
  * card grid (3 per row on desktop, list on phone), pagination, and "ดูประวัติการแข่งขัน" = this athlete's games in this event.
  */
-export default function AthleteGrid({ athletes, matches, byes, people }: { athletes: AthleteCard[]; matches: Match[]; byes: Bye[]; people: Record<string, Person> }) {
+export default function AthleteGrid({ athletes, historicalResults, matches, byes, people }: { athletes: AthleteCard[]; historicalResults: ResultEvent[]; matches: Match[]; byes: Bye[]; people: Record<string, Person> }) {
   const [q, setQ] = useState("");
   const [rank, setRank] = useState("all");
   const [page, setPage] = useState(1);
@@ -87,13 +89,9 @@ export default function AthleteGrid({ athletes, matches, byes, people }: { athle
                   {k && <span className="rounded-full bg-[var(--gt-surface-2)] px-2.5 py-0.5 text-sm font-bold text-[var(--gt-brand)]">{k.replace(/d$/, " Dan").replace(/k$/, " Kyu")}</span>}
                   {pay && <span className={`text-xs font-semibold ${pay.cls}`}>{pay.text}</span>}
                 </p>
-                {a.id ? (
-                  <button type="button" onClick={() => setOpen(a)} className="mt-1 flex min-h-10 w-full items-center justify-center gap-1 rounded-lg bg-[var(--gt-surface-2)] text-sm font-semibold text-[var(--gt-brand)]">
-                    ดูประวัติการแข่งขัน <span aria-hidden="true">→</span>
-                  </button>
-                ) : (
-                  <p className="mt-1 rounded-lg bg-[var(--gt-surface-2)] py-2 text-center text-xs text-[var(--gt-muted)]">ประวัติจะแสดงเมื่อเริ่มแข่ง</p>
-                )}
+                <button type="button" onClick={() => setOpen(a)} className="mt-1 flex min-h-10 w-full items-center justify-center gap-1 rounded-lg bg-[var(--gt-surface-2)] text-sm font-semibold text-[var(--gt-brand)]">
+                  ดูประวัติการแข่งขัน <span aria-hidden="true">→</span>
+                </button>
               </div>
             </li>
           );
@@ -112,22 +110,26 @@ export default function AthleteGrid({ athletes, matches, byes, people }: { athle
         </nav>
       )}
 
-      {open && createPortal(<History athlete={open} matches={matches} byes={byes} people={people} onClose={() => setOpen(null)} />,
+      {open && createPortal(<History athlete={open} historicalResults={historicalResults} matches={matches} byes={byes} people={people} onClose={() => setOpen(null)} />,
         (document.querySelector(".gt") as HTMLElement | null) ?? document.body)}
     </section>
   );
 }
 
-function History({ athlete, matches, byes, people, onClose }: { athlete: AthleteCard; matches: Match[]; byes: Bye[]; people: Record<string, Person>; onClose: () => void }) {
-  const id = athlete.id!;
+function History({ athlete, historicalResults, matches, byes, people, onClose }: { athlete: AthleteCard; historicalResults: ResultEvent[]; matches: Match[]; byes: Bye[]; people: Record<string, Person>; onClose: () => void }) {
+  const id = athlete.id;
+  const nameKey = (name: string) => name.normalize("NFC").replace(/^(?:ด\.?ช\.?|ด\.?ญ\.?|เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง)\s*/, "").replace(/[\s\u200b-\u200d\ufeff]+/g, "").toLowerCase();
+  const history = historicalResults.flatMap((event) => event.divisions.flatMap((division) => division.people
+    .filter((person) => id && person.athlete_id ? person.athlete_id === id : nameKey(person.full_name) === nameKey(athlete.name))
+    .map((person) => ({ event, division: division.division, person }))));
   const rounds = [
-    ...matches.filter((m) => m.black_athlete_id === id || m.white_athlete_id === id).map((m) => {
+    ...matches.filter((m) => id && (m.black_athlete_id === id || m.white_athlete_id === id)).map((m) => {
       const black = m.black_athlete_id === id;
       const opp = black ? m.white_athlete_id : m.black_athlete_id;
       const verdict = m.state !== "verified" ? "รอผล" : m.result_code === "draw" ? "เสมอ" : m.winner_athlete_id === id ? "ชนะ" : "แพ้";
       return { round: m.round_number, board: m.board_number, black, opp, verdict, detail: resultLabel(m) };
     }),
-    ...byes.filter((b) => b.athlete_id === id).map((b) => ({ round: b.round_number, board: null, black: null, opp: null, verdict: "บาย", detail: "ได้ 1 คะแนน" })),
+    ...byes.filter((b) => id && b.athlete_id === id).map((b) => ({ round: b.round_number, board: null, black: null, opp: null, verdict: "บาย", detail: "ได้ 1 คะแนน" })),
   ].sort((a, b) => a.round - b.round);
   const tone: Record<string, string> = { ชนะ: "bg-[var(--gt-win-bg)] text-[var(--gt-win-ink)]", แพ้: "bg-[var(--gt-loss-bg)] text-[var(--gt-loss-ink)]", เสมอ: "bg-[var(--gt-gold-soft)] text-[var(--gt-gold-ink)]", บาย: "bg-[var(--gt-surface-2)] text-[var(--gt-brand)]", รอผล: "border border-[var(--gt-line)] text-[var(--gt-muted)]" };
   const points = rounds.reduce((n, r) => n + (r.verdict === "ชนะ" || r.verdict === "บาย" ? 1 : r.verdict === "เสมอ" ? 0.5 : 0), 0);
@@ -143,7 +145,25 @@ function History({ athlete, matches, byes, people, onClose }: { athlete: Athlete
           </div>
           <button type="button" onClick={onClose} aria-label="ปิด" className="grid h-11 w-11 place-items-center rounded-full border border-[var(--gt-line)]">✕</button>
         </div>
-        <h3 className="mt-4 font-bold">ประวัติการแข่งขันในรายการนี้ <span className="gt-num font-normal text-[var(--gt-muted)]">({points} คะแนน จาก {rounds.length} รอบ)</span></h3>
+        <h3 className="mt-4 font-bold">ผลการแข่งขันที่ผ่านมา</h3>
+        {!history.length && <p className="mt-2 text-sm text-[var(--gt-muted)]">ยังไม่พบผลการแข่งขันที่ผ่านมาของนักกีฬาคนนี้ในข้อมูลที่บันทึกไว้</p>}
+        <ul className="mt-2 space-y-3">
+          {history.map(({ event, division, person }) => (
+            <li key={`${event.title}-${division}`} className="rounded-xl border border-[var(--gt-line)] p-3">
+              <p className="text-xs text-[var(--gt-muted)]">{thaiDate(event.date) ?? "ไม่ระบุวันที่"}</p>
+              <p className="mt-1 font-bold">{event.title}</p>
+              <p className="text-sm text-[var(--gt-muted)]">{division}{person.placing != null ? ` · อันดับ ${person.placing}` : ""}</p>
+              <div className="mt-2 flex flex-wrap gap-2 text-sm font-bold">
+                <span className="rounded-lg bg-[var(--gt-win-bg)] px-3 py-1 text-[var(--gt-win-ink)]">ชนะ {person.wins}</span>
+                <span className="rounded-lg bg-[var(--gt-loss-bg)] px-3 py-1 text-[var(--gt-loss-ink)]">แพ้ {person.losses}</span>
+                {person.byes > 0 && <span className="px-1 py-1">บาย {person.byes}</span>}
+              </div>
+              {(person.points != null || person.sos != null) && <p className="mt-2 text-sm">{person.points != null ? `คะแนน ${person.points}` : ""}{person.sos != null ? ` · SOS ${person.sos}` : ""}</p>}
+              <Link href={`/results?event=${encodeURIComponent(event.title)}`} className="mt-2 inline-flex min-h-10 items-center text-sm font-semibold text-[var(--gt-brand)]">ดูผลการแข่งขันรายการนี้ →</Link>
+            </li>
+          ))}
+        </ul>
+        <h3 className="mt-4 font-bold">การแข่งขันในรายการปัจจุบัน <span className="gt-num font-normal text-[var(--gt-muted)]">({points} คะแนน จาก {rounds.length} รอบ)</span></h3>
         {!rounds.length && <p className="mt-2 text-sm text-[var(--gt-muted)]">ยังไม่มีการแข่งขัน</p>}
         <ol className="mt-2 space-y-2">
           {rounds.map((r) => (
