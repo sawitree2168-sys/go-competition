@@ -77,11 +77,11 @@ function useDashboardLive(divisions: DashboardDivision[]) {
           firstCheck = false;
           // Retry until the newly rendered page actually carries the new fingerprint (including cache races).
           fresh.forEach(d => { if (snapshot.current.find(s => s.division.id === d.id)?.fingerprint === d.fp && snapshot.current.find(s => s.division.id === d.id)?.boardAvailable && snapshot.current.find(s => s.division.id === d.id)?.standingsAvailable) known.set(d.id, d.fp); });
-          setNotice("มีการอัปเดตคู่แข่งขันหรือผลการแข่งขันแล้ว");
+          if (fresh.some(d => d.fp !== known.get(d.id))) setNotice("มีการอัปเดตคู่แข่งขันหรือผลการแข่งขันแล้ว");
           startTransition(() => router.refresh());
         }
         setOffline(false);
-        setCheckedAt(new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+        setCheckedAt(new Date().toLocaleTimeString("th-TH", { timeZone: "Asia/Bangkok", hour: "2-digit", minute: "2-digit", second: "2-digit" }));
       } catch { if (!stopped) setOffline(true); }
       finally { busy = false; }
     };
@@ -208,6 +208,8 @@ export default function CompetitionDashboard({ event, divisions, entrants }: { e
   const announcements = divisions.flatMap(d => d.announcements).sort((a, b) => b.created_at.localeCompare(a.created_at));
   const selectTab = (tab: Tab) => { setActive(tab); document.getElementById("competition-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
   const selectedMode = selected ? boardMode(selected.boardAvailable, selected.matches, selected.byes) : "error";
+  const workspaceMode = active === "entrants" ? "live" : active === "announcements" ? "none" : active === "standings" && selected
+    ? standingsMode(selected.standingsAvailable, selectedMode, selected.standings) : selectedMode;
   return <div className="competition-page cd-dashboard"><SiteBar current="/tournaments" />
     <header className="cd-event-hero"><img src="/event-hero-wide.webp" alt="" className="cd-hero-art" /><div className="cd-hero-inner">
       {event.poster_url && <Link href={`/tournaments/${event.id}`} className="cd-poster-link"><img src={event.poster_url} alt={`โปสเตอร์ ${event.title}`} /></Link>}
@@ -231,10 +233,10 @@ export default function CompetitionDashboard({ event, divisions, entrants }: { e
         const label = mode === "error" ? "กำลังรอข้อมูล" : state.complete ? "จบการแข่งขันแล้ว" : state.played ? "กำลังแข่งขัน" : state.lastRound ? "ประกาศคู่แข่งขันแล้ว" : "รอการแข่งขัน";
         return <button type="button" key={d.division.id} className={`cd-division-card ${selected?.division.id === d.division.id ? "selected" : ""}`} aria-pressed={selected?.division.id === d.division.id} onClick={() => setSelectedId(d.division.id)}>
           <MenuIcon name={/friendship|เฟรน/i.test(d.division.name) ? "entrants" : "trophy"} /><strong>{divisionLabel(d.division.name)}</strong>
-          <span className={`cd-pill ${state.complete ? "done" : state.played ? "live" : "waiting"}`}>{label}</span><small>{state.lastRound ? `ประกาศคู่ถึงรอบ ${state.lastRound} / ${roundsOf(d.division)}` : `กำหนด ${roundsOf(d.division)} รอบ`}</small><span className="cd-division-action">{mode === "demo" ? "ลองดูหน้าแข่งขัน" : "ดูคู่แข่งขันและผล"} →</span>
+          <span className={`cd-pill ${state.complete ? "done" : state.played ? "live" : "waiting"}`}>{label}</span><small>{state.lastRound ? `ประกาศคู่ถึงรอบ ${state.lastRound} / ${roundsOf(d.division)}` : "รอประกาศคู่รอบแรก"}</small><span className="cd-division-action">{mode === "demo" ? "ลองดูหน้าแข่งขัน" : "ดูคู่แข่งขันและผล"} →</span>
         </button>;
       })}</div>
-      <div className="cd-workspace" id="competition-workspace"><div className="cd-workspace-heading"><h2>{selected ? divisionLabel(selected.division.name) : "หน้าแข่งขัน"}</h2>{selectedMode === "demo" ? <ExampleTag /> : selectedMode === "live" ? <span className="cd-real-tag">ข้อมูลการแข่งขันจริง</span> : null}</div>
+      <div className="cd-workspace" id="competition-workspace"><div className="cd-workspace-heading"><h2>{selected ? divisionLabel(selected.division.name) : "หน้าแข่งขัน"}</h2>{workspaceMode === "demo" ? <ExampleTag /> : workspaceMode === "live" ? <span className="cd-real-tag">{active === "entrants" ? "รายชื่อจากการสมัครจริง" : "ข้อมูลการแข่งขันจริง"}</span> : null}</div>
         <nav className="cd-tabs" aria-label="เมนูหน้าแข่งขัน">{TABS.map(tab => <button type="button" key={tab.id} aria-current={active === tab.id ? "page" : undefined} onClick={() => setActive(tab.id)}><MenuIcon name={tab.icon} />{tab.label}</button>)}</nav>
         {selected ? <CompetitionWorkspace key={`${selected.division.id}-${selectedMode}`} row={selected} event={event} entrants={entrants} active={active} selectTab={selectTab} /> : <p className="cd-message">รอผู้จัดประกาศรุ่นการแข่งขัน</p>}
       </div>
