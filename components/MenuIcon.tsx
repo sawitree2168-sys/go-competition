@@ -1,6 +1,6 @@
 /** Line icons for the site menu and bottom bar (one consistent set instead of text symbols). */
 export type MenuIconName =
-  | "home" | "trophy" | "register" | "results" | "stats" | "athlete" | "fan" | "news" | "gallery" | "documents" | "faq" | "menu" | "entrants";
+  | "home" | "trophy" | "register" | "results" | "stats" | "athlete" | "fan" | "news" | "gallery" | "documents" | "faq" | "menu" | "entrants" | "dan";
 
 const PATHS: Record<MenuIconName, React.ReactNode> = {
   home: <><path d="M3.5 11 12 4l8.5 7" /><path d="M5.5 9.5V20h13V9.5" /><path d="M10 20v-5.5h4V20" /></>,
@@ -21,6 +21,8 @@ const PATHS: Record<MenuIconName, React.ReactNode> = {
   // List with people: entrants.
   entrants: <><circle cx="8" cy="8" r="2.8" /><path d="M3 18.5c.4-3 2.4-4.8 5-4.8s4.6 1.8 5 4.8" /><path d="M14.5 7h6M14.5 11h6M15.5 15h5" /></>,
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+  // New dan: two Go stones under a star.
+  dan: <><circle cx="8.5" cy="15.5" r="4.5" fill="currentColor" stroke="none" /><circle cx="15.5" cy="15.5" r="4.5" /><path d="m12 2.8 1.2 2.4 2.6.4-1.9 1.8.45 2.6L12 8.8l-2.35 1.2.45-2.6-1.9-1.8 2.6-.4z" /></>,
 };
 
 export default function MenuIcon({ name, className = "h-6 w-6" }: { name: MenuIconName; className?: string }) {
