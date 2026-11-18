@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import SiteBar from "@/app/tournaments/[id]/_ui/SiteBar";
 import AthleteAvatar from "./AthleteAvatar";
 import MenuIcon from "./MenuIcon";
+import CompetitionPanel from "./CompetitionPanel";
 import { divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
 import { roundsOf, resultLabel } from "@/lib/competition-day.mjs";
 import { boardMode, standingsMode, divisionProgress, latestPairings } from "@/lib/competition-dashboard.mjs";
@@ -156,6 +157,7 @@ function CompetitionWorkspace({ row, event, entrants, active, selectTab }: { row
   const mode = boardMode(row.boardAvailable, row.matches, row.byes) as Mode;
   const ranksMode = standingsMode(row.standingsAvailable, mode, row.standings) as Mode;
   const [search, setSearch] = useState("");
+  const [matchView, setMatchView] = useState<"auto" | "cards" | "table">("auto");
   const [round, setRound] = useState<number | "latest">("latest");
   const [pool, setPool] = useState("*");
   const published = [...new Set([...row.matches.filter(m => m.state !== "void"), ...row.byes].map(m => m.round_number))].sort((a, b) => a - b);
@@ -175,14 +177,18 @@ function CompetitionWorkspace({ row, event, entrants, active, selectTab }: { row
     </div>}
     <div className={active === "overview" ? "cd-work-grid" : "cd-work-single"}>
       <div className="cd-work-main">
-        {showBoard && <section className="cd-panel"><PanelTitle title="รอบแข่งขันล่าสุด" demo={mode === "demo"} />
+        {showBoard && <CompetitionPanel className={`cd-match-view-${matchView}`} title="คู่แข่งขัน" context={`${event.title} · ${divisionLabel(row.division.name)} · ${selectedRound === "latest" ? "รอบล่าสุด" : `รอบ ${selectedRound}`}${selectedPool !== "*" ? ` · สาย ${selectedPool}` : ""}${search ? ` · ค้นหา: ${search}` : ""}`}><PanelTitle title="รอบแข่งขันล่าสุด" demo={mode === "demo"} />
+          <div className="cd-view-switch" role="group" aria-label="มุมมองคู่แข่งขัน" data-export-ignore="true">
+            <button type="button" className={matchView === "auto" ? "cd-auto-cards" : ""} aria-pressed={matchView === "cards"} onClick={() => setMatchView("cards")}>▦ แบบการ์ด</button>
+            <button type="button" className={matchView === "auto" ? "cd-auto-table" : ""} aria-pressed={matchView === "table"} onClick={() => setMatchView("table")}>☷ แบบตาราง</button>
+          </div>
           <MatchTable row={row} mode={mode} round={selectedRound} pool={selectedPool} search={search} compact={active === "overview"} />
           {active === "overview" && <button className="cd-panel-link" type="button" onClick={() => selectTab("pairings")}>ดูตารางจับคู่ทั้งหมด →</button>}
-        </section>}
-        {active === "standings" && <section className="cd-panel cd-full-standings"><PanelTitle title={`ตารางอันดับ : ${divisionLabel(row.division.name)}`} demo={ranksMode === "demo"} />
+        </CompetitionPanel>}
+        {active === "standings" && <CompetitionPanel className="cd-full-standings" title="ตารางอันดับ" context={`${event.title} · ${divisionLabel(row.division.name)}${selectedPool !== "*" ? ` · สาย ${selectedPool}` : ""}${search ? ` · ค้นหา: ${search}` : ""}`}><PanelTitle title={`ตารางอันดับ : ${divisionLabel(row.division.name)}`} demo={ranksMode === "demo"} />
           <div className="cd-rank-summary"><span><MenuIcon name="entrants" />ผู้เข้าแข่งขัน <b>{mode === "demo" ? MOCK_PEOPLE.length : names.length} คน</b></span><span><MenuIcon name="trophy" />แข่งขัน <b>{roundsOf(row.division)} รอบ</b></span><span className={divisionProgress(row.matches, row.byes, roundsOf(row.division)).complete ? "complete" : ""}>{mode === "demo" ? "ข้อมูลตัวอย่าง" : divisionProgress(row.matches, row.byes, roundsOf(row.division)).complete ? "✓ จบการแข่งขันแล้ว" : "ติดตามผลการแข่งขัน"}</span></div>
           <StandingsTable row={row} mode={ranksMode} search={search} pool={selectedPool} />
-          <p className="cd-rank-key">คะแนน = คะแนนจากผลการแข่งขัน · SOS = ผลรวมคะแนนของคู่แข่ง · SOSOS = ผลรวม SOS ของคู่แข่ง</p></section>}
+          <p className="cd-rank-key">คะแนน = คะแนนจากผลการแข่งขัน · SOS = ผลรวมคะแนนของคู่แข่ง · SOSOS = ผลรวม SOS ของคู่แข่ง</p></CompetitionPanel>}
         {active === "entrants" && <section className="cd-panel"><PanelTitle title={`รายชื่อผู้สมัคร · ${names.length} คน`} /><p className="cd-subtle cd-padding">รายชื่อจากการสมัครจริง · ยังไม่ใช่ผลจับคู่</p>
           <div className="cd-entrant-grid">{names.map((e, i) => <div key={`${e.source}-${e.source_row}-${i}`}><span className="cd-entry-number">{i + 1}</span><Player person={{ name: `${e.title ?? ""}${e.full_name}`, institution: e.institution }} /></div>)}</div>{!names.length && <p className="cd-message">{search ? "ไม่พบรายชื่อที่ค้นหา" : "รอข้อมูลรายชื่อผู้สมัคร"}</p>}
         </section>}
