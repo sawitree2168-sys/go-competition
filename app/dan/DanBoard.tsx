@@ -8,8 +8,9 @@ import RankTable, { type Ranking, type RankRow } from "./RankTable";
 export type Person = { dan: number | null; name: string; level: string | null; diamond: boolean; go_id: string | null; photo: string | null; profile_id: string | null };
 export type Examiner = Person & { role: string };
 export type Announcement = Person & { title: string | null; announced_on: string; examiners: Examiner[] };
-export type DirEntry = { dan: number; name: string; level: string | null; diamond: boolean; year: number | null; go_id: string | null; photo: string | null };
-export type Board = { synced_at: string | null; source_url: string; announcements: Announcement[]; directory: DirEntry[] };
+export type DirEntry = { dan: number; name: string; level: string | null; diamond: boolean; year: number | null; go_id: string | null; photo: string | null; reserved?: boolean };
+/** reserved: dan numbers sold at the association auction whose buyer has not passed the exam yet (numbers only). */
+export type Board = { synced_at: string | null; source_url: string; announcements: Announcement[]; directory: DirEntry[]; reserved?: number[] };
 
 type Tab = "new" | "rank" | "diamond" | "all";
 const TABS: { id: Tab; label: string }[] = [
@@ -102,7 +103,16 @@ function DanTable({ rows }: { rows: DirEntry[] }) {
         <span className="text-center">เลขดั้ง</span><span>รูป</span><span>ชื่อ–นามสกุล</span><span>ระดับ</span><span>ปีที่ได้ดั้ง</span><span className="text-center">ดั้งเพชร</span>
       </div>
       <ol className="divide-y divide-[var(--gt-line)]" aria-label="รายชื่อดั้ง">
-        {rows.map((d) => (
+        {rows.map((d) => d.reserved ? (
+          <li key={d.dan} className="grid grid-cols-[52px_48px_minmax(0,1fr)] items-center gap-2 bg-[var(--gt-surface-2)]/50 px-3 py-3 lg:grid-cols-[72px_54px_minmax(0,1fr)_92px_110px_72px] lg:gap-3">
+            <span className="gt-num text-center text-sm font-semibold text-[var(--gt-muted)]">{num(d.dan)}</span>
+            <span aria-hidden="true" className="grid h-11 w-11 place-items-center rounded-full border border-dashed border-[var(--gt-line)] text-[var(--gt-muted)] sm:h-12 sm:w-12">#</span>
+            <span className="min-w-0 lg:col-span-4">
+              <span className="inline-flex rounded-md bg-[var(--gt-gold-soft)] px-2 py-0.5 text-xs font-bold text-[var(--gt-gold-ink)]">เลขดั้งนี้ประมูลแล้ว</span>
+              <span className="mt-0.5 block text-xs text-[var(--gt-muted)]">รอผู้ประมูลสอบผ่าน จึงจะประกาศชื่อ</span>
+            </span>
+          </li>
+        ) : (
           <li key={d.dan} className="grid grid-cols-[52px_48px_minmax(0,1fr)] items-center gap-2 px-3 py-3 lg:grid-cols-[72px_54px_minmax(0,1fr)_92px_110px_72px] lg:gap-3">
             <span className="gt-num text-center text-sm font-semibold text-[var(--gt-brand)]">{num(d.dan)}</span>
             <AthleteAvatar src={d.photo} name={d.name} zoom className="h-11 w-11 sm:h-12 sm:w-12" />
@@ -153,8 +163,16 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
 
   const news = useMemo(() => board.announcements.filter((a) =>
     matches(q, a.name, a.dan) && (year === "all" || beYear(a.announced_on) === Number(year)) && (level === "all" || a.level === level)), [board, q, year, level]);
-  const dir = useMemo(() => board.directory.filter((d) =>
-    (tab !== "diamond" || d.diamond) && matches(q, d.name, d.dan) && (year === "all" || d.year === Number(year)) && (level === "all" || d.level === level)), [board, tab, q, year, level]);
+  const dir = useMemo(() => {
+    const list = board.directory.filter((d) =>
+      (tab !== "diamond" || d.diamond) && matches(q, d.name, d.dan) && (year === "all" || d.year === Number(year)) && (level === "all" || d.level === level));
+    // Auctioned numbers appear in the full list in number order, only when not filtering by name, year or level.
+    if (tab !== "all" || year !== "all" || level !== "all") return list;
+    const k = key(q).replace(/,/g, "");
+    const held = (board.reserved ?? []).filter((n) => !k || String(n) === k)
+      .map((n): DirEntry => ({ dan: n, name: "", level: null, diamond: false, year: null, go_id: null, photo: null, reserved: true }));
+    return held.length ? [...list, ...held].sort((a, b) => a.dan - b.dan) : list;
+  }, [board, tab, q, year, level]);
 
   const activeCount = ranking?.rows.filter((r) => r.active && r.score !== null).length ?? 0;
   // Rank inside each dan class (Active players only, equal scores share a rank), alongside the national rank.
@@ -266,7 +284,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
       <div className="gt-directory-results" id="dan-results">
         <div className="gt-directory-results-heading">
           <h2>{tab === "new" ? "รายชื่อผู้ได้รับการรับรองดั้งใหม่" : tab === "rank" ? `อันดับคะแนน${level === "all" ? "ประเทศไทย" : ` รุ่น ${level} ดั้ง`} ปี ${(ranking?.as_of ? beYear(ranking.as_of) : beYear(new Date().toISOString()))}` : tab === "diamond" ? "ดั้งเพชร" : "ทำเนียบดั้งทั้งหมด"}</h2>
-          <p className="text-sm text-[var(--gt-muted)]" aria-live="polite">{num(total)} คน</p>
+          <p className="text-sm text-[var(--gt-muted)]" aria-live="polite">{num(tab === "all" ? dir.filter((d) => !d.reserved).length : total)} คน</p>
         </div>
         {tab === "rank" && (
           <div role="group" aria-label="สถานะนักกีฬา" className="gt-directory-view-toggle">
@@ -284,6 +302,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
       <p className="-mt-2 mb-4 text-sm text-[var(--gt-muted)]">
         {tab === "new" && latest && <>ประกาศล่าสุด {thaiDate(latest, "long")} · </>}
         {tab === "diamond" && <>ผู้ที่มีเครื่องหมายเพชรในทำเนียบดั้ง · </>}
+        {tab === "all" && (board.reserved?.length ?? 0) > 0 && <>มีเลขดั้งที่ประมูลแล้วรอสอบ {num(board.reserved!.length)} เลข · </>}
         {tab === "rank" && ranking && <>
           จัดอันดับเฉพาะผู้ที่ Active (มีผลแข่งใน {ranking.inactive_months} เดือนล่าสุด) · คะแนนกับระดับดั้งแยกกัน ระดับดั้งเปลี่ยนเมื่อสอบผ่านเท่านั้น
           {ranking.as_of && <> · คะแนนถึง {thaiDate(ranking.as_of)}</>} · </>}
