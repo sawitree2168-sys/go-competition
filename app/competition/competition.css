@@ -73,3 +73,7 @@
  .cd-full-standings .cd-player small{font-size:8px;line-height:1.5;min-height:3em;margin-top:2px}
  .cd-full-standings .cd-rank-table tbody tr{height:116px}
 }
+
+/* Scalable placeholder; raster portraits are bounded by source pixels and screen density. */
+.cd-athlete-photo-stage{display:flex;align-items:center;justify-content:center;min-height:80px;padding:12px;border-radius:12px;background:#e7effa;overflow:hidden}
+.cd-athlete-photo-stage>img{display:block;flex:none;max-width:100%;max-height:70dvh;height:auto;object-fit:contain;border-radius:8px}

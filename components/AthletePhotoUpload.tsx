@@ -43,13 +43,13 @@ export default function AthletePhotoUpload({ athleteId, onSaved }: Props) {
       const img = new Image();
       img.src = preview;
       await img.decode();
-      const size = 640, canvas = document.createElement("canvas");
+      const crop = avatarCropRect(img.naturalWidth,img.naturalHeight,zoom,offset.x,offset.y);
+      const size = Math.max(1, Math.min(1280, Math.floor(crop.width), Math.floor(crop.height))), canvas = document.createElement("canvas");
       canvas.width = size;canvas.height = size;
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("อุปกรณ์นี้ไม่รองรับการปรับรูป");
-      const crop = avatarCropRect(img.naturalWidth,img.naturalHeight,zoom,offset.x,offset.y);
       ctx.drawImage(img,crop.x,crop.y,crop.width,crop.height,0,0,size,size);
-      const blob = await new Promise<Blob>((resolve,reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("แปลงรูปไม่สำเร็จ")),"image/webp",.86));
+      const blob = await new Promise<Blob>((resolve,reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("แปลงรูปไม่สำเร็จ")),"image/webp",.92));
       const path = `${userData.user.id}/${athleteId}/${crypto.randomUUID()}.webp`;
       const { error: uploadError } = await db.storage.from("gt-athlete-photos").upload(path,blob,{contentType:"image/webp",upsert:false});
       if (uploadError) throw new Error("อัปโหลดรูปไม่สำเร็จ: "+uploadError.message);
