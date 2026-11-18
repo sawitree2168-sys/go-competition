@@ -18,3 +18,13 @@
 @media(max-width:360px){.gf-brand{font-size:17px}.gf-brand-stones{width:41px}.gf-page .gf-event-banner h2{font-size:15px}.gf-event-banner>svg{width:30px;height:30px}.gf-tabs button{font-size:11px}.gf-games tbody tr{grid-template-columns:17% minmax(0,1fr) 25% 23px}.gf-opponent{flex-direction:column;text-align:center;gap:3px}.gf-opponent .cd-avatar{width:25px;height:25px}.gf-outcome{font-size:10px}.gf-outcome small{font-size:8px}}
 .gf-hero{background-size:100% 100%}.gf-summary-link{display:none}
 @media(max-width:760px){.gf-hero{background-size:auto 100%}.gf-summary-link{display:block;border:1px solid #7aace8;border-radius:10px;background:linear-gradient(white,#e9f3ff);color:#083576;min-height:40px;font-size:12px;padding:7px}}
+.gf-follow-mobile-actions{display:none}
+@media(max-width:760px){
+ .gf-selected.gf-already-followed{display:none}
+ .gf-follow-panel li.selected{flex-wrap:wrap}
+ .gf-follow-panel li.selected>.gf-bell{display:none}
+ .gf-follow-mobile-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;width:100%}
+ .gf-follow-mobile-actions>button{display:grid;place-items:center;min-height:34px;border:1px solid #80aee9;border-radius:8px;background:linear-gradient(white,#e6f1ff);color:#07377e;padding:5px}
+ .gf-follow-mobile-actions>button.gf-follow-button{display:block;background:linear-gradient(#fff4aa,#ffd65c);border-color:#d7a01a;font-size:11px;color:#624000;padding:5px 10px}
+ .gf-follow-mobile-actions svg{width:20px;height:20px}
+}
