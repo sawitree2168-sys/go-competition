@@ -42,7 +42,7 @@ export default function AccountView() {
   const roleLabel = MEMBER_ROLES.find((r) => r.id === me.role)?.label ?? "สมาชิก";
   const signOut = async () => { await staffDb()?.auth.signOut(); window.location.assign("/"); };
   const next: { title: string; body: string; href?: string; cta?: string }[] = [];
-  if (me.athlete) next.push({ title: "รูปโปรไฟล์", body: "เปลี่ยนรูปและครอปรูปของคุณเอง รูปจะแสดงในผังคู่ ผลแข่ง โปรไฟล์ และประกาศดั้งใหม่", href: "/account/photo", cta: "เปลี่ยนรูปโปรไฟล์ →" });
+  if (me.athlete) next.push({ title: "รูปโปรไฟล์", body: "เปลี่ยนรูปและครอปรูปของคุณเอง รูปจะแสดงในผังคู่ ผลแข่ง โปรไฟล์ และทำเนียบนักกีฬา", href: "/account/photo", cta: "เปลี่ยนรูปโปรไฟล์ →" });
   if (me.athlete) next.push({ title: `รหัส GO ของคุณ: ${me.athlete.go_id}`, body: `ใช้รหัส GO (หรือเลขดั้ง / ชื่อ-นามสกุล) + รหัสผ่าน เพื่อเข้าสู่ระบบครั้งต่อไป · ${me.athlete.has_profile ? "ดูประวัติ สถิติ และใบประกาศได้ที่โปรไฟล์" : "โปรไฟล์ (ประวัติ สถิติ ใบประกาศ) จะเปิดเมื่อลงแข่งรายการแรกในระบบนี้"}`, href: me.athlete.has_profile ? `/athletes/${me.athlete.id}` : undefined, cta: "ดูโปรไฟล์ของฉัน →" });
   if (me.staff) next.push({ title: "หน้าผู้จัดการแข่งขัน", body: "จัดการรายการแข่งขัน จับคู่ ลงผล กรรมการ และใบสมัคร", href: "/organizer", cta: "ไปหน้าผู้จัด →" });
   else if (me.role === "organizer") next.push({ title: "รอเปิดสิทธิ์ผู้จัด", body: "แจ้งเจ้าของระบบ GO TOURNAMENT ให้เพิ่มอีเมลนี้เป็นผู้จัด แล้วเข้าสู่ระบบใหม่" });
