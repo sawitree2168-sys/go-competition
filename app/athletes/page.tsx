@@ -34,7 +34,7 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
           <ul className="gt-card mt-4 divide-y divide-[var(--gt-line)] overflow-hidden">
             {found.map((a) => (
               <li key={a.go_id} className="flex items-center gap-3 px-3 py-3">
-                <AthleteAvatar src={a.photo} name={a.full_name} />
+                <AthleteAvatar src={a.photo} name={a.full_name} zoom />
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold">{a.full_name}</span>
                   <span className="block text-sm text-[var(--gt-muted)]">{a.go_id}{a.rank ? ` · ${a.rank}` : ""}{a.institution ? ` · ${a.institution}` : ""}</span>
@@ -53,7 +53,7 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
           <ul className="mt-2 grid gap-2 sm:grid-cols-2">
             {top.rows.map((x) => (
               <li key={x.go_id} className="gt-card flex items-center gap-3 p-3">
-                <AthleteAvatar src={x.photo} name={x.full_name} />
+                <AthleteAvatar src={x.photo} name={x.full_name} zoom />
                 <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{x.full_name}</span><span className="block text-sm text-[var(--gt-muted)]">{x.go_id}{x.rank ? ` · ${x.rank}` : ""}</span></span>
                 <span className="gt-num shrink-0 text-sm">ชนะ {x.wins}–{x.losses}</span>
               </li>

@@ -11,6 +11,7 @@ import { resultLabel } from "@/lib/competition-day.mjs";
 import type { Bye, Match, Person } from "./data";
 import type { ResultEvent } from "@/lib/public-site";
 import { thaiDate } from "@/lib/division-display";
+import PhotoZoom from "@/components/PhotoZoom";
 
 /** One athlete of the division (from imported registrations, or from the sign-up sheet before import). */
 export type AthleteCard = { key: string; id: string | null; name: string; institution: string; rank: string | null; photo: string | null; payment: string | null };
@@ -87,7 +88,7 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
           return (
             <li key={a.key} className="gt-card gt-athlete-card flex min-w-0 flex-col gap-0 overflow-hidden p-0">
               <div className="shrink-0 bg-[linear-gradient(180deg,var(--gt-avatar-top),var(--gt-surface-2))] px-2 pb-2 pt-4 sm:py-4">
-                <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`mx-auto h-20 w-20 sm:h-28 sm:w-28 ${a.photo ? "rounded-full object-cover" : "object-contain"}`} />
+                <PhotoZoom src={a.photo} name={a.name} className="mx-auto block"><img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`mx-auto h-20 w-20 sm:h-28 sm:w-28 ${a.photo ? "rounded-full object-cover" : "object-contain"}`} /></PhotoZoom>
               </div>
               <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2.5 py-3 text-center sm:px-3">
                 {a.id

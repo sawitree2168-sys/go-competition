@@ -103,3 +103,10 @@
   .gt-directory-view-toggle button { padding: 0 10px; font-size: 12px; }
   .gt-event-list .gt-event-card { max-width: none; width: 100%; margin: 0; padding: 12px; }
 }
+
+/* ประกาศดั้งใหม่: search · year · level on one row (computer), search on its own row (phone). */
+.gt-directory-tools.gt-dan-tools { grid-template-columns: minmax(0, 1fr) 170px 150px; }
+@media (max-width: 767px) {
+  .gt-directory-tools.gt-dan-tools { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .gt-dan-tools .gt-directory-search { grid-column: 1 / -1; }
+}

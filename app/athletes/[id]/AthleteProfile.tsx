@@ -8,6 +8,7 @@ import { divisionLabel, thaiDate } from "@/lib/division-display";
 import { decided, headToHead, isForfeit, opponents, outcome, percent, summary } from "@/lib/athlete-profile.mjs";
 import { thaiYear } from "@/lib/event-list.mjs";
 import Certificates from "./Certificates";
+import PhotoZoom from "@/components/PhotoZoom";
 import type { Cert } from "./certificate-draw";
 
 export type Athlete = { id: string; full_name: string; institution: string | null; current_rank: string | null; photo: string | null };
@@ -128,8 +129,8 @@ export default function AthleteProfile({ athlete, rows, today, certs = [] }: { a
         <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="relative shrink-0">
-              <Avatar src={athlete.photo} size="h-24 w-24 sm:h-40 sm:w-40" ring />
-              {athlete.photo && <span aria-hidden="true" className="absolute -bottom-1 right-0 flex"><Stone colour="black" className="h-6 w-6 sm:h-9 sm:w-9" /><Stone colour="white" className="-ml-2 h-6 w-6 sm:h-9 sm:w-9" /></span>}
+              <PhotoZoom src={athlete.photo} name={athlete.full_name} className="block"><Avatar src={athlete.photo} size="h-24 w-24 sm:h-40 sm:w-40" ring /></PhotoZoom>
+              {athlete.photo && <span aria-hidden="true" className="pointer-events-none absolute -bottom-1 right-0 flex"><Stone colour="black" className="h-6 w-6 sm:h-9 sm:w-9" /><Stone colour="white" className="-ml-2 h-6 w-6 sm:h-9 sm:w-9" /></span>}
             </div>
             <div className="min-w-0">
               <span className="inline-block rounded-full border border-[var(--gt-cta)]/30 bg-[var(--gt-cta-soft)] px-3 py-0.5 text-xs font-semibold text-[var(--gt-cta)] sm:text-sm">โปรไฟล์นักกีฬา</span>
@@ -485,7 +486,7 @@ function H2H({ athlete, rows, years }: { athlete: Athlete; rows: GameRow[]; year
 function Side({ photo, name, inst, rank, href }: { photo: string | null; name: string; inst: string | null; rank: string | null; href?: string }) {
   return (
     <div className="flex min-w-0 flex-col items-center gap-2 text-center sm:flex-row sm:text-left">
-      <Avatar src={photo} size="h-16 w-16 sm:h-28 sm:w-28" ring />
+      <PhotoZoom src={photo} name={name}><Avatar src={photo} size="h-16 w-16 sm:h-28 sm:w-28" ring /></PhotoZoom>
       <div className="min-w-0">
         {href ? <Link href={href} className="block text-base font-bold leading-tight hover:underline sm:text-2xl">{name}</Link> : <p className="text-base font-bold leading-tight sm:text-2xl">{name}</p>}
         {inst && <p className="mt-0.5 hidden items-center gap-1.5 text-[var(--gt-muted)] sm:flex">{Ico.club}{inst}</p>}

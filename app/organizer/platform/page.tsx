@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "../_lib/Gate";
+import PhotoAdmin from "./PhotoAdmin";
+import ActivityAdmin from "./ActivityAdmin";
 import { ErrorNote, isPlatformAdmin, staffDb, useAction, useStaff } from "../_lib/staff";
 import { callAthlete, identifierKind } from "@/lib/athlete-auth.mjs";
 
@@ -60,6 +62,10 @@ function Platform() {
       <ErrorNote text={action.error} />
 
       <AthleteAccounts />
+
+      <PhotoAdmin />
+
+      <ActivityAdmin />
 
       <TeacherRequests run={action.run} busy={action.busy} />
 
