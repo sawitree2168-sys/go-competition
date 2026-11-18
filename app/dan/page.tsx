@@ -6,7 +6,7 @@ import { publicDb } from "@/app/tournaments/[id]/_ui/data";
 import DanBoard, { type Board } from "./DanBoard";
 import type { Ranking } from "./RankTable";
 
-export const metadata: Metadata = { title: "ประกาศรายชื่อดั้งใหม่ · GO TOURNAMENT" };
+export const metadata: Metadata = { title: "ทำเนียบนักกีฬาหมากล้อมไทย · GO TOURNAMENT" };
 
 // The association updates its list a few times a month; rebuild at most every 10 minutes.
 export const revalidate = 600;
@@ -18,7 +18,7 @@ async function load(): Promise<[Board | null, Ranking | null]> {
   return [b.error || !b.data ? null : (b.data as Board), r.error || !r.data ? null : (r.data as Ranking)];
 }
 
-/** ประกาศรายชื่อดั้งใหม่: same frame as the competition directory (hero artwork, tools, cards and table). */
+/** ทำเนียบนักกีฬาหมากล้อมไทย: same frame as the competition directory (hero artwork, tools, cards and table). */
 export default async function DanPage() {
   const [board, ranking] = await load();
   return (
@@ -30,8 +30,8 @@ export default async function DanPage() {
             {/* eslint-disable-next-line @next/next/no-img-element -- reuse the approved, unified Go artwork */}
             <picture aria-hidden="true" className="gt-directory-art"><img src="/event-hero-wide.webp" alt="" width="2000" height="667" fetchPriority="high" /></picture>
             <div className="gt-directory-hero-inner">
-              <h1 id="dan-title">ประกาศรายชื่อดั้งใหม่</h1>
-              <p>ขอแสดงความยินดีกับนักกีฬาหมากล้อมที่ได้รับการรับรองระดับดั้ง</p>
+              <h1 id="dan-title">ทำเนียบนักกีฬาหมากล้อมไทย</h1>
+              <p>อันดับคะแนน รายชื่อดั้ง และประกาศดั้งใหม่ จากสมาคมกีฬาหมากล้อมแห่งประเทศไทย</p>
               <span className="gt-directory-gold" aria-hidden="true" />
             </div>
           </section>

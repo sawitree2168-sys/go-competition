@@ -7,7 +7,7 @@ const NAV = [
   { href: "/", label: "หน้าหลัก", icon: "home" },
   { href: "/tournaments", label: "การแข่งขัน", icon: "trophy" },
   { href: "/athletes", label: "นักกีฬา", icon: "athlete" },
-  { href: "/dan", label: "ประกาศดั้งใหม่", icon: "dan" },
+  { href: "/dan", label: "ทำเนียบนักกีฬา", icon: "dan" },
   { href: "/go-fan", label: "GO FAN", icon: "fan" },
 ] as const;
 

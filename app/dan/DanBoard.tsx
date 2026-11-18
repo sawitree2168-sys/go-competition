@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import AthleteAvatar from "@/components/AthleteAvatar";
-import RankTable, { type Ranking } from "./RankTable";
+import RankTable, { type Ranking, type RankRow } from "./RankTable";
 
 export type Person = { dan: number | null; name: string; level: string | null; diamond: boolean; go_id: string | null; photo: string | null; profile_id: string | null };
 export type Examiner = Person & { role: string };
@@ -13,8 +13,8 @@ export type Board = { synced_at: string | null; source_url: string; announcement
 
 type Tab = "new" | "rank" | "diamond" | "all";
 const TABS: { id: Tab; label: string }[] = [
-  { id: "new", label: "ดั้งใหม่" },
   { id: "rank", label: "อันดับคะแนน" },
+  { id: "new", label: "ดั้งใหม่" },
   { id: "diamond", label: "ดั้งเพชร" },
   { id: "all", label: "ทำเนียบดั้งทั้งหมด" },
 ];
@@ -133,7 +133,7 @@ function Pager({ page, pages, go }: { page: number; pages: number; go: (p: numbe
 }
 
 export default function DanBoard({ board, ranking }: { board: Board; ranking: Ranking | null }) {
-  const [tab, setTab] = useState<Tab>("new");
+  const [tab, setTab] = useState<Tab>(ranking ? "rank" : "new");
   const [q, setQ] = useState("");
   const [year, setYear] = useState("all");
   const [level, setLevel] = useState("all");
@@ -157,6 +157,38 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
     (tab !== "diamond" || d.diamond) && matches(q, d.name, d.dan) && (year === "all" || d.year === Number(year)) && (level === "all" || d.level === level)), [board, tab, q, year, level]);
 
   const activeCount = ranking?.rows.filter((r) => r.active && r.score !== null).length ?? 0;
+  // Rank inside each dan class (Active players only, equal scores share a rank), alongside the national rank.
+  const classRank = useMemo(() => {
+    const out = new Map<number, number>();
+    const by = new Map<string, RankRow[]>();
+    for (const r of ranking?.rows ?? []) if (r.active && r.score !== null) by.set(r.level ?? "", [...(by.get(r.level ?? "") ?? []), r]);
+    for (const list of by.values()) {
+      list.sort((a, b) => b.score! - a.score!);
+      list.forEach((r, i) => out.set(r.dan, i > 0 && list[i - 1].score === r.score ? out.get(list[i - 1].dan)! : i + 1));
+    }
+    return out;
+  }, [ranking]);
+  const classes = useMemo(() => {
+    const m = new Map<string, { total: number; active: number }>();
+    for (const r of ranking?.rows ?? []) if (r.level) {
+      const c = m.get(r.level) ?? { total: 0, active: 0 };
+      c.total++; if (r.active && r.score !== null) c.active++;
+      m.set(r.level, c);
+    }
+    return [...m.entries()].sort((a, b) => Number(a[0]) - Number(b[0]));
+  }, [ranking]);
+  const classStats = useMemo(() => {
+    if (level === "all" || !ranking) return null;
+    const all = ranking.rows.filter((r) => r.level === level);
+    const act = all.filter((r) => r.active && r.score !== null);
+    const scores = act.map((r) => r.score!);
+    return {
+      total: all.length, active: act.length,
+      top: scores.length ? Math.max(...scores) : null,
+      avg: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null,
+      next: act.filter((r) => r.next_level).length,
+    };
+  }, [ranking, level]);
   const ranked = useMemo(() => (ranking?.rows ?? [])
     .filter((r) => r.score !== null && (scope === "all" || r.active) && matches(q, r.name, r.dan) && (level === "all" || r.level === level))
     .sort((a, b) => sort === "dan" ? a.dan - b.dan : (b.score! - a.score!) || (Number(b.active) - Number(a.active)) || a.dan - b.dan), [ranking, scope, q, level, sort]);
@@ -219,9 +251,21 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
         </div>
       </div>
 
+      {tab === "rank" && classes.length > 0 && (
+        <div role="group" aria-label="เลือกรุ่นดั้ง" className="mb-5 mt-3 flex gap-2 overflow-x-auto pb-1">
+          {[["all", { total: ranking!.rows.length, active: activeCount }] as const, ...classes].map(([l, c]) => (
+            <button key={l} type="button" aria-pressed={level === l} onClick={() => { setLevel(l); setPage(1); }}
+              className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-sm font-semibold ${level === l ? "border-transparent bg-[var(--gt-brand)] text-white" : "border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)]"}`}>
+              {l === "all" ? "ทุกรุ่น" : `${l} ดั้ง`}
+              <span className={`gt-num rounded-full px-2 text-xs ${level === l ? "bg-white/20" : "bg-[var(--gt-surface-2)]"}`}>{num(c.active)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="gt-directory-results" id="dan-results">
         <div className="gt-directory-results-heading">
-          <h2>{tab === "new" ? "รายชื่อผู้ได้รับการรับรองดั้งใหม่" : tab === "rank" ? `อันดับคะแนนประเทศไทย ปี ${(ranking?.as_of ? beYear(ranking.as_of) : beYear(new Date().toISOString()))}` : tab === "diamond" ? "ดั้งเพชร" : "ทำเนียบดั้งทั้งหมด"}</h2>
+          <h2>{tab === "new" ? "รายชื่อผู้ได้รับการรับรองดั้งใหม่" : tab === "rank" ? `อันดับคะแนน${level === "all" ? "ประเทศไทย" : ` รุ่น ${level} ดั้ง`} ปี ${(ranking?.as_of ? beYear(ranking.as_of) : beYear(new Date().toISOString()))}` : tab === "diamond" ? "ดั้งเพชร" : "ทำเนียบดั้งทั้งหมด"}</h2>
           <p className="text-sm text-[var(--gt-muted)]" aria-live="polite">{num(total)} คน</p>
         </div>
         {tab === "rank" && (
@@ -247,6 +291,23 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
         {board.synced_at && <> · อัปเดต {thaiDate(board.synced_at)}</>}
       </p>
 
+      {tab === "rank" && classStats && (
+        <dl className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {[
+            ["นักกีฬาทั้งหมด", `${num(classStats.total)} คน`],
+            ["Active", `${num(classStats.active)} คน`],
+            ["คะแนนสูงสุด", classStats.top === null ? "–" : num(classStats.top)],
+            ["คะแนนเฉลี่ย (Active)", classStats.avg === null ? "–" : num(classStats.avg)],
+            [`ถึงเกณฑ์ ${Number(level) + 1} ดั้ง`, `${num(classStats.next)} คน`],
+          ].map(([k, v], i) => (
+            <div key={k} className={`gt-card px-3 py-2.5 ${i === 4 ? "col-span-2 sm:col-span-1" : ""}`}>
+              <dt className="text-xs text-[var(--gt-muted)]">{k}</dt>
+              <dd className={`gt-num text-lg font-bold ${i === 4 ? "text-[var(--gt-gold-ink)]" : ""}`}>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
       {total === 0 ? (
         <div className="gt-card mt-2 px-5 py-8 text-center">
           <p className="font-semibold">ไม่พบรายชื่อที่ตรงกับเงื่อนไข</p>
@@ -257,7 +318,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
           {news.slice((cur - 1) * per, cur * per).map((a) => <NewDanCard key={a.dan ?? a.name} a={a} />)}
         </ul>
       ) : tab === "rank" ? (
-        <RankTable rows={ranked.slice((cur - 1) * per, cur * per)} />
+        <RankTable rows={ranked.slice((cur - 1) * per, cur * per)} classRank={level === "all" ? null : classRank} />
       ) : (
         <DanTable rows={(tab === "new" ? newAsRows : dir).slice((cur - 1) * per, cur * per)} />
       )}

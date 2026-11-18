@@ -43,19 +43,25 @@ function Delta({ d }: { d: number | null }) {
 const GRID = "lg:grid-cols-[64px_54px_minmax(0,1fr)_86px_84px_96px_96px]";
 
 /** National ranking table in the approved directory table style. */
-export default function RankTable({ rows }: { rows: RankRow[] }) {
+export default function RankTable({ rows, classRank }: { rows: RankRow[]; classRank: Map<number, number> | null }) {
   return (
     <div className="gt-athlete-table overflow-hidden rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)]">
       <div className={`hidden ${GRID} items-center gap-3 border-b border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-3 py-3 text-xs font-semibold text-[var(--gt-muted)] lg:grid`}>
-        <span className="text-center">อันดับ</span><span>รูป</span><span>ชื่อ–นามสกุล</span><span className="text-right">คะแนน</span>
+        <span className="text-center">{classRank ? "อันดับรุ่น" : "อันดับ"}</span><span>รูป</span><span>ชื่อ–นามสกุล</span><span className="text-right">คะแนน</span>
         <span className="text-right">ล่าสุด</span><span>สถานะ</span><span>แข่งล่าสุด</span>
       </div>
       <ol className="divide-y divide-[var(--gt-line)]" aria-label="อันดับคะแนน">
         {rows.map((r) => (
           <li key={r.dan} className={`grid grid-cols-[44px_48px_minmax(0,1fr)_auto] items-center gap-2 px-3 py-3 ${GRID} lg:gap-3 ${r.active ? "" : "opacity-70"}`}>
-            <span className={`gt-num text-center font-bold ${r.rank && r.rank <= 3 ? "text-lg text-[var(--gt-gold-ink)]" : "text-sm text-[var(--gt-brand)]"}`}>
-              {r.rank ?? "–"}
-            </span>
+            {(() => {
+              const main = classRank ? classRank.get(r.dan) ?? null : r.rank;
+              return (
+                <span className="gt-num text-center leading-tight">
+                  <span className={`block font-bold ${main && main <= 3 ? "text-lg text-[var(--gt-gold-ink)]" : "text-sm text-[var(--gt-brand)]"}`}>{main ?? "–"}</span>
+                  {classRank && r.rank && <span className="block text-[10px] text-[var(--gt-muted)]" >ประเทศ {r.rank}</span>}
+                </span>
+              );
+            })()}
             <AthleteAvatar src={r.photo} name={r.name} zoom className="h-11 w-11 sm:h-12 sm:w-12" />
             <span className="min-w-0">
               <span className="block break-words text-sm font-semibold leading-snug sm:text-base">

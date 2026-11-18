@@ -8,7 +8,7 @@ const entries: { label: string; href: string; icon: MenuIconName; desc: string }
   {label:"ผลการแข่งขัน",href:"/results",icon:"results",desc:"ดูผลและคู่แข่งขัน"},
   {label:"อันดับและสถิติ",href:"/stats",icon:"stats",desc:"สถิติและอันดับนักกีฬา"},
   {label:"นักกีฬา",href:"/athletes",icon:"athlete",desc:"ค้นหาและดูโปรไฟล์"},
-  {label:"ประกาศดั้งใหม่",href:"/dan",icon:"dan",desc:"ดั้งใหม่ ดั้งเพชร และทำเนียบดั้งจากสมาคม"},
+  {label:"ทำเนียบนักกีฬา",href:"/dan",icon:"dan",desc:"อันดับคะแนน รายชื่อดั้ง และประกาศดั้งใหม่"},
   {label:"GO FAN",href:"/go-fan",icon:"fan",desc:"ติดตามนักกีฬาที่ชื่นชอบ"},
   {label:"ข่าวสาร",href:"/news",icon:"news",desc:"ข่าวประกาศและกิจกรรม"},
   {label:"แกลเลอรี",href:"/gallery",icon:"gallery",desc:"ภาพกิจกรรมการแข่งขัน"},
