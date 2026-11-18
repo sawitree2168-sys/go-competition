@@ -254,6 +254,6 @@ export default function CompetitionDashboard({ event, divisions, entrants, initi
       <p className="cd-update-notice" role="status" aria-live="polite">{live.notice}</p>
       <aside className="cd-footnote">การแข่งขันแต่ละรุ่นดำเนินการแยกกัน สามารถดูผลของรุ่นที่จบแล้วได้ทันที · ข้อมูลตัวอย่างใช้เพื่อเรียนรู้เท่านั้น ไม่มีผลต่อคะแนนหรืออันดับจริง</aside>
     </main>
-    <footer className="cd-footer"><strong>●○ GO TOURNAMENT</strong><span>ระบบจัดการแข่งขันหมากล้อม (Go)<br />สำหรับการแข่งขันในประเทศไทย</span><Link href="/tournaments">รายการแข่งขันทั้งหมด →</Link></footer>
+    <footer className="cd-footer"><div className="cd-footer-copy"><strong>●○ GO TOURNAMENT</strong><span>ระบบจัดการแข่งขันหมากล้อม (Go)<br />สำหรับการแข่งขันในประเทศไทย</span><Link href="/tournaments">รายการแข่งขันทั้งหมด →</Link></div><img className="cd-footer-board" src="/event-hero-board.webp" alt="" width="1384" height="588" loading="lazy" /></footer>
   </div>;
 }
