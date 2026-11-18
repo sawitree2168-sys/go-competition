@@ -25,17 +25,20 @@ $$;
 revoke all on function public.gt_is_platform_admin_v1() from public, anon;
 grant execute on function public.gt_is_platform_admin_v1() to authenticated;
 
-drop policy if exists gt_avatar_self_upload_v1 on storage.objects;
-create policy gt_avatar_self_upload_v1 on storage.objects for insert to authenticated
-  with check (bucket_id = 'gt-athlete-avatars'
-    and name ~ '^self/[0-9a-f-]{36}/[0-9a-f-]{36}\.jpg$'
-    and exists (select 1 from public.gt_athletes a where a.id::text = (storage.foldername(name))[2] and a.claimed_by = auth.uid()));
-
-drop policy if exists gt_avatar_admin_upload_v1 on storage.objects;
-create policy gt_avatar_admin_upload_v1 on storage.objects for insert to authenticated
-  with check (bucket_id = 'gt-athlete-avatars'
-    and name ~ '^admin/[A-Za-z0-9-]{3,40}/[0-9a-f-]{36}\.jpg$'
-    and public.gt_is_platform_admin_v1());
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'gt_avatar_self_upload_v1') then
+    create policy gt_avatar_self_upload_v1 on storage.objects for insert to authenticated
+      with check (bucket_id = 'gt-athlete-avatars'
+        and name ~ '^self/[0-9a-f-]{36}/[0-9a-f-]{36}\.jpg$'
+        and exists (select 1 from public.gt_athletes a where a.id::text = (storage.foldername(name))[2] and a.claimed_by = auth.uid()));
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'gt_avatar_admin_upload_v1') then
+    create policy gt_avatar_admin_upload_v1 on storage.objects for insert to authenticated
+      with check (bucket_id = 'gt-athlete-avatars'
+        and name ~ '^admin/[A-Za-z0-9-]{3,40}/[0-9a-f-]{36}\.jpg$'
+        and public.gt_is_platform_admin_v1());
+  end if;
+end $$;
 
 -- Set (p_path) or remove (p_path null) the photo of the athlete with this GO ID.
 create or replace function public.gt_athlete_photo_set_v1(p_go_id text, p_path text, p_reason text default null)
@@ -101,7 +104,7 @@ grant execute on function public.gt_athlete_photo_revert_v1(bigint, text) to aut
 -- Admin search: name, GO ID or dan number -> current photo and the last changes.
 create or replace function public.gt_admin_photo_search_v1(p_query text)
 returns jsonb language plpgsql stable security definer set search_path = public, gt_private as $$
-declare q text := btrim(coalesce(p_query, '')); k text := regexp_replace(btrim(coalesce(p_query, '')), '[[:space:]​‌‍﻿]', '', 'g');
+declare k text := regexp_replace(btrim(coalesce(p_query, '')), '[[:space:]​‌‍﻿]', '', 'g');
 begin
   if not public.gt_is_platform_admin_v1() then raise exception 'NOT_ALLOWED'; end if;
   if length(k) < 2 then return '[]'::jsonb; end if;

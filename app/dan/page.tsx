@@ -4,22 +4,23 @@ import { Shell } from "@/app/tournaments/[id]/_ui/chrome";
 import SiteBar from "@/app/tournaments/[id]/_ui/SiteBar";
 import { publicDb } from "@/app/tournaments/[id]/_ui/data";
 import DanBoard, { type Board } from "./DanBoard";
+import type { Ranking } from "./RankTable";
 
 export const metadata: Metadata = { title: "ประกาศรายชื่อดั้งใหม่ · GO TOURNAMENT" };
 
 // The association updates its list a few times a month; rebuild at most every 10 minutes.
 export const revalidate = 600;
 
-async function load(): Promise<Board | null> {
+async function load(): Promise<[Board | null, Ranking | null]> {
   const db = publicDb();
-  if (!db) return null;
-  const { data, error } = await db.rpc("gt_dan_board_v1");
-  return error || !data ? null : (data as Board);
+  if (!db) return [null, null];
+  const [b, r] = await Promise.all([db.rpc("gt_dan_board_v1"), db.rpc("gt_national_ranking_v1")]);
+  return [b.error || !b.data ? null : (b.data as Board), r.error || !r.data ? null : (r.data as Ranking)];
 }
 
 /** ประกาศรายชื่อดั้งใหม่: same frame as the competition directory (hero artwork, tools, cards and table). */
 export default async function DanPage() {
-  const board = await load();
+  const [board, ranking] = await load();
   return (
     <div className="min-h-screen">
       <Shell wide>
@@ -36,7 +37,7 @@ export default async function DanPage() {
           </section>
           <div className="gt-directory-content relative mx-auto max-w-6xl px-4 sm:px-8">
             {board
-              ? <DanBoard board={board} />
+              ? <DanBoard board={board} ranking={ranking} />
               : <p className="gt-card p-6 text-center text-[var(--gt-muted)]">ยังโหลดรายชื่อดั้งไม่ได้ กรุณาลองใหม่อีกครั้ง</p>}
           </div>
         </div>
