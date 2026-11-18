@@ -20,7 +20,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "all", label: "ทำเนียบดั้งทั้งหมด" },
 ];
 const PAGE = 12;
-const ROWS = 50;
+const ROWS = 20;
 
 const key = (s: string) => s.replace(/[\s​-‍﻿]+/g, "").toLowerCase();
 const num = (n: number) => n.toLocaleString("en-US");
@@ -221,7 +221,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
   const select = "block min-h-12 w-full appearance-none rounded-full border border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)] pl-5 pr-10 text-base font-semibold outline-none focus:border-[var(--gt-cta)]";
 
   return (
-    <div>
+    <div className="dan-board">
       <div className="gt-directory-tools gt-dan-tools">
         <label className="gt-directory-search relative block">
           <span className="sr-only">ค้นหาชื่อหรือเลขดั้ง</span>
@@ -299,7 +299,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
           </div>
         )}
       </div>
-      <p className="-mt-2 mb-4 text-sm text-[var(--gt-muted)]">
+      <p className="dan-source-note text-sm text-[var(--gt-muted)]">
         {tab === "new" && latest && <>ประกาศล่าสุด {thaiDate(latest, "long")} · </>}
         {tab === "diamond" && <>ผู้ที่มีเครื่องหมายเพชรในทำเนียบดั้ง · </>}
         {tab === "all" && (board.reserved?.length ?? 0) > 0 && <>มีเลขดั้งที่ประมูลแล้วรอสอบ {num(board.reserved!.length)} เลข · </>}

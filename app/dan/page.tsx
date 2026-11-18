@@ -1,4 +1,5 @@
 import "../tournaments/directory.css";
+import "./dan.css";
 import { SiteFooter } from "@/components/SiteDesign";
 import type { Metadata } from "next";
 import { Shell } from "@/app/tournaments/[id]/_ui/chrome";
