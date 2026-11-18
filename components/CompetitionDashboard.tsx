@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import SiteBar from "@/app/tournaments/[id]/_ui/SiteBar";
-import AthleteAvatar from "./AthleteAvatar";
+import AthletePhotoViewer from "./AthletePhotoViewer";
 import MenuIcon from "./MenuIcon";
 import CompetitionPanel from "./CompetitionPanel";
 import { divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
@@ -36,7 +36,7 @@ const fmt = (n: number) => Number.isInteger(n) ? String(n) : n.toFixed(1);
 
 function ExampleTag() { return <span className="cd-example-tag">ตัวอย่างสำหรับเรียนรู้</span>; }
 function Player({ person, colour }: { person?: Person; colour?: "black" | "white" }) {
-  return <div className="cd-player"><span className="cd-avatar-wrap"><AthleteAvatar src={person?.photo} name={person?.name ?? "นักกีฬา"} className="cd-avatar" />
+  return <div className="cd-player"><span className="cd-avatar-wrap"><AthletePhotoViewer src={person?.photo} name={person?.name ?? "นักกีฬา"} />
     {colour && <span className={`cd-stone ${colour}`} aria-label={colour === "black" ? "หมากดำ" : "หมากขาว"} />}</span>
     <span><strong>{person?.name ?? "รอรายชื่อจากผู้จัด"}</strong><small>{person?.institution || "ไม่ระบุสถาบัน"}{person?.rank ? ` · ${person.rank}` : ""}</small></span></div>;
 }
@@ -120,7 +120,7 @@ function StandingsTable({ row, mode, compact = false, search = "", pool = "*" }:
     && `${s.display_name ?? ""} ${s.institution ?? ""}`.toLowerCase().includes(search.toLowerCase()));
   const rows = compact ? source.filter(s => (s.pos ?? 99) <= 8) : source;
   return <>{demo ? <p className="cd-teach">ตัวอย่างวิธีอ่านอันดับและคะแนน ข้อมูลจริงจะแทนที่เมื่อประกาศคู่แข่งขัน</p> : !recorded && <p className="cd-message">ประกาศคู่แข่งขันแล้ว · ยังไม่มีผลยืนยัน จึงยังไม่จัดอันดับ</p>}
-    <div className="cd-table-scroll"><table className="cd-rank-table"><thead><tr><th scope="col">#</th><th scope="col">นักกีฬา / สถาบัน</th><th scope="col">คะแนน</th>{!compact && <><th scope="col">ชนะ</th><th scope="col">แพ้</th><th scope="col">SOS</th><th scope="col">SOSOS</th></>}</tr></thead><tbody>
+    <div className="cd-table-scroll"><table className={`cd-rank-table ${compact ? "cd-rank-compact" : "cd-rank-full"}`}><colgroup><col className="cd-col-place" /><col className="cd-col-player" /><col className="cd-col-number" span={compact ? 1 : 5} /></colgroup><thead><tr><th scope="col">#</th><th scope="col">นักกีฬา / สถาบัน</th><th scope="col">คะแนน</th>{!compact && <><th scope="col">ชนะ</th><th scope="col">แพ้</th><th scope="col">SOS</th><th scope="col">SOSOS</th></>}</tr></thead><tbody>
       {rows.map((s, i) => <tr key={`${s.pool_label}-${s.athlete_id ?? i}`}><td><span className={`cd-place p${demo || recorded ? s.pos : 0}`}>{demo || recorded ? s.pos : "–"}</span></td><td><Player person={{ name: s.display_name ?? "นักกีฬา", institution: s.institution ?? "", rank: s.current_rank, photo: people.get(s.athlete_id ?? "")?.photo }} />{s.pool_label && <small className="cd-pool-note">สาย {s.pool_label}</small>}</td><td><strong>{fmt(s.score)}</strong></td>{!compact && <><td className="cd-wins">{s.wins}</td><td className="cd-losses">{s.losses}</td><td>{s.sos}</td><td>{s.sosos}</td></>}</tr>)}
     </tbody></table></div>{!rows.length && <p className="cd-message">{search ? "ไม่พบรายชื่อที่ค้นหา" : "รอข้อมูลอันดับจากการแข่งขัน"}</p>}</>;
 }
