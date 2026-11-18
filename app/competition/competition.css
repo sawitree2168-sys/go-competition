@@ -54,3 +54,22 @@
 .cd-photo-open{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border:0;background:transparent;padding:0;border-radius:50%;line-height:0;cursor:zoom-in}.cd-photo-open:after{content:"";position:absolute;inset:-7px;border-radius:50%}.cd-photo-open:focus-visible{outline:3px solid #dc9f13;outline-offset:4px}.cd-stone{pointer-events:none}
 .cd-athlete-photo-dialog{position:fixed;inset:0;margin:auto;width:min(92vw,720px);max-width:92vw;max-height:92dvh;border:1px solid #7baded;border-radius:18px;background:#f5faff;padding:12px;color:#102653;box-shadow:0 12px 60px #001b5c66;overflow:auto;font-family:inherit}.cd-athlete-photo-dialog::backdrop{background:#00102de0}.cd-athlete-photo-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.cd-athlete-photo-header strong{font-size:16px;overflow-wrap:anywhere}.cd-athlete-photo-header button{flex-shrink:0;min-height:44px;border:1px solid #0750bc;border-radius:10px;background:#0750bc;color:white;padding:9px 14px;font:inherit;font-size:13px;cursor:pointer}.cd-athlete-photo-dialog>img{display:block;max-height:72dvh;width:100%;object-fit:contain;border-radius:10px;background:#e7effa}.cd-athlete-photo-dialog>p{text-align:center;font-size:12px;margin-top:10px;color:#526b89}
 @media(max-width:760px){.cd-rank-full .cd-col-place{width:8%}.cd-rank-full .cd-col-player{width:34%}.cd-rank-full .cd-col-number{width:11.6%}.cd-full-standings .cd-rank-table tbody tr{height:92px}.cd-full-standings .cd-rank-table td{padding:8px 3px}.cd-full-standings .cd-player{gap:5px;align-items:center}.cd-full-standings .cd-player .cd-avatar{width:26px;height:26px}.cd-full-standings .cd-player strong{font-size:10px;min-height:2.9em}.cd-full-standings .cd-player small{font-size:8px;min-height:3em}.cd-full-standings .cd-rank-table th{font-size:9px;line-height:1.5;white-space:normal;overflow-wrap:normal;padding:9px 2px}.cd-full-standings .cd-rank-table td:nth-child(3)>strong{min-width:24px;font-size:14px;padding:3px}.cd-full-standings .cd-place{width:22px;height:22px;font-size:14px}.cd-athlete-photo-header strong{font-size:14px}}
+
+/* Standings identity: portrait above, then name and institution on separate lines. */
+.cd-dashboard .cd-full-standings .cd-rank-table th:nth-child(2),.cd-dashboard .cd-full-standings .cd-rank-table td:nth-child(2){text-align:center}
+.cd-full-standings .cd-rank-table .cd-player{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;width:100%}
+.cd-full-standings .cd-player>.cd-avatar-wrap{display:flex;justify-content:center}
+.cd-full-standings .cd-player>span:last-child{flex:none;width:100%;min-width:0}
+.cd-full-standings .cd-player .cd-avatar{width:40px;height:40px}
+.cd-full-standings .cd-player strong{font-size:13px;line-height:1.45;min-height:2.9em;margin:0}
+.cd-full-standings .cd-player small{font-size:10px;line-height:1.5;min-height:3em;margin-top:2px}
+.cd-full-standings .cd-rank-table tbody tr{height:136px}
+.cd-full-standings .cd-rank-table td{padding-top:8px;padding-bottom:8px}
+.cd-full-standings .cd-pool-note{padding-left:0;text-align:center}
+@media(max-width:760px){
+ .cd-full-standings .cd-rank-table .cd-player{flex-direction:column;align-items:center;gap:4px;text-align:center}
+ .cd-full-standings .cd-player .cd-avatar{width:32px;height:32px}
+ .cd-full-standings .cd-player strong{font-size:10px;line-height:1.45;min-height:2.9em}
+ .cd-full-standings .cd-player small{font-size:8px;line-height:1.5;min-height:3em;margin-top:2px}
+ .cd-full-standings .cd-rank-table tbody tr{height:116px}
+}
