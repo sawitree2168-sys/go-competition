@@ -73,6 +73,7 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
   const refundUntil = policy?.allow_withdraw ? policy.withdraw_until : refund?.full_refund_through_date ?? null;
   const tabs = [
     { href: `/tournaments/${id}`, label: "ภาพรวม", current: true },
+    { href: `/tournaments/${id}/competition`, label: "หน้าแข่งขัน" },
     { href: `/tournaments/${id}/register`, label: "สมัครแข่งขัน" },
     { href: `/tournaments/${id}/entrants`, label: "รายชื่อผู้สมัคร" },
     { href: "#info", label: "ข้อมูลการแข่งขัน" },
