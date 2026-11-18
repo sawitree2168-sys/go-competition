@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import Gate from "../_lib/Gate";
 import PhotoAdmin from "./PhotoAdmin";
 import ActivityAdmin from "./ActivityAdmin";
+import ResultsAdmin from "./ResultsAdmin";
 import { ErrorNote, isPlatformAdmin, staffDb, useAction, useStaff } from "../_lib/staff";
 import { callAthlete, identifierKind } from "@/lib/athlete-auth.mjs";
 
@@ -66,6 +67,8 @@ function Platform() {
       <PhotoAdmin />
 
       <ActivityAdmin />
+
+      <ResultsAdmin />
 
       <TeacherRequests run={action.run} busy={action.busy} />
 
