@@ -5,8 +5,10 @@ import "@/app/competition/competition.css";
 
 export const revalidate = 30;
 
-export default async function EventCompetition({ params }: { params: Promise<{ id: string }> }) {
+export default async function EventCompetition({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
   const { id } = await params;
+  const { tab } = await searchParams;
+  const initialTab = tab === "standings" || tab === "pairings" || tab === "entrants" || tab === "announcements" ? tab : "overview";
   const db = publicDb();
   const { event, divisions, entrants } = await loadEventPage(db, id);
   if (!event) return <main className="competition-page competition-content"><h1>ยังไม่พบรายการแข่งขันที่เผยแพร่</h1><Link href="/tournaments">กลับรายการแข่งขัน</Link></main>;
@@ -20,5 +22,5 @@ export default async function EventCompetition({ params }: { params: Promise<{ i
       standingsAvailable: page.standingsAvailable, fingerprint: fingerprint?.error ? null : fingerprint?.data as string | null ?? null,
       announcements: page.announcements };
   }));
-  return <CompetitionDashboard event={event} divisions={data} entrants={entrants} />;
+  return <CompetitionDashboard event={event} divisions={data} entrants={entrants} initialTab={initialTab} />;
 }

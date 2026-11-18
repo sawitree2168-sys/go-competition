@@ -40,7 +40,7 @@ function Player({ person, colour }: { person?: Person; colour?: "black" | "white
     <span><strong>{person?.name ?? "รอรายชื่อจากผู้จัด"}</strong><small>{person?.institution || "ไม่ระบุสถาบัน"}{person?.rank ? ` · ${person.rank}` : ""}</small></span></div>;
 }
 function PanelTitle({ title, demo, children }: { title: string; demo?: boolean; children?: React.ReactNode }) {
-  return <div className="cd-panel-heading"><h2>{title}</h2>{demo && <ExampleTag />}{children}</div>;
+  return <div className="cd-panel-heading"><h2><span className="cd-heading-stones" aria-hidden="true">●○</span>{title}</h2>{demo && <ExampleTag />}{children}</div>;
 }
 
 /** Poll only public fingerprints. A change invalidates the same route before requesting fresh server data. */
@@ -134,7 +134,7 @@ function MatchTable({ row, mode, round, pool, search, compact }: { row: Dashboar
   };
   const demoRound = round === "latest" ? 1 : round;
   const matches: { key: string; board: number | null; round: number; pool: string | null; black?: Person; white?: Person; status: string; done: boolean }[] = demo
-    ? Array.from({ length: 4 }, (_, i) => ({ key: `example-${i}`, board: i + 1, round: demoRound, pool: null,
+    ? Array.from({ length: 6 }, (_, i) => ({ key: `example-${i}`, board: i + 1, round: demoRound, pool: null,
       black: MOCK_PEOPLE[(i * 2 + demoRound - 1) % 8], white: MOCK_PEOPLE[(i * 2 + demoRound) % 8],
       status: i === 2 ? "ตัวอย่าง: รอผล" : i === 3 ? "ตัวอย่าง: ดำชนะ" : "ตัวอย่าง: รอเริ่ม", done: i === 3 }))
     : chosen.matches.map((m: Match) => ({ key: m.id, board: m.board_number, round: m.round_number, pool: m.pool_label ?? null,
@@ -175,11 +175,14 @@ function CompetitionWorkspace({ row, event, entrants, active, selectTab }: { row
     </div>}
     <div className={active === "overview" ? "cd-work-grid" : "cd-work-single"}>
       <div className="cd-work-main">
-        {showBoard && <section className="cd-panel"><PanelTitle title={mode === "demo" ? "ทำความรู้จักคู่แข่งขัน" : "คู่แข่งขันที่ประกาศ"} demo={mode === "demo"} />
+        {showBoard && <section className="cd-panel"><PanelTitle title="รอบแข่งขันล่าสุด" demo={mode === "demo"} />
           <MatchTable row={row} mode={mode} round={selectedRound} pool={selectedPool} search={search} compact={active === "overview"} />
           {active === "overview" && <button className="cd-panel-link" type="button" onClick={() => selectTab("pairings")}>ดูตารางจับคู่ทั้งหมด →</button>}
         </section>}
-        {active === "standings" && <section className="cd-panel"><PanelTitle title="ตารางอันดับ" demo={ranksMode === "demo"} /><StandingsTable row={row} mode={ranksMode} search={search} pool={selectedPool} /></section>}
+        {active === "standings" && <section className="cd-panel cd-full-standings"><PanelTitle title={`ตารางอันดับ : ${divisionLabel(row.division.name)}`} demo={ranksMode === "demo"} />
+          <div className="cd-rank-summary"><span><MenuIcon name="entrants" />ผู้เข้าแข่งขัน <b>{mode === "demo" ? MOCK_PEOPLE.length : names.length} คน</b></span><span><MenuIcon name="trophy" />แข่งขัน <b>{roundsOf(row.division)} รอบ</b></span><span className={divisionProgress(row.matches, row.byes, roundsOf(row.division)).complete ? "complete" : ""}>{mode === "demo" ? "ข้อมูลตัวอย่าง" : divisionProgress(row.matches, row.byes, roundsOf(row.division)).complete ? "✓ จบการแข่งขันแล้ว" : "ติดตามผลการแข่งขัน"}</span></div>
+          <StandingsTable row={row} mode={ranksMode} search={search} pool={selectedPool} />
+          <p className="cd-rank-key">คะแนน = คะแนนจากผลการแข่งขัน · SOS = ผลรวมคะแนนของคู่แข่ง · SOSOS = ผลรวม SOS ของคู่แข่ง</p></section>}
         {active === "entrants" && <section className="cd-panel"><PanelTitle title={`รายชื่อผู้สมัคร · ${names.length} คน`} /><p className="cd-subtle cd-padding">รายชื่อจากการสมัครจริง · ยังไม่ใช่ผลจับคู่</p>
           <div className="cd-entrant-grid">{names.map((e, i) => <div key={`${e.source}-${e.source_row}-${i}`}><span className="cd-entry-number">{i + 1}</span><Player person={{ name: `${e.title ?? ""}${e.full_name}`, institution: e.institution }} /></div>)}</div>{!names.length && <p className="cd-message">{search ? "ไม่พบรายชื่อที่ค้นหา" : "รอข้อมูลรายชื่อผู้สมัคร"}</p>}
         </section>}
@@ -196,9 +199,9 @@ function CompetitionWorkspace({ row, event, entrants, active, selectTab }: { row
   </>;
 }
 
-export default function CompetitionDashboard({ event, divisions, entrants }: { event: EventInfo; divisions: DashboardDivision[]; entrants: Entrant[] }) {
+export default function CompetitionDashboard({ event, divisions, entrants, initialTab = "overview" }: { event: EventInfo; divisions: DashboardDivision[]; entrants: Entrant[]; initialTab?: Tab }) {
   const [selectedId, setSelectedId] = useState(divisions[0]?.division.id ?? "");
-  const [active, setActive] = useState<Tab>("overview");
+  const [active, setActive] = useState<Tab>(initialTab);
   const selected = divisions.find(d => d.division.id === selectedId) ?? divisions[0];
   const live = useDashboardLive(divisions);
   const hasPairings = divisions.some(d => boardMode(d.boardAvailable, d.matches, d.byes) === "live");
@@ -210,8 +213,8 @@ export default function CompetitionDashboard({ event, divisions, entrants }: { e
   const selectedMode = selected ? boardMode(selected.boardAvailable, selected.matches, selected.byes) : "error";
   const workspaceMode = active === "entrants" ? "live" : active === "announcements" ? "none" : active === "standings" && selected
     ? standingsMode(selected.standingsAvailable, selectedMode, selected.standings) : selectedMode;
-  return <div className="competition-page cd-dashboard"><SiteBar current="/tournaments" />
-    <header className="cd-event-hero"><img src="/event-hero-wide.webp" alt="" className="cd-hero-art" /><div className="cd-hero-inner">
+  return <div className={`competition-page cd-dashboard cd-view-${active}`}><SiteBar current="/tournaments" />
+    <header className="cd-event-hero"><img src="/event-hero-board.webp" alt="" className="cd-hero-art" /><div className="cd-hero-inner">
       {event.poster_url && <Link href={`/tournaments/${event.id}`} className="cd-poster-link"><img src={event.poster_url} alt={`โปสเตอร์ ${event.title}`} /></Link>}
       <div className="cd-hero-copy"><span className={`cd-event-status ${hasResults ? "live" : ""}`}><span />{hasResults ? "ติดตามผลการแข่งขัน" : hasPairings ? "ประกาศคู่แข่งขันแล้ว" : "เตรียมพร้อมก่อนแข่งขัน"}</span>
         <h1>{event.title}</h1><p>{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"} <span>│</span> {event.venue ?? "รอประกาศสถานที่"}</p>
@@ -221,13 +224,15 @@ export default function CompetitionDashboard({ event, divisions, entrants }: { e
     <main className="competition-content cd-content">
       <div className="cd-stat-grid">
         <div><MenuIcon name="entrants" /><span><small>ผู้สมัครแข่งขัน</small><strong>{entrants.length} <em>สิทธิ์</em></strong></span></div>
-        <div><MenuIcon name="trophy" /><span><small>รุ่นการแข่งขัน</small><strong>{divisions.length} <em>รุ่น</em></strong></span></div>
+        <div><MenuIcon name="trophy" /><span><small>รอบแข่งขัน · รุ่นที่เลือก</small><strong>{selected ? `${divisionProgress(selected.matches, selected.byes, roundsOf(selected.division)).lastRound || "–"} / ${roundsOf(selected.division)}` : "–"} <em>รอบ</em></strong></span></div>
         <div><MenuIcon name="stats" /><span><small>โต๊ะที่ประกาศ · รอบล่าสุด</small><strong>{boards || "–"} <em>{boards ? "โต๊ะ" : "รอจับคู่"}</em></strong></span></div>
         <button type="button" onClick={() => selectTab("announcements")}><MenuIcon name="news" /><span><small>ประกาศล่าสุด</small><strong className="cd-stat-announcement">{announcements[0]?.title ?? "เตรียมพร้อมก่อนแข่งขัน"}</strong></span><span aria-hidden="true">›</span></button>
       </div>
       {hasDemo && <aside className="cd-learning-banner"><span className="cd-learning-icon"><MenuIcon name="faq" /></span><div><strong>ทดลองเรียนรู้หน้าแข่งขันได้ก่อนวันงาน</strong><p>เลือกรุ่น ลองค้นหาชื่อ ดูหมายเลขโต๊ะ สีหมาก และอันดับในข้อมูลตัวอย่าง เมื่อผู้จัดจับคู่จริง ระบบจะแสดงข้อมูลจริงแทนให้เอง</p></div><ExampleTag /></aside>}
       <div className="cd-section-line"><h2>สถานะการแข่งขันแยกตามรุ่น</h2><div className="cd-live-status"><span>{live.offline ? "ขาดการเชื่อมต่อ · กำลังลองใหม่" : live.pending ? "กำลังอัปเดต…" : "อัปเดตอัตโนมัติทุก 10 วินาที"}{live.checkedAt ? ` · ${live.checkedAt}` : ""}</span><button type="button" disabled={live.pending} onClick={() => void live.refresh()}>↻ รีเฟรช</button></div></div>
-      <div className="cd-division-strip">{divisions.map(d => {
+        <nav className="cd-tabs" aria-label="เมนูหน้าแข่งขัน">{TABS.map(tab => <button type="button" key={tab.id} aria-current={active === tab.id ? "page" : undefined} onClick={() => setActive(tab.id)}><MenuIcon name={tab.icon} />{tab.label}</button>)}</nav>
+      <div className="cd-body-layout">
+      <aside className="cd-division-selector"><h2><MenuIcon name="entrants" />เลือกรุ่นการแข่งขัน</h2><div className="cd-division-strip">{divisions.map(d => {
         const state = divisionProgress(d.matches, d.byes, roundsOf(d.division));
         const mode = boardMode(d.boardAvailable, d.matches, d.byes);
         const label = mode === "error" ? "กำลังรอข้อมูล" : state.complete ? "จบการแข่งขันแล้ว" : state.played ? "กำลังแข่งขัน" : state.lastRound ? "ประกาศคู่แข่งขันแล้ว" : "รอการแข่งขัน";
@@ -235,14 +240,14 @@ export default function CompetitionDashboard({ event, divisions, entrants }: { e
           <MenuIcon name={/friendship|เฟรน/i.test(d.division.name) ? "entrants" : "trophy"} /><strong>{divisionLabel(d.division.name)}</strong>
           <span className={`cd-pill ${state.complete ? "done" : state.played ? "live" : "waiting"}`}>{label}</span><small>{state.lastRound ? `ประกาศคู่ถึงรอบ ${state.lastRound} / ${roundsOf(d.division)}` : "รอประกาศคู่รอบแรก"}</small><span className="cd-division-action">{mode === "demo" ? "ลองดูหน้าแข่งขัน" : "ดูคู่แข่งขันและผล"} →</span>
         </button>;
-      })}</div>
-      <div className="cd-workspace" id="competition-workspace"><div className="cd-workspace-heading"><h2>{selected ? divisionLabel(selected.division.name) : "หน้าแข่งขัน"}</h2>{workspaceMode === "demo" ? <ExampleTag /> : workspaceMode === "live" ? <span className="cd-real-tag">{active === "entrants" ? "รายชื่อจากการสมัครจริง" : "ข้อมูลการแข่งขันจริง"}</span> : null}</div>
-        <nav className="cd-tabs" aria-label="เมนูหน้าแข่งขัน">{TABS.map(tab => <button type="button" key={tab.id} aria-current={active === tab.id ? "page" : undefined} onClick={() => setActive(tab.id)}><MenuIcon name={tab.icon} />{tab.label}</button>)}</nav>
+      })}</div><img className="cd-selector-art" src="/event-hero-board.webp" alt="" /></aside>
+      <div className="cd-workspace" id="competition-workspace">
         {selected ? <CompetitionWorkspace key={`${selected.division.id}-${selectedMode}`} row={selected} event={event} entrants={entrants} active={active} selectTab={selectTab} /> : <p className="cd-message">รอผู้จัดประกาศรุ่นการแข่งขัน</p>}
+      </div>
       </div>
       <p className="cd-update-notice" role="status" aria-live="polite">{live.notice}</p>
       <aside className="cd-footnote">การแข่งขันแต่ละรุ่นดำเนินการแยกกัน สามารถดูผลของรุ่นที่จบแล้วได้ทันที · ข้อมูลตัวอย่างใช้เพื่อเรียนรู้เท่านั้น ไม่มีผลต่อคะแนนหรืออันดับจริง</aside>
     </main>
-    <footer className="cd-footer"><strong>●○ GO TOURNAMENT</strong><span>PLAY · THINK · GROW</span><Link href="/tournaments">รายการแข่งขันทั้งหมด →</Link></footer>
+    <footer className="cd-footer"><strong>●○ GO TOURNAMENT</strong><span>ระบบจัดการแข่งขันหมากล้อม (Go)<br />สำหรับการแข่งขันในประเทศไทย</span><Link href="/tournaments">รายการแข่งขันทั้งหมด →</Link></footer>
   </div>;
 }
