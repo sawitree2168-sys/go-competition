@@ -48,6 +48,7 @@ export default function AccountView() {
   else if (me.role === "organizer") next.push({ title: "รอเปิดสิทธิ์ผู้จัด", body: "แจ้งเจ้าของระบบ GO TOURNAMENT ให้เพิ่มอีเมลนี้เป็นผู้จัด แล้วเข้าสู่ระบบใหม่" });
   if (!me.athlete && (me.role === "athlete" || me.role === "parent")) next.push({ title: "ผูกบัญชีกับรหัสนักกีฬา", body: "เร็ว ๆ นี้: ดูประวัติ สถิติ และใบประกาศของนักกีฬาจากบัญชีนี้ และเข้าสู่ระบบด้วยรหัสนักกีฬาได้" });
   if (me.academies || me.role === "teacher") next.push({ title: "หน้าสถาบัน", body: "ดูแลนักเรียน ติดตามผล สถิติ และสมัครแข่งแบบกลุ่ม", href: "/institution", cta: me.academies ? "ไปหน้าสถาบัน →" : "เลือกสถาบันของคุณ →" });
+  next.push({ title: "ส่งผลการแข่งขันรายการอื่น", body: "แนบใบจับคู่ทุกรอบและผลอันดับของทุกรุ่น ผลจะขึ้นในสถิติของนักกีฬาหลังแอดมินตรวจ", href: "/results/submit", cta: "ส่งผลการแข่งขัน →" });
   next.push({ title: "การแข่งขันทั้งหมด", body: "ดูรายการ สมัครแข่งขัน ติดตามผล", href: "/tournaments", cta: "ดูการแข่งขัน →" });
 
   return (

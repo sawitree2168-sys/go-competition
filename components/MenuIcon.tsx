@@ -1,11 +1,12 @@
 /** Line icons for the site menu and bottom bar (one consistent set instead of text symbols). */
 export type MenuIconName =
-  | "home" | "trophy" | "register" | "results" | "stats" | "athlete" | "fan" | "news" | "gallery" | "documents" | "faq" | "menu" | "entrants" | "dan";
+  | "home" | "trophy" | "register" | "results" | "stats" | "athlete" | "fan" | "news" | "gallery" | "documents" | "faq" | "menu" | "entrants" | "dan" | "upload";
 
 const PATHS: Record<MenuIconName, React.ReactNode> = {
   home: <><path d="M3.5 11 12 4l8.5 7" /><path d="M5.5 9.5V20h13V9.5" /><path d="M10 20v-5.5h4V20" /></>,
   trophy: <><path d="M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v3M8.5 20.5h7M9.5 17h5" /></>,
   // Clipboard with a check: sign up for an event.
+  upload: <><path d="M12 15V4" /><path d="m7.5 8.5 4.5-4.5 4.5 4.5" /><path d="M4.5 14v4.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V14" /></>,
   register: <><rect x="5" y="4.5" width="14" height="16" rx="2" /><path d="M9 4.5V3.5h6v1" /><rect x="9" y="2.8" width="6" height="3.4" rx="1" /><path d="M8.5 13l2.3 2.3 4.7-4.8" /></>,
   // Medal on a ribbon: results.
   results: <><path d="M7.5 2.8h3.2l1.3 5.2M16.5 2.8h-3.2L12 8" /><circle cx="12" cy="14.6" r="6" /><path d="m12 11.4 1.05 2.1 2.3.34-1.67 1.62.4 2.3L12 16.67l-2.08 1.1.4-2.3-1.67-1.63 2.3-.33z" fill="currentColor" stroke="none" /></>,

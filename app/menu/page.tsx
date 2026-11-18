@@ -6,6 +6,7 @@ const entries: { label: string; href: string; icon: MenuIconName; desc: string }
   {label:"รายการแข่งขัน",href:"/tournaments",icon:"trophy",desc:"ดูรายการแข่งขันทั้งหมด"},
   {label:"สมัครแข่งขัน",href:"/register",icon:"register",desc:"ลงทะเบียนเข้าร่วมการแข่งขัน"},
   {label:"ผลการแข่งขัน",href:"/results",icon:"results",desc:"ดูผลและคู่แข่งขัน"},
+  {label:"ส่งผลการแข่งขัน",href:"/results/submit",icon:"upload",desc:"ส่งผลรายการอื่นเพื่อเก็บสถิติของนักกีฬา"},
   {label:"อันดับและสถิติ",href:"/stats",icon:"stats",desc:"สถิติและอันดับนักกีฬา"},
   {label:"นักกีฬา",href:"/athletes",icon:"athlete",desc:"ค้นหาและดูโปรไฟล์"},
   {label:"ทำเนียบนักกีฬา",href:"/dan",icon:"dan",desc:"อันดับคะแนน รายชื่อดั้ง และประกาศดั้งใหม่"},
