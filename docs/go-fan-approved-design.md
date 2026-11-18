@@ -19,3 +19,12 @@ Reference images: `libfile_3149c9ef604c819189950dd36867c482` (desktop),
 
 Validation before publication: production build, public follow/outcome/storage unit tests.
 Live checks: search, save/reload/unfollow, view tabs, photo viewer, downloads and 390px layout.
+
+## Desktop review correction — 18 November 2026, evening
+
+- Use the approved desktop image as a clipped SVG hero-art segment (only the static banner),
+  preserving proportions and lettering. Search, navigation, athlete data and actions remain HTML.
+- Increase desktop content width, Thai type and athlete controls to match the reference.
+- Collapse desktop event/division filters into an accessible toggle. Keep mobile filters visible.
+- Remove repeated panel title strips on desktop while retaining metadata in downloaded results.
+- Verify the deployed desktop and the existing mobile viewport after publication.
