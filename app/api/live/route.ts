@@ -35,5 +35,6 @@ export async function POST(req: Request) {
   if (!event) return Response.json({ ok: false }, { status: 404 });
   revalidatePath(`/tournaments/${event}/divisions/${division}`);
   revalidatePath(`/tournaments/${event}`);
+  revalidatePath(`/tournaments/${event}/competition`);
   return Response.json({ ok: true });
 }

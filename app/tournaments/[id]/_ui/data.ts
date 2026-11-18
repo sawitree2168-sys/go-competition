@@ -91,7 +91,7 @@ export async function loadEventPage(db: SupabaseClient | null, id: string) {
 
 /** Everything the division page needs, fetched in a single parallel round trip. */
 export async function loadDivisionPage(db: SupabaseClient | null, id: string, divisionId: string) {
-  const empty = { event: null as EventInfo | null, divisions: [] as Division[], entrants: [] as Entrant[], matches: [] as Match[], byes: [] as Bye[], standings: [] as Standing[], people: new Map<string, Person>(), announcements: [] as Announcement[] };
+  const empty = { boardAvailable: false, standingsAvailable: false, event: null as EventInfo | null, divisions: [] as Division[], entrants: [] as Entrant[], matches: [] as Match[], byes: [] as Bye[], standings: [] as Standing[], people: new Map<string, Person>(), announcements: [] as Announcement[] };
   if (!db) return empty;
   try {
     const [page, board, s, ph, an] = await Promise.all([
@@ -121,7 +121,7 @@ export async function loadDivisionPage(db: SupabaseClient | null, id: string, di
         people.set(x.athlete_id, { name: x.display_name, institution: x.institution ?? "", rank: x.current_rank, photo: photos.get(x.athlete_id) ?? null });
       }
     }
-    return { ...page, matches, byes, standings, people, announcements };
+    return { ...page, boardAvailable: !board.error, standingsAvailable: !s.error, matches, byes, standings, people, announcements };
   } catch {
     return empty;
   }
