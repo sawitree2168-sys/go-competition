@@ -1,3 +1,5 @@
+import {loadCurrentResults} from "./current-results";
+import {loadCrowdGames,crowdEvents} from "./crowd-results";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { thaiDate } from "@/lib/division-display";
 
@@ -33,7 +35,18 @@ export async function loadRankings(db: SupabaseClient | null, limit = 5, year?: 
 export async function loadResults(db: SupabaseClient | null): Promise<ResultEvent[]> {
   if (!db) return [];
   const { data, error } = await db.rpc("gt_public_results_v1");
-  return error ? [] : ((data ?? []) as ResultEvent[]);
+  const official=error?[]:((data??[]) as ResultEvent[]);
+  for(const current of await loadCurrentResults(db)){
+    const old=official.find(e=>e.title===current.title&&e.date===current.date);
+    if(!old)official.push(current);else for(const d of current.divisions)if(!old.divisions.some(x=>x.division===d.division))old.divisions.push(d);
+  }
+  const contributed=crowdEvents(await loadCrowdGames(db));
+  for(const event of contributed){
+    const same=official.find(e=>e.title===event.title&&e.date===event.date);
+    if(!same){official.push(event);continue;}
+    for(const div of event.divisions){const existing=same.divisions.find(d=>d.division===div.division);if(!existing)same.divisions.push(div);else if(!same.complete)for(const person of div.people)if(!existing.people.some(p=>p.athlete_id===person.athlete_id||p.full_name===person.full_name))existing.people.push(person);}
+  }
+  return official;
 }
 
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());

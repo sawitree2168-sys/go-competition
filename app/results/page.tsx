@@ -31,7 +31,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   const upcomingLabel = upcomingTitles.join(" / ");
 
   return (
-    <PublicPage icon="results" title="ผลการแข่งขัน" sub="อันดับและผลชนะ–แพ้ของทุกรุ่น จากผลการแข่งขันที่บันทึกไว้" current="/tournaments?status=finished">
+    <PublicPage icon="results" title="ผลการแข่งขัน" sub="อันดับและผลชนะ–แพ้ของทุกรุ่น จากผลการแข่งขันที่บันทึกไว้" current="/results">
       <div className="flex flex-wrap gap-2">
         {selectedEvent && <Link href="/results" className="gt-outline-btn inline-flex min-h-11 items-center px-4 font-semibold">ผลการแข่งขันทุกรายการ</Link>}
         <Link href="/tournaments?status=finished" className="gt-outline-btn inline-flex min-h-11 items-center px-4 font-semibold">รายการที่จบการแข่งขัน →</Link>

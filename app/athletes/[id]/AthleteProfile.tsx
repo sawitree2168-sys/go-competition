@@ -127,7 +127,7 @@ export default function AthleteProfile({ athlete, rows, today, certs = [] }: { a
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden bg-[url(/profile-hero.webp)] bg-cover bg-[position:right_center] bg-no-repeat opacity-[var(--gt-hero-img)] sm:block xl:bg-[length:auto_150%] xl:bg-[position:right_24rem_center] xl:[mask-image:linear-gradient(to_right,#000_calc(100%-30rem),transparent_calc(100%-23rem))]" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[url(/profile-hero-m.png)] bg-[length:auto_100%] bg-[position:right_bottom] bg-no-repeat opacity-[var(--gt-hero-img)] sm:hidden" />
         <div className="relative grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-          <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex flex-col items-center gap-4 text-center sm:gap-6">
             <div className="relative shrink-0">
               <PhotoZoom src={athlete.photo} name={athlete.full_name} className="block"><Avatar src={athlete.photo} size="h-24 w-24 sm:h-40 sm:w-40" ring /></PhotoZoom>
               {athlete.photo && <span aria-hidden="true" className="pointer-events-none absolute -bottom-1 right-0 flex"><Stone colour="black" className="h-6 w-6 sm:h-9 sm:w-9" /><Stone colour="white" className="-ml-2 h-6 w-6 sm:h-9 sm:w-9" /></span>}
@@ -135,7 +135,7 @@ export default function AthleteProfile({ athlete, rows, today, certs = [] }: { a
             <div className="min-w-0">
               <span className="inline-block rounded-full border border-[var(--gt-cta)]/30 bg-[var(--gt-cta-soft)] px-3 py-0.5 text-xs font-semibold text-[var(--gt-cta)] sm:text-sm">โปรไฟล์นักกีฬา</span>
               <h1 className="mt-1 text-2xl font-bold leading-tight sm:text-4xl">{athlete.full_name}</h1>
-              {athlete.institution && <p className="mt-1 flex items-center gap-2 text-[var(--gt-muted)] sm:text-lg">{Ico.club}{athlete.institution}</p>}
+              {athlete.institution && <p className="mt-1 flex items-center justify-center gap-2 text-[var(--gt-muted)] sm:text-lg">{Ico.club}{athlete.institution}</p>}
               {athlete.current_rank && <span className="mt-2 inline-block rounded-full bg-[var(--gt-cta)] px-4 py-0.5 font-bold text-white sm:text-lg">{athlete.current_rank}</span>}
             </div>
           </div>

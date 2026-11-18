@@ -58,7 +58,7 @@ export default function ResultsAdmin() {
   return (
     <section className="gt-card space-y-3 p-4" aria-labelledby="results-h">
       <h2 id="results-h" className="font-bold">ผลแข่งจากผู้ปกครอง</h2>
-      <p className="text-sm text-[var(--gt-muted)]">ไฟล์ที่ส่งเข้ามาเก็บในโฟลเดอร์ “ผลแข่งจากผู้ปกครอง (GO TOURNAMENT)” ใน Google Drive ของเจ้าของระบบ ทุกเช้า Claude จะอ่านไฟล์ใหม่แล้วลงผลรายเกมให้ตรวจ</p>
+      <p className="text-sm text-[var(--gt-muted)]">ช่องทางเดิมสำหรับไฟล์ใน Google Drive • การส่งภาพสาธารณะใหม่อยู่ในส่วนตรวจภาพด้านบน</p>
 
       <div className="space-y-2 rounded-xl border border-[var(--gt-line)] p-3">
         <label className="block text-sm font-semibold">Web app URL สำหรับรับไฟล์ (Apps Script)

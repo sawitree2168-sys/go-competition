@@ -1,7 +1,11 @@
+import PublicPage from "@/components/PublicPage";
 import Link from "next/link";
 import MenuIcon, { type MenuIconName } from "@/components/MenuIcon";
 
 const entries: { label: string; href: string; icon: MenuIconName; desc: string }[] = [
+  {label:"เกี่ยวกับและติดต่อ",href:"/about",icon:"faq",desc:"รู้จักเว็บไซต์และวิธีใช้งาน"},
+  {label:"เข้าสู่ระบบ",href:"/login",icon:"athlete",desc:"บัญชีนักกีฬา ครู และผู้จัด"},
+  {label:"หน้าสถาบัน",href:"/institution",icon:"entrants",desc:"ดูแลนักเรียนและติดตามการแข่งขัน"},
   {label:"หน้าแรก",href:"/",icon:"home",desc:"ภาพรวม GO TOURNAMENT"},
   {label:"รายการแข่งขัน",href:"/tournaments",icon:"trophy",desc:"ดูรายการแข่งขันทั้งหมด"},
   {label:"สมัครแข่งขัน",href:"/register",icon:"register",desc:"ลงทะเบียนเข้าร่วมการแข่งขัน"},
@@ -19,16 +23,7 @@ const entries: { label: string; href: string; icon: MenuIconName; desc: string }
 
 export default function MenuPage() {
   return (
-    <main className="min-h-screen bg-[#edf3fa] pb-24 text-[#09265b]">
-      <header className="sticky top-0 z-30 bg-[#041b41] text-white shadow-md">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">
-          <Link href="/" className="shrink-0 text-sm font-semibold">← กลับหน้าแรก</Link>
-          <span className="truncate text-sm font-extrabold tracking-wide sm:text-lg">GO TOURNAMENT</span>
-        </div>
-      </header>
-      <div className="mx-auto max-w-4xl px-4 py-7">
-        <h1 className="text-2xl font-extrabold">เมนูทั้งหมด</h1>
-        <p className="mt-2 text-sm text-slate-600">เลือกบริการที่ต้องการใช้งาน</p>
+    <PublicPage icon="menu" title="เมนูทั้งหมด" sub="เลือกบริการที่ต้องการใช้งาน" current="/menu">
         <nav aria-label="เมนูเว็บไซต์ทั้งหมด" className="mt-5 overflow-hidden rounded-xl border border-[#d8e3f1] bg-white shadow-sm">
           {entries.map((item,i)=>(
             <Link key={item.href} href={item.href} className={`flex min-h-20 items-center gap-4 px-4 py-3 transition-colors hover:bg-[#f2f7ff] focus-visible:bg-[#f2f7ff] ${i?"border-t border-[#e8edf5]":""}`}>
@@ -41,8 +36,6 @@ export default function MenuPage() {
             </Link>
           ))}
         </nav>
-      </div>
-
-    </main>
+    </PublicPage>
   );
 }

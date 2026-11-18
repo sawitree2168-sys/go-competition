@@ -4,6 +4,7 @@
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import ResultPicker from "@/components/ResultPicker";
 import ThemeToggle from "../../tournaments/[id]/_ui/ThemeToggle";
 import { pingLive } from "../../tournaments/[id]/_ui/live";
 import { DEFAULT_AVATAR } from "../../tournaments/[id]/_ui/MatchCard";
@@ -428,17 +429,7 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
         </div>
       ) : (
         <div className="mt-5 space-y-4">
-          <div>
-            <h3 className="text-xl font-bold text-[var(--gt-ink)] sm:text-2xl">ใครเป็นผู้ชนะ?</h3>
-            <div role="radiogroup" aria-label="ผู้ชนะ" className="mt-2 grid gap-2 sm:grid-cols-2 sm:gap-3">{choice("black")}{choice("white")}</div>
-            {!winnerNeeded && <p className="mt-1 text-xs text-[var(--gt-muted)]">วิธีจบเกมนี้ไม่มีผู้ชนะ</p>}
-          </div>
-          <label className="grid items-center gap-1.5 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
-            <span className="font-medium">วิธีจบเกม</span>
-            <select value={method} onChange={(e) => { setMethod(e.target.value); setErr(""); }} className="min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 text-base">
-              {METHODS.map((m) => <option key={m.v} value={m.v}>{m.label}</option>)}
-            </select>
-          </label>
+          <ResultPicker winner={winner} method={method} disabled={busy} onChange={(w,m)=>{setWinner(w);setMethod(m);setMargin("");setErr("");}}/>
           {method === "count" && (
             <label className="grid items-center gap-1.5 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
               <span className="font-medium">ชนะกี่แต้ม</span>

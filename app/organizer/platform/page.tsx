@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import Gate from "../_lib/Gate";
 import PhotoAdmin from "./PhotoAdmin";
 import ActivityAdmin from "./ActivityAdmin";
+import PhotoInbox from "./PhotoInbox";
 import ResultsAdmin from "./ResultsAdmin";
 import { ErrorNote, isPlatformAdmin, staffDb, useAction, useStaff } from "../_lib/staff";
 import { callAthlete, identifierKind } from "@/lib/athlete-auth.mjs";
@@ -57,11 +58,13 @@ function Platform() {
     <div className="space-y-5">
       <div>
         <Link href="/organizer" className="text-sm text-[var(--gt-muted)] underline-offset-2 hover:underline">← รายการแข่งขัน</Link>
-        <h1 className="mt-1 text-xl font-bold">จัดการผู้จัดงาน</h1>
+        <h1 className="mt-1 text-xl font-bold">ภาพรวมผู้ดูแลระบบ</h1>
         <p className="text-sm text-[var(--gt-muted)]">ผู้จัดแต่ละรายเห็นและจัดการได้เฉพาะงานของตัวเอง ถ้าระงับ ทีมงานของผู้จัดรายนั้นจะเข้าหน้าผู้จัดไม่ได้ทันที (หน้าเว็บสาธารณะยังแสดงตามปกติ)</p>
       </div>
       <ErrorNote text={action.error} />
 
+      <div className="site-metrics"><div>รายการแข่งขัน<b>{events.length}</b></div><div>ผู้จัด<b>{orgs?.length??0}</b></div><div><a href="#photo-inbox">ตรวจภาพผลที่ส่งมา →</a></div><div><a href="/news">ข่าวสารและสรุปผล →</a></div></div>
+      <PhotoInbox/>
       <AthleteAccounts />
 
       <PhotoAdmin />

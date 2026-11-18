@@ -1,5 +1,6 @@
 "use client";
 
+import {AcademyStaff} from "./AcademyPeople";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ThemeToggle from "../../tournaments/[id]/_ui/ThemeToggle";
@@ -231,6 +232,7 @@ function Workspace({ academyId, mine, onPick, onJoin }: { academyId: string; min
         </div>
 
         <Hero compact={view !== "home"} />
+        {view === "home" && <AcademyStaff academyId={academyId}/> }
 
         {ov?.access === "pending" && (
           <p role="status" className="rounded-2xl border border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-4 py-3 text-sm text-[var(--gt-gold-ink)]">

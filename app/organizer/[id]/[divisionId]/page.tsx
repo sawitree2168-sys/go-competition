@@ -1,5 +1,6 @@
 "use client";
 
+import Monitor from "../../_lib/division/Monitor";
 import Link from "next/link";
 import { use, useState } from "react";
 import Gate from "../../_lib/Gate";
@@ -10,8 +11,8 @@ import StandingsPanel from "../../_lib/division/StandingsPanel";
 import { divisionLabel } from "@/lib/division-display";
 import { clock } from "../../../tournaments/[id]/_ui/live";
 
-type Tab = "pools" | "rounds" | "standings";
-const TABS: [Tab, string][] = [["pools", "สาย"], ["rounds", "ออกคู่ / กรอกผล"], ["standings", "ตารางคะแนน"]];
+type Tab = "monitor" | "entrants" | "pools" | "rounds" | "standings";
+const TABS: [Tab, string][] = [["monitor", "มอนิเตอร์"], ["entrants", "รายชื่อ"], ["pools", "จัดสาย"], ["rounds", "ออกคู่ / กรอกผล"], ["standings", "ตารางคะแนน"]];
 
 export default function OrganizerDivision({ params }: { params: Promise<{ id: string; divisionId: string }> }) {
   const { id, divisionId } = use(params);
@@ -20,10 +21,11 @@ export default function OrganizerDivision({ params }: { params: Promise<{ id: st
 
 function Console({ eventId, divisionId }: { eventId: string; divisionId: string }) {
   const { data, missing, reload, live } = useDivision(divisionId);
-  const [tab, setTab] = useState<Tab | null>(null);
+  const [tab, setTab] = useState<Tab | null>("monitor");
 
   if (missing) return <p className="py-10 text-center">ไม่พบรุ่นนี้</p>;
   if (!data) return <p className="py-10 text-center text-[var(--gt-muted)]">กำลังโหลด…</p>;
+  if(data.division.tournament_id!==eventId)return <p role="alert">รุ่นนี้ไม่อยู่ในรายการที่เลือก</p>;
   const current: Tab = tab ?? (data.matches.length || data.byes.length ? "rounds" : "pools");
 
   return (
@@ -39,11 +41,13 @@ function Console({ eventId, divisionId }: { eventId: string; divisionId: string 
           <a href={`/tournaments/${eventId}/divisions/${divisionId}?tab=pairs`} target="_blank" rel="noopener" className="text-sm text-[var(--gt-cta)] underline">ดูหน้าสาธารณะ ↗</a>
         </div>
       </div>
-      <div role="tablist" aria-label="ขั้นตอน" className="gt-tabs grid grid-cols-3 gap-1 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
+      <div role="tablist" aria-label="ขั้นตอน" className="gt-tabs grid grid-cols-2 gap-1 sm:grid-cols-5 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
         {TABS.map(([k, label]) => (
           <button key={k} role="tab" type="button" aria-selected={current === k} onClick={() => setTab(k)} className="min-h-11 rounded-xl px-2 text-sm font-semibold">{label}</button>
         ))}
       </div>
+      {current === "monitor" && <Monitor data={data} onResults={()=>setTab("rounds")}/>}
+      {current === "entrants" && <section className="gt-card overflow-x-auto"><table><thead><tr><th>#</th><th>นักกีฬา</th><th>สถาบัน</th><th>ระดับ</th></tr></thead><tbody>{data.regs.map((r,i)=><tr key={r.athlete_id}><td>{i+1}</td><td>{r.gt_athletes?.full_name}</td><td>{r.display_institution||r.gt_athletes?.school_name}</td><td>{r.competition_rank_reference||r.gt_athletes?.current_rank}</td></tr>)}</tbody></table></section>}
       {current === "pools" && <PoolsPanel data={data} reload={reload} />}
       {current === "rounds" && <RoundsPanel data={data} reload={reload} eventId={eventId} />}
       {current === "standings" && <StandingsPanel data={data} eventId={eventId} />}

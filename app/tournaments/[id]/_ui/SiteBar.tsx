@@ -6,9 +6,12 @@ import MenuIcon from "@/components/MenuIcon";
 const NAV = [
   { href: "/", label: "หน้าหลัก", icon: "home" },
   { href: "/tournaments", label: "การแข่งขัน", icon: "trophy" },
+  { href: "/results", label: "ผลการแข่งขัน", icon: "stats" },
   { href: "/athletes", label: "นักกีฬา", icon: "athlete" },
   { href: "/dan", label: "ทำเนียบนักกีฬา", icon: "dan" },
   { href: "/go-fan", label: "GO FAN", icon: "fan" },
+  { href: "/news", label: "ข่าวสาร", icon: "news" },
+  { href: "/about", label: "เกี่ยวกับ", icon: "faq" },
 ] as const;
 
 /** Blue site bar of the newer pages (competition list, athlete profile). */

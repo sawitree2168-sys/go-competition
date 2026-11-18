@@ -5,6 +5,9 @@ import "@fontsource/prompt/400.css";
 import "@fontsource/prompt/500.css";
 import "@fontsource/prompt/600.css";
 import "./globals.css";
+import "@fontsource/prompt/700.css";
+import "./competition/competition.css";
+import "./site-design.css";
 
 export const metadata: Metadata = {
   title: "GO TOURNAMENT | การแข่งขันหมากล้อม",

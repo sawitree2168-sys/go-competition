@@ -1,3 +1,5 @@
+import SiteBar from "@/app/tournaments/[id]/_ui/SiteBar";
+import { PageHero, SiteFooter } from "@/components/SiteDesign";
 import Link from "next/link";
 import { Shell } from "@/app/tournaments/[id]/_ui/chrome";
 import "./auth-font.css";
@@ -19,14 +21,8 @@ export default function AuthFrame({ children, heroTitle = "ทุกการแ
       <Shell wide>
         <div className="px-3 py-4 sm:px-6 sm:py-8">
           <div className="overflow-hidden rounded-3xl border border-[var(--gt-line)] bg-[var(--gt-surface)] shadow-xl">
-            <header className="flex items-center gap-3 border-b border-[var(--gt-line)] px-4 py-3 sm:px-8 sm:py-4">
-              <Link href="/" className="flex items-center gap-3" aria-label="GO TOURNAMENT หน้าหลัก">
-                <LogoMark className="h-10 w-10 sm:h-12 sm:w-12" />
-                <span aria-hidden="true" className="hidden h-8 w-px bg-[var(--gt-line)] sm:block" />
-                <span className="text-lg font-bold tracking-wide sm:text-2xl">GO TOURNAMENT</span>
-              </Link>
-              <Link href="/" className="ml-auto inline-flex min-h-11 items-center px-2 text-sm font-semibold text-[var(--gt-cta)] hover:underline sm:text-base">กลับหน้าหลัก</Link>
-            </header>
+            <SiteBar current="/login"/>
+            <PageHero title="ยินดีต้อนรับสู่ GO TOURNAMENT" sub="เข้าสู่ระบบเพื่อจัดการข้อมูลของคุณ"/>
             <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className="relative hidden min-h-[36rem] overflow-hidden bg-[#0a2fa0] lg:m-4 lg:block lg:rounded-2xl">
                 <picture>
@@ -49,6 +45,7 @@ export default function AuthFrame({ children, heroTitle = "ทุกการแ
             </div>
           </div>
         </div>
+        <SiteFooter/>
       </Shell>
     </div>
   );

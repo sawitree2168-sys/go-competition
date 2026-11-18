@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- local decorative artwork */
 import Link from "next/link";
+import SiteBar from "@/app/tournaments/[id]/_ui/SiteBar";
 import { useEffect, useRef, useState } from "react";
 import MenuIcon, { type MenuIconName } from "@/components/MenuIcon";
 import AthletePhotoViewer from "@/components/AthletePhotoViewer";
@@ -50,6 +51,7 @@ export default function GoFan({initial}:{initial:FanData}) {
     try { setFollows(readFanFollows(localStorage.getItem(STORAGE))); }
     catch { setNotice("เครื่องนี้ไม่อนุญาตให้บันทึกการติดตาม รายชื่อจะอยู่จนกว่าจะปิดหน้านี้"); }
     setSelectedKey(new URLSearchParams(window.location.search).get("athlete") ?? "");
+    const initialSearch=new URLSearchParams(window.location.search).get("search");if(initialSearch){setQuery(initialSearch);setSearch(initialSearch);}
     setReady(true);
     const sync=(e:StorageEvent)=>{if(e.key===STORAGE)setFollows(readFanFollows(e.newValue));};
     window.addEventListener("storage",sync);return()=>window.removeEventListener("storage",sync);
@@ -118,7 +120,7 @@ export default function GoFan({initial}:{initial:FanData}) {
     catch(e){if(!(e instanceof DOMException && e.name==="AbortError"))setNotice("แชร์ไม่สำเร็จ กรุณาลองใหม่");}
   }
   const caption=view==="pairings"?"ผลจับคู่ (Pairing)":view==="ranking"?"ตารางอันดับ":view==="summary"?"สรุปผลการแข่งขัน":"ผลการแข่งขันของนักกีฬา";
-  return <div className="gf-page competition-page cd-dashboard"><header className="gf-sitebar"><div><Link className="gf-brand" href="/"><span className="gf-brand-stones" aria-hidden="true"><i/><i/></span>GO TOURNAMENT</Link><nav aria-label="เมนูหลัก"><Link href="/"><MenuIcon name="home"/>หน้าหลัก</Link><Link href="/tournaments"><MenuIcon name="trophy"/>การแข่งขัน</Link><Link href="/results"><MenuIcon name="stats"/>ผลการแข่งขัน</Link><Link href="/go-fan" aria-current="page"><MenuIcon name="entrants"/>GO FAN</Link><Link href="/faq"><MenuIcon name="faq"/>เกี่ยวกับ</Link></nav><Link className="gf-mobile-menu" href="/menu" aria-label="เมนู"><MenuIcon name="menu"/></Link></div></header>
+  return <div className="gf-page competition-page cd-dashboard"><SiteBar current="/go-fan" />
     <header className="gf-hero"><svg className="gf-desktop-hero-art" viewBox="0 47 1672 153" aria-hidden="true" focusable="false"><image href="/go-fan/approved-desktop.webp" width="1672" height="941" /></svg><div><h1><span>GO</span> FAN <svg className="gf-megaphone" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m8 18 23-9 7 26-25-1Z"/><path d="m15 34 4 11 7-2-4-9M31 9c-1-6 1-7 3-5l10 30c1 4-3 5-6 1M5 20l-3 1 3 11 7 2M39 9l5-4M42 17l6-1"/></svg></h1><p>ติดตามผลการแข่งขันนักกีฬาที่คุณสนใจ</p><ul><li>ค้นหาชื่อ</li><li>กดติดตาม</li><li>ดูผลจับคู่</li><li>ผลการแข่งขัน</li><li>บันทึกรูปได้</li></ul></div></header>
     <main className="gf-container">
       <div className="gf-search-row"><form onSubmit={e=>{e.preventDefault();setSearch(query.trim());}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></svg><label className="sr-only" htmlFor="gf-search">ค้นหาชื่อนักกีฬา สถาบัน หรือรุ่นแข่งขัน</label><input id="gf-search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ค้นหาชื่อนักกีฬา / สถาบัน / รุ่นแข่งขัน" /><button type="submit">ค้นหา</button></form><button className="gf-follow-count" type="button" onClick={()=>{setTab("follow");document.getElementById("gf-follow-list")?.scrollIntoView({behavior:"smooth",block:"center"});}}>★ นักกีฬาที่ติดตาม ({follows.length})</button></div>

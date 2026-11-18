@@ -1,4 +1,5 @@
 import "../tournaments/directory.css";
+import { SiteFooter } from "@/components/SiteDesign";
 import type { Metadata } from "next";
 import { Shell } from "@/app/tournaments/[id]/_ui/chrome";
 import SiteBar from "@/app/tournaments/[id]/_ui/SiteBar";
@@ -28,7 +29,7 @@ export default async function DanPage() {
           <SiteBar current="/dan" />
           <section className="gt-directory-hero" aria-labelledby="dan-title">
             {/* eslint-disable-next-line @next/next/no-img-element -- reuse the approved, unified Go artwork */}
-            <picture aria-hidden="true" className="gt-directory-art"><img src="/event-hero-wide.webp" alt="" width="2000" height="667" fetchPriority="high" /></picture>
+            <picture aria-hidden="true" className="gt-directory-art"><img src="/design/site-banner.webp" alt="" width="2000" height="667" fetchPriority="high" /></picture>
             <div className="gt-directory-hero-inner">
               <h1 id="dan-title">ทำเนียบนักกีฬาหมากล้อมไทย</h1>
               <p>อันดับคะแนน รายชื่อดั้ง และประกาศดั้งใหม่ จากสมาคมกีฬาหมากล้อมแห่งประเทศไทย</p>
@@ -40,6 +41,7 @@ export default async function DanPage() {
               ? <DanBoard board={board} ranking={ranking} />
               : <p className="gt-card p-6 text-center text-[var(--gt-muted)]">ยังโหลดรายชื่อดั้งไม่ได้ กรุณาลองใหม่อีกครั้ง</p>}
           </div>
+          <SiteFooter/>
         </div>
       </Shell>
     </div>

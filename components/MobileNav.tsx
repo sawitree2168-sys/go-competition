@@ -15,6 +15,7 @@ const tabs: { label: string; href: string; icon: MenuIconName }[] = [
 /** A single persistent navigation bar, shared by every mobile page. */
 export default function MobileNav() {
   const pathname = usePathname();
+  if(/^\/(organizer|referee|institution)(\/|$)/.test(pathname))return null;
   const active = pathname === "/" ? "/"
     : pathname.startsWith("/go-fan") ? "/go-fan"
     : pathname.startsWith("/athletes") ? "/athletes"

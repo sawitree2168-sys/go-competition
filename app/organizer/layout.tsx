@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function OrganizerLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="gt min-h-screen w-full" suppressHydrationWarning>
+    <div className="gt site-operations min-h-screen w-full" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       <StaffProvider>
         <OrganizerBar />

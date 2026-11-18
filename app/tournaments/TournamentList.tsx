@@ -1,4 +1,6 @@
 import "./directory.css";
+import Link from "next/link";
+import { SiteFooter, SiteShortcuts } from "@/components/SiteDesign";
 import { Shell } from "./[id]/_ui/chrome";
 import SiteBar from "./[id]/_ui/SiteBar";
 import { publicDb } from "./[id]/_ui/data";
@@ -58,15 +60,17 @@ export async function TournamentList({ current }: { current: string }) {
           <section className="gt-directory-hero" aria-labelledby="directory-title">
             {/* eslint-disable @next/next/no-img-element -- reuse the approved, unified Go artwork */}
             <picture aria-hidden="true" className="gt-directory-art">
-              <img src="/event-hero-wide.webp" alt="" width="2000" height="667" fetchPriority="high" />
+              <img src="/design/site-banner.webp" alt="" width="2000" height="667" fetchPriority="high" />
             </picture>
             <div className="gt-directory-hero-inner">
-              <h1 id="directory-title">เลือกสนามแข่งขันของคุณ</h1>
+              <h1 id="directory-title">{current === "/" ? "GO TOURNAMENT" : "รายการแข่งขัน"}</h1>
               <p>สมัครแข่งขัน ติดตามผล และย้อนดูทุกความสำเร็จ</p>
               <span className="gt-directory-gold" aria-hidden="true" />
             </div>
           </section>
-          <div className="gt-directory-content relative mx-auto max-w-6xl px-4 sm:px-8"><EventBrowser events={events} serverToday={new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date())} /></div>
+          <div className="gt-directory-content relative mx-auto max-w-6xl px-4 sm:px-8">{current === "/" && <SiteShortcuts/>}<EventBrowser events={events} serverToday={new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date())} /></div>
+          {current === "/" && <section className="site-main"><h2 className="site-section-title">ข่าวสารและประกาศ</h2><div className="site-shortcuts"><Link href="/news">ข่าวสารและผลล่าสุด →</Link><Link href="/results/submit">ส่งภาพผลการแข่งขัน →</Link></div></section>}
+          <SiteFooter/>
         </div>
       </Shell>
     </div>

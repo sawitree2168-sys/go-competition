@@ -1,5 +1,6 @@
 "use client";
 
+import ChooseAcademy from "@/components/ChooseAcademy";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
@@ -75,6 +76,7 @@ export default function AccountView() {
         <Link href="/my-applications" className="gt-outline-btn mt-3 inline-flex min-h-11 items-center px-5 font-semibold">ดูสถานะการสมัคร</Link>
       </section>
       <button type="button" onClick={signOut} className="gt-outline-btn min-h-12 w-full font-semibold">ออกจากระบบ</button>
+      <ChooseAcademy/>
     </div>
   );
 }

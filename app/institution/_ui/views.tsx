@@ -1,5 +1,6 @@
 "use client";
 
+import {LinkStudents} from "./AcademyPeople";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
@@ -185,6 +186,7 @@ export function Students({ ov, canEdit, reload }: { ov: Overview; canEdit: boole
           ))}
         </ul>
       ) : <Empty>{q ? "ไม่พบนักเรียนที่ค้นหา" : "ยังไม่มีนักเรียน — เพิ่มนักเรียนใหม่ได้ด้านล่าง หรือรายชื่อจะขึ้นเองเมื่อนักเรียนลงแข่งในนามสถาบันนี้"}</Empty>}
+      {canEdit&&<LinkStudents academyId={ov.academy.id} reload={reload}/>}
       <AddStudent academyId={ov.academy.id} canEdit={canEdit} reload={reload} />
       <p className="text-xs text-[var(--gt-muted)]">รายชื่อมาจากการแข่งขันที่ลงในนามสถาบันนี้ (ล่าสุด) และนักเรียนที่ครูเพิ่ม · ข้อมูลส่วนตัว เช่น วันเกิด เบอร์ผู้ปกครอง ไม่แสดงในหน้านี้</p>
     </div>

@@ -16,6 +16,10 @@ export function useDivision(divisionId: string) {
 
   const fetchAll = useCallback(async () => {
     const db = staffDb()!;
+    const accessDivision=await db.from("gt_divisions").select("tournament_id").eq("id",divisionId).maybeSingle();
+    if(!accessDivision.data){setMissing(true);return;}
+    const access=await db.rpc("gt_can_manage_tournament_v1",{p_tournament:accessDivision.data.tournament_id});
+    if(access.error||access.data!==true){setMissing(true);setData(null);return;}
     const [dv, rg, mt, by, st] = await Promise.all([
       db.from("gt_divisions").select("id,name,tournament_id,award_scheme,friendship_gold_min_wins,friendship_silver_min_wins,friendship_bronze_min_wins,total_rounds,gt_tournaments(bye_sos_mode)").eq("id", divisionId).maybeSingle(),
       db.from("gt_registrations").select("athlete_id,pool_label,payment_status,competition_rank_reference,registration_status,display_institution,present_for_round,gt_athletes(full_name,school_name,current_rank,go_id,avatar_url)")

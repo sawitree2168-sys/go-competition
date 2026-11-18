@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function InstitutionLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="gt min-h-screen w-full" suppressHydrationWarning>
+    <div className="gt site-operations min-h-screen w-full" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       <main className="w-full">{children}</main>
     </div>

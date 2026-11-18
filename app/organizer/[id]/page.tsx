@@ -1,5 +1,6 @@
 "use client";
 
+import EventSettings from "./EventSettings";
 import Link from "next/link";
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import Gate from "../_lib/Gate";
@@ -186,12 +187,15 @@ function EventConsole({ id }: { id: string }) {
   const [entrants, setEntrants] = useState<Entrant[]>([]);
   const [regCount, setRegCount] = useState<Map<string, number>>(new Map());
   const [status, setStatus] = useState<Map<string, { last: number; pending: number; checked: number; seats: number }>>(new Map());
+  const [settingsOpen,setSettingsOpen]=useState(false);
   const [loaded, setLoaded] = useState(false);
   const [summary, setSummary] = useState<string>("");
   const action = useAction();
 
   const load = useCallback(async () => {
     const db = staffDb()!;
+    const access=await db.rpc("gt_can_manage_tournament_v1",{p_tournament:id});
+    if(access.error||access.data!==true){setEvent(null);setLoaded(true);return;}
     const [ev, dv, en, rg, mt] = await Promise.all([
       db.from("gt_tournaments").select("title,event_date,registration_mode,registration_url,venue,certificates_open,certificate_signers,bye_sos_mode").eq("id", id).maybeSingle(),
       db.from("gt_divisions").select("id,name").eq("tournament_id", id),
@@ -253,32 +257,11 @@ function EventConsole({ id }: { id: string }) {
         <p className="text-sm text-[var(--gt-muted)]">{thaiDate(event.event_date)}</p>
       </div>
 
-      <section className="gt-card p-4">
-        <VenueField key={event.venue ?? ""} id={id} venue={event.venue} onSaved={load} />
-      </section>
-
-      <section className="gt-card space-y-3 p-4">
-        <h2 className="font-bold">1. นำเข้ารายชื่อจาก Google Form</h2>
-        <p className="text-sm text-[var(--gt-muted)]">
-          พบ {entrants.length} แถวในชีต · จับคู่รุ่นได้ {mapping.rows.length} แถว
-          {mapping.unmatched.length > 0 && <> · <span className="text-[var(--gt-warn)]">ไม่รู้จักรุ่น {mapping.unmatched.length} แถว</span></>}
-        </p>
-        {mapping.unmatched.length > 0 && (
-          <ul className="rounded-xl bg-[var(--gt-warn-soft)] px-4 py-2 text-sm">
-            {mapping.unmatched.slice(0, 10).map((e) => <li key={e.source_row}>แถว {e.source_row}: {e.full_name} — “{e.division_name}”</li>)}
-          </ul>
-        )}
-        <p className="text-sm">กดซ้ำได้เมื่อมีผู้สมัครเพิ่ม คนที่นำเข้าแล้วจะไม่ถูกเพิ่มซ้ำ ควรนำเข้าให้ครบ<strong>ก่อนจับสาย</strong></p>
-        <ErrorNote text={action.error} />
-        {summary && <p className="rounded-xl bg-[var(--gt-surface-2)] px-4 py-2 text-sm">นำเข้าเสร็จ: {summary}</p>}
-        <button type="button" onClick={runImport} disabled={action.busy || mapping.rows.length === 0} className="gt-gold-btn min-h-12 w-full px-4 sm:w-auto disabled:opacity-60">
-          {action.busy ? "กำลังนำเข้า…" : `นำเข้า ${mapping.rows.length} รายชื่อ`}
-        </button>
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="font-bold">2. เลือกรุ่นเพื่อจับสาย ออกคู่ และกรอกผล</h2>
-        <ByeRuleSetting key={event.bye_sos_mode ?? "none"} id={id} mode={event.bye_sos_mode} onSaved={load} />
+      <div className="site-operation-nav"><a href="#event-divisions" aria-current="page">มอนิเตอร์ / จับคู่ / ลงผล</a><button type="button" aria-pressed={settingsOpen} onClick={()=>setSettingsOpen(!settingsOpen)}>ตั้งค่าการแข่งขันเฉพาะงาน</button></div>
+      {settingsOpen && <EventSettings id={id} onSaved={load}/>}
+      <section id="event-divisions" className="space-y-2">
+        <h2 className="font-bold">เลือกรุ่นเพื่อมอนิเตอร์ จับคู่ และลงผล</h2>
+        {settingsOpen && <ByeRuleSetting key={event.bye_sos_mode ?? "none"} id={id} mode={event.bye_sos_mode} onSaved={load} />}
         <ul className="grid gap-2 sm:grid-cols-2">
           {divisions.map((d) => {
             const inDb = regCount.get(d.id) ?? 0, inSheet = sheetCount.get(d.id) ?? 0;
@@ -309,6 +292,30 @@ function EventConsole({ id }: { id: string }) {
         </ul>
       </section>
 
+      {settingsOpen && <>
+      <section className="gt-card p-4">
+        <VenueField key={event.venue ?? ""} id={id} venue={event.venue} onSaved={load} />
+      </section>
+
+      <section className="gt-card space-y-3 p-4">
+        <h2 className="font-bold">1. นำเข้ารายชื่อจาก Google Form</h2>
+        <p className="text-sm text-[var(--gt-muted)]">
+          พบ {entrants.length} แถวในชีต · จับคู่รุ่นได้ {mapping.rows.length} แถว
+          {mapping.unmatched.length > 0 && <> · <span className="text-[var(--gt-warn)]">ไม่รู้จักรุ่น {mapping.unmatched.length} แถว</span></>}
+        </p>
+        {mapping.unmatched.length > 0 && (
+          <ul className="rounded-xl bg-[var(--gt-warn-soft)] px-4 py-2 text-sm">
+            {mapping.unmatched.slice(0, 10).map((e) => <li key={e.source_row}>แถว {e.source_row}: {e.full_name} — “{e.division_name}”</li>)}
+          </ul>
+        )}
+        <p className="text-sm">กดซ้ำได้เมื่อมีผู้สมัครเพิ่ม คนที่นำเข้าแล้วจะไม่ถูกเพิ่มซ้ำ ควรนำเข้าให้ครบ<strong>ก่อนจับสาย</strong></p>
+        <ErrorNote text={action.error} />
+        {summary && <p className="rounded-xl bg-[var(--gt-surface-2)] px-4 py-2 text-sm">นำเข้าเสร็จ: {summary}</p>}
+        <button type="button" onClick={runImport} disabled={action.busy || mapping.rows.length === 0} className="gt-gold-btn min-h-12 w-full px-4 sm:w-auto disabled:opacity-60">
+          {action.busy ? "กำลังนำเข้า…" : `นำเข้า ${mapping.rows.length} รายชื่อ`}
+        </button>
+      </section>
+
       <section className="gt-card flex flex-wrap items-center gap-3 p-4">
         <div className="mr-auto min-w-0">
           <h2 className="font-bold">3. กรรมการ</h2>
@@ -317,32 +324,8 @@ function EventConsole({ id }: { id: string }) {
         <Link href={`/organizer/${id}/referees`} className="gt-gold-btn inline-flex min-h-12 items-center px-5">จัดการกรรมการ</Link>
       </section>
 
-      <section className="gt-card space-y-4 p-4">
-        <div>
-          <h2 className="font-bold">4. การรับสมัคร</h2>
-          <p className="text-sm text-[var(--gt-muted)]">เลือกวิธีรับสมัครของงานนี้ · รับผ่านเว็บ: ผู้สมัครกดโปสเตอร์ / ปุ่ม “สมัครแข่งขัน” กรอกข้อมูล โอนเงิน แนบสลิป แล้วอนุมัติหรือปฏิเสธได้ที่นี่</p>
-        </div>
-        <RegistrationSettings key={`${event.registration_mode}|${event.registration_url}`} id={id} mode={event.registration_mode ?? "web"} url={event.registration_url} onSaved={load} />
-        {(event.registration_mode ?? "web") === "web" && <><PaymentSettings id={id} /><OrganizerQueue tournamentId={id} bare /><ChangePolicy id={id} /><ChangeRequests id={id} /></>}
-        <IdentityMatches id={id} />
-      </section>
 
-      <section className="gt-card space-y-3 p-4">
-        <div>
-          <h2 className="font-bold">5. ประกาศ</h2>
-          <p className="text-sm text-[var(--gt-muted)]">ประกาศจะแสดงที่แท็บ “ข่าว” ของทุกรุ่นในงานนี้ (หน้าสาธารณะอัปเดตภายใน 30 วินาที) · สรุปผลแต่ละรอบขึ้นให้อัตโนมัติ ไม่ต้องเขียนเอง</p>
-        </div>
-        <Announcements id={id} />
-      </section>
-
-      <section className="gt-card space-y-3 p-4">
-        <div>
-          <h2 className="font-bold">6. ใบประกาศนียบัตร</h2>
-          <p className="text-sm text-[var(--gt-muted)]">เปิดเมื่อแข่งจบและลงผลครบแล้ว นักกีฬาจะดาวน์โหลดใบประกาศของตัวเองได้ที่แท็บ “ใบประกาศ” ในหน้าโปรไฟล์</p>
-        </div>
-        <CertificateSettings key={`${event.certificates_open}`} id={id} open={Boolean(event.certificates_open)} signers={event.certificate_signers ?? []}
-          pending={[...status.values()].reduce((n, x) => n + x.pending, 0)} onSaved={load} />
-      </section>
+      </>}
     </div>
   );
 }
