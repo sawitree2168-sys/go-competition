@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+const source=ts.transpileModule(fs.readFileSync('lib/head-to-head.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText;
+const {meetingGames,meetingStats,meetingPercent}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const game=(id,outcome,kind='played',event_year=2026,opponent_go_id='GO2')=>({id,outcome,kind,event_year,opponent_go_id});
+const sourceGames=[game('1','win'),game('1','win'),game('2','loss'),game('3','draw'),game('4','win','walkover'),game('5','pending'),game('6','win','bye'),game('7','win','played',2025),game('8','win','played',2026,'GO3')];
+const filtered=meetingGames(sourceGames,'GO2','2026');
+assert.equal(filtered.length,6);assert.deepEqual(meetingStats(filtered),{played:3,wins:1,losses:1,draws:1,excluded:3});
+assert.equal(meetingStats(meetingGames(sourceGames,'GO2','all')).played,4);
+assert.equal(meetingStats(meetingGames(sourceGames,'GO99','all')).played,0);assert.equal(meetingPercent(0,0),'—');
+assert.equal(meetingPercent(6,10),'60%');assert.equal(meetingPercent(3,10),'30%');assert.equal(meetingPercent(1,10),'10%');
+console.log('Head-to-head: deduplication, opponent/year filtering, W/L/D, exclusions and percentages passed');

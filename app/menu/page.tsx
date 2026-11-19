@@ -12,6 +12,7 @@ const entries: { label: string; href: string; icon: MenuIconName; desc: string }
   {label:"ผลการแข่งขัน",href:"/results",icon:"results",desc:"ดูผลและคู่แข่งขัน"},
   {label:"ส่งผลการแข่งขัน",href:"/results/submit",icon:"upload",desc:"ส่งผลรายการอื่นเพื่อเก็บสถิติของนักกีฬา"},
   {label:"อันดับและสถิติ",href:"/stats",icon:"stats",desc:"สถิติและอันดับนักกีฬา"},
+  {label:"สถิติการพบกัน",href:"/head-to-head",icon:"stats",desc:"ค้นหานักกีฬา 2 คน ดูผลการพบกันและเปอร์เซ็นต์แพ้ชนะ"},
   {label:"นักกีฬา",href:"/athletes",icon:"athlete",desc:"ค้นหาและดูโปรไฟล์"},
   {label:"ทำเนียบนักกีฬา",href:"/dan",icon:"dan",desc:"อันดับคะแนน รายชื่อดั้ง และประกาศดั้งใหม่"},
   {label:"GO FAN",href:"/go-fan",icon:"fan",desc:"ติดตามนักกีฬาที่ชื่นชอบ"},
