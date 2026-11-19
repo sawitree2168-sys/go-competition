@@ -1,0 +1,28 @@
+{
+  "source_tabs": 44,
+  "source_rows": 2826,
+  "identities": 3449,
+  "linked_dan_ids": 279,
+  "events": 40,
+  "event_with_games": 29,
+  "verified_records": 4005,
+  "verified_games": 3973,
+  "record_kinds": {
+    "played": 3973,
+    "bye": 11,
+    "walkover": 10,
+    "not_played": 11
+  },
+  "linked_players_with_games": 502,
+  "reviews": {
+    "identity_unresolved": 223,
+    "direct_round_or_result_review": 507,
+    "event_adapter_pending": 12,
+    "identity_name_mismatch": 162,
+    "rating_reversal_not_new_matches": 1,
+    "opponent_missing": 14,
+    "event_edition_review": 4,
+    "round_token_review": 14,
+    "non_reciprocal_result": 16
+  }
+}

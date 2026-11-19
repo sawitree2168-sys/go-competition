@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Reproducible private import working files
+/.history-import-sql/
+/.history-upgrade*
+/data/history-2026-import.json
