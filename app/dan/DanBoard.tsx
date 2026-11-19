@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import CompetitionPanel from "@/components/CompetitionPanel";
 import AthleteAvatar from "@/components/AthleteAvatar";
-import RankTable, { type Ranking, type RankRow } from "./RankTable";
+import RankTable, { RankCards, type Ranking, type RankRow } from "./RankTable";
 
 export type Person = { dan: number | null; name: string; level: string | null; diamond: boolean; go_id: string | null; photo: string | null; profile_id: string | null };
 export type Examiner = Person & { role: string };
@@ -20,8 +20,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "diamond", label: "ดั้งเพชร" },
   { id: "all", label: "ทำเนียบดั้งทั้งหมด" },
 ];
-const PAGE = 12;
-const ROWS = 20;
+
 
 const key = (s: string) => s.replace(/[\s​-‍﻿]+/g, "").toLowerCase();
 const num = (n: number) => n.toLocaleString("en-US");
@@ -138,15 +137,13 @@ function DanTable({ rows }: { rows: DirEntry[] }) {
 }
 
 function Pager({ page, pages, go }: { page: number; pages: number; go: (p: number) => void }) {
-  if (pages <= 1) return null;
-  const btn = "grid min-h-11 min-w-11 place-items-center rounded-full border border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)] px-3 text-sm font-semibold disabled:opacity-40";
-  return (
-    <nav aria-label="เลือกหน้า" className="mt-5 flex items-center justify-center gap-2">
-      <button type="button" className={btn} disabled={page <= 1} onClick={() => go(page - 1)} aria-label="หน้าก่อน">‹</button>
-      <span className="gt-num px-2 text-sm text-[var(--gt-muted)]">หน้า {page} / {pages}</span>
-      <button type="button" className={btn} disabled={page >= pages} onClick={() => go(page + 1)} aria-label="หน้าถัดไป">›</button>
-    </nav>
-  );
+  const numbers = Array.from({length: pages}, (_, i) => i + 1).filter(n => n === 1 || n === pages || Math.abs(n-page) <= 2);
+  return <nav aria-label="เลือกหน้า" className="dan-pagination" data-export-ignore="true">
+    <button disabled={page <= 1} onClick={() => go(page-1)}>‹ ก่อน</button>
+    {numbers.map((n,i) => <span key={n}>{i>0 && n-numbers[i-1]>1 && <span className="px-2">…</span>}<button aria-current={n===page ? "page" : undefined} onClick={()=>go(n)}>{n}</button></span>)}
+    <button disabled={page >= pages} onClick={()=>go(page+1)}>ถัดไป ›</button>
+    <label>ไปหน้า <select aria-label="ไปหน้าที่" value={page} onChange={e=>go(Number(e.target.value))}>{Array.from({length:pages},(_,i)=><option key={i} value={i+1}>{i+1}</option>)}</select> / {pages}</label>
+  </nav>;
 }
 
 export default function DanBoard({ board, ranking }: { board: Board; ranking: Ranking | null }) {
@@ -155,10 +152,10 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
   const [year, setYear] = useState("all");
   const [level, setLevel] = useState("all");
   const [page, setPage] = useState(1);
-  const [view, setView] = useState<"cards" | "list">("cards");
+  const [view, setView] = useState<"cards" | "list">("list");
   const [sort, setSort] = useState<"score" | "dan">("score");
   const [scope, setScope] = useState<"active" | "inactive" | "all">("active");
-  const [showFullRanking, setShowFullRanking] = useState(false);
+  const [per, setPer] = useState(30);
 
   const latest = board.announcements[0]?.announced_on ?? null;
   const diamondCount = board.directory.filter((d) => d.diamond).length;
@@ -219,14 +216,11 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
     .filter((r) => r.score !== null && (scope === "all" || r.active === (scope === "active")) && matches(q, r.name, r.dan) && (level === "all" || r.level === level))
     .sort((a, b) => sort === "dan" ? a.dan - b.dan : (b.score! - a.score!) || (Number(b.active) - Number(a.active)) || a.dan - b.dan), [ranking, scope, q, level, sort]);
 
-  const per = tab === "new" && view === "cards" ? PAGE : ROWS;
   const total = tab === "new" ? news.length : tab === "rank" ? ranked.length : dir.length;
   const pages = Math.max(1, Math.ceil(total / per));
   const cur = Math.min(page, pages);
   const isRanking = tab === "rank";
-  const mobilePreview = isRanking && !showFullRanking && cur === 1 && total > 6
-    && !q.trim() && level === "all" && scope === "active" && sort === "score";
-  const rankYear = ranking?.as_of ? beYear(ranking.as_of) : beYear(new Date().toISOString());
+  const mobilePreview = false;
   const go = (p: number) => { setPage(p); document.getElementById("dan-results")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
   const newAsRows: DirEntry[] = news.map((a) => ({ dan: a.dan ?? 0, name: a.name, level: a.level, diamond: a.diamond, year: beYear(a.announced_on), go_id: a.go_id, photo: a.photo }));
@@ -234,12 +228,6 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
 
   return (
     <div className="dan-board">
-      <section className="dan-hero" aria-labelledby="dan-title">
-        <div className="dan-hero-inner">
-          <h1 id="dan-title">{isRanking ? "อันดับคะแนนประเทศไทย" : "ทำเนียบนักกีฬาหมากล้อมไทย"}</h1>
-          {isRanking && <p className="dan-hero-year">ปี {rankYear}</p>}
-        </div>
-      </section>
 
       {isRanking && (
         <div className="dan-ranking-summary">
@@ -257,14 +245,15 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
             ))}
           </div>
           <div className="dan-ranking-facts">
-            <p aria-live="polite"><PeopleIcon /><span>นักกีฬา <strong className="gt-num">{num(total)}</strong> คน</span></p>
-            {board.synced_at && (
-              <p><CalendarIcon /><span>อัปเดต {thaiDate(board.synced_at)}</span></p>
+            <p aria-live="polite"><PeopleIcon /><span>{scope === "active" ? "Active ที่มีคะแนน" : scope === "inactive" ? "Inactive ที่มีคะแนน" : "ผู้มีคะแนนทั้งหมด"} · ตามตัวกรอง <strong className="gt-num">{num(total)}</strong> คน</span></p>
+            {ranking?.as_of && (
+              <p><CalendarIcon /><span>คะแนนถึง {thaiDate(ranking.as_of)}</span></p>
             )}
           </div>
         </div>
       )}
 
+      {isRanking && <aside className="dan-help"><strong>จำนวนนี้นับเฉพาะผู้มีคะแนนที่ตรงกับตัวกรอง</strong><p>Active: มีผลแข่งขันใน {ranking?.inactive_months} เดือนล่าสุด หรือผู้ดูแลกำหนดสถานะ · Inactive: ไม่เข้าเงื่อนไขดังกล่าว ไม่ได้หมายถึงเลิกเล่น</p><p>ป้าย “อันดับคะแนน {num(activeCount)}” นับ Active ทุกระดับ ส่วน “ทำเนียบดั้งทั้งหมด” นับผู้ได้รับการรับรองในทะเบียน คนละกลุ่มกับรายชื่อนักกีฬาทั้งเว็บไซต์ · ถึงเกณฑ์เลื่อนดั้งไม่ได้หมายถึงเลื่อนดั้งแล้ว</p></aside>}
       <div className="gt-directory-tools gt-dan-tools">
         <label className="gt-directory-search relative block">
           <span className="sr-only">ค้นหาชื่อหรือเลขดั้ง</span>
@@ -315,6 +304,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
       </div>
 
       <CompetitionPanel title={TABS.find(t => t.id === tab)?.label ?? "ทำเนียบนักกีฬา"} context={`GO TOURNAMENT · ทำเนียบนักกีฬาหมากล้อมไทย · ${level === "all" ? "ทุกระดับ" : `${level} ดั้ง`} · หน้าที่ ${cur}`}><div id="dan-results" className="dan-results">
+        <div className="dan-display-tools" data-export-ignore="true"><div role="group" aria-label="มุมมอง"><button aria-pressed={view==="list"} onClick={()=>setView("list")}>☷ ตาราง</button><button aria-pressed={view==="cards"} onClick={()=>setView("cards")}>▦ การ์ด</button></div><label>แสดงต่อหน้า <select value={per} onChange={e=>{setPer(Number(e.target.value));setPage(1);}}>{[30,50,100].map(n=><option key={n} value={n}>{n} คน</option>)}</select></label><span aria-live="polite">{total ? num((cur-1)*per+1) : 0}–{num(Math.min(cur*per,total))} จาก {num(total)} รายการ</span></div>
         {!isRanking && (
           <>
             <div className="gt-directory-results">
@@ -322,12 +312,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
                 <h2>{tab === "new" ? "รายชื่อผู้ได้รับการรับรองดั้งใหม่" : tab === "diamond" ? "ดั้งเพชร" : "ทำเนียบดั้งทั้งหมด"}</h2>
                 <p aria-live="polite">{num(tab === "all" ? dir.filter((d) => !d.reserved).length : total)} คน</p>
               </div>
-              {tab === "new" && (
-                <div role="group" aria-label="รูปแบบการแสดงรายชื่อ" className="gt-directory-view-toggle">
-                  <button type="button" aria-pressed={view === "cards"} onClick={() => { setView("cards"); setPage(1); }} className={view === "cards" ? "is-active" : ""}>▦ การ์ด</button>
-                  <button type="button" aria-pressed={view === "list"} onClick={() => { setView("list"); setPage(1); }} className={view === "list" ? "is-active" : ""}>☷ ตาราง / ลิสต์</button>
-                </div>
-              )}
+
             </div>
             <p className="dan-source-note">
               {tab === "new" && latest && <>ประกาศล่าสุด {thaiDate(latest, "long")} · </>}
@@ -365,19 +350,9 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
             {news.slice((cur - 1) * per, cur * per).map((a) => <NewDanCard key={a.dan ?? a.name} a={a} />)}
           </ul>
         ) : tab === "rank" ? (
-          <RankTable rows={ranked.slice((cur - 1) * per, cur * per)} classRank={level === "all" ? null : classRank} mobilePreview={mobilePreview} />
-        ) : (
+          view === "cards" ? <RankCards rows={ranked.slice((cur - 1) * per, cur * per)} classRank={level === "all" ? null : classRank} /> : <RankTable rows={ranked.slice((cur - 1) * per, cur * per)} classRank={level === "all" ? null : classRank} mobilePreview={mobilePreview} />
+        ) : view === "cards" ? <ul className="dan-directory-cards">{(tab === "new" ? newAsRows : dir).slice((cur-1)*per,cur*per).map(d=><li className="gt-card p-3" key={d.dan}>{!d.reserved && <div className="aspect-[4/5]"><AthleteAvatar src={d.photo} name={d.name} zoom variant="portrait" /></div>}<h3 className="mt-3 font-bold">{d.reserved ? "เลขดั้งนี้ประมูลแล้ว รอสอบผ่าน" : d.name}</h3><p>เลขดั้ง {d.dan} · {d.reserved ? "รอรับรอง" : danLabel(d.level)}</p>{d.diamond && <p>💎 ดั้งเพชร</p>}</li>)}</ul> : (
           <DanTable rows={(tab === "new" ? newAsRows : dir).slice((cur - 1) * per, cur * per)} />
-        )}
-        {mobilePreview && (
-          <button type="button" className="dan-expand-rank" aria-controls="dan-rank-list"
-            onClick={(event) => {
-              const nextRow = event.currentTarget.previousElementSibling?.querySelector<HTMLElement>(".dan-rank-row:nth-child(7)");
-              setShowFullRanking(true);
-              requestAnimationFrame(() => nextRow?.focus());
-            }}>
-            ดูอันดับทั้งหมด ({num(total)} คน)
-          </button>
         )}
         <div className={mobilePreview ? "dan-preview-pager" : undefined}>
           <Pager page={cur} pages={pages} go={go} />

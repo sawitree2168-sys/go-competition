@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Gate from "../_lib/Gate";
+import PresentationAdmin from "./PresentationAdmin";
 import PhotoAdmin from "./PhotoAdmin";
 import ActivityAdmin from "./ActivityAdmin";
 import PhotoInbox from "./PhotoInbox";
@@ -66,6 +67,8 @@ function Platform() {
       <div className="site-metrics"><div>รายการแข่งขัน<b>{events.length}</b></div><div>ผู้จัด<b>{orgs?.length??0}</b></div><div><a href="#photo-inbox">ตรวจภาพผลที่ส่งมา →</a></div><div><a href="/news">ข่าวสารและสรุปผล →</a></div></div>
       <PhotoInbox/>
       <AthleteAccounts />
+
+      <PresentationAdmin />
 
       <PhotoAdmin />
 

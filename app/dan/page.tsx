@@ -1,3 +1,5 @@
+import { PresentationBanner, Sponsors } from '@/components/Presentation';
+import { defaultPresentation, normalizePresentation } from '@/lib/site-presentation';
 import "../tournaments/directory.css";
 import "./dan.css";
 import { SiteFooter } from "@/components/SiteDesign";
@@ -11,7 +13,7 @@ import type { Ranking } from "./RankTable";
 export const metadata: Metadata = { title: "ทำเนียบนักกีฬาหมากล้อมไทย · GO TOURNAMENT" };
 
 // The association updates its list a few times a month; rebuild at most every 10 minutes.
-export const revalidate = 600;
+export const revalidate = 30;
 
 async function load(): Promise<[Board | null, Ranking | null]> {
   const db = publicDb();
@@ -22,6 +24,8 @@ async function load(): Promise<[Board | null, Ranking | null]> {
 
 export default async function DanPage() {
   const [board, ranking] = await load();
+  const result = await publicDb()?.from('gt_site_presentation_v1').select('config').eq('page','dan').maybeSingle();
+  const presentation = result?.data ? normalizePresentation(result.data.config) : defaultPresentation;
   return (
     <div className="min-h-screen">
       <Shell wide>
@@ -29,11 +33,12 @@ export default async function DanPage() {
           <SiteBar current="/dan" />
           <main className="dan-page-content">
             {board
-              ? <DanBoard board={board} ranking={ranking} />
+              ? <><PresentationBanner config={presentation.banner}/><DanBoard board={board} ranking={ranking} /></>
               : <div className="gt-card p-6 text-center">
                   <h1 className="text-2xl font-bold">ทำเนียบนักกีฬาหมากล้อมไทย</h1>
                   <p className="mt-2 text-[var(--gt-muted)]">ยังโหลดรายชื่อดั้งไม่ได้ กรุณาลองใหม่อีกครั้ง</p>
                 </div>}
+            <Sponsors items={presentation.sponsors}/>
           </main>
           <SiteFooter />
         </div>

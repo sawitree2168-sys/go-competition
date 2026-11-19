@@ -1,0 +1,115 @@
+{
+  "banner": {
+    "title": "ทำเนียบนักกีฬาหมากล้อมไทย",
+    "subtitle": "อันดับคะแนน · ระดับฝีมือ · เส้นทางการแข่งขัน",
+    "desktop": "/event-hero-wide.webp",
+    "mobile": "/event-hero-m.webp"
+  },
+  "sponsors": [
+    {
+      "id": "1j0E6_LtHZMYC6kwzQkEPBJBTX-6oQ5Qt",
+      "name": "tgs-logo",
+      "logo": "/sponsors/sponsor-1.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1rswkA94XL9MA5vHwv1659tvijiQwfxXP",
+      "name": "เรือนเพชร",
+      "logo": "/sponsors/sponsor-2.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1_Xot4sxeoqbP9FK_hSvOB5oNexw_2mfJ",
+      "name": "CPALL",
+      "logo": "/sponsors/sponsor-3.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1iWwOox3dwIcxfXnX5NYGbEQLnBCH6HW0",
+      "name": "ห้างทองไทยนิรันดร์",
+      "logo": "/sponsors/sponsor-4.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1T6pOyf5tTcCk57ja1f2TVG1Sy8DykM0B",
+      "name": "TGF",
+      "logo": "/sponsors/sponsor-5.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1h1RovM6kSOfSPBS47I20RfezwGVO7Eux",
+      "name": "TGA",
+      "logo": "/sponsors/sponsor-6.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1EQmhcjzDj7K3oRVFLMRxYORA-rO-Mesx",
+      "name": "สมาคมหมากล้อม",
+      "logo": "/sponsors/sponsor-7.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1mU1vg7D2bDZc4WpEX_bSAHtjidglfAzP",
+      "name": "BIGBEE",
+      "logo": "/sponsors/sponsor-8.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1SkT1yrWvcsoyFlTX9H7adni_RfHCKzW9",
+      "name": "BitcoinAddict",
+      "logo": "/sponsors/sponsor-9.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1XO-MY0vfqHodp4VWZSfAiiAPqWD1VoV2",
+      "name": "OnDemand",
+      "logo": "/sponsors/sponsor-10.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "14Qu39h9RCjV--rJnHggQ_wttXgq6TSmF",
+      "name": "Kitty Kawaii",
+      "logo": "/sponsors/sponsor-11.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1-IdI4Uop05giZ-fmFrUnAVf792gQhR88",
+      "name": "MIDASSOFT",
+      "logo": "/sponsors/sponsor-12.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1DHavCxmdq88fSejS6wjpwVThUEaw9bOp",
+      "name": "Quill",
+      "logo": "/sponsors/sponsor-13.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "1iP1H93iM1dr8uk6v7gwgUJMkFaUpCGhi",
+      "name": "COTTO",
+      "logo": "/sponsors/sponsor-14.webp",
+      "enabled": true,
+      "href": ""
+    },
+    {
+      "id": "16B4zQ1PDoZ4Cano_P6zsFZsYNX51Ozv6",
+      "name": "readyplanet",
+      "logo": "/sponsors/sponsor-15.webp",
+      "enabled": true,
+      "href": ""
+    }
+  ]
+}

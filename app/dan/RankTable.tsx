@@ -110,3 +110,10 @@ export default function RankTable({ rows, classRank, mobilePreview }: {
     </div>
   );
 }
+
+export function RankCards({rows,classRank}: {rows:RankRow[];classRank:Map<number,number>|null}) {
+ return <ul className="dan-directory-cards" aria-label="อันดับคะแนนแบบการ์ด">{rows.map(row=><li key={row.dan} className="gt-card dan-player-card">
+ <div className="dan-card-picture"><AthleteAvatar src={row.photo} name={row.name} zoom variant="portrait"/><span className="dan-card-position">{classRank ? "รุ่น" : "ประเทศ"} {classRank ? classRank.get(row.dan) ?? "–" : row.rank ?? "–"}</span></div>
+ <div className="p-3"><h2 className="font-bold">{row.go_id ? <Link href={`/athletes/history/${row.go_id}`}>{row.name}</Link> : row.name}</h2><p className="text-sm">{row.level} Dan · เลขดั้ง {row.dan}</p>{classRank && <p className="text-sm">อันดับประเทศ {row.rank ?? "–"}</p>}<div className="dan-card-score"><strong>{row.score === null ? "–" : num(row.score)}</strong><Delta value={row.delta}/></div><p className="mb-2 text-xs">คะแนนปัจจุบัน{row.last_played ? ` · แข่งล่าสุด ${shortDate(row.last_played)}` : ""}</p><Status row={row}/>{row.next_level && <div className="mt-2"><NextLevelBadge level={row.level}/></div>}</div>
+ </li>)}</ul>;
+}
