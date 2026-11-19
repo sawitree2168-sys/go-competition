@@ -1,3 +1,4 @@
+import {filterAthleteResults} from "@/lib/athlete-results.mjs";
 import EventOrganizer from "@/components/EventOrganizer";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -16,13 +17,15 @@ const isPending = (p: ResultPerson) => !isUpcoming(p) && !!p.pending?.length;
 
 // ผลการแข่งขัน: recorded results of past events, by event and division. Every player when the whole standings sheet is on
 // file; players who are also entered in an upcoming event get a ★ and a bold name (ครูเล็ก, 17 Nov 2026).
-export default async function ResultsPage({ searchParams }: { searchParams: Promise<{ only?: string; event?: string }> }) {
-  const { only, event: selectedEvent } = await searchParams;
+export default async function ResultsPage({ searchParams }: { searchParams: Promise<{ only?: string; event?: string; q?:string; go_id?:string }> }) {
+  const { only, event: selectedEvent, q:athleteName, go_id:goId } = await searchParams;
   const onlyUpcoming = only === "upcoming";
-  const allEvents = await loadResults(publicDb());
+  const allEvents = filterAthleteResults(await loadResults(publicDb()),{goId:goId??"",name:athleteName??""}) as Awaited<ReturnType<typeof loadResults>>;
   const events = selectedEvent ? allEvents.filter((e) => e.title === selectedEvent) : allEvents;
   const resultsHref = (upcoming: boolean) => {
     const params = new URLSearchParams();
+    if(athleteName)params.set("q",athleteName);
+    if(goId)params.set("go_id",goId);
     if (selectedEvent) params.set("event", selectedEvent);
     if (upcoming) params.set("only", "upcoming");
     return `/results${params.size ? `?${params}` : ""}`;
@@ -32,6 +35,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
 
   return (
     <PublicPage icon="results" title="ผลการแข่งขัน" sub="อันดับและผลชนะ–แพ้ของทุกรุ่น จากผลการแข่งขันที่บันทึกไว้" current="/results">
+      {(athleteName||goId)&&<div className="gt-card mb-4 p-5"><h2 className="text-xl font-bold">ผลงานของ {athleteName||goId}</h2><p>{goId} · {events.length} รายการที่มีผลเผยแพร่ในระบบ</p><Link href="/athletes" className="text-blue-800 underline">กลับรายชื่อนักกีฬา</Link></div>}
       <div className="flex flex-wrap gap-2">
         {selectedEvent && <Link href="/results" className="gt-outline-btn inline-flex min-h-11 items-center px-4 font-semibold">ผลการแข่งขันทุกรายการ</Link>}
         <Link href="/tournaments?status=finished" className="gt-outline-btn inline-flex min-h-11 items-center px-4 font-semibold">รายการที่จบการแข่งขัน →</Link>
@@ -119,7 +123,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
           })}
         </div>
       ) : (
-        <p className="gt-card mt-5 p-6 text-center text-[var(--gt-muted)]">ยังไม่มีผลการแข่งขันที่บันทึกไว้</p>
+        <p className="gt-card mt-5 p-6 text-center text-[var(--gt-muted)]">{athleteName||goId ? "ยังไม่มีผลงานที่เผยแพร่ของนักกีฬาคนนี้ในระบบ" : "ยังไม่มีผลการแข่งขันที่บันทึกไว้"}</p>
       )}
     </PublicPage>
   );
