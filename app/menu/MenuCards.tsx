@@ -1,6 +1,7 @@
 'use client';
 import {useState} from 'react';
 import Link from 'next/link';
+import {useRouter} from 'next/navigation';
 import MenuIcon,{type MenuIconName} from '@/components/MenuIcon';
 type Item={label:string;href:string;icon:MenuIconName|'meeting'|'board'|'heart'|'id'|'school';desc:string};
 const groups:{title:string;items:Item[]}[]=[
@@ -34,13 +35,22 @@ function Icon({name}:{name:Item['icon']}){
 }
 const norm=(s:string)=>s.replace(/\s+/g,'').toLocaleLowerCase('th');
 export default function MenuCards(){
+ const router=useRouter();
+ const [selected,setSelected]=useState<string|null>(null);
  const [q,setQ]=useState('');const query=norm(q);
+ const activate=(event:React.MouseEvent<HTMLAnchorElement>,href:string)=>{
+  if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+  event.preventDefault();
+  if(selected)return;
+  setSelected(href);
+  window.setTimeout(()=>router.push(href),280);
+ };
  const matches=(a:Item)=>!query||norm(`${a.label}${a.desc}`).includes(query);
  const visible=groups.map(g=>({...g,items:g.items.filter(matches)})).filter(g=>g.items.length);
  const links=quick.filter(matches);const count=visible.reduce((n,g)=>n+g.items.length,0)+links.length;
  return <><div className="menu-intro"><div><h1>เมนูทั้งหมด</h1><p>ทุกบริการหมากล้อมในที่เดียว</p></div><div className="menu-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></svg><label className="sr-only" htmlFor="menu-search">ค้นหาเมนู</label><input id="menu-search" type="search" placeholder="ค้นหาเมนูที่ต้องการ…" value={q} onChange={e=>setQ(e.target.value)}/></div></div>
  {q&&<p className="menu-search-status" role="status">พบ {count} เมนู <button onClick={()=>setQ('')}>ล้างคำค้น</button></p>}
- <nav aria-label="เมนูเว็บไซต์ทั้งหมด">{visible.map(g=><section className="menu-group" key={g.title} aria-label={g.title}><h2>{g.title}</h2><div className="menu-grid">{g.items.map(a=><Link href={a.href} className="menu-tile" key={a.href}><div className="menu-tile-art"><Icon name={a.icon}/></div><h3>{a.label}</h3><p>{a.desc}</p><div className="menu-tile-bottom" aria-hidden="true"><span/><b>➜</b></div></Link>)}</div></section>)}
+ <nav aria-label="เมนูเว็บไซต์ทั้งหมด">{visible.map(g=><section className="menu-group" key={g.title} aria-label={g.title}><h2>{g.title}</h2><div className="menu-grid">{g.items.map(a=><Link href={a.href} className={`menu-tile${selected===a.href?' is-selected':''}`} onClick={event=>activate(event,a.href)} aria-label={a.label} key={a.href}><div className="menu-tile-art"><Icon name={a.icon}/></div><h3>{a.label}</h3><p>{a.desc}</p><div className="menu-tile-bottom" aria-hidden="true"><span/><b>➜</b></div></Link>)}</div></section>)}
  {links.length>0&&<div className="menu-quick" aria-label="บัญชีและความช่วยเหลือ">{links.map(a=><Link href={a.href} key={a.href}>{a.label}</Link>)}</div>}
  </nav>{!count&&<div className="menu-empty"><p>ไม่พบเมนูที่ตรงกับคำค้น</p><button onClick={()=>setQ('')}>ดูเมนูทั้งหมด</button></div>}</>;
 }
