@@ -3,6 +3,7 @@ import {useMemo,useState} from 'react';
 import Link from 'next/link';
 import type {HistoryProfile} from '@/lib/central-history';
 import CompetitionPanel from './CompetitionPanel';
+import LevelTimeline from './LevelTimeline';
 const percent=(wins:number,games:number)=>games?`${(wins/games*100).toLocaleString('th-TH',{maximumFractionDigits:2})}%`:'—';
 const outcome=(v:string,kind:string)=>kind==='bye'?'บาย':kind==='walkover'?(v==='win'?'ชนะผ่าน':'แพ้ผ่าน'):kind==='not_played'?'ไม่ได้แข่งขัน':v==='win'?'ชนะ':v==='loss'?'แพ้':v==='draw'?'เสมอ':'ยังไม่มีผล';
 export default function CentralHistory({profile:p}:{profile:HistoryProfile}){
@@ -13,6 +14,7 @@ export default function CentralHistory({profile:p}:{profile:HistoryProfile}){
  const stats=selected??p.stats;
  return <div className="mt-5 space-y-5">
   <div className="gt-card border-l-4 border-amber-400 p-4"><strong>ข้อมูลนำเข้าที่ตรวจสอบแล้ว · ปี 2569</strong><p className="mt-1 text-sm">{p.coverage.note} • ยังไม่ใช่ประวัติการแข่งขันทั้งหมด</p><p className="mt-1 text-sm">นับเปอร์เซ็นต์จากเกมที่เล่นจริง: ชนะ ÷ (ชนะ + แพ้ + เสมอ) ไม่รวมบายและการปรับคะแนน GAT</p></div>
+  {!opponent&&<LevelTimeline history={p.level_history}/>}
   <label className="gt-card flex flex-col gap-2 p-4 font-bold">ดูสถิติการพบกัน<select className="min-h-12 w-full rounded-lg border border-blue-300 bg-white px-3 font-normal" value={opponent} onChange={e=>setOpponent(e.target.value)}><option value="">คู่แข่งทั้งหมด</option>{p.opponents.filter(o=>o.opponent_key).map(o=><option key={o.opponent_key} value={o.opponent_key}>{o.opponent_name} · {o.games} เกม{o.opponent_go_id?'':' · ยังไม่เชื่อม GO ID'}</option>)}</select></label>
   <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">{[['แข่งจริง',stats.games],['ชนะ',stats.wins],['แพ้',stats.losses],['เสมอ',stats.draws],['อัตราชนะ',percent(stats.wins,stats.games)]].map(([label,value])=><div className="gt-card p-4 text-center" key={label}><p className="text-sm">{label}</p><strong className="mt-1 block text-2xl">{value}</strong></div>)}</div>
   {selected?.opponent_go_id&&<Link className="inline-block text-blue-800 underline" href={`/athletes/history/${selected.opponent_go_id}`}>ดูประวัติ {selected.opponent_name} →</Link>}
