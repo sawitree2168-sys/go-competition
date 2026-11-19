@@ -18,7 +18,9 @@ function DivisionResults({story:s}:{story:Story}) {
 }
 
 export default async function Page({params}:{params:Promise<{id:string}>}) {
- const id=(await params).id;
+ const rawId=(await params).id;
+ let id=rawId;
+ try { id=decodeURIComponent(rawId); } catch { /* Keep malformed legacy IDs unchanged. */ }
  const stories=await loadStories();
  const grouped=groupNewsEvents(stories) as (Story & {divisions?:Story[]})[];
  // Keep previously shared per-division article URLs working.
