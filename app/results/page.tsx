@@ -37,6 +37,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
 
   return (
     <PublicPage icon="results" title="ผลการแข่งขัน" sub="อันดับและผลชนะ–แพ้ของทุกรุ่น จากผลการแข่งขันที่บันทึกไว้" current="/results">
+      <Link href="/results/history" className="gt-card mb-4 block border-l-4 border-blue-600 p-4 font-bold text-blue-900">ดูวอลล์ลิสต์ย้อนหลังทุกรายการ (ผลรายรอบ · SOS · SOSOS) →</Link>
       {(athleteName||goId)&&<div className="gt-card mb-4 p-5"><h2 className="text-xl font-bold">ผลงานของ {athleteName||goId}</h2><p>{goId} · {events.length} รายการที่มีผลเผยแพร่ในระบบ</p><Link href="/athletes" className="text-blue-800 underline">กลับรายชื่อนักกีฬา</Link></div>}
       <div className="flex flex-wrap gap-2">
         {selectedEvent && <Link href="/results" className="gt-outline-btn inline-flex min-h-11 items-center px-4 font-semibold">ผลการแข่งขันทุกรายการ</Link>}
