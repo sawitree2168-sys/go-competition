@@ -27,6 +27,7 @@ export default async function HistoryWallPage({ params, searchParams }: {
 
   const date = wall.event.event_date ? thaiDate(wall.event.event_date) : 'ยังไม่ระบุวันแข่งขัน';
   const count = wall.divisions.find(item => item.name === wall.division);
+  const organizerStandings = wall.organizer_standings || Boolean(wall.source);
   const sources = wall.source ? [
     { url: wall.source.standings, label: 'ชีตอันดับและคะแนน' },
     { url: wall.source.rounds, label: 'ชีตผลรายรอบ' },
@@ -57,7 +58,7 @@ export default async function HistoryWallPage({ params, searchParams }: {
               {wall.rows.length} คน · {wall.rounds} {wall.has_rounds ? 'รอบ' : 'เกมต่อคนสูงสุด'} · {count?.games ?? 0} เกมที่แข่งจริง
             </p>
           </div>
-          {wall.source && <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-900">อันดับตามผลผู้จัด</span>}
+          {organizerStandings && <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-900">อันดับตามผลผู้จัด</span>}
         </header>
         {wall.ranking_mode === 'calculated' && (
           <p className="rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-950">อันดับต้นทางไม่ครบ ระบบเรียงจากคะแนน ตามด้วย SOS และ SOSOS</p>
@@ -65,7 +66,7 @@ export default async function HistoryWallPage({ params, searchParams }: {
         {!wall.has_rounds && wall.rows.length > 0 && (
           <p className="text-sm text-[var(--gt-muted)]">ต้นทางไม่ระบุรอบแข่งขัน จึงแสดงตามลำดับเกม</p>
         )}
-        {!wall.source && wall.ranking_mode === 'source' && wall.rows.some((row, i) => i > 0 && row.points > wall.rows[i - 1].points) && (
+        {!organizerStandings && wall.ranking_mode === 'source' && wall.rows.some((row, i) => i > 0 && row.points > wall.rows[i - 1].points) && (
           <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">อันดับต้นทางกับคะแนนที่คำนวณจากผลรายเกมต่างกัน ตารางนี้คงอันดับต้นทางไว้ค่ะ</p>
         )}
         <p className="text-sm text-[var(--gt-muted)]">เลขคืออันดับของคู่แข่ง · + ชนะ · − แพ้ · = เสมอ · * ชนะหรือแพ้ผ่าน <span className="sm:hidden">· เลื่อนตารางเพื่อดูรอบถัดไป</span></p>
