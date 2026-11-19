@@ -1,9 +1,11 @@
 import {publicDb, type BoardRow} from '@/app/tournaments/[id]/_ui/data';
 import {loadCrowdGames} from './crowd-results';
-import {divisionKey} from './division-display';
-export type WallGame={division:string;round:number;blackId:string;whiteId:string|null;blackName:string;whiteName:string|null;winner:string|null;result:string|null;state:string|null;bye:boolean};
+import {historicalWall} from './historical-wall';
+import {wallDivisionKey} from './wall-division';
+export type WallGame={division:string;round:number;blackId:string;whiteId:string|null;blackName:string;whiteName:string|null;winner:string|null;result:string|null;state:string|null;bye:boolean;notPlayed?:boolean;colourKnown?:boolean;sourceUrl?:string};
 export async function loadNewsWall(event:string,date:string|null):Promise<{games:WallGame[];unavailable:boolean}> {
- const db=publicDb();if(!db)return {games:[],unavailable:true};
+ const archive=historicalWall(event,date);
+ const db=publicDb();if(!db)return {games:archive,unavailable:true};
  const games:WallGame[]=[];
  let query=db.from('gt_tournaments').select('id').eq('published',true).eq('title',event);
  query=date?query.eq('event_date',date):query.is('event_date',null);
@@ -14,12 +16,15 @@ export async function loadNewsWall(event:string,date:string|null):Promise<{games
   if(ds.error)unavailable=true;
   for(const d of ds.data??[]){
    const r=await db.rpc('gt_division_board_v1',{p_division:d.id});if(r.error){unavailable=true;continue;}
-   for(const m of (r.data??[]) as BoardRow[])if(m.state!=='void')games.push({division:divisionKey(d.name),round:m.round_number,blackId:m.black_id,whiteId:m.white_id,blackName:m.black_name||'ไม่ระบุชื่อ',whiteName:m.white_name,winner:m.winner_id,result:m.result_code,state:m.state,bye:m.kind==='bye'});
+   for(const m of (r.data??[]) as BoardRow[])if(m.state!=='void')games.push({division:wallDivisionKey(d.name),round:m.round_number,blackId:m.black_id,whiteId:m.white_id,blackName:m.black_name||'ไม่ระบุชื่อ',whiteName:m.white_name,winner:m.winner_id,result:m.result_code,state:m.state,bye:m.kind==='bye'});
   }
  }
  for(const m of crowd.filter(g=>g.event===event&&g.date===date)){
-  if(games.some(g=>g.division===divisionKey(m.division)&&g.round===m.round&&g.blackId===m.black_id&&g.whiteId===m.white_id))continue;
-  games.push({division:divisionKey(m.division),round:m.round,blackId:m.black_id,whiteId:m.white_id,blackName:m.black_name,whiteName:m.white_name,winner:m.result.startsWith('black_win')?m.black_id:m.result.startsWith('white_win')?m.white_id:null,result:m.result,state:'verified',bye:false});
+  if(games.some(g=>g.division===wallDivisionKey(m.division)&&g.round===m.round&&g.blackId===m.black_id&&g.whiteId===m.white_id))continue;
+  games.push({division:wallDivisionKey(m.division),round:m.round,blackId:m.black_id,whiteId:m.white_id,blackName:m.black_name,whiteName:m.white_name,winner:m.result.startsWith('black_win')?m.black_id:m.result.startsWith('white_win')?m.white_id:null,result:m.result,state:'verified',bye:false});
  }
+ // Operational results take precedence; never add the same participant twice in a round.
+ const name=(s:string|null)=>String(s||'').replace(/^(ด\.ช\.|ด\.ญ\.|นาย\s|นางสาว\s|นาง\s)/,'').replace(/[\s\u200b-\u200d\ufeff]+/g,'');
+ for(const g of archive)if(!games.some(m=>m.division===g.division&&m.round===g.round&&[name(m.blackName),name(m.whiteName)].filter(Boolean).some(n=>n===name(g.blackName)||n===name(g.whiteName))))games.push(g);
  return {games,unavailable};
 }
