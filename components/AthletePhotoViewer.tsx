@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import AthleteAvatar from "./AthleteAvatar";
+import {athletePortrait} from "@/lib/athlete-portraits";
 import { DEFAULT_ATHLETE_PHOTO as AVATAR, athletePhotoSource, sharpPhotoWidth } from "@/lib/athlete-photo.mjs";
 
 export default function AthletePhotoViewer({ src, name }: { src?: string | null; name: string }) {
+  src=(src&&athletePhotoSource(src)!==AVATAR?src:null)||athletePortrait(name);
   const [open, setOpen] = useState(false);
   const [photo, setPhoto] = useState(() => athletePhotoSource(src));
   const [displayWidth, setDisplayWidth] = useState<number | null>(null);

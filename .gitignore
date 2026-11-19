@@ -44,3 +44,6 @@ next-env.d.ts
 /.history-import-sql/
 /.history-upgrade*
 /data/history-2026-import.json
+
+/.portrait-*
+/data/portrait-source-private.json

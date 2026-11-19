@@ -1,3 +1,4 @@
+import {athletePortrait} from '@/lib/athlete-portraits';
 import ChooseAcademy from "@/components/ChooseAcademy";
 import { PageHero, SiteFooter } from "@/components/SiteDesign";
 import {loadCrowdGames} from "@/lib/crowd-results";
@@ -25,7 +26,7 @@ async function load(id: string): Promise<{ athlete: Athlete; rows: GameRow[]; ce
     if(rows.some(r=>r.title===m.event&&r.event_date===m.date&&r.round_number===m.round&&r.opponent_id===m[`${opp}_id`]))continue;
     rows.push({kind:"match",tournament_id:`community:${m.event}`,title:m.event,event_date:m.date,division_id:`community:${m.division}`,division_name:m.division,round_number:m.round,colour:side,opponent_id:m[`${opp}_id`],opponent_name:m[`${opp}_name`],opponent_institution:m[`${opp}_school`],opponent_rank:null,opponent_photo:m[`${opp}_photo`],winner_id:m.result.startsWith('black_win')?m.black_id:m.result.startsWith('white_win')?m.white_id:null,result_code:m.result,result_margin:null,state:"verified"});
   }
-  return { athlete, rows, certs: (c.error ? [] : c.data ?? []) as Cert[] };
+  return { athlete:{...athlete,photo:athlete.photo||athletePortrait(athlete.full_name)}, rows:rows.map(r=>({...r,opponent_photo:r.opponent_photo||athletePortrait(r.opponent_name||'')})), certs: (c.error ? [] : c.data ?? []) as Cert[] };
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {

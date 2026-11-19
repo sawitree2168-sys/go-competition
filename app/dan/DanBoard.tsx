@@ -68,7 +68,7 @@ function NewDanCard({ a }: { a: Announcement }) {
       <div className="relative shrink-0 bg-[linear-gradient(180deg,var(--gt-avatar-top),var(--gt-surface-2))] px-2 pb-2 pt-4 sm:py-4">
         <span className="absolute left-2 top-2 rounded-md bg-[var(--gt-gold-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--gt-gold-ink)] sm:text-xs">ดั้งใหม่</span>
         {a.diamond && <span className="absolute right-2 top-2" title="ดั้งเพชร"><Diamond className="h-5 w-5" /></span>}
-        <div className="flex justify-center"><AthleteAvatar src={a.photo} name={a.name} zoom className="h-20 w-20 sm:h-28 sm:w-28" /></div>
+        <div className="mx-auto aspect-[4/5] w-full max-w-48"><AthleteAvatar src={a.photo} name={a.name} zoom variant="portrait" /></div>
       </div>
       <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2.5 py-3 text-center sm:px-3">
         <Name p={a} className="block min-h-10 break-words text-sm font-semibold leading-snug sm:text-lg" />
