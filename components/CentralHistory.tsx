@@ -1,5 +1,6 @@
 'use client';
-import {useMemo,useState} from 'react';
+import {useMemo} from 'react';
+import {useSearchParams} from 'next/navigation';
 import Link from 'next/link';
 import type {HistoryProfile} from '@/lib/central-history';
 import CompetitionPanel from './CompetitionPanel';
@@ -8,10 +9,13 @@ import {markInAppNav} from './BackLink';
 const percent=(wins:number,games:number)=>games?`${(wins/games*100).toLocaleString('th-TH',{maximumFractionDigits:2})}%`:'—';
 const outcome=(v:string,kind:string)=>kind==='bye'?'บาย':kind==='walkover'?(v==='win'?'ชนะผ่าน':'แพ้ผ่าน'):kind==='not_played'?'ไม่ได้แข่งขัน':v==='win'?'ชนะ':v==='loss'?'แพ้':v==='draw'?'เสมอ':'ยังไม่มีผล';
 export default function CentralHistory({profile:p,initialView='summary',initialOpponent=''}:{profile:HistoryProfile;initialView?:string;initialOpponent?:string}){
- const [view,setViewState]=useState(initialView==='wall'?'wall':'summary'),[opponent,setOpponentState]=useState(p.opponents.some(o=>o.opponent_key===initialOpponent)?initialOpponent:'');
- const remember=(v:string,o:string)=>{try{const q=new URLSearchParams(window.location.search);if(v==='wall')q.set('view','wall');else q.delete('view');if(o)q.set('vs',o);else q.delete('vs');const qs=q.toString();window.history.replaceState(window.history.state,'',qs?`${window.location.pathname}?${qs}`:window.location.pathname);}catch{}};
- const setView=(v:string)=>{setViewState(v);remember(v,opponent);};
- const setOpponent=(o:string)=>{setOpponentState(o);remember(view,o);};
+ const sp=useSearchParams();
+ const viewParam=sp?sp.get('view'):initialView,oppParam=(sp?sp.get('vs'):initialOpponent)??'';
+ const view=viewParam==='wall'?'wall':'summary';
+ const opponent=p.opponents.some(o=>o.opponent_key===oppParam)?oppParam:'';
+ const remember=(v:string,o:string)=>{const q=new URLSearchParams(sp?.toString()??'');if(v==='wall')q.set('view','wall');else q.delete('view');if(o)q.set('vs',o);else q.delete('vs');const qs=q.toString();window.history.replaceState(null,'',qs?`${window.location.pathname}?${qs}`:window.location.pathname);};
+ const setView=(v:string)=>remember(v,opponent);
+ const setOpponent=(o:string)=>remember(view,o);
  const visible=p.games.filter(g=>!opponent||g.opponent_key===opponent);
  const selected=p.opponents.find(o=>o.opponent_key===opponent);
  const events=useMemo(()=>Array.from(new Set(visible.map(g=>g.event_id))).map(id=>({id,games:visible.filter(g=>g.event_id===id)})),[visible]);
