@@ -7,3 +7,9 @@ Data: gt_history_profile_v1(p_go_id:left.go_id,p_year:null). Only match rows who
 Exports use the existing CompetitionPanel PNG/PDF with athlete photo toggle. Filters/search/share controls outside export or marked data-export-ignore. Share copies current safe pair/year URL. Rectangular athlete photos reuse approved shared portraits, including Chayapol's uploaded photo. CSS keeps cards side by side on mobile; match table is horizontally scrollable for legibility.
 
 Checks: node tests/head-to-head.mjs, npx tsc --noEmit, npm run build. Real database sanity case GO41250826 versus GO443250826: 2 played games, 1 win, 1 loss, 50% each at time of implementation.
+
+## Pair Go
+
+Apply `supabase/migrations/202611190002_history_pair_go.sql` after the central history schema. Import optional Pair Go games into `gt_history_pair_matches` only when the source records all four players and the game outcome. Use `gt_history_people.id` for each verified player and a stable source match ID. The partner or opposing pair may include a named player without a GO ID. A missing round or board can be left null. GP is not needed and these records never feed individual statistics.
+
+`gt_history_pair_meetings_v1` orients each game to the first selected athlete (or the second when selected alone). Selecting two athletes shows a game only when they are on opposing sides. Each card shows both members of each pair, the result, event/round, and the source. The page uses one year filter for both histories and preserves the four-player cards in PNG and PDF exports.
