@@ -8,6 +8,7 @@ import {groupNewsEvents} from '@/lib/news-events.mjs';
 import NewsDivisionResults from '@/components/NewsDivisionResults';
 import {loadNewsWall} from '@/lib/news-wall';
 import {thaiDate} from '@/lib/division-display';
+import {organizerHistoryWallHref} from '@/lib/history-wall-href';
 export const revalidate=60;
 
 
@@ -22,6 +23,7 @@ export default async function Page({params}:{params:Promise<{id:string}>}) {
  if(!s)notFound();
  const divisions='divisions' in s ? s.divisions as Story[] : [s];
  const wall=await loadNewsWall(s.event,s.date);
+ const wallHref=organizerHistoryWallHref(s.event,s.date);
  return <PublicPage icon="news" title={s.title} sub={s.event} current="/news">
   <Link className="mb-4 inline-flex min-h-11 items-center text-blue-800" href="/news">ข่าวสารทั้งหมด</Link>
   <CompetitionPanel title={s.title} context={s.event}>
@@ -29,6 +31,7 @@ export default async function Page({params}:{params:Promise<{id:string}>}) {
     <img className="max-h-80 w-full object-contain bg-blue-50" src={s.poster} alt={s.event}/>
     <div className="space-y-5 p-5">
      <h2 className="text-2xl font-bold">{s.event}</h2><p>{thaiDate(s.date)}</p>
+     {wallHref&&<Link href={wallHref} className="gt-cta-btn inline-flex min-h-11 items-center px-4 font-semibold">เปิดวอลล์ลิสต์ทุกรุ่น</Link>}
      {divisions.length>1&&<p className="text-lg">รวมผลการแข่งขัน {divisions.length} รุ่น</p>}
      {divisions.map(d=><NewsDivisionResults key={d.id} story={d} games={wall.games} unavailable={wall.unavailable}/>)}
      <p className="text-sm text-slate-600">แหล่งข้อมูล: ผลการแข่งขันที่บันทึกและตรวจสอบแล้ว • ข่าวปรับตามข้อมูลล่าสุด • ระดับคิวและดั้งไม่เปลี่ยนอัตโนมัติ</p>

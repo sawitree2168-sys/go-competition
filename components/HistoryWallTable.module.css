@@ -1,0 +1,159 @@
+.scroll {
+  border: 1px solid var(--gt-line, #b7cdeb);
+  border-radius: 1rem;
+  overflow: auto;
+  max-width: 100%;
+  scrollbar-color: #7499c9 var(--gt-surface-2, #eff5ff);
+}
+
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  table-layout: auto;
+  color: var(--gt-ink, #102947);
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(th, td) {
+  padding: .55rem .65rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.table thead th {
+  background: var(--gt-table-head, #104b91);
+  color: white;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.table tbody tr {
+  --wall-row: var(--gt-surface, #fff);
+}
+
+.table tbody tr:nth-child(even) {
+  --wall-row: var(--gt-surface-2, #f0f6ff);
+}
+
+.table tbody :is(td, th) {
+  background: var(--wall-row);
+  border-top: 1px solid var(--gt-line, #d8e4f5);
+}
+
+.table .place {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  min-width: 3rem;
+  width: 3rem;
+  max-width: 3rem;
+  padding-inline: .25rem;
+}
+
+.table .name {
+  position: sticky;
+  left: 3rem;
+  z-index: 2;
+  min-width: 10rem;
+  width: 16rem;
+  text-align: left;
+  border-right: 1px solid var(--gt-line, #d8e4f5);
+}
+
+.table .round {
+  min-width: 7rem;
+  width: 9rem;
+}
+
+.identity {
+  display: flex;
+  gap: .55rem;
+  align-items: center;
+  line-height: 1.3;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.identity a {
+  text-decoration: underline;
+  text-decoration-color: #5685bb;
+  text-underline-offset: .2em;
+}
+
+.avatar {
+  flex: none;
+  width: 2.1rem;
+  height: 2.6rem;
+}
+
+.avatar > * {
+  width: 100%;
+  height: 100%;
+}
+
+.medal, .points {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.85rem;
+  min-height: 1.85rem;
+  padding-inline: .3rem;
+  border-radius: 2rem;
+  font-weight: 800;
+}
+
+.medal[data-medal="1"] { background: #ffd35d; color: #553400; }
+.medal[data-medal="2"] { background: #dbe6f1; color: #17344f; }
+.medal[data-medal="3"] { background: #f3c29d; color: #673113; }
+
+.points {
+  background: #e0edff;
+  color: #123c74;
+}
+
+.result {
+  display: grid;
+  gap: .1rem;
+  justify-items: center;
+  min-height: 2rem;
+  align-content: center;
+  border-radius: .45rem;
+  padding: .2rem .28rem;
+  background: #eaf0f6;
+  color: #344c63;
+  font-weight: 750;
+}
+
+.result[data-outcome="win"] { background: #e3f4e9; color: #126038; }
+.result[data-outcome="loss"] { background: #fce6ed; color: #9b204b; }
+.result[data-outcome="bye"] { background: #fff1cd; color: #714800; }
+
+.result small {
+  display: block;
+  font-size: .75rem;
+  line-height: 1.2;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.empty { color: var(--gt-muted, #516681); }
+
+@media (max-width: 640px) {
+  .table :is(th, td) { padding: .45rem .5rem; }
+  .table .place {
+    min-width: 2.4rem;
+    width: 2.4rem;
+    max-width: 2.4rem;
+    padding-inline: .16rem;
+  }
+  .table .name {
+    left: 2.4rem;
+    width: 9.25rem;
+    min-width: 9.25rem;
+    max-width: 9.25rem;
+  }
+  .table .round { min-width: 6.15rem; }
+  .avatar { display: none; }
+}

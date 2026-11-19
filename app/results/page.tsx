@@ -8,6 +8,7 @@ import PublicPage from "@/components/PublicPage";
 import { publicDb } from "@/app/tournaments/[id]/_ui/data";
 import { loadResults, type ResultPerson } from "@/lib/public-site";
 import { thaiDate } from "@/lib/division-display";
+import { organizerHistoryWallHref } from "@/lib/history-wall-href";
 
 export const revalidate = 60;
 export const metadata: Metadata = { title: "ผลการแข่งขัน" };
@@ -67,6 +68,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
               ? e.divisions.map((d) => ({ ...d, people: d.people.filter(isUpcoming) })).filter((d) => d.people.length)
               : e.divisions;
             if (onlyUpcoming && !divisions.length) return null;
+            const wallHref = organizerHistoryWallHref(e.title, e.date);
             return (
               <section key={e.title} id={encodeURIComponent(e.title)} className="scroll-mt-4">
                 <h2 className="text-xl font-bold">{e.title}</h2>
@@ -75,6 +77,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
                   {thaiDate(e.date) ?? "ไม่ระบุวันที่"} · {e.divisions.length} รุ่น · {athleteName||goId ? `แสดงผลงานเฉพาะนักกีฬาที่เลือก ${all} คน` : e.complete ? `ผู้เข้าแข่งขันทั้งหมด ${all} คน` : `${all} คนที่บันทึกไว้`}
                   {marked > 0 && <> · <span className="font-semibold text-[var(--gt-chip-near-ink)]">★ สมัครครั้งนี้ {marked} คน</span></>}
                 </p>
+                {wallHref && <Link href={wallHref} className="gt-cta-btn mt-3 inline-flex min-h-11 items-center px-4 font-semibold">เปิดวอลล์ลิสต์ทุกรุ่น</Link>}
                 <div className="mt-3 space-y-4">
                   {divisions.map((d) => {
                     const m = d.people.filter(isUpcoming).length;

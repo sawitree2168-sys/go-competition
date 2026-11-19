@@ -1,20 +1,83 @@
 import Link from 'next/link';
 import AthleteAvatar from './AthleteAvatar';
-import type {HistoryWall} from '@/lib/history-walllist';
-const medal=['bg-amber-400 text-amber-950','bg-slate-300 text-slate-900','bg-orange-300 text-orange-950'];
-const num=(n:number)=>Number.isInteger(n)?String(n):n.toLocaleString('th-TH',{maximumFractionDigits:1});
-export default function HistoryWallTable({wall:w}:{wall:HistoryWall}){
- const rounds=[...new Set(w.rows.flatMap(r=>(r.rounds??[]).map(t=>t.round)))].sort((a,b)=>a.localeCompare(b,'en',{numeric:true}));
- return <div className="overflow-x-auto gt-card">
-  <table className="w-full min-w-[640px] text-sm">
-   <thead><tr className="bg-slate-50 text-xs uppercase text-slate-600"><th className="p-2">ที่</th><th className="p-2 text-left">ชื่อ</th><th className="p-2">คะแนน</th>{rounds.map(r=><th key={r} className="p-2">{w.has_rounds?`รอบ ${r}`:`เกม ${r}`}</th>)}<th className="p-2">ชนะ</th><th className="p-2">SOS</th><th className="p-2">SOSOS</th></tr></thead>
-   <tbody>{w.rows.map(r=><tr key={`${r.place}-${r.full_name}`} className="border-t">
-    <td className="p-2 text-center">{r.place<=3?<span className={`inline-flex h-8 w-8 items-center justify-center rounded-full font-bold ${medal[r.place-1]}`}>{r.place}</span>:r.place}</td>
-    <td className="p-2 text-left font-bold"><div className="portrait-report-identity"><AthleteAvatar src={r.photo} name={r.full_name} variant="portrait" zoom/><div>{r.go_id?<Link className="text-blue-900 underline-offset-2 hover:underline" href={`/athletes/history/${r.go_id}`}>{r.full_name}</Link>:r.full_name}</div></div></td>
-    <td className="p-2 text-center"><span className="inline-block min-w-8 rounded-full bg-emerald-50 px-2 py-1 font-bold text-emerald-800">{num(r.points)}</span></td>
-    {rounds.map(i=>{const t=r.rounds?.find(t=>t.round===i);return <td key={i} title={t?.opponent?`${t.opponent}${t.walkover?' (ชนะ/แพ้ผ่าน)':''}`:undefined} className={`p-2 text-center font-semibold ${t?.outcome==='win'||t?.outcome==='bye'?'text-emerald-700':t?.outcome==='loss'?'text-rose-600':'text-slate-500'}`}>{t?t.token+(t.walkover?'*':''):''}</td>;})}
-    <td className="p-2 text-center">{r.wins}</td><td className="p-2 text-center">{num(r.sos)}</td><td className="p-2 text-center">{num(r.sosos)}</td>
-   </tr>)}</tbody>
-  </table>
- </div>;
+import type { HistoryWall, WallToken } from '@/lib/history-walllist';
+import styles from './HistoryWallTable.module.css';
+
+const formatNumber = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 1 });
+const score = (n: number | null) => n === null ? '—' : formatNumber.format(n);
+const outcomes = {
+  win: 'ชนะ',
+  loss: 'แพ้',
+  draw: 'เสมอ',
+  bye: 'ได้บาย',
+  not_played: 'ไม่ได้แข่งขัน',
+};
+
+function RoundResult({ result }: { result?: WallToken }) {
+  if (!result) return <span className={styles.empty} aria-label="ไม่มีคู่ในรอบนี้">—</span>;
+  const outcome = outcomes[result.outcome] + (result.walkover ? 'ผ่าน' : '');
+  return (
+    <span
+      className={styles.result}
+      data-outcome={result.outcome}
+      title={outcome + (result.opponent ? ` · ${result.opponent}` : '')}
+      aria-label={outcome + (result.opponent ? ` ${result.opponent}` : '')}
+    >
+      <span>{result.token}{result.walkover && '*'}</span>
+      {result.opponent && <small>{result.opponent}</small>}
+    </span>
+  );
+}
+
+export default function HistoryWallTable({ wall }: { wall: HistoryWall }) {
+  const rounds = [...new Set(wall.rows.flatMap(row => (row.rounds ?? []).map(result => result.round)))]
+    .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+
+  return (
+    <div className={styles.scroll} tabIndex={0} role="region" aria-label={`วอลล์ลิสต์ ${wall.division ?? ''} เลื่อนแนวนอนเพื่อดูทุกคอลัมน์`}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th className={styles.place} scope="col">ที่</th>
+            <th className={styles.name} scope="col">นักกีฬา</th>
+            <th scope="col">คะแนน</th>
+            {rounds.map(round => <th key={round} className={styles.round} scope="col">{wall.has_rounds ? 'รอบ' : 'เกม'} {round}</th>)}
+            <th scope="col">ชนะ</th>
+            <th scope="col">SOS</th>
+            <th scope="col">SOSOS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {wall.rows.map(row => {
+            const place = row.place_label === undefined ? row.place : row.place_label;
+            const medal = place !== null && row.place <= 3 ? row.place : undefined;
+            return (
+              <tr key={`${row.place}-${row.full_name}`}>
+                <td className={styles.place}>
+                  <span className={styles.medal} data-medal={medal} title={place === null ? 'ไม่มีอันดับในชีตต้นทาง' : undefined}>
+                    {place ?? '—'}
+                  </span>
+                </td>
+                <th scope="row" className={styles.name}>
+                  <span className={styles.identity}>
+                    <span className={styles.avatar}><AthleteAvatar name={row.full_name} src={row.photo} variant="portrait" className="h-full w-full" zoom /></span>
+                    {row.go_id
+                      ? <Link href={`/athletes/history/${row.go_id}`}>{row.full_name}</Link>
+                      : <span>{row.full_name}</span>}
+                  </span>
+                </th>
+                <td><span className={styles.points}>{formatNumber.format(row.points)}</span></td>
+                {rounds.map(round => (
+                  <td key={round} className={styles.round}><RoundResult result={row.rounds?.find(result => result.round === round)} /></td>
+                ))}
+                <td>{row.wins}</td>
+                <td>{score(row.sos)}</td>
+                <td>{score(row.sosos)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 }
