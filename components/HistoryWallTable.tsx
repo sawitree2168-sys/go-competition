@@ -20,11 +20,9 @@ function RoundResult({ result }: { result?: WallToken }) {
     <span
       className={styles.result}
       data-outcome={result.outcome}
-      title={outcome + (result.opponent ? ` · ${result.opponent}` : '')}
-      aria-label={outcome + (result.opponent ? ` ${result.opponent}` : '')}
+      title={outcome}
     >
-      <span>{result.token}{result.walkover && '*'}</span>
-      {result.opponent && <small>{result.opponent}</small>}
+      {result.token}{result.walkover && '*'}
     </span>
   );
 }

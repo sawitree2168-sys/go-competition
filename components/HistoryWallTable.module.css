@@ -63,9 +63,13 @@
   border-right: 1px solid var(--gt-line, #d8e4f5);
 }
 
+.table tbody .name {
+  color: var(--gt-ink, #102947) !important;
+}
+
 .table .round {
-  min-width: 7rem;
-  width: 9rem;
+  min-width: 4.5rem;
+  width: 6rem;
 }
 
 .identity {
@@ -78,6 +82,7 @@
 }
 
 .identity a {
+  color: inherit;
   text-decoration: underline;
   text-decoration-color: #5685bb;
   text-underline-offset: .2em;
@@ -109,34 +114,23 @@
 .medal[data-medal="3"] { background: #f3c29d; color: #673113; }
 
 .points {
-  background: #e0edff;
-  color: #123c74;
+  background: #e5f7ee;
+  color: #07553c;
 }
 
 .result {
-  display: grid;
-  gap: .1rem;
-  justify-items: center;
-  min-height: 2rem;
-  align-content: center;
-  border-radius: .45rem;
-  padding: .2rem .28rem;
-  background: #eaf0f6;
-  color: #344c63;
-  font-weight: 750;
+  white-space: nowrap;
+  color: var(--gt-muted, #516681);
+  font-weight: 600;
 }
 
-.result[data-outcome="win"] { background: #e3f4e9; color: #126038; }
-.result[data-outcome="loss"] { background: #fce6ed; color: #9b204b; }
-.result[data-outcome="bye"] { background: #fff1cd; color: #714800; }
+.result[data-outcome="win"] { color: #087858; }
+.result[data-outcome="loss"] { color: #bf2455; }
+.result[data-outcome="bye"] { color: #805400; }
 
-.result small {
-  display: block;
-  font-size: .75rem;
-  line-height: 1.2;
-  font-weight: 500;
-  overflow-wrap: anywhere;
-}
+:global(.gt[data-gt-theme='dark']) .result[data-outcome="win"] { color: #7cddae; }
+:global(.gt[data-gt-theme='dark']) .result[data-outcome="loss"] { color: #ff91b2; }
+:global(.gt[data-gt-theme='dark']) .result[data-outcome="bye"] { color: #f6cb75; }
 
 .empty { color: var(--gt-muted, #516681); }
 
@@ -154,6 +148,6 @@
     min-width: 9.25rem;
     max-width: 9.25rem;
   }
-  .table .round { min-width: 6.15rem; }
+  .table .round { min-width: 4.25rem; }
   .avatar { display: none; }
 }
