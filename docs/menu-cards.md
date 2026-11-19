@@ -1,0 +1,5 @@
+# Menu cards — approved blue, gold and white design
+
+/menu now uses a compact title/search row, three groups of four strongly outlined cards, and five compact utility links. Existing17 menu destinations are preserved. Four columns above700px; two columns at700px and below. Touch targets, visible focus, live search/no-results/reset and reduced-motion support included. Titles/descriptions remain actual accessible text. Custom inline SVGs represent Go board, Go fan heart, square identity cards, VS meeting and institution; no rasterized interface text. Styles are scoped to .menu-page so the brighter royal blue palette does not recolor other pages. Menu header X returns to home, with an explicit accessible label.
+
+Desktop and mobile references: approved image exec-0570f9f6-31d6-407f-9c26-415a4f9be82c.png (blue/gold/white). Do not revert to dark navy panels. Royal-blue3px card borders, gold corner/detail rule, white card bodies. Search filters both menu cards and utility links by title/description, including whitespace-insensitive Thai phrases and Latin GO FAN. No extra data backend or authentication permission changes.
