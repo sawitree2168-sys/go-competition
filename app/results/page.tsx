@@ -69,7 +69,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
                 <h2 className="text-xl font-bold">{e.title}</h2>
                 <EventOrganizer title={e.title} />
                 <p className="text-sm text-[var(--gt-muted)]">
-                  {thaiDate(e.date) ?? "ไม่ระบุวันที่"} · {e.divisions.length} รุ่น · {e.complete ? `ผู้เข้าแข่งขันทั้งหมด ${all} คน` : `${all} คนที่บันทึกไว้`}
+                  {thaiDate(e.date) ?? "ไม่ระบุวันที่"} · {e.divisions.length} รุ่น · {athleteName||goId ? `แสดงผลงานเฉพาะนักกีฬาที่เลือก ${all} คน` : e.complete ? `ผู้เข้าแข่งขันทั้งหมด ${all} คน` : `${all} คนที่บันทึกไว้`}
                   {marked > 0 && <> · <span className="font-semibold text-[var(--gt-chip-near-ink)]">★ สมัครครั้งนี้ {marked} คน</span></>}
                 </p>
                 <div className="mt-3 grid items-start gap-3 lg:grid-cols-2">
