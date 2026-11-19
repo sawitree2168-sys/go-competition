@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import CompetitionPanel from "@/components/CompetitionPanel";
 import AthleteAvatar from "@/components/AthleteAvatar";
 import RankTable, { type Ranking, type RankRow } from "./RankTable";
 
@@ -313,7 +314,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
         </div>
       </div>
 
-      <div id="dan-results" className="dan-results">
+      <CompetitionPanel title={TABS.find(t => t.id === tab)?.label ?? "ทำเนียบนักกีฬา"} context={`GO TOURNAMENT · ทำเนียบนักกีฬาหมากล้อมไทย · ${level === "all" ? "ทุกระดับ" : `${level} ดั้ง`} · หน้าที่ ${cur}`}><div id="dan-results" className="dan-results">
         {!isRanking && (
           <>
             <div className="gt-directory-results">
@@ -393,6 +394,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
         )}
       </div>
 
+      </CompetitionPanel>
       <p className="mt-8 text-center text-sm text-[var(--gt-muted)]">
         แตะรูปเพื่อดูภาพใหญ่ · อยากเปลี่ยนรูปของตัวเอง? <Link href="/account/photo" className="font-semibold text-[var(--gt-cta)] hover:underline">เข้าสู่ระบบเพื่อเปลี่ยนรูป</Link>
       </p>

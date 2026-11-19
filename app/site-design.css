@@ -44,3 +44,13 @@ body{background:#f2f8ff;color:#082557}b,strong{font-weight:700}
 .site-athlete-portrait>button{display:block;width:100%;height:100%}.site-athlete-card .site-athlete-portrait img{display:block;width:100%;height:100%;max-height:100%;aspect-ratio:1;object-fit:contain}
 .site-athlete-card h3{line-height:1.5;min-height:3em;display:flex;align-items:center;justify-content:center}.site-athlete-card p{margin:0;line-height:1.6}.site-athlete-toolbar{justify-content:space-between;flex-wrap:wrap;gap:12px}.site-athlete-toolbar>span{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.site-athlete-count{font-size:14px;font-weight:500;white-space:nowrap;background:#ffffff24;padding:3px 10px;border-radius:20px}.site-athlete-toolbar button{white-space:nowrap;min-height:42px}.site-athlete-toolbar button[aria-pressed=true]{background:linear-gradient(#fff4ad,#ffd33f);color:#092456;border-color:#ffe082;box-shadow:0 2px 4px #001e6040}
 @media(max-width:767px){.site-athlete-portrait{width:88px;height:88px;flex-basis:88px}.site-athlete-toolbar{padding:12px;font-size:17px;flex-direction:column;align-items:stretch}.site-athlete-toolbar>span{justify-content:space-between;margin:0}.site-athlete-toolbar>div{display:grid;grid-template-columns:1fr 1fr;gap:8px}.site-athlete-card{padding:18px 10px 12px;gap:10px}.site-athlete-card h3{font-size:15px}.site-athlete-card .site-athlete-actions{gap:7px;padding-top:6px}.site-athlete-card .site-athlete-actions a{min-height:42px}}
+
+/* Photo modal uses the browser top layer, independent of page stacking contexts. */
+.gt-photo-zoom{position:fixed;inset:0;margin:auto;width:min(94vw,760px);max-height:94dvh;padding:20px;border:2px solid #8bb8ed;border-radius:20px;background:#fff;color:#123b69;overflow:auto}
+.gt-photo-zoom::backdrop{background:rgba(3,19,45,.88)}
+.gt-photo-zoom-content{display:flex;flex-direction:column;align-items:center;gap:14px}
+.gt-photo-zoom-content>button{align-self:flex-end;min-height:44px;padding:8px 18px}
+.gt-photo-zoom-content>img{display:block;width:auto;height:auto;max-width:100%;max-height:70dvh;object-fit:contain;border-radius:12px}
+.gt-photo-zoom-content>p{text-align:center;font-size:18px}
+.cd-export-photo-option{display:flex;align-items:center;justify-content:center;gap:10px;flex-basis:100%;font-size:16px;padding:6px;color:#123b69}
+.cd-export-photo-option input{width:20px;height:20px;accent-color:#0756bd}

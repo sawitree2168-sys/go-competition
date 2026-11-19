@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 export default function CompetitionPanel({ children, className = "", title, context }: {
   children: ReactNode; className?: string; title: string; context: string;
 }) {
+  const [includePhotos, setIncludePhotos] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [busy, setBusy] = useState<"png" | "pdf" | null>(null);
   const [error, setError] = useState("");
@@ -49,7 +50,7 @@ export default function CompetitionPanel({ children, className = "", title, cont
       const canvas = await toCanvas(root, {
         width, height, backgroundColor: "#ffffff", pixelRatio: Math.min(2, 16000 / Math.max(width, height)),
         style: { height: `${height}px`, maxHeight: "none", overflow: "visible" },
-        filter: node => !(node instanceof HTMLElement && node.dataset.exportIgnore === "true"),
+        filter: node => !(node instanceof HTMLElement && (node.dataset.exportIgnore === "true" || (!includePhotos && node.dataset.athletePhoto === "true"))),
       });
       const filename = `${context}-${title}`.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").slice(0, 160);
       if (format === "png") {
@@ -93,6 +94,7 @@ export default function CompetitionPanel({ children, className = "", title, cont
       <p className="cd-export-context">{context}</p>{children}
     </div></div>
     <div className="cd-download-actions" data-export-ignore="true">
+      <label className="cd-export-photo-option"><input type="checkbox" checked={includePhotos} disabled={!!busy} onChange={e => setIncludePhotos(e.target.checked)} /> แสดงรูปนักกีฬาในไฟล์ที่บันทึก</label>
       <button type="button" disabled={!!busy} onClick={() => void download("png")}>{busy === "png" ? "กำลังสร้างรูป…" : "↓ ดาวน์โหลดรูป PNG"}</button>
       <button type="button" disabled={!!busy} onClick={() => void download("pdf")}>{busy === "pdf" ? "กำลังสร้าง PDF…" : "↓ ดาวน์โหลด PDF"}</button>
       {error && <p role="alert">{error}</p>}
