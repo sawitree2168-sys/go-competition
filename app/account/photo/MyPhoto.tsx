@@ -48,7 +48,7 @@ export default function MyPhoto() {
         <PhotoEditor mode="self" goId={me.go_id} athleteId={me.athlete_id} name={me.full_name} photo={me.photo}
           onSaved={(url) => setMe({ ...me, photo: url })} />
       </section>
-      <p className="text-sm text-[var(--gt-muted)]">รูปนี้จะใช้ทุกที่ที่ชื่อของคุณปรากฏ เช่น ผังคู่ ตารางคะแนน โปรไฟล์ และทำเนียบนักกีฬา ถ้าอัปโหลดผิด เปลี่ยนใหม่ได้ทุกเมื่อ หรือแจ้งแอดมินให้ช่วยแก้</p>
+      <p className="text-sm text-[var(--gt-muted)]">รูปหลักจะปรากฏในโปรไฟล์และทำเนียบนักกีฬา หากต้องการใช้รูปที่เก็บไว้ ให้กด “ตั้งเป็นรูปหลัก” ที่รูปนั้น</p>
     </div>
   );
 }

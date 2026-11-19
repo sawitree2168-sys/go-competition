@@ -5,13 +5,23 @@ export type HistoryOpponent={opponent_key:string;opponent_go_id:string|null;oppo
 export type Placing={event_id:string;division:string;place:number;players:number;points:number;wins:number;losses:number};
 export type LevelHistoryItem={placings?:Placing[]|null;kind:'event'|'dan';event_id:string|null;title:string;event_year:number;event_date:string|null;date_status:string;divisions:string[]|null;level:string|null;level_at_time:string|null;dan_number:number|null;level_changed:boolean};
 export type LevelHistory={current:{label:string|null;dan_number:number;diamond:boolean;source:string}|null;items:LevelHistoryItem[];note:string};
-export type HistoryProfile={go_id:string;full_name:string;stats:HistoryStats;games:HistoryGame[];opponents:HistoryOpponent[];level_history?:LevelHistory;placings?:Placing[];coverage:{year:number;status:string;note:string}};
+export type HistoryProfile={go_id:string;full_name:string;photo?:string|null;stats:HistoryStats;games:HistoryGame[];opponents:HistoryOpponent[];level_history?:LevelHistory;placings?:Placing[];coverage:{year:number;status:string;note:string}};
 export async function loadHistoryProfile(goId:string){
  if(!/^GO\d{6,20}$/.test(goId))return null;
  const db=publicDb();if(!db)return null;
- const result=await db.rpc('gt_history_profile_v1',{p_go_id:goId,p_year:2026});
+ const [result, photo] = await Promise.all([
+  db.rpc('gt_history_profile_v1', {p_go_id:goId,p_year:2026}),
+  loadHistoryPhotos([goId]),
+ ]);
  if(result.error)throw new Error('โหลดประวัติการแข่งขันไม่สำเร็จ กรุณาลองใหม่');
- return result.data as HistoryProfile|null;
+ return result.data ? {...result.data as HistoryProfile, photo:photo[goId] ?? null} : null;
+}
+export async function loadHistoryPhotos(goIds: string[]): Promise<Record<string, string>> {
+ const db = publicDb();
+ if (!db || !goIds.length) return {};
+ const batches = Array.from({length:Math.ceil(goIds.length/100)}, (_,i) => goIds.slice(i*100,(i+1)*100));
+ const results = await Promise.all(batches.map(ids => db.rpc('gt_history_primary_photos_v1', {p_go_ids:ids})));
+ return Object.assign({}, ...results.map(result => result.error ? {} : result.data ?? {}));
 }
 export async function loadHistoryStats(goIds:string[]){
  const db=publicDb();if(!db)return null;

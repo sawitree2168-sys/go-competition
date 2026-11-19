@@ -19,7 +19,7 @@ export default function PhotoAdmin() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function search(e?: React.FormEvent) {
+  async function search(e?: React.FormEvent, keepOpen?: string) {
     e?.preventDefault();
     const db = staffDb();
     if (!db || q.trim().length < 2) return;
@@ -29,7 +29,7 @@ export default function PhotoAdmin() {
     if (err) { setError("ค้นหาไม่สำเร็จ: " + err.message); return; }
     const rows = (data ?? []) as Hit[];
     setHits(rows);
-    setOpen(rows.length === 1 ? rows[0].go_id : null);
+    setOpen(keepOpen && rows.some(row => row.go_id === keepOpen) ? keepOpen : rows.length === 1 ? rows[0].go_id : null);
   }
 
   async function revert(h: Hit, c: Change) {
@@ -43,7 +43,7 @@ export default function PhotoAdmin() {
   return (
     <section className="gt-card space-y-3 p-4" aria-labelledby="photo-h">
       <h2 id="photo-h" className="font-bold">รูปนักกีฬา</h2>
-      <p className="text-sm text-[var(--gt-muted)]">นักกีฬาเปลี่ยนรูปเองได้ที่ “บัญชีของฉัน → เปลี่ยนรูปโปรไฟล์” ถ้ามีคนอัปโหลดผิดคนหรือรูปไม่เหมาะสม แก้ที่นี่ได้ ทุกการแก้บันทึกเหตุผลและรูปเดิมไว้ ย้อนกลับได้</p>
+      <p className="text-sm text-[var(--gt-muted)]">นักกีฬาเปลี่ยนรูปเองได้ที่ “บัญชีของฉัน → เปลี่ยนรูปโปรไฟล์” ถ้ามีคนอัปโหลดผิดคนหรือรูปไม่เหมาะสม แก้ที่นี่ได้ การเปลี่ยนรูปหลักมีประวัติและย้อนกลับได้</p>
       <form onSubmit={search} className="flex gap-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ชื่อ รหัส GO หรือเลขดั้ง" aria-label="ค้นหานักกีฬา"
           className="min-h-11 min-w-0 flex-1 rounded-lg border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 text-base" />
@@ -66,7 +66,7 @@ export default function PhotoAdmin() {
               </button>
               {open === h.go_id && (
                 <div className="mt-3 space-y-4 border-t border-[var(--gt-line)] pt-3">
-                  <PhotoEditor mode="admin" goId={h.go_id} name={h.full_name} photo={h.photo} onSaved={() => void search()} />
+                  <PhotoEditor mode="admin" goId={h.go_id} name={h.full_name} photo={h.photo} onSaved={() => void search(undefined, h.go_id)} />
                   {h.history.length > 0 && (
                     <div>
                       <h3 className="text-sm font-bold">ประวัติการเปลี่ยนรูป</h3>
@@ -76,7 +76,7 @@ export default function PhotoAdmin() {
                             <img src={c.old_url || DEFAULT_ATHLETE_PHOTO} alt="รูปก่อนเปลี่ยน" className="h-8 w-8 rounded-lg object-cover" />
                             <span aria-hidden="true">→</span>
                             <img src={c.new_url || DEFAULT_ATHLETE_PHOTO} alt="รูปหลังเปลี่ยน" className="h-8 w-8 rounded-lg object-cover" />
-                            <span className="min-w-0 flex-1 text-[var(--gt-muted)]">{when(c.at)} · {c.role === "owner" ? "เจ้าของบัญชี" : "แอดมิน"}{c.reason && c.reason !== "consent" ? ` · ${c.reason}` : ""}</span>
+                            <span className="min-w-0 flex-1 text-[var(--gt-muted)]">{when(c.at)} · {c.role === "owner" ? "เจ้าของบัญชี" : c.role === "association" ? "สมาคม" : "แอดมิน"}{c.reason && c.reason !== "consent" ? ` · ${c.reason}` : ""}</span>
                             <button type="button" onClick={() => revert(h, c)} className="min-h-9 rounded-lg px-2 font-semibold text-[var(--gt-cta)] hover:bg-[var(--gt-cta-soft)]">ใช้รูปก่อนหน้า</button>
                           </li>
                         ))}
