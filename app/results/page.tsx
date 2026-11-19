@@ -1,4 +1,6 @@
 import {filterAthleteResults} from "@/lib/athlete-results.mjs";
+import NewsDivisionResults from "@/components/NewsDivisionResults";
+import {loadNewsWall} from "@/lib/news-wall";
 import EventOrganizer from "@/components/EventOrganizer";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -10,7 +12,6 @@ import { thaiDate } from "@/lib/division-display";
 export const revalidate = 60;
 export const metadata: Metadata = { title: "ผลการแข่งขัน" };
 
-const medal = (p: number | null) => (p === 1 ? "🥇" : p === 2 ? "🥈" : p === 3 ? "🥉" : null);
 const isUpcoming = (p: ResultPerson) => !!p.upcoming?.length;
 /** Name looks like an upcoming entrant (same surname, spelt differently) but nobody has confirmed it is the same person. */
 const isPending = (p: ResultPerson) => !isUpcoming(p) && !!p.pending?.length;
@@ -22,6 +23,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   const onlyUpcoming = only === "upcoming";
   const allEvents = filterAthleteResults(await loadResults(publicDb()),{goId:goId??"",name:athleteName??""}) as Awaited<ReturnType<typeof loadResults>>;
   const events = selectedEvent ? allEvents.filter((e) => e.title === selectedEvent) : allEvents;
+  const walls=new Map(await Promise.all(events.map(async e=>[`${e.title}|${e.date}`,await loadNewsWall(e.title,e.date)] as const)));
   const resultsHref = (upcoming: boolean) => {
     const params = new URLSearchParams();
     if(athleteName)params.set("q",athleteName);
@@ -72,7 +74,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
                   {thaiDate(e.date) ?? "ไม่ระบุวันที่"} · {e.divisions.length} รุ่น · {athleteName||goId ? `แสดงผลงานเฉพาะนักกีฬาที่เลือก ${all} คน` : e.complete ? `ผู้เข้าแข่งขันทั้งหมด ${all} คน` : `${all} คนที่บันทึกไว้`}
                   {marked > 0 && <> · <span className="font-semibold text-[var(--gt-chip-near-ink)]">★ สมัครครั้งนี้ {marked} คน</span></>}
                 </p>
-                <div className="mt-3 grid items-start gap-3 lg:grid-cols-2">
+                <div className="mt-3 space-y-4">
                   {divisions.map((d) => {
                     const m = d.people.filter(isUpcoming).length;
                     return (
@@ -84,36 +86,8 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
                             <span className="opacity-80">{d.people.length} คน</span>
                           </span>
                         </summary>
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="text-left text-xs text-[var(--gt-muted)]">
-                              <th className="w-14 px-3 py-2 font-medium">อันดับ</th>
-                              <th className="py-2 font-medium">ชื่อ · สถาบัน</th>
-                              <th className="px-3 py-2 text-right font-medium">ชนะ–แพ้</th>
-                              {e.complete && <th className="hidden px-3 py-2 text-right font-medium sm:table-cell">SOS</th>}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {d.people.map((p) => {
-                              const up = isUpcoming(p);
-                              return (
-                                <tr key={p.go_id} className={`border-t border-[var(--gt-line)] ${up ? "bg-[var(--gt-chip-near-bg)]" : ""}`}>
-                                  <td className="gt-num px-3 py-2 align-top font-semibold">{medal(p.placing) ?? p.placing ?? "–"}</td>
-                                  <td className="py-2 pr-2">
-                                    <span className={`flex items-start gap-1.5 ${up ? "font-bold" : ""}`}>
-                                      {up && <Star title={`สมัคร ${(p.upcoming ?? []).join(", ")}`} />}
-                                      {p.athlete_id ? <Link href={`/athletes/${p.athlete_id}`} className="text-[var(--gt-cta)] underline">{p.full_name}</Link> : <span>{p.full_name}</span>}
-                                    </span>
-                                    {isPending(p) && <span className="mt-0.5 block"><Pending title={`ชื่อคล้ายผู้สมัคร ${(p.pending ?? []).join(", ")} รอยืนยันว่าเป็นคนเดียวกันหรือไม่`} /></span>}
-                                    {p.institution && <span className={`block text-xs text-[var(--gt-muted)] ${up ? "pl-6" : ""}`}>{p.institution}</span>}
-                                  </td>
-                                  <td className="gt-num whitespace-nowrap px-3 py-2 text-right align-top">{p.wins}–{p.losses}{p.byes ? <span className="block text-xs text-[var(--gt-muted)]">บาย {p.byes}</span> : null}</td>
-                                  {e.complete && <td className="gt-num hidden px-3 py-2 text-right align-top text-[var(--gt-muted)] sm:table-cell">{p.sos ?? "–"}</td>}
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
+                        <NewsDivisionResults showAwards={false} story={{id:`${e.title}::${d.division}`,title:"สรุปผลการแข่งขัน",event:e.title,date:e.date,division:d.division,complete:!!e.complete,kind:"results",body:"",href:"",poster:"",people:d.people}} games={walls.get(`${e.title}|${e.date}`)?.games??[]} unavailable={walls.get(`${e.title}|${e.date}`)?.unavailable??false}/>
+
                       </details>
                     );
                   })}
