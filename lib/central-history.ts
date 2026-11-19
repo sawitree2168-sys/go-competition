@@ -15,6 +15,8 @@ export async function loadHistoryProfile(goId:string){
 }
 export async function loadHistoryStats(goIds:string[]){
  const db=publicDb();if(!db)return null;
- const result=await db.rpc('gt_history_stats_v1',{p_go_ids:goIds.slice(0,60),p_year:2026});
- return result.error?null:result.data as Record<string,HistoryStats>;
+ const chunks=Array.from({length:Math.ceil(goIds.length/60)},(_,i)=>goIds.slice(i*60,(i+1)*60));
+ const results=await Promise.all(chunks.map(ids=>db.rpc('gt_history_stats_v1',{p_go_ids:ids,p_year:2026})));
+ if(results.some(r=>r.error))return null;
+ return Object.assign({},...results.map(r=>r.data??{})) as Record<string,HistoryStats>;
 }
