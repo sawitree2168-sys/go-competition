@@ -5,17 +5,11 @@ import PublicPage from '@/components/PublicPage';
 import CompetitionPanel from '@/components/CompetitionPanel';
 import {loadStories, type Story} from '@/lib/site-news';
 import {groupNewsEvents} from '@/lib/news-events.mjs';
+import NewsDivisionResults from '@/components/NewsDivisionResults';
+import {loadNewsWall} from '@/lib/news-wall';
 import {thaiDate} from '@/lib/division-display';
 export const revalidate=60;
 
-function DivisionResults({story:s}:{story:Story}) {
- return <section className="space-y-5 rounded-2xl border border-blue-200 p-4">
-  <h2 className="site-section-title">{s.division}</h2>
-  <p className={`rounded-xl p-3 ${s.complete?'bg-green-50 text-green-800':'bg-amber-50 text-amber-900'}`}>{s.complete?'ผลครบทั้งรุ่น • สรุปจากข้อมูลที่บันทึกครบ':'ข้อมูลบางส่วน • แสดงเฉพาะผลที่ตรวจสอบแล้ว ยังไม่สรุปอันดับทั้งรุ่น'}</p>
-  {s.complete&&<section><h3 className="text-xl font-bold">ผู้ได้รับรางวัล / อันดับสูงสุด</h3><div className="site-athlete-grid">{s.people.filter(p=>p.placing!==null&&p.placing<=3).map(p=><div className="gt-card p-5 text-center" key={p.athlete_id||p.full_name}><strong className="block text-3xl">{p.placing===1?'🥇':p.placing===2?'🥈':'🥉'}</strong><h4 className="mt-3 text-lg font-bold">{p.full_name}</h4><p>{p.institution}</p><p>{p.points??p.wins} คะแนน</p></div>)}</div></section>}
-  <div className="overflow-x-auto"><table><thead><tr>{s.complete&&<th>อันดับ</th>}<th>นักกีฬา / สถาบัน</th><th>คะแนน</th><th>ชนะ</th><th>แพ้</th></tr></thead><tbody>{s.people.map(p=><tr key={p.athlete_id||p.full_name}>{s.complete&&<td>{p.placing??'–'}</td>}<td>{p.athlete_id?<Link className="text-blue-800 underline" href={`/athletes/${p.athlete_id}`}>{p.full_name}</Link>:p.full_name}<small className="block">{p.institution}</small></td><td>{p.points??p.wins}</td><td>{p.wins}</td><td>{p.losses}</td></tr>)}</tbody></table></div>
- </section>;
-}
 
 export default async function Page({params}:{params:Promise<{id:string}>}) {
  const rawId=(await params).id;
@@ -27,6 +21,7 @@ export default async function Page({params}:{params:Promise<{id:string}>}) {
  const s=grouped.find(x=>x.id===id)??stories.find(x=>x.id===id);
  if(!s)notFound();
  const divisions='divisions' in s ? s.divisions as Story[] : [s];
+ const wall=await loadNewsWall(s.event,s.date);
  return <PublicPage icon="news" title={s.title} sub={s.event} current="/news">
   <Link className="mb-4 inline-flex min-h-11 items-center text-blue-800" href="/news">ข่าวสารทั้งหมด</Link>
   <CompetitionPanel title={s.title} context={s.event}>
@@ -35,7 +30,7 @@ export default async function Page({params}:{params:Promise<{id:string}>}) {
     <div className="space-y-5 p-5">
      <h2 className="text-2xl font-bold">{s.event}</h2><p>{thaiDate(s.date)}</p>
      {divisions.length>1&&<p className="text-lg">รวมผลการแข่งขัน {divisions.length} รุ่น</p>}
-     {divisions.map(d=><DivisionResults key={d.id} story={d}/>)}
+     {divisions.map(d=><NewsDivisionResults key={d.id} story={d} games={wall.games} unavailable={wall.unavailable}/>)}
      <p className="text-sm text-slate-600">แหล่งข้อมูล: ผลการแข่งขันที่บันทึกและตรวจสอบแล้ว • ข่าวปรับตามข้อมูลล่าสุด • ระดับคิวและดั้งไม่เปลี่ยนอัตโนมัติ</p>
      <Link href={`/results?event=${encodeURIComponent(s.event)}`} className="gt-cta-btn inline-flex min-h-12 items-center px-5">ดูผลการแข่งขันทั้งหมด</Link>
     </div>
