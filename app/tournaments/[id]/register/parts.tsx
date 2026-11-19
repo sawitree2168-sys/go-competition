@@ -144,7 +144,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
 
 export function Avatar({ src, className = "h-20 w-20" }: { src: string | null; className?: string }) {
   return src
-    ? <img src={src} alt="" className={`${className} shrink-0 rounded-full border-2 border-[var(--gt-line)] object-cover`} />
+    ? <img src={src} alt="" className={`${className} shrink-0 rounded-lg border-2 border-[var(--gt-line)] object-cover`} />
     : (
       <span aria-hidden="true" className={`${className} grid shrink-0 place-items-center rounded-full bg-[var(--gt-avatar-top)] text-[var(--gt-cta)]`}>
         <Ico name="person" className="h-1/2 w-1/2" />

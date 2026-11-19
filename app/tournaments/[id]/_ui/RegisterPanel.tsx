@@ -216,7 +216,7 @@ function ApplyForm({ divisionId }: { divisionId: string }) {
           <div>
             <span className="font-semibold">รูปนักกีฬา <span className="text-sm font-normal text-[var(--gt-muted)]">(ไม่บังคับ)</span></span>
             <div className="mt-1.5 flex items-center gap-3 sm:gap-4">
-              <img src={photo?.url ?? DEFAULT_AVATAR} alt={photo ? "รูปที่เลือก" : ""} className={`h-[72px] w-[72px] shrink-0 sm:h-20 sm:w-20 ${photo ? "rounded-full border-2 border-[var(--gt-line)] object-cover" : "object-contain"}`} />
+              <img src={photo?.url ?? DEFAULT_AVATAR} alt={photo ? "รูปที่เลือก" : ""} className={`h-[72px] w-[72px] shrink-0 sm:h-20 sm:w-20 ${photo ? "rounded-lg border-2 border-[var(--gt-line)] object-cover" : "object-contain"}`} />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <button type="button" onClick={() => fileRef.current?.click()} className="gt-outline-btn min-h-10 px-3 text-sm font-semibold">{photo ? "เปลี่ยนรูป" : "เลือกรูป"}</button>
@@ -351,7 +351,7 @@ export function OrganizerQueue({ tournamentId, divisionId, bare }: { tournamentI
               return (
                 <li key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-[var(--gt-line)] px-3 py-2.5">
                   {thumb
-                    ? <button type="button" onClick={() => setZoom({ src: thumb, name: r.full_name })} aria-label={`ดูรูป ${r.full_name}`} className="shrink-0 rounded-full"><img src={thumb} alt="" className="h-11 w-11 rounded-full object-cover" /></button>
+                    ? <button type="button" onClick={() => setZoom({ src: thumb, name: r.full_name })} aria-label={`ดูรูป ${r.full_name}`} className="shrink-0 rounded-full"><img src={thumb} alt="" className="h-11 w-11 rounded-lg object-cover" /></button>
                     : <img src={DEFAULT_AVATAR} alt="" className="h-11 w-11 shrink-0 object-contain" />}
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-2">

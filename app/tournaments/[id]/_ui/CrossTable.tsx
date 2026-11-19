@@ -205,7 +205,7 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
         <div role="dialog" aria-modal="true" aria-label={`รูป ${zoom.display_name ?? ""}`} onClick={() => setZoom(null)}
           className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-6 print:hidden">
           <figure className="w-full max-w-sm rounded-2xl bg-[var(--gt-surface)] p-5 text-center shadow-2xl">
-            <img src={photo(zoom)} alt={zoom.display_name ?? ""} onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`mx-auto aspect-square w-full max-w-[18rem] ${photo(zoom) === DEFAULT_AVATAR ? "object-contain" : "rounded-full object-cover"}`} />
+            <img src={photo(zoom)} alt={zoom.display_name ?? ""} onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`mx-auto aspect-square w-full max-w-[18rem] ${photo(zoom) === DEFAULT_AVATAR ? "object-contain" : "rounded-lg object-cover"}`} />
             <figcaption className="mt-4 space-y-1">
               <p className="text-xl font-bold">{zoom.display_name}</p>
               {zoom.institution && <p className="text-sm text-[var(--gt-muted)]">{zoom.institution}</p>}

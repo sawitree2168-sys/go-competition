@@ -57,7 +57,7 @@ export default function PhotoAdmin() {
             <li key={h.go_id} className="p-3">
               <button type="button" onClick={() => setOpen(open === h.go_id ? null : h.go_id)} aria-expanded={open === h.go_id}
                 className="flex w-full items-center gap-3 text-left">
-                <img src={h.photo || DEFAULT_ATHLETE_PHOTO} alt="" className={`h-10 w-10 shrink-0 rounded-full bg-[var(--gt-cta-soft)] ${h.photo ? "object-cover" : "object-contain"}`} />
+                <img src={h.photo || DEFAULT_ATHLETE_PHOTO} alt="" className={`h-10 w-10 shrink-0 rounded-lg bg-[var(--gt-cta-soft)] ${h.photo ? "object-cover" : "object-contain"}`} />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold">{h.full_name}</span>
                   <span className="block text-xs text-[var(--gt-muted)]">{h.go_id}{h.dan ? ` · เลขดั้ง ${h.dan}` : ""}{h.rank ? ` · ${h.rank}` : ""}{h.claimed ? " · มีบัญชีแล้ว" : ""}</span>
@@ -73,9 +73,9 @@ export default function PhotoAdmin() {
                       <ul className="mt-2 space-y-2">
                         {h.history.map((c) => (
                           <li key={c.id} className="flex items-center gap-2 text-sm">
-                            <img src={c.old_url || DEFAULT_ATHLETE_PHOTO} alt="รูปก่อนเปลี่ยน" className="h-8 w-8 rounded-full object-cover" />
+                            <img src={c.old_url || DEFAULT_ATHLETE_PHOTO} alt="รูปก่อนเปลี่ยน" className="h-8 w-8 rounded-lg object-cover" />
                             <span aria-hidden="true">→</span>
-                            <img src={c.new_url || DEFAULT_ATHLETE_PHOTO} alt="รูปหลังเปลี่ยน" className="h-8 w-8 rounded-full object-cover" />
+                            <img src={c.new_url || DEFAULT_ATHLETE_PHOTO} alt="รูปหลังเปลี่ยน" className="h-8 w-8 rounded-lg object-cover" />
                             <span className="min-w-0 flex-1 text-[var(--gt-muted)]">{when(c.at)} · {c.role === "owner" ? "เจ้าของบัญชี" : "แอดมิน"}{c.reason && c.reason !== "consent" ? ` · ${c.reason}` : ""}</span>
                             <button type="button" onClick={() => revert(h, c)} className="min-h-9 rounded-lg px-2 font-semibold text-[var(--gt-cta)] hover:bg-[var(--gt-cta-soft)]">ใช้รูปก่อนหน้า</button>
                           </li>

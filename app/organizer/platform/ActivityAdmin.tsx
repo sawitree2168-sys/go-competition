@@ -106,7 +106,7 @@ export default function ActivityAdmin() {
             return (
               <li key={h.go_id} className="space-y-2 p-3">
                 <div className="flex items-center gap-3">
-                  <img src={h.photo || DEFAULT_ATHLETE_PHOTO} alt="" className={`h-10 w-10 shrink-0 rounded-full bg-[var(--gt-cta-soft)] ${h.photo ? "object-cover" : "object-contain"}`} />
+                  <img src={h.photo || DEFAULT_ATHLETE_PHOTO} alt="" className={`h-10 w-10 shrink-0 rounded-lg bg-[var(--gt-cta-soft)] ${h.photo ? "object-cover" : "object-contain"}`} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-semibold">{h.name}</span>
                     <span className="gt-num block text-xs text-[var(--gt-muted)]">

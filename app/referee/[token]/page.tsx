@@ -373,7 +373,7 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
     const p = t[side];
     return (
       <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-3 sm:p-4">
-        <img src={p.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-14 w-14 shrink-0 sm:h-20 sm:w-20 ${p.photo ? "rounded-full object-cover" : "object-contain"}`} />
+        <img src={p.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-14 w-14 shrink-0 sm:h-20 sm:w-20 ${p.photo ? "rounded-lg object-cover" : "object-contain"}`} />
         <div className="min-w-0 flex-1">
           <p className="text-lg font-bold leading-tight text-[var(--gt-ink)] sm:text-xl">{p.name ?? "—"}</p>
           {p.rank && <p className="text-sm text-[var(--gt-cta)]">{p.rank}</p>}

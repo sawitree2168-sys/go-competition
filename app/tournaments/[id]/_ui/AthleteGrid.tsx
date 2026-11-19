@@ -88,7 +88,7 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
           return (
             <li key={a.key} className="gt-card gt-athlete-card flex min-w-0 flex-col gap-0 overflow-hidden p-0">
               <div className="shrink-0 bg-[linear-gradient(180deg,var(--gt-avatar-top),var(--gt-surface-2))] px-2 pb-2 pt-4 sm:py-4">
-                <PhotoZoom src={a.photo} name={a.name} className="mx-auto block"><img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`mx-auto h-20 w-20 sm:h-28 sm:w-28 ${a.photo ? "rounded-full object-cover" : "object-contain"}`} /></PhotoZoom>
+                <PhotoZoom src={a.photo} name={a.name} className="mx-auto block"><img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`mx-auto h-20 w-20 sm:h-28 sm:w-28 ${a.photo ? "rounded-lg object-cover" : "object-contain"}`} /></PhotoZoom>
               </div>
               <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2.5 py-3 text-center sm:px-3">
                 {a.id
@@ -119,7 +119,7 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
               return (
                 <li key={a.key} className="grid grid-cols-[40px_48px_minmax(0,1fr)] items-center gap-2 px-3 py-3 sm:grid-cols-[40px_54px_minmax(0,1fr)_auto] lg:grid-cols-[40px_54px_minmax(0,1.5fr)_minmax(0,1fr)_92px_138px] lg:gap-3">
                   <span className="gt-num text-center text-xs text-[var(--gt-muted)]">{(current - 1) * PAGE + i + 1}</span>
-                  <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }} className="h-12 w-12 rounded-full bg-[var(--gt-surface-2)] object-contain" />
+                  <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }} className="h-12 w-12 rounded-lg bg-[var(--gt-surface-2)] object-contain" />
                   <div className="min-w-0">
                     {a.id ? <Link href={"/athletes/" + a.id} className="block break-words text-sm font-semibold hover:underline">{a.name}</Link> : <span className="block break-words text-sm font-semibold">{a.name}</span>}
                     <p className="mt-1 break-words text-xs text-[var(--gt-muted)] lg:hidden">{a.institution || "—"}</p>
@@ -182,7 +182,7 @@ function History({ athlete, historicalResults, matches, byes, people, onClose }:
     <div role="dialog" aria-modal="true" aria-label={`ประวัติการแข่งขัน ${athlete.name}`} onClick={onClose} className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
       <div onClick={(e) => e.stopPropagation()} className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-[var(--gt-surface)] p-4 shadow-2xl">
         <div className="flex items-center gap-3">
-          <img src={athlete.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-16 w-16 ${athlete.photo ? "rounded-full object-cover" : "object-contain"}`} />
+          <img src={athlete.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-16 w-16 ${athlete.photo ? "rounded-lg object-cover" : "object-contain"}`} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-lg font-bold">{athlete.name}</p>
             <p className="text-xs text-[var(--gt-muted)]">สถาบันที่สมัครรายการปัจจุบัน</p>

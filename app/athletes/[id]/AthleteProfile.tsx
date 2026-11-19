@@ -55,9 +55,9 @@ const Stone = ({ colour, className = "h-5 w-5" }: { colour: "black" | "white"; c
 );
 
 function Avatar({ src, size = "h-10 w-10", ring = false }: { src: string | null; size?: string; ring?: boolean }) {
-  // The default picture is already round with its own rim and stones: show it whole, no crop or ring.
-  if (!src) return <img src={DEFAULT_AVATAR} alt="" className={`${size} shrink-0 object-contain`} />;
-  return <img src={src} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`${size} shrink-0 rounded-full bg-[var(--gt-avatar-top)] object-cover ${ring ? "border-4 border-[var(--gt-surface)] shadow-[0_0_0_3px_var(--gt-cta)]" : ""}`} />;
+  // Keep the square default artwork whole; photographs use rectangular frames.
+  if (!src) return <img data-athlete-photo="true" src={DEFAULT_AVATAR} alt="" className={`${size} shrink-0 object-contain`} />;
+  return <img data-athlete-photo="true" src={src} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`${size} shrink-0 rounded-lg bg-[var(--gt-avatar-top)] object-cover ${ring ? "border-4 border-[var(--gt-surface)] shadow-[0_0_0_3px_var(--gt-cta)]" : ""}`} />;
 }
 
 const PILL: Record<Outcome, { text: string; cls: string }> = {

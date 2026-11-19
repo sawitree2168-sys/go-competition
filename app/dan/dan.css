@@ -334,10 +334,10 @@
 .dan-rank-photo {
   flex: 0 0 auto;
   width: clamp(76px, 6.7vw, 94px);
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 5;
   padding: 2px;
   border: 1px solid var(--medal-rim, #91b3df);
-  border-radius: 50%;
+  border-radius: 9px;
   background: #fff;
   box-shadow: 0 2px 5px #194f9124;
 }
@@ -592,3 +592,8 @@
 
   .gt-global-mobile-nav a[href="/dan"] { font-size: 0.72rem; }
 }
+
+/* Every athlete photograph uses a rectangular frame. */
+.dan-rank-photo>.gt-athlete-round-frame{display:block;width:100%;height:100%}
+.dan-rank-photo img{object-fit:cover;object-position:center 24%;border-radius:6px!important}
+.dan-rank-photo img[src$="go-approved-square.svg"]{object-fit:contain}

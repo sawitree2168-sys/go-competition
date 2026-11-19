@@ -40,7 +40,7 @@ type SeatInfo = { id: string; name: string; institution?: string; rank?: string 
 
 function Photo({ s, className }: { s: SeatInfo; className: string }) {
   if (!s.photo) return <img src={DEFAULT_AVATAR} alt="" loading="lazy" className={`${className} shrink-0 object-contain`} />;
-  return <img src={s.photo} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`${className} shrink-0 rounded-full border-2 border-[var(--gt-cta)]/40 object-cover`} />;
+  return <img src={s.photo} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`${className} shrink-0 rounded-lg border-2 border-[var(--gt-cta)]/40 object-cover`} />;
 }
 function ColourChip({ colour }: { colour: "black" | "white" }) {
   return (
@@ -215,7 +215,7 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
           const p = people[b.athlete_id];
           return (
             <li key={b.athlete_id} className="flex items-center gap-3 rounded-2xl border-2 border-dashed border-[var(--gt-line)] bg-[var(--gt-surface)] px-4 py-3">
-              <img src={p?.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-14 w-14 shrink-0 ${p?.photo ? "rounded-full object-cover" : "object-contain"}`} />
+              <img src={p?.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-14 w-14 shrink-0 ${p?.photo ? "rounded-lg object-cover" : "object-contain"}`} />
               <span className="min-w-0 flex-1"><span className="block font-semibold">{p?.name ?? "ผู้เข้าแข่งขัน"}</span><span className="block text-sm text-[var(--gt-muted)]">{p?.institution}</span></span>
               <span className="shrink-0 rounded-full bg-[var(--gt-win-bg)] px-3 py-1 text-sm font-semibold text-[var(--gt-win-ink)]">บาย +1 คะแนน</span>
             </li>

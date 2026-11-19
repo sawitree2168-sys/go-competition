@@ -19,7 +19,7 @@ export default function PhotoZoom({ src, name, className = "", children }: { src
   }, [open]);
   return <>
     <button ref={trigger} type="button" data-athlete-photo="true" onClick={e => { e.preventDefault(); e.stopPropagation(); setOpen(true); }}
-      aria-label={`ดูรูปของ ${name} ขนาดใหญ่`} className={`cursor-zoom-in rounded-full ${className}`}>{children}</button>
+      aria-label={`ดูรูปของ ${name} ขนาดใหญ่`} className={`cursor-zoom-in rounded-lg ${className}`}>{children}</button>
     {open && createPortal(<dialog ref={dialog} className="gt-photo-zoom" aria-label={`รูปของ ${name}`}
       onClose={() => setOpen(false)} onClick={e => { e.stopPropagation(); if (e.target === e.currentTarget) setOpen(false); }}>
       <div className="gt-photo-zoom-content">
