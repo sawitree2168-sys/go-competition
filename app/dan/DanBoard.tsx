@@ -51,6 +51,12 @@ function Name({ p, className = "" }: { p: { name: string; profile_id?: string | 
 }
 
 const PeopleIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0" aria-hidden="true"><circle cx="9" cy="8" r="3.2" /><path d="M3 19c.6-3.3 3-5 6-5s5.4 1.7 6 5" /><circle cx="17" cy="9" r="2.5" /><path d="M16 14c2.6 0 4.4 1.5 5 4" /></svg>;
+const CalendarIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="dan-fact-icon" aria-hidden="true">
+    <rect x="4" y="5.5" width="16" height="15" rx="2.5" />
+    <path d="M4 10h16M8 3.5v4M16 3.5v4M8 14h2m4 0h2" />
+  </svg>
+);
 const Chevron = () => <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 
 /** One newly announced dan in the approved athlete-card layout (avatar band, rank pill, outlined action). */
@@ -150,7 +156,8 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
   const [page, setPage] = useState(1);
   const [view, setView] = useState<"cards" | "list">("cards");
   const [sort, setSort] = useState<"score" | "dan">("score");
-  const [scope, setScope] = useState<"active" | "all">("active");
+  const [scope, setScope] = useState<"active" | "inactive" | "all">("active");
+  const [showFullRanking, setShowFullRanking] = useState(false);
 
   const latest = board.announcements[0]?.announced_on ?? null;
   const diamondCount = board.directory.filter((d) => d.diamond).length;
@@ -188,13 +195,13 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
   }, [ranking]);
   const classes = useMemo(() => {
     const m = new Map<string, { total: number; active: number }>();
-    for (const r of ranking?.rows ?? []) if (r.level) {
+    for (const r of ranking?.rows ?? []) if (r.level && r.score !== null) {
       const c = m.get(r.level) ?? { total: 0, active: 0 };
-      c.total++; if (r.active && r.score !== null) c.active++;
+      c.total++; if (r.active) c.active++;
       m.set(r.level, c);
     }
-    return [...m.entries()].sort((a, b) => Number(a[0]) - Number(b[0]));
-  }, [ranking]);
+    return levels.map((l) => [l, m.get(l) ?? { total: 0, active: 0 }] as const);
+  }, [ranking, levels]);
   const classStats = useMemo(() => {
     if (level === "all" || !ranking) return null;
     const all = ranking.rows.filter((r) => r.level === level);
@@ -208,13 +215,17 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
     };
   }, [ranking, level]);
   const ranked = useMemo(() => (ranking?.rows ?? [])
-    .filter((r) => r.score !== null && (scope === "all" || r.active) && matches(q, r.name, r.dan) && (level === "all" || r.level === level))
+    .filter((r) => r.score !== null && (scope === "all" || r.active === (scope === "active")) && matches(q, r.name, r.dan) && (level === "all" || r.level === level))
     .sort((a, b) => sort === "dan" ? a.dan - b.dan : (b.score! - a.score!) || (Number(b.active) - Number(a.active)) || a.dan - b.dan), [ranking, scope, q, level, sort]);
 
   const per = tab === "new" && view === "cards" ? PAGE : ROWS;
   const total = tab === "new" ? news.length : tab === "rank" ? ranked.length : dir.length;
   const pages = Math.max(1, Math.ceil(total / per));
   const cur = Math.min(page, pages);
+  const isRanking = tab === "rank";
+  const mobilePreview = isRanking && !showFullRanking && cur === 1 && total > 6
+    && !q.trim() && level === "all" && scope === "active" && sort === "score";
+  const rankYear = ranking?.as_of ? beYear(ranking.as_of) : beYear(new Date().toISOString());
   const go = (p: number) => { setPage(p); document.getElementById("dan-results")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
   const newAsRows: DirEntry[] = news.map((a) => ({ dan: a.dan ?? 0, name: a.name, level: a.level, diamond: a.diamond, year: beYear(a.announced_on), go_id: a.go_id, photo: a.photo }));
@@ -222,6 +233,37 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
 
   return (
     <div className="dan-board">
+      <section className="dan-hero" aria-labelledby="dan-title">
+        <div className="dan-hero-inner">
+          <h1 id="dan-title">{isRanking ? "อันดับคะแนนประเทศไทย" : "ทำเนียบนักกีฬาหมากล้อมไทย"}</h1>
+          {isRanking && <p className="dan-hero-year">ปี {rankYear}</p>}
+        </div>
+      </section>
+
+      {isRanking && (
+        <div className="dan-ranking-summary">
+          <div role="group" aria-label="สถานะนักกีฬา" className="dan-scope">
+            {([
+              ["active", "Active"],
+              ["inactive", "Inactive"],
+              ["all", "รวมทั้งหมด"],
+            ] as const).map(([id, label]) => (
+              <button key={id} type="button" aria-pressed={scope === id}
+                onClick={() => { setScope(id); setPage(1); }}>
+                {id !== "all" && <span className="dan-status-dot" data-scope={id} aria-hidden="true" />}
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="dan-ranking-facts">
+            <p aria-live="polite"><PeopleIcon /><span>นักกีฬา <strong className="gt-num">{num(total)}</strong> คน</span></p>
+            {board.synced_at && (
+              <p><CalendarIcon /><span>อัปเดต {thaiDate(board.synced_at)}</span></p>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="gt-directory-tools gt-dan-tools">
         <label className="gt-directory-search relative block">
           <span className="sr-only">ค้นหาชื่อหรือเลขดั้ง</span>
@@ -252,7 +294,9 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
           <span className="sr-only">ระดับดั้ง</span>
           <select value={level} onChange={(e) => { setLevel(e.target.value); setPage(1); }} className={select}>
             <option value="all" className="text-black">ทุกระดับ</option>
-            {levels.map((l) => <option key={l} value={l} className="text-black">{l} Dan</option>)}
+            {isRanking ? classes.map(([l, c]) => (
+              <option key={l} value={l} className="text-black">{l} Dan ({num(scope === "active" ? c.active : scope === "inactive" ? c.total - c.active : c.total)} คน)</option>
+            )) : levels.map((l) => <option key={l} value={l} className="text-black">{l} Dan</option>)}
           </select>
           <Chevron />
         </label>
@@ -269,79 +313,85 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
         </div>
       </div>
 
-      {tab === "rank" && classes.length > 0 && (
-        <div role="group" aria-label="เลือกรุ่นดั้ง" className="mb-5 mt-3 flex gap-2 overflow-x-auto pb-1">
-          {[["all", { total: ranking!.rows.length, active: activeCount }] as const, ...classes].map(([l, c]) => (
-            <button key={l} type="button" aria-pressed={level === l} onClick={() => { setLevel(l); setPage(1); }}
-              className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-sm font-semibold ${level === l ? "border-transparent bg-[var(--gt-brand)] text-white" : "border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)]"}`}>
-              {l === "all" ? "ทุกรุ่น" : `${l} ดั้ง`}
-              <span className={`gt-num rounded-full px-2 text-xs ${level === l ? "bg-white/20" : "bg-[var(--gt-surface-2)]"}`}>{num(c.active)}</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="gt-directory-results" id="dan-results">
-        <div className="gt-directory-results-heading">
-          <h2>{tab === "new" ? "รายชื่อผู้ได้รับการรับรองดั้งใหม่" : tab === "rank" ? `อันดับคะแนน${level === "all" ? "ประเทศไทย" : ` รุ่น ${level} ดั้ง`} ปี ${(ranking?.as_of ? beYear(ranking.as_of) : beYear(new Date().toISOString()))}` : tab === "diamond" ? "ดั้งเพชร" : "ทำเนียบดั้งทั้งหมด"}</h2>
-          <p className="text-sm text-[var(--gt-muted)]" aria-live="polite">{num(tab === "all" ? dir.filter((d) => !d.reserved).length : total)} คน</p>
-        </div>
-        {tab === "rank" && (
-          <div role="group" aria-label="สถานะนักกีฬา" className="gt-directory-view-toggle">
-            <button type="button" aria-pressed={scope === "active"} onClick={() => { setScope("active"); setPage(1); }} className={scope === "active" ? "is-active" : ""}>● Active</button>
-            <button type="button" aria-pressed={scope === "all"} onClick={() => { setScope("all"); setPage(1); }} className={scope === "all" ? "is-active" : ""}>รวม Inactive</button>
-          </div>
+      <div id="dan-results" className="dan-results">
+        {!isRanking && (
+          <>
+            <div className="gt-directory-results">
+              <div className="gt-directory-results-heading">
+                <h2>{tab === "new" ? "รายชื่อผู้ได้รับการรับรองดั้งใหม่" : tab === "diamond" ? "ดั้งเพชร" : "ทำเนียบดั้งทั้งหมด"}</h2>
+                <p aria-live="polite">{num(tab === "all" ? dir.filter((d) => !d.reserved).length : total)} คน</p>
+              </div>
+              {tab === "new" && (
+                <div role="group" aria-label="รูปแบบการแสดงรายชื่อ" className="gt-directory-view-toggle">
+                  <button type="button" aria-pressed={view === "cards"} onClick={() => { setView("cards"); setPage(1); }} className={view === "cards" ? "is-active" : ""}>▦ การ์ด</button>
+                  <button type="button" aria-pressed={view === "list"} onClick={() => { setView("list"); setPage(1); }} className={view === "list" ? "is-active" : ""}>☷ ตาราง / ลิสต์</button>
+                </div>
+              )}
+            </div>
+            <p className="dan-source-note">
+              {tab === "new" && latest && <>ประกาศล่าสุด {thaiDate(latest, "long")} · </>}
+              {tab === "diamond" && <>ผู้ที่มีเครื่องหมายเพชรในทำเนียบดั้ง · </>}
+              {tab === "all" && (board.reserved?.length ?? 0) > 0 && <>มีเลขดั้งที่ประมูลแล้วรอสอบ {num(board.reserved!.length)} เลข · </>}
+              ข้อมูลจาก <a href={board.source_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--gt-cta)] hover:underline">สมาคมกีฬาหมากล้อมแห่งประเทศไทย</a>
+              {board.synced_at && <> · อัปเดต {thaiDate(board.synced_at)}</>}
+            </p>
+          </>
         )}
-        {tab === "new" && (
-          <div role="group" aria-label="รูปแบบการแสดงรายชื่อ" className="gt-directory-view-toggle">
-            <button type="button" aria-pressed={view === "cards"} onClick={() => { setView("cards"); setPage(1); }} className={view === "cards" ? "is-active" : ""}>▦ การ์ด</button>
-            <button type="button" aria-pressed={view === "list"} onClick={() => { setView("list"); setPage(1); }} className={view === "list" ? "is-active" : ""}>☷ ตาราง / ลิสต์</button>
+        {tab === "rank" && classStats && (
+          <dl className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {[
+              ["นักกีฬาทั้งหมด", `${num(classStats.total)} คน`],
+              ["Active", `${num(classStats.active)} คน`],
+              ["คะแนนสูงสุด", classStats.top === null ? "–" : num(classStats.top)],
+              ["คะแนนเฉลี่ย (Active)", classStats.avg === null ? "–" : num(classStats.avg)],
+              [`ถึงเกณฑ์ ${Number(level) + 1} ดั้ง`, `${num(classStats.next)} คน`],
+            ].map(([k, v], i) => (
+              <div key={k} className={`gt-card px-3 py-2.5 ${i === 4 ? "col-span-2 sm:col-span-1" : ""}`}>
+                <dt className="text-xs text-[var(--gt-muted)]">{k}</dt>
+                <dd className={`gt-num text-lg font-bold ${i === 4 ? "text-[var(--gt-gold-ink)]" : ""}`}>{v}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        {total === 0 ? (
+          <div className="gt-card mt-2 px-5 py-8 text-center">
+            <p className="font-semibold">ไม่พบรายชื่อที่ตรงกับเงื่อนไข</p>
+            <button type="button" onClick={() => { setQ(""); setYear("all"); setLevel("all"); setScope("active"); setPage(1); }} className="gt-outline-btn mt-3 min-h-11 px-5 text-sm font-semibold">ล้างตัวกรอง</button>
           </div>
+        ) : tab === "new" && view === "cards" ? (
+          <ul className="grid grid-cols-2 items-start gap-2.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+            {news.slice((cur - 1) * per, cur * per).map((a) => <NewDanCard key={a.dan ?? a.name} a={a} />)}
+          </ul>
+        ) : tab === "rank" ? (
+          <RankTable rows={ranked.slice((cur - 1) * per, cur * per)} classRank={level === "all" ? null : classRank} mobilePreview={mobilePreview} />
+        ) : (
+          <DanTable rows={(tab === "new" ? newAsRows : dir).slice((cur - 1) * per, cur * per)} />
+        )}
+        {mobilePreview && (
+          <button type="button" className="dan-expand-rank" aria-controls="dan-rank-list"
+            onClick={(event) => {
+              const nextRow = event.currentTarget.previousElementSibling?.querySelector<HTMLElement>(".dan-rank-row:nth-child(7)");
+              setShowFullRanking(true);
+              requestAnimationFrame(() => nextRow?.focus());
+            }}>
+            ดูอันดับทั้งหมด ({num(total)} คน)
+          </button>
+        )}
+        <div className={mobilePreview ? "dan-preview-pager" : undefined}>
+          <Pager page={cur} pages={pages} go={go} />
+        </div>
+        {isRanking && ranking && (
+          <details className="dan-ranking-source">
+            <summary>เกณฑ์การจัดอันดับและแหล่งข้อมูล</summary>
+            <p>
+              จัดอันดับเฉพาะผู้ที่ Active (มีผลแข่งใน {ranking.inactive_months} เดือนล่าสุด) · ระดับดั้งจะเปลี่ยนเมื่อสอบผ่าน
+              {ranking.as_of && <> · คะแนนถึง {thaiDate(ranking.as_of)}</>}
+              {" · "}ข้อมูลจาก <a href={board.source_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--gt-cta)] hover:underline">สมาคมกีฬาหมากล้อมแห่งประเทศไทย</a>
+            </p>
+          </details>
         )}
       </div>
-      <p className="dan-source-note text-sm text-[var(--gt-muted)]">
-        {tab === "new" && latest && <>ประกาศล่าสุด {thaiDate(latest, "long")} · </>}
-        {tab === "diamond" && <>ผู้ที่มีเครื่องหมายเพชรในทำเนียบดั้ง · </>}
-        {tab === "all" && (board.reserved?.length ?? 0) > 0 && <>มีเลขดั้งที่ประมูลแล้วรอสอบ {num(board.reserved!.length)} เลข · </>}
-        {tab === "rank" && ranking && <>
-          จัดอันดับเฉพาะผู้ที่ Active (มีผลแข่งใน {ranking.inactive_months} เดือนล่าสุด) · คะแนนกับระดับดั้งแยกกัน ระดับดั้งเปลี่ยนเมื่อสอบผ่านเท่านั้น
-          {ranking.as_of && <> · คะแนนถึง {thaiDate(ranking.as_of)}</>} · </>}
-        ข้อมูลจาก<a href={board.source_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--gt-cta)] hover:underline">สมาคมกีฬาหมากล้อมแห่งประเทศไทย</a>
-        {board.synced_at && <> · อัปเดต {thaiDate(board.synced_at)}</>}
-      </p>
-
-      {tab === "rank" && classStats && (
-        <dl className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
-          {[
-            ["นักกีฬาทั้งหมด", `${num(classStats.total)} คน`],
-            ["Active", `${num(classStats.active)} คน`],
-            ["คะแนนสูงสุด", classStats.top === null ? "–" : num(classStats.top)],
-            ["คะแนนเฉลี่ย (Active)", classStats.avg === null ? "–" : num(classStats.avg)],
-            [`ถึงเกณฑ์ ${Number(level) + 1} ดั้ง`, `${num(classStats.next)} คน`],
-          ].map(([k, v], i) => (
-            <div key={k} className={`gt-card px-3 py-2.5 ${i === 4 ? "col-span-2 sm:col-span-1" : ""}`}>
-              <dt className="text-xs text-[var(--gt-muted)]">{k}</dt>
-              <dd className={`gt-num text-lg font-bold ${i === 4 ? "text-[var(--gt-gold-ink)]" : ""}`}>{v}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-
-      {total === 0 ? (
-        <div className="gt-card mt-2 px-5 py-8 text-center">
-          <p className="font-semibold">ไม่พบรายชื่อที่ตรงกับเงื่อนไข</p>
-          <button type="button" onClick={() => { setQ(""); setYear("all"); setLevel("all"); setPage(1); }} className="gt-outline-btn mt-3 min-h-11 px-5 text-sm font-semibold">ล้างตัวกรอง</button>
-        </div>
-      ) : tab === "new" && view === "cards" ? (
-        <ul className="grid grid-cols-2 items-start gap-2.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
-          {news.slice((cur - 1) * per, cur * per).map((a) => <NewDanCard key={a.dan ?? a.name} a={a} />)}
-        </ul>
-      ) : tab === "rank" ? (
-        <RankTable rows={ranked.slice((cur - 1) * per, cur * per)} classRank={level === "all" ? null : classRank} />
-      ) : (
-        <DanTable rows={(tab === "new" ? newAsRows : dir).slice((cur - 1) * per, cur * per)} />
-      )}
-      <Pager page={cur} pages={pages} go={go} />
 
       <p className="mt-8 text-center text-sm text-[var(--gt-muted)]">
         แตะรูปเพื่อดูภาพใหญ่ · อยากเปลี่ยนรูปของตัวเอง? <Link href="/account/photo" className="font-semibold text-[var(--gt-cta)] hover:underline">เข้าสู่ระบบเพื่อเปลี่ยนรูป</Link>

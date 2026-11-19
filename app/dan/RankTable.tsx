@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import AthleteAvatar from "@/components/AthleteAvatar";
+import MenuIcon from "@/components/MenuIcon";
 
 export type RankRow = {
   rank: number | null; dan: number; name: string; level: string | null; diamond: boolean; go_id: string | null; photo: string | null;
@@ -13,77 +14,98 @@ export type Ranking = { inactive_months: number; as_of: string | null; rows: Ran
 const num = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 1 });
 const shortDate = (iso: string) =>
   new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "2-digit", timeZone: "UTC" }).format(new Date(`${iso.slice(0, 10)}T00:00:00Z`));
-const lvl = (l: string | null) => Number(l ?? 1);
 
-/** Score has reached the threshold for the next dan; the dan itself only changes after the exam is passed. */
-export function NextLevelBadge({ level }: { level: string | null }) {
+function NextLevelBadge({ level }: { level: string | null }) {
+  const next = Number(level ?? 1) + 1;
   return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-[var(--gt-gold-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--gt-gold-ink)] sm:text-xs"
-      title={`คะแนนถึงเกณฑ์ ${lvl(level) + 1} ดั้งแล้ว ระดับดั้งจะเปลี่ยนเมื่อสอบผ่าน`}>
-      ★ คะแนนถึงเกณฑ์ {lvl(level) + 1} ดั้ง
+    <span className="dan-rank-tag dan-rank-threshold-badge" title={`คะแนนถึงเกณฑ์ ${next} ดั้งแล้ว ระดับดั้งจะเปลี่ยนเมื่อสอบผ่าน`}>
+      <span aria-hidden="true">★</span> ถึงเกณฑ์ {next} ดั้ง
     </span>
   );
 }
 
-function Status({ r }: { r: RankRow }) {
+function Status({ row }: { row: RankRow }) {
   return (
-    <span title={r.status_source === "admin" ? "กำหนดโดยผู้ดูแล" : undefined}
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold sm:text-xs ${r.active ? "bg-[var(--gt-win-bg)] text-[var(--gt-win-ink)]" : "bg-[var(--gt-surface-2)] text-[var(--gt-muted)]"}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${r.active ? "bg-[var(--gt-win-ink)]" : "bg-[var(--gt-muted)]"}`} aria-hidden="true" />
-      {r.active ? "Active" : "Inactive"}{r.status_source === "admin" && " ✎"}
+    <span className="dan-rank-tag dan-rank-status-badge" data-active={row.active}
+      title={row.status_source === "admin" ? "กำหนดโดยผู้ดูแล" : undefined}>
+      <span className="dan-status-dot" aria-hidden="true" />
+      {row.active ? "Active" : "Inactive"}{row.status_source === "admin" && " ✎"}
     </span>
   );
 }
 
-function Delta({ d }: { d: number | null }) {
-  if (d === null || d === 0) return <span className="text-[var(--gt-muted)]">–</span>;
-  return <span className={d > 0 ? "text-[var(--gt-win-ink)]" : "text-[var(--gt-loss-ink)]"}>{d > 0 ? "▲" : "▼"} {num(Math.abs(d))}</span>;
+function Delta({ value }: { value: number | null }) {
+  if (value === null || value === 0) {
+    return <span className="dan-rank-change"><span className="sr-only">การเปลี่ยนแปลง </span>–</span>;
+  }
+  return (
+    <span className="dan-rank-tag dan-rank-change" data-direction={value > 0 ? "up" : "down"}>
+      <span className="sr-only">{value > 0 ? "เพิ่มขึ้น" : "ลดลง"}</span>
+      <span aria-hidden="true">{value > 0 ? "▲" : "▼"}</span> {num(Math.abs(value))}
+    </span>
+  );
 }
 
-const GRID = "lg:grid-cols-[64px_54px_minmax(0,1fr)_86px_84px_96px_96px]";
+function RankingRow({ row, classRank }: { row: RankRow; classRank: Map<number, number> | null }) {
+  const position = classRank ? classRank.get(row.dan) ?? null : row.rank;
+  const podium = position !== null && position <= 3 ? position : undefined;
+  const nationalPosition = classRank ? row.rank : null;
 
-/** National ranking table in the approved directory table style. */
-export default function RankTable({ rows, classRank }: { rows: RankRow[]; classRank: Map<number, number> | null }) {
   return (
-    <div className="dan-rank-table gt-athlete-table overflow-hidden rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)]">
-      <div className={`dan-rank-head hidden ${GRID} items-center gap-3 border-b border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-3 py-3 text-xs font-semibold text-[var(--gt-muted)] lg:grid`}>
-        <span className="text-center">{classRank ? "อันดับรุ่น" : "อันดับ"}</span><span>รูป</span><span>ชื่อ–นามสกุล</span><span className="text-right">คะแนน</span>
-        <span className="text-right">ล่าสุด</span><span>สถานะ</span><span>แข่งล่าสุด</span>
+    <li className="dan-rank-row" data-podium={podium} tabIndex={-1}>
+      <div className="dan-rank-position gt-num">
+        <span className="dan-rank-medal">
+          <span className="sr-only">{classRank ? "อันดับรุ่น " : "อันดับ "}</span>{position ?? "–"}
+        </span>
+        {nationalPosition !== null && <span className="dan-national-position">ประเทศ {nationalPosition}</span>}
       </div>
-      <ol className="divide-y divide-[var(--gt-line)]" aria-label="อันดับคะแนน">
-        {rows.map((r) => (
-          <li key={r.dan} className={`dan-rank-row grid grid-cols-[44px_48px_minmax(0,1fr)_auto] items-center gap-2 px-3 py-3 ${GRID} lg:gap-3 ${r.active ? "" : "opacity-70"}`}>
-            {(() => {
-              const main = classRank ? classRank.get(r.dan) ?? null : r.rank;
-              return (
-                <span className={`dan-rank-position gt-num text-center leading-tight ${main && main <= 3 ? "dan-podium-"+main : ""}`}>
-                  <span className={`block font-bold ${main && main <= 3 ? "text-lg text-[var(--gt-gold-ink)]" : "text-sm text-[var(--gt-brand)]"}`}>{main ?? "–"}</span>
-                  {classRank && r.rank && <span className="block text-[10px] text-[var(--gt-muted)]" >ประเทศ {r.rank}</span>}
-                </span>
-              );
-            })()}
-            <div className="dan-rank-photo"><AthleteAvatar src={r.photo} name={r.name} zoom className="h-20 w-20" /></div>
-            <span className="dan-rank-identity min-w-0">
-              <span className="block break-words text-sm font-semibold leading-snug sm:text-base">
-                {r.profile_id ? <Link href={`/athletes/${r.profile_id}`} className="hover:underline">{r.name}</Link> : r.name}
-              </span>
-              <span className="mt-1 flex flex-wrap items-center gap-1.5">
-                <span className="gt-num rounded-full bg-[var(--gt-surface-2)] px-2 py-0.5 text-xs font-bold text-[var(--gt-brand)]">{lvl(r.level)} Dan</span>
-                <span className="gt-num text-xs text-[var(--gt-muted)]">เลขดั้ง {num(r.dan)}</span>
-                {r.next_level && <NextLevelBadge level={r.level} />}
-                <span className="lg:hidden"><Status r={r} /></span>
-              </span>
-              {r.last_played && <span className="gt-num mt-0.5 block text-[11px] text-[var(--gt-muted)] lg:hidden">แข่งล่าสุด {shortDate(r.last_played)}</span>}
-            </span>
-            <span className="dan-rank-score gt-num text-right">
-              <span className="block text-base font-bold sm:text-lg">{r.score === null ? "–" : num(r.score)}</span>
-              <span className="block text-xs lg:hidden"><Delta d={r.delta} /></span>
-            </span>
-            <span className="dan-rank-delta gt-num hidden text-right text-sm lg:block"><Delta d={r.delta} /></span>
-            <span className="dan-rank-status hidden lg:block"><Status r={r} /></span>
-            <span className="dan-rank-date gt-num hidden text-sm text-[var(--gt-muted)] lg:block">{r.last_played ? shortDate(r.last_played) : "–"}</span>
-          </li>
-        ))}
+      <div className="dan-rank-athlete">
+        <div className="dan-rank-photo">
+          <AthleteAvatar src={row.photo} name={row.name} zoom className="dan-rank-avatar" />
+        </div>
+        <div className="dan-rank-identity">
+          <div className="dan-rank-name">
+            {row.profile_id ? <Link href={`/athletes/${row.profile_id}`} className="hover:underline">{row.name}</Link> : row.name}
+          </div>
+          <span className="dan-rank-id gt-num">เลขดั้ง {num(row.dan)}</span>
+          {row.last_played && <span className="dan-rank-date gt-num">แข่งล่าสุด {shortDate(row.last_played)}</span>}
+        </div>
+      </div>
+      <div className="dan-rank-level">
+        <span className="dan-rank-tag dan-rank-level-badge gt-num">{row.level ?? 1} Dan</span>
+      </div>
+      <div className="dan-rank-score gt-num">
+        <span className="sr-only">คะแนนปัจจุบัน </span>
+        <MenuIcon name="trophy" className="dan-rank-trophy" />
+        {row.score === null ? "–" : num(row.score)}
+      </div>
+      <div className="dan-rank-delta gt-num"><Delta value={row.delta} /></div>
+      <div className="dan-rank-threshold">
+        {row.next_level ? <NextLevelBadge level={row.level} /> : <span className="dan-rank-no-threshold" aria-hidden="true">–</span>}
+      </div>
+      <div className="dan-rank-status"><Status row={row} /></div>
+    </li>
+  );
+}
+
+export default function RankTable({ rows, classRank, mobilePreview }: {
+  rows: RankRow[];
+  classRank: Map<number, number> | null;
+  mobilePreview: boolean;
+}) {
+  return (
+    <div className="dan-rank-table" data-mobile-preview={mobilePreview}>
+      <div className="dan-rank-head" aria-hidden="true">
+        <span>{classRank ? "อันดับรุ่น" : "อันดับ"}</span>
+        <span>นักกีฬา</span>
+        <span>ระดับฝีมือ</span>
+        <span>คะแนนปัจจุบัน</span>
+        <span>เปลี่ยนแปลง</span>
+        <span>เกณฑ์เลื่อนดั้ง</span>
+        <span>สถานะ</span>
+      </div>
+      <ol id="dan-rank-list" className="dan-rank-list" role="list" aria-label="อันดับคะแนน">
+        {rows.map((row) => <RankingRow key={row.dan} row={row} classRank={classRank} />)}
       </ol>
     </div>
   );
