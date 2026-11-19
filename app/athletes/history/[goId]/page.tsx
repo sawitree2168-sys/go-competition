@@ -4,7 +4,7 @@ import PublicPage from '@/components/PublicPage';
 import CentralHistory from '@/components/CentralHistory';
 import BackLink from '@/components/BackLink';
 import {loadHistoryProfile} from '@/lib/central-history';
-export const revalidate=30;
+export const dynamic='force-dynamic';
 export async function generateMetadata({params}:{params:Promise<{goId:string}>}):Promise<Metadata>{
  const p=await loadHistoryProfile((await params).goId);
  return {title:p?`${p.full_name} · ประวัติการแข่งขัน`:'ประวัติการแข่งขัน'};
