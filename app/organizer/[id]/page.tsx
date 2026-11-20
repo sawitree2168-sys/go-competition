@@ -271,7 +271,7 @@ function EventConsole({ id }: { id: string }) {
         <button type="button" aria-pressed={settingsOpen} onClick={() => setSettingsOpen(!settingsOpen)} className="min-h-16 rounded-xl border-2 border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-2 text-sm font-bold">⚙ ตั้งค่างาน</button>
       </nav>
       {settingsOpen && <EventSettings id={id} onSaved={load}/>}
-      <section aria-label="ภาพรวมเตรียมแข่งขัน" className="rounded-2xl border-[3px] border-[#d4a63d] bg-[var(--gt-surface)] p-4 shadow-sm">
+      <section id="event-readiness" aria-label="ภาพรวมเตรียมแข่งขัน" className="rounded-2xl border-[3px] border-[#d4a63d] bg-[var(--gt-surface)] p-4 shadow-sm">
         <div className="mb-3 rounded-xl bg-[linear-gradient(110deg,#0d67c9,#073e8e)] p-4 text-white">
           <h2 className="text-xl font-bold">ศูนย์เตรียมการแข่งขัน · ข้อมูลจริง</h2>
           <p className="mt-1 text-sm text-white/90">รายชื่อจากใบสมัคร กับรายชื่อที่ผูกทะเบียนนักกีฬาเพื่อจับคู่ เป็นข้อมูลคนละขั้นตอน</p>
