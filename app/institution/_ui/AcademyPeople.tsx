@@ -4,16 +4,21 @@ import {staffDb} from "@/app/organizer/_lib/staff";
 import {DisplayModeToggle,useInstitutionDisplayMode} from "./DisplayMode";
 type Teacher={name:string;role:string};
 type Request={user_id:string;name:string;role:string;created_at:string};
-export function AcademyStaff({academyId}:{academyId:string}){
+type TeacherLink={user_id:string;name:string;students:{id:string;name:string}[]};
+export function AcademyStaff({academyId,students=[]}:{academyId:string;students?:{id:string;name:string}[]}){
  const [mode,setMode]=useInstitutionDisplayMode("teachers");
  const [data,setData]=useState<{can_add:boolean;staff:Teacher[]}|null>(null);
  const [requests,setRequests]=useState<Request[]>([]);
+ const [teacherLinks,setTeacherLinks]=useState<TeacherLink[]>([]);
+ const [teacherChoice,setTeacherChoice]=useState("");
+ const [studentChoice,setStudentChoice]=useState("");
  const [email,setEmail]=useState("");
  const [msg,setMsg]=useState("");
  const [busy,setBusy]=useState(false);
  const load=useCallback(async()=>{
    const db=staffDb();if(!db)return;
-   const [roster,pending]=await Promise.all([db.rpc("gt_academy_roster_v2",{p_academy:academyId}),db.rpc("gt_academy_pending_staff_v3",{p_academy:academyId})]);
+   const [roster,pending,links]=await Promise.all([db.rpc("gt_academy_roster_v2",{p_academy:academyId}),db.rpc("gt_academy_pending_staff_v3",{p_academy:academyId}),db.rpc("gt_academy_teacher_roster_links_v1",{p_academy:academyId})]);
+   if(!links.error&&links.data?.ok)setTeacherLinks(links.data.teachers??[]);
    if(!roster.error&&roster.data)setData(roster.data);
    if(!pending.error&&pending.data?.ok)setRequests(pending.data.items??[]);
  },[academyId]);
@@ -40,6 +45,25 @@ export function AcademyStaff({academyId}:{academyId:string}){
    {mode==="table" ? <div className="overflow-x-auto rounded-xl border border-[#b5d0f0]"><table className="w-full text-left text-sm"><thead className="bg-[#e8f2ff]"><tr><th className="px-4 py-3">ชื่อครู / ผู้ดูแล</th><th className="px-4 py-3">สิทธิ์</th></tr></thead><tbody className="divide-y divide-[#d9e6f6]">{data?.staff?.map((person,i)=><tr key={i}><td className="px-4 py-3 font-semibold">{person.name}</td><td className="px-4 py-3">{person.role==="manager"?"เจ้าของ / ผู้ดูแล":"ครูผู้สอน"}</td></tr>)}</tbody></table></div> : <div className="grid gap-2 sm:grid-cols-2">{data?.staff?.map((teacher,i)=><div className="rounded-xl border border-[#b5d0f0] bg-[#f1f7ff] p-3" key={i}>
     <p className="font-semibold">{teacher.name}</p><p className="text-xs text-[#4e6382]">{teacher.role==="manager"?"เจ้าของ / ผู้ดูแล":"ครูผู้สอน"}</p>
    </div>)}</div>}
+   <div className="space-y-3 rounded-xl border-[3px] border-[#b8d0e9] bg-[#f8fbff] p-4">
+     <h3 className="text-lg font-black text-[#0d3975]">ครูและนักเรียนที่ดูแล</h3>
+     <p className="text-sm text-[#53708f]">นักเรียนหนึ่งคนเชื่อมกับครูหลายคนได้ โดยไม่ต้องย้ายชื่อสถาบันหรือโรงเรียนที่ลงแข่งขัน</p>
+     <div className="grid gap-2 sm:grid-cols-2">
+       {teacherLinks.map(t=><div key={t.user_id} className="rounded-xl border-2 border-[#c6d7ec] bg-white p-3"><b>{t.name}</b><p className="mt-1 text-sm text-[#557293]">{t.students.length?t.students.map(a=>a.name).join(" · "):"ยังไม่ได้เชื่อมนักเรียนรายบุคคล"}</p></div>)}
+     </div>
+     {data?.can_add&&students.length>0&&teacherLinks.length>0&&<form onSubmit={async e=>{
+       e.preventDefault();if(busy||!teacherChoice||!studentChoice)return;
+       setBusy(true);setMsg("");
+       const db=staffDb();if(!db){setBusy(false);return;}
+       const {data:result,error}=await db.rpc("gt_academy_assign_teacher_athletes_v1",{p_academy:academyId,p_teacher:teacherChoice,p_athletes:[studentChoice]});
+       setBusy(false);setMsg(error||!result?.ok?"ผูกครูกับนักเรียนไม่สำเร็จ":"เชื่อมครูกับนักเรียนแล้ว นักกีฬาจะปรากฏในระบบติดตามของครู");
+       if(!error&&result?.ok){setStudentChoice("");await load();}
+     }} className="flex flex-col gap-2 sm:flex-row">
+       <select aria-label="เลือกครู" required value={teacherChoice} onChange={e=>setTeacherChoice(e.target.value)} className="min-h-12 flex-1 rounded-xl border-2 border-[#bed3eb] bg-white px-3"><option value="">เลือกครู</option>{teacherLinks.map(t=><option key={t.user_id} value={t.user_id}>{t.name}</option>)}</select>
+       <select aria-label="เลือกนักเรียน" required value={studentChoice} onChange={e=>setStudentChoice(e.target.value)} className="min-h-12 flex-1 rounded-xl border-2 border-[#bed3eb] bg-white px-3"><option value="">เลือกนักเรียน</option>{students.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select>
+       <button disabled={busy||!studentChoice||!teacherChoice} className="min-h-12 rounded-xl border-2 border-[#e0b453] bg-[#0b60bd] px-4 font-bold text-white disabled:opacity-50">เชื่อมรายชื่อ</button>
+     </form>}
+   </div>
    {data?.can_add&&<form className="flex flex-wrap gap-2" onSubmit={async e=>{
      e.preventDefault();if(busy)return;const db=staffDb();if(!db)return;
      setBusy(true);setMsg("");
