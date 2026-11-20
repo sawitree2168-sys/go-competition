@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { setRemember, staffDb } from "@/app/organizer/_lib/staff";
 import { MEMBER_ROLES, authErrorMessage, destinationFor, looksLikeEmail } from "@/lib/auth-routing.mjs";
 import { Field, FormError, FormNote, PasswordField, inputCls } from "@/app/login/_ui/fields";
@@ -9,28 +9,29 @@ import AthleteSignup from "./AthleteSignup";
 
 /** Member sign-up: name, role, institution, e-mail, password. Organiser rights are granted separately by the site owner. */
 export default function SignupForm() {
-  const [kind, setKind] = useState<"athlete" | "email">("athlete");
+  const [kind, setKind] = useState<"athlete" | "email" | "institution">("athlete");
+  useEffect(() => { if (new URLSearchParams(window.location.search).get("type") === "institution") setKind("institution"); }, []);
   return (
     <div>
       <h1 className="text-3xl font-bold sm:text-4xl">สมัครสมาชิก</h1>
       <p className="mt-1 text-[var(--gt-muted)]">สร้างบัญชี GO TOURNAMENT</p>
-      <div role="tablist" aria-label="วิธีสมัคร" className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
-        {([["athlete", "นักกีฬา (ไม่ใช้อีเมล)"], ["email", "สมัครด้วยอีเมล"]] as const).map(([k, l]) => (
+      <div role="tablist" aria-label="วิธีสมัคร" className="mt-5 grid grid-cols-3 gap-1 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
+        {([["athlete", "นักกีฬา (ไม่ใช้อีเมล)"], ["email", "สมัครด้วยอีเมล"], ["institution", "ครู / สถาบัน"]] as const).map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
             className={`min-h-11 rounded-xl px-2 text-[15px] font-semibold ${kind === k ? "bg-[var(--gt-cta)] text-white" : "text-[var(--gt-ink)]"}`}>{l}</button>
         ))}
       </div>
-      <p className="mt-2 text-sm text-[var(--gt-muted)]">{kind === "athlete" ? "นักกีฬาที่มีชื่อในทะเบียน: ยืนยันด้วยชื่อ-นามสกุล แล้วตั้งรหัสผ่าน เข้าระบบด้วยรหัส GO / เลขดั้ง / ชื่อ" : "ผู้ปกครอง ครูสถาบัน ผู้จัดการแข่งขัน"}</p>
-      <div className="mt-5">{kind === "athlete" ? <AthleteSignup /> : <EmailSignup />}</div>
+      <p className="mt-2 text-sm text-[var(--gt-muted)]">{kind === "athlete" ? "นักกีฬาที่มีชื่อในทะเบียน: ยืนยันด้วยชื่อ-นามสกุล แล้วตั้งรหัสผ่าน" : kind === "institution" ? "บัญชีครูหรือเจ้าของสถาบัน: ใช้ชื่อจริงของผู้ดูแล ไม่ใช้ชื่อสถาบันแทนชื่อ-นามสกุล · เลือก GO MASTER ในช่องสถาบัน" : "ผู้ปกครอง ครูสถาบัน ผู้จัดการแข่งขัน"}</p>
+      <div className="mt-5">{kind === "athlete" ? <AthleteSignup /> : <EmailSignup key={kind} academy={kind === "institution"} />}</div>
       <p className="mt-6 text-center">มีบัญชีแล้ว? <Link href="/login" className="font-bold text-[var(--gt-cta)] hover:underline">เข้าสู่ระบบ</Link></p>
     </div>
   );
 }
 
-function EmailSignup() {
+function EmailSignup({ academy = false }: { academy?: boolean }) {
   const [name, setName] = useState("");
-  const [role, setRole] = useState("");
-  const [inst, setInst] = useState("");
+  const [role, setRole] = useState(academy ? "teacher" : "");
+  const [inst, setInst] = useState(academy ? "GO MASTER" : "");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
@@ -38,6 +39,7 @@ function EmailSignup() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [checkMail, setCheckMail] = useState("");
+  const [completed, setCompleted] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,8 +65,7 @@ function EmailSignup() {
       });
       if (err) return setError(authErrorMessage(err.message));
       if (!data.session) { setCheckMail(email.trim()); return; }   // e-mail confirmation is switched on
-      const { data: access } = await db.rpc("gt_my_access_v1");
-      window.location.assign(destinationFor(access, null));
+      setCompleted(true);
     } catch (x) {
       setError(authErrorMessage(x instanceof Error ? x.message : ""));
     } finally {
@@ -72,12 +73,14 @@ function EmailSignup() {
     }
   };
 
+  if (completed) return <div className="space-y-4 rounded-2xl border-2 border-[var(--gt-ok)] bg-[var(--gt-surface)] p-5" role="status"><h2 className="text-2xl font-bold text-[var(--gt-ok)]">✓ สมัครสมาชิกเรียบร้อยแล้ว</h2><p>สร้างบัญชีผู้ใช้งานสำเร็จแล้ว หากเป็นผู้ดูแลสถาบัน ให้เข้าสู่หน้าสถาบันเพื่อขอผูกสิทธิ์ GO MASTER ต่อไป</p><Link href="/institution" className="gt-cta-btn flex min-h-12 items-center justify-center">เข้าสู่หน้าสถาบัน</Link></div>;
+
   if (checkMail) {
     return (
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold">ยืนยันอีเมล</h1>
-        <FormNote text={`ส่งลิงก์ยืนยันไปที่ ${checkMail} แล้ว กดลิงก์ในอีเมลเพื่อเปิดใช้บัญชี (ตรวจในโฟลเดอร์ Junk/Spam ด้วย)`} />
-        <Link href="/login" className="gt-cta-btn flex min-h-12 items-center justify-center">ไปหน้าเข้าสู่ระบบ</Link>
+        <h2 className="text-2xl font-bold text-[var(--gt-cta)]">✓ รับคำขอสมัครสมาชิกแล้ว</h2>
+        <FormNote text={`หากเป็นอีเมลใหม่ ระบบจะส่งลิงก์ยืนยันไปที่ ${checkMail} · ตรวจกล่องจดหมายและ Junk/Spam ก่อนเข้าสู่ระบบ การสมัครบัญชียังไม่ใช่การอนุมัติสิทธิ์ GO MASTER`} />
+        <Link href="/login?next=/institution" className="gt-cta-btn flex min-h-12 items-center justify-center">ยืนยันอีเมลแล้ว ไปหน้าเข้าสู่ระบบสถาบัน</Link>
       </div>
     );
   }
@@ -85,6 +88,7 @@ function EmailSignup() {
   return (
     <div>
       <form onSubmit={submit} noValidate className="space-y-4">
+        {academy && <p className="rounded-xl border border-[var(--gt-line)] bg-[var(--gt-cta-soft)] p-3 text-sm">สมัครบัญชีผู้ดูแลสถาบัน GO MASTER: กรอกชื่อ–นามสกุลของผู้ใช้งานจริง และใช้อีเมลเพียงครั้งแรกสำหรับยืนยันและกู้คืนบัญชี หลังได้รับสิทธิ์จึงตั้งชื่อผู้ใช้ GOMASTER ได้</p>}
         <Field label="ชื่อ-นามสกุล" icon="person" value={name} onChange={(e) => setName(e.target.value)} placeholder="ชื่อ นามสกุล" autoComplete="name" maxLength={120} />
         <label className="block">
           <span className="font-semibold">ประเภทผู้ใช้</span>
