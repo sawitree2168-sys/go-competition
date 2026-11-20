@@ -46,6 +46,7 @@ function EmailSignup({ academy = false }: { academy?: boolean }) {
     setError("");
     const n = name.replace(/\s+/g, " ").trim();
     if (n.length < 3 || !n.includes(" ")) return setError("กรุณากรอกชื่อและนามสกุล (เว้นวรรคระหว่างชื่อกับนามสกุล)");
+    if (academy && n.replace(/\s+/g, "").toLowerCase() === "gomaster") return setError("ช่องชื่อ-นามสกุลต้องเป็นชื่อจริงของเจ้าของหรือครู ไม่ใช่ชื่อสถาบัน GO MASTER");
     if (!role) return setError("กรุณาเลือกประเภทผู้ใช้");
     if (!looksLikeEmail(email)) return setError("กรุณากรอกอีเมลให้ถูกต้อง");
     if (pw.length < 8) return setError("รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร");
