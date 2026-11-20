@@ -124,6 +124,12 @@ function Workspace({ academyId, mine, onPick, onJoin }: { academyId: string; min
 
   useEffect(() => { queueMicrotask(load); }, [load]);
   useEffect(() => {
+    if (view !== "tracking") return;
+    const timer = window.setInterval(() => { void load(); }, 30000);
+    return () => window.clearInterval(timer);
+  }, [view, load]);
+
+  useEffect(() => {
     queueMicrotask(() => setViewState(readView()));
     const back = () => setViewState(readView());
     window.addEventListener("popstate", back);
@@ -231,7 +237,7 @@ function Workspace({ academyId, mine, onPick, onJoin }: { academyId: string; min
           </div>
         </div>
 
-        <Hero compact={view !== "home"} />
+        <Hero compact={view !== "home"} name={name} />
         {view === "home" && <AcademyStaff academyId={academyId}/> }
 
         {ov?.access === "pending" && (
@@ -267,7 +273,7 @@ function Workspace({ academyId, mine, onPick, onJoin }: { academyId: string; min
   );
 }
 
-function Hero({ compact }: { compact: boolean }) {
+function Hero({ compact, name }: { compact: boolean; name: string }) {
   return (
     <section className={`relative overflow-hidden rounded-2xl border border-[var(--gt-line)] bg-[linear-gradient(110deg,var(--gt-surface)_35%,var(--gt-cta-soft))] ${compact ? "px-5 py-4" : "px-5 py-5 sm:px-10 sm:py-8"}`}>
       <svg aria-hidden="true" viewBox="0 0 200 120" className="absolute -right-2 top-0 h-full w-auto text-[var(--gt-cta)] opacity-70">
@@ -279,7 +285,7 @@ function Hero({ compact }: { compact: boolean }) {
         <span className="-ml-3 h-10 w-12 rounded-[50%] bg-[radial-gradient(circle_at_40%_30%,#5b6170,#0b0d12_60%)] shadow-[0_6px_10px_rgba(0,0,0,.35)] sm:h-14 sm:w-20" />
       </div>
       <div className="relative">
-        <p className={`inline-block -skew-x-[10deg] font-bold leading-none tracking-tight text-[var(--gt-ink)] ${compact ? "text-3xl" : "text-[2.6rem] sm:text-6xl"}`}>GO MASTER</p>
+        <p className={`inline-block -skew-x-[10deg] font-bold leading-none tracking-tight text-[var(--gt-ink)] ${compact ? "text-3xl" : "text-[2.6rem] sm:text-6xl"}`}>{name}</p>
         <p className={`mt-1.5 font-semibold text-[var(--gt-ink)] ${compact ? "text-sm" : "text-[15px] sm:text-2xl"}`}>พื้นที่ดูแลนักเรียนและจัดการการแข่งขัน</p>
       </div>
     </section>
