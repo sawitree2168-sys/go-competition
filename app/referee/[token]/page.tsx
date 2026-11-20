@@ -270,7 +270,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
             <thead className="bg-[var(--gt-cta-soft)]"><tr><th className="p-2">โต๊ะ</th><th className="p-2">ดำ</th><th className="p-2">ขาว</th><th className="p-2">สถานะ</th></tr></thead>
             <tbody>
               {list.map((t) => (
-                <tr key={t.id} onClick={() => pick(t)} className={`cursor-pointer border-t border-[var(--gt-line)] ${selected?.id === t.id ? "bg-[var(--gt-cta-soft)]" : ""}`}>
+                <tr key={t.id} data-result-state={t.state === "verified" ? "verified" : "pending"} onClick={() => pick(t)} className={`cursor-pointer border-t border-[var(--gt-line)] ${t.state === "verified" ? "gt-referee-decided-row" : "gt-referee-pending-row"} ${selected?.id === t.id ? "gt-referee-row-selected" : ""}`}>
                   <td className="p-2 text-base font-bold"><button type="button" onClick={(e) => { e.stopPropagation(); pick(t); }} className="min-h-10">{two(t.board)}</button></td>
                   {([t.black, t.white] as const).map((p, i) => (
                     <td key={i} className="p-2"><span className="flex items-center gap-2">
@@ -291,9 +291,9 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
           const active = selected?.id === t.id;
           const isDone = t.state === "verified";
           return (
-            <li key={t.id}>
+            <li key={t.id} data-result-state={isDone ? "verified" : "pending"}>
               <button type="button" onClick={() => pick(t)} aria-current={active ? "true" : undefined}
-                className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${active ? "border-[var(--gt-cta)] bg-[var(--gt-cta-soft)] shadow-[inset_4px_0_0_var(--gt-cta)]" : "border-[var(--gt-line)] bg-[var(--gt-surface)] hover:border-[var(--gt-cta)]/50"}`}>
+                className={`gt-referee-board-row flex w-full items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-left transition ${isDone ? "gt-referee-decided" : "gt-referee-pending"} ${active ? "gt-referee-board-selected" : ""}`}>
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border-2 border-[var(--gt-cta)]/70 text-xl font-bold text-[var(--gt-ink)]">{two(t.board)}</span>
                 {showPhotos && <span className="flex shrink-0 -space-x-1"><img src={t.black.photo || DEFAULT_AVATAR} alt="" className="h-11 w-9 rounded-lg border border-[var(--gt-gold)] object-cover" /><img src={t.white.photo || DEFAULT_AVATAR} alt="" className="h-11 w-9 rounded-lg border border-[var(--gt-gold)] object-cover" /></span>}
                 <span className="min-w-0 flex-1 space-y-1">
@@ -301,7 +301,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
                   <span className="flex items-center gap-2"><Stone colour="white" /><span className="truncate font-medium">{t.white.name ?? "—"}</span></span>
                 </span>
                 <span className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium ${isDone ? "bg-[var(--gt-win-bg)] text-[var(--gt-win-ink)]" : "bg-[var(--gt-cta-soft)] text-[var(--gt-cta)]"}`}>
-                  {isDone ? "บันทึกแล้ว" : "รอผล"}
+                  {isDone ? "✓ ตัดสินผลแล้ว" : "รอตัดสินผล"}
                 </span>
               </button>
               {multiPool && <span className="sr-only">สาย {t.pool}</span>}
@@ -439,13 +439,13 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
   const match = { state: t.state, result_code: t.result_code, result_margin: t.result_margin, winner_athlete_id: t.winner, black_athlete_id: t.black.id, white_athlete_id: t.white.id };
 
   return (
-    <section className="gt-card relative overflow-hidden p-4 sm:p-6" aria-label={`โต๊ะ ${t.board}`}>
+    <section data-result-state={isDone ? "verified" : "pending"} className={`gt-card gt-referee-detail-card relative overflow-hidden p-4 sm:p-6 ${isDone ? "gt-referee-decided-detail" : "gt-referee-pending-detail"}`} aria-label={`โต๊ะ ${t.board}`}>
       <span aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-40 w-56 bg-[linear-gradient(var(--gt-cta-soft)_1px,transparent_1px),linear-gradient(90deg,var(--gt-cta-soft)_1px,transparent_1px)] bg-[size:22px_22px] opacity-80 [mask-image:radial-gradient(circle_at_top_right,black,transparent_70%)]" />
       <div className="relative flex flex-wrap items-center gap-2">
         <span className="rounded-xl bg-[var(--gt-cta)] px-4 py-1.5 text-xl font-bold text-white">โต๊ะ{two(t.board)}</span>
         <span className="rounded-xl bg-[var(--gt-cta-soft)] px-3 py-1.5 font-medium text-[var(--gt-cta)]">รอบ{t.round}</span>
         {t.pool && <span className="rounded-xl bg-[var(--gt-cta-soft)] px-3 py-1.5 font-medium text-[var(--gt-cta)]">สาย {t.pool}</span>}
-        {isDone && <span className="ml-auto rounded-xl bg-[var(--gt-win-bg)] px-3 py-1.5 text-sm font-medium text-[var(--gt-win-ink)]">บันทึกแล้ว · {resultLabel(match)}</span>}
+        {isDone && <span className="ml-auto rounded-xl bg-[var(--gt-win-bg)] px-3 py-1.5 text-sm font-medium text-[var(--gt-win-ink)]">✓ ตัดสินผลแล้ว · {resultLabel(match)}</span>}
       </div>
 
       <div className="relative mt-4 grid items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-3">
