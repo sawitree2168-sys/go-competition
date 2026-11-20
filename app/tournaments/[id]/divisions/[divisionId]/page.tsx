@@ -86,13 +86,31 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
       }))
     : roster.map((r) => ({ key: String(r.key), id: null, name: r.name, institution: r.institution, rank: null, photo: null, payment: r.payment }));
   const listPanel = (
-    <>
-      {!lastRound && <Notice title="ยังไม่ประกาศคู่แข่งขัน" body="คู่แข่งขันจะแสดงที่แท็บจับคู่เมื่อผู้จัดประกาศ" />}
-      <div className="relative lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2">
+    <div className="gt-division-overview grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_310px]">
+      <div className="min-w-0">
+        {!lastRound && <div className="gt-pair-notice"><Notice title="ยังไม่ประกาศคู่แข่งขัน" body="คู่แข่งขันจะแสดงที่แท็บจับคู่เมื่อผู้จัดประกาศอย่างเป็นทางการ" /></div>}
         <AthleteGrid athletes={athleteCards} historicalResults={historicalResults} matches={matches} byes={byes} people={Object.fromEntries(people)} />
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-[var(--gt-muted)]"><Icon name="info" className="h-4 w-4 shrink-0" />รายชื่อตามที่ผู้จัดอนุญาตให้เผยแพร่ สถานะอาจเปลี่ยนแปลงภายหลัง</p>
       </div>
-      <p className="mt-2 flex items-center gap-1.5 text-xs text-[var(--gt-muted)]"><Icon name="info" className="h-4 w-4 shrink-0" />รายชื่อตามที่ผู้จัดอนุญาตให้เผยแพร่ สถานะอาจเปลี่ยนแปลงภายหลัง</p>
-    </>
+      <aside className="gt-division-sidebar space-y-4" aria-label="ข้อมูลรุ่นแข่งขัน">
+        <section className="gt-division-summary">
+          <h2><Icon name="trophy" className="h-5 w-5" /> สรุปการแข่งขัน</h2>
+          <dl>
+            <div><dt>รายการ</dt><dd>{event.title}</dd></div>
+            <div><dt>รุ่นการแข่งขัน</dt><dd>{label}</dd></div>
+            <div><dt>ระบบการแข่งขัน</dt><dd>ระบบจับคู่สวิส (Swiss)</dd></div>
+            <div><dt>ขนาดกระดาน</dt><dd>{size} × {size}</dd></div>
+            <div><dt>วันแข่งขัน</dt><dd>{thaiDate(event.event_date) ?? "รอประกาศ"}</dd></div>
+            <div><dt>จำนวนนักกีฬา</dt><dd>{athleteCards.length || roster.length} คน</dd></div>
+          </dl>
+        </section>
+        <section className="gt-division-summary gt-division-summary-notes">
+          <h2><Icon name="info" className="h-5 w-5" /> หมายเหตุสำคัญ</h2>
+          <p>การแข่งขันใช้ระบบจับคู่สวิส (Swiss) บนกระดาน {size} × {size}</p>
+          <p>โปรดตรวจสอบกำหนดการ กติกา และประกาศของผู้จัดก่อนเข้าร่วมการแข่งขัน</p>
+        </section>
+      </aside>
+    </div>
   );
 
 
@@ -171,6 +189,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
 
   return (
     <Shell
+      wide
       bottomBar={<>
         <a href={`/tournaments/${id}#contact`} className="gt-outline-btn flex min-w-0 flex-1 items-center justify-center gap-2 py-3 text-[15px] font-semibold"><Icon name="chat" className="h-6 w-6 shrink-0 text-[var(--gt-brand)]" /><span className="truncate">ติดต่อผู้จัด</span></a>
         <a href={`/tournaments/${id}/register?division=${divisionId}`} className="gt-gold-btn flex min-w-0 flex-1 items-center justify-center gap-2 py-3 text-base"><span className="truncate">สมัครรุ่นนี้</span> <Icon name="chevron" className="h-4 w-4 shrink-0" /></a>
@@ -199,7 +218,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
                   { icon: "grid" as const, t: `แข่งขันแล้ว ${matches.filter((m) => m.state === "verified").length} เกม`, wide: true },
                 ].map((c) => (
                   <li key={c.t} className={`${"wide" in c ? "inline-flex" : "inline-flex"} gt-division-stat min-h-9 items-center gap-2 rounded-full px-3 text-sm font-medium sm:min-h-10 sm:px-4 sm:text-[15px]`}>
-                    <Icon name={c.icon} className="h-5 w-5 shrink-0" />{c.t}
+                    <Icon name={c.icon} className="h-5 w-5 shrink-0" /><span>{c.t}</span>
                   </li>
                 ))}
               </ul>
