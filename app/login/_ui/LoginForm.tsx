@@ -31,7 +31,8 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
     if (!db) return setError("ระบบยังไม่พร้อม กรุณาลองใหม่ภายหลัง");
     const who = id.trim();
     if (!who || !password) return setError("กรุณากรอกอีเมล / รหัส GO / เลขดั้ง / ชื่อ และรหัสผ่าน");
-    const staffUsername = /^[a-z][a-z0-9_-]{3,31}$/i.test(who) && !looksLikeEmail(who);
+    const staffName = /^go\s*master$/i.test(who) ? "GOMASTER" : who;
+    const staffUsername = /^[a-z][a-z0-9_-]{3,31}$/i.test(staffName) && !looksLikeEmail(who);
     const problem = staffUsername ? "" : identifierProblem(who);
     if (problem) return setError(problem);
     setBusy(true);
@@ -42,10 +43,10 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
         if (!url || !key) { setError("ระบบเข้าสู่ระบบยังไม่พร้อม"); return; }
         const response = await fetch(`${url}/functions/v1/staff-username-login`, {
           method: "POST", headers: { "content-type": "application/json", apikey: key },
-          body: JSON.stringify({ username: who, password })
+          body: JSON.stringify({ username: staffName, password })
         });
         const result = await response.json();
-        if (!response.ok || !result.session) { setError(result.message ?? "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"); return; }
+        if (!response.ok || !result.session) { setError(/^go\\s*master$/i.test(who) || /^gomaster$/i.test(who) ? "บัญชี GOMASTER ยังไม่ได้เปิดใช้งาน หรือรหัสผ่านไม่ถูกต้อง · ต้องเปิดบัญชีเจ้าของและตั้งชื่อผู้ใช้ก่อน" : (result.message ?? "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง")); return; }
         const { error: err } = await db.auth.setSession(result.session);
         if (err) { setError(authErrorMessage(err.message)); return; }
       } else if (looksLikeEmail(who)) {
@@ -86,7 +87,7 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
       <p className="mt-1 text-base text-[var(--gt-muted)] sm:text-lg">ยินดีต้อนรับสู่ GO TOURNAMENT</p>
       <form onSubmit={submit} noValidate className="mt-7 space-y-5">
         <Field label="ชื่อผู้ใช้ / อีเมล / รหัสนักกีฬา" icon="person" value={id} onChange={(e) => setId(e.target.value)} placeholder="GOMASTER / อีเมล / รหัส GO / ชื่อ"
-          hint="สถาบัน: ใช้ชื่อผู้ใช้ · นักกีฬา: ใช้รหัส GO เลขดั้ง หรือชื่อ-นามสกุล" autoComplete="username" autoCapitalize="none" spellCheck={false} />
+          hint="สถาบัน: ใช้ชื่อผู้ใช้ที่เปิดใช้งานแล้ว (GO MASTER หรือ GOMASTER) · นักกีฬา: ใช้รหัส GO หรือชื่อ-นามสกุล" autoComplete="username" autoCapitalize="none" spellCheck={false} />
         <PasswordField label="รหัสผ่าน" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน" autoComplete="current-password" />
         <div className="flex items-center justify-between gap-3">
           <label className="flex min-h-11 items-center gap-2.5 text-base">
@@ -110,6 +111,7 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
         </>
       )}
 
+      <p className="mt-4 rounded-xl bg-[var(--gt-cta-soft)] px-3 py-3 text-sm text-[var(--gt-muted)]">บัญชีสถาบัน GO MASTER: หากยังไม่เคยเปิดบัญชีเจ้าของ ต้องสมัครบัญชีส่วนตัวหนึ่งครั้ง ผูกสิทธิ์สถาบัน และตั้งชื่อผู้ใช้ก่อน จึงจะใช้ GOMASTER กับรหัสผ่านได้</p>
       <p className="mt-6 text-center text-base">ยังไม่มีบัญชี? <Link href="/signup" className="font-semibold text-[var(--gt-cta)] hover:underline">สมัครสมาชิก</Link></p>
       {!stay && <p className="mt-3 text-center text-base"><Link href="/tournaments" className="font-normal text-[var(--gt-cta)] underline underline-offset-2">ดูการแข่งขันโดยไม่เข้าสู่ระบบ</Link></p>}
       <p className="mt-6 rounded-xl bg-[var(--gt-cta-soft)] px-3 py-2.5 text-center text-sm text-[var(--gt-muted)]">
