@@ -124,7 +124,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       {view==="apply"&&<Apply ov={ov} apps={apps} canEdit={access} reload={load}/>}
       {view==="home"&&access&&<details className="rounded-2xl border border-[#c8d7ec] bg-white p-4">
         <summary className="cursor-pointer text-base font-bold text-[#164986]">ตั้งค่าบัญชีและจัดการครู (สำหรับผู้ดูแล)</summary>
-        <div className="mt-4 space-y-4"><StaffUsername role={selected.role}/><ChangeInstitutionPassword/><AcademyStaff academyId={academyId}/></div>
+        <div className="mt-4 space-y-4"><StaffUsername role={selected.role} academyName={selected.name}/><ChangeInstitutionPassword/><AcademyStaff academyId={academyId}/></div>
       </details>}
     </div>}
     <footer className="border-t border-[#c8d7ec] py-6 text-center text-xs text-[#49617d]">GO TOURNAMENT · ข้อมูลการแข่งขันมาจากระบบจริง</footer>
