@@ -188,6 +188,8 @@ function EventConsole({ id }: { id: string }) {
   const [regCount, setRegCount] = useState<Map<string, number>>(new Map());
   const [status, setStatus] = useState<Map<string, { last: number; pending: number; checked: number; seats: number }>>(new Map());
   const [settingsOpen,setSettingsOpen]=useState(false);
+  const [rosterOpen,setRosterOpen]=useState(false);
+  const [rosterQuery,setRosterQuery]=useState("");
   const [loaded, setLoaded] = useState(false);
   const [summary, setSummary] = useState<string>("");
   const action = useAction();
@@ -232,6 +234,8 @@ function EventConsole({ id }: { id: string }) {
   }, [mapping]);
 
   const runImport = async () => {
+    if (!mapping.rows.length) return;
+    if (!window.confirm(`นำเข้ารายชื่อจากใบสมัคร ${mapping.rows.length} รายการเข้าสู่ทะเบียนนักกีฬาสำหรับจัดคู่จริง? ระบบจะพยายามเชื่อมกับประวัติเดิม และแจ้งรายการที่ต้องตรวจสอบชื่อซ้ำ ไม่ใช่การยืนยันผลการแข่งขัน`)) return;
     setSummary("");
     const res = await action.run<ImportResult[]>(() =>
       staffDb()!.rpc("gt_staff_import_entrants_v1", { p_tournament: id, p_rows: mapping.rows }));
@@ -246,6 +250,9 @@ function EventConsole({ id }: { id: string }) {
     await load();
   };
 
+  const readyToImport = mapping.rows.length > 0 && mapping.rows.some(r => (regCount.get(r.division_id) ?? 0) < (sheetCount.get(r.division_id) ?? 0));
+  const searchRoster = rosterQuery.trim().toLocaleLowerCase("th");
+  const rosterRows = entrants.filter(r => !searchRoster || [r.full_name,r.institution,r.division_name].some(x => (x||"").toLocaleLowerCase("th").includes(searchRoster)));
   if (!loaded) return <p className="py-10 text-center text-[var(--gt-muted)]">กำลังโหลด…</p>;
   if (!event) return <p className="py-10 text-center">ไม่พบรายการนี้</p>;
 
@@ -264,6 +271,43 @@ function EventConsole({ id }: { id: string }) {
         <button type="button" aria-pressed={settingsOpen} onClick={() => setSettingsOpen(!settingsOpen)} className="min-h-16 rounded-xl border-2 border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-2 text-sm font-bold">⚙ ตั้งค่างาน</button>
       </nav>
       {settingsOpen && <EventSettings id={id} onSaved={load}/>}
+      <section aria-label="ภาพรวมเตรียมแข่งขัน" className="rounded-2xl border-[3px] border-[#d4a63d] bg-[var(--gt-surface)] p-4 shadow-sm">
+        <div className="mb-3 rounded-xl bg-[linear-gradient(110deg,#0d67c9,#073e8e)] p-4 text-white">
+          <h2 className="text-xl font-bold">ศูนย์เตรียมการแข่งขัน · ข้อมูลจริง</h2>
+          <p className="mt-1 text-sm text-white/90">รายชื่อจากใบสมัคร กับรายชื่อที่ผูกทะเบียนนักกีฬาเพื่อจับคู่ เป็นข้อมูลคนละขั้นตอน</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="rounded-xl border-2 border-[#82afe2] p-3"><p className="text-xs text-[var(--gt-muted)]">รายชื่อในใบสมัคร</p><strong className="gt-num block text-3xl text-[var(--gt-cta)]">{entrants.length}</strong><small>รายการ · ยังไม่ใช่ยอดยืนยัน</small></div>
+          <div className="rounded-xl border-2 border-[#82afe2] p-3"><p className="text-xs text-[var(--gt-muted)]">จับคู่รุ่นได้</p><strong className="gt-num block text-3xl text-[var(--gt-cta)]">{mapping.rows.length}</strong><small>รายการพร้อมตรวจนำเข้า</small></div>
+          <div className="rounded-xl border-2 border-[#82afe2] p-3"><p className="text-xs text-[var(--gt-muted)]">นักกีฬายืนยันในระบบ</p><strong className="gt-num block text-3xl text-[var(--gt-cta)]">{[...regCount.values()].reduce((a,b)=>a+b,0)}</strong><small>ทะเบียนสำหรับจับคู่</small></div>
+          <div className="rounded-xl border-2 border-[#82afe2] p-3"><p className="text-xs text-[var(--gt-muted)]">โต๊ะรอผล</p><strong className="gt-num block text-3xl text-[var(--gt-cta)]">{[...status.values()].reduce((a,b)=>a+b.pending,0)}</strong><small>จากรอบที่ประกาศแล้ว</small></div>
+        </div>
+        {readyToImport && <div className="mt-3 rounded-xl border-2 border-[#e2b44e] bg-[#fff8df] p-3 text-[#533e12]">
+          <strong>มีรายชื่อใบสมัครที่ยังไม่ได้เข้าสู่ระบบจับคู่</strong>
+          <p className="mt-1 text-sm">ตรวจรายชื่อและระดับฝีมือก่อนนำเข้า · หลังนำเข้าอาจมีรายการชื่อซ้ำต้องตรวจอีกครั้ง และสามารถแก้ข้อมูลผู้สมัครก่อนออกคู่ได้</p>
+        </div>}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" aria-expanded={rosterOpen} onClick={()=>setRosterOpen(v=>!v)} className="min-h-12 rounded-xl border-2 border-[#d4a63d] bg-[var(--gt-cta)] px-4 font-bold text-white">{rosterOpen?"ซ่อนใบสมัคร":"ตรวจรายชื่อจากใบสมัคร"}</button>
+          <button type="button" onClick={runImport} disabled={action.busy || mapping.rows.length===0} className="min-h-12 rounded-xl border-2 border-[#d4a63d] bg-[var(--gt-gold-soft)] px-4 font-bold disabled:opacity-50">{action.busy?"กำลังนำเข้า…":`ตรวจยืนยันและนำเข้า ${mapping.rows.length} รายการ`}</button>
+        </div>
+        <ErrorNote text={action.error}/>
+        {summary && <p role="status" className="mt-3 rounded-lg border border-[var(--gt-line)] p-3 text-sm">{summary}</p>}
+        {mapping.unmatched.length>0 && <p className="mt-2 text-sm text-[var(--gt-warn)]">จับคู่รุ่นไม่ได้ {mapping.unmatched.length} รายการ กรุณาตรวจชื่อรุ่นก่อนนำเข้า</p>}
+        {rosterOpen && <div className="mt-4 space-y-2">
+          <label className="block text-sm font-semibold">ค้นหารายชื่อ สถาบัน หรือรุ่น
+            <input value={rosterQuery} onChange={e=>setRosterQuery(e.target.value)} type="search" placeholder="พิมพ์ชื่อนักกีฬา / สถาบัน / รุ่น" className="mt-1 min-h-12 w-full rounded-xl border-2 border-[#87b3e6] bg-[var(--gt-surface)] px-3"/>
+          </label>
+          <p className="text-xs text-[var(--gt-muted)]">แสดง {rosterRows.length} จาก {entrants.length} รายการในใบสมัคร · ยังไม่ได้ใช้จับคู่</p>
+          <div className="max-h-[28rem] overflow-auto rounded-xl border-2 border-[#87b3e6]">
+            <table className="w-full min-w-[540px] border-collapse text-left text-sm">
+              <thead className="sticky top-0 bg-[#095ab6] text-white"><tr><th className="p-3">แถว</th><th className="p-3">นักกีฬา</th><th className="p-3">สถาบัน</th><th className="p-3">รุ่นที่สมัคร</th></tr></thead>
+              <tbody>{rosterRows.map((r,i)=><tr key={r.source_row} className={i%2?"bg-[var(--gt-surface-2)]":""}>
+                <td className="border-b border-[var(--gt-line)] p-3">{r.source_row}</td><td className="border-b border-[var(--gt-line)] p-3 font-semibold">{r.full_name}</td><td className="border-b border-[var(--gt-line)] p-3">{r.institution||"—"}</td><td className="border-b border-[var(--gt-line)] p-3">{r.division_name}</td>
+              </tr>)}</tbody>
+            </table>
+          </div>
+        </div>}
+      </section>
       <section id="event-divisions" className="space-y-2">
         <h2 className="font-bold">เลือกรุ่นเพื่อมอนิเตอร์ จับคู่ และลงผล</h2>
         {settingsOpen && <ByeRuleSetting key={event.bye_sos_mode ?? "none"} id={id} mode={event.bye_sos_mode} onSaved={load} />}
@@ -287,8 +331,8 @@ function EventConsole({ id }: { id: string }) {
                     })()}
                   </span>
                   <span className="text-right text-sm">
-                    <span className="gt-num block">{inDb} คน</span>
-                    {inSheet !== inDb && <span className="block text-xs text-[var(--gt-warn)]">ในชีต {inSheet}</span>}
+                    <span className="gt-num block">{inDb} คนในระบบ</span>
+                    {inSheet !== inDb && <span className="block text-xs text-[var(--gt-warn)]">ใบสมัคร {inSheet} รายการ</span>}
                   </span>
                 </Link>
               </li>
@@ -300,25 +344,6 @@ function EventConsole({ id }: { id: string }) {
       {settingsOpen && <>
       <section className="gt-card p-4">
         <VenueField key={event.venue ?? ""} id={id} venue={event.venue} onSaved={load} />
-      </section>
-
-      <section className="gt-card space-y-3 p-4">
-        <h2 className="font-bold">1. นำเข้ารายชื่อจาก Google Form</h2>
-        <p className="text-sm text-[var(--gt-muted)]">
-          พบ {entrants.length} แถวในชีต · จับคู่รุ่นได้ {mapping.rows.length} แถว
-          {mapping.unmatched.length > 0 && <> · <span className="text-[var(--gt-warn)]">ไม่รู้จักรุ่น {mapping.unmatched.length} แถว</span></>}
-        </p>
-        {mapping.unmatched.length > 0 && (
-          <ul className="rounded-xl bg-[var(--gt-warn-soft)] px-4 py-2 text-sm">
-            {mapping.unmatched.slice(0, 10).map((e) => <li key={e.source_row}>แถว {e.source_row}: {e.full_name} — “{e.division_name}”</li>)}
-          </ul>
-        )}
-        <p className="text-sm">กดซ้ำได้เมื่อมีผู้สมัครเพิ่ม คนที่นำเข้าแล้วจะไม่ถูกเพิ่มซ้ำ ควรนำเข้าให้ครบ<strong>ก่อนจับสาย</strong></p>
-        <ErrorNote text={action.error} />
-        {summary && <p className="rounded-xl bg-[var(--gt-surface-2)] px-4 py-2 text-sm">นำเข้าเสร็จ: {summary}</p>}
-        <button type="button" onClick={runImport} disabled={action.busy || mapping.rows.length === 0} className="gt-gold-btn min-h-12 w-full px-4 sm:w-auto disabled:opacity-60">
-          {action.busy ? "กำลังนำเข้า…" : `นำเข้า ${mapping.rows.length} รายชื่อ`}
-        </button>
       </section>
 
       <section className="gt-card flex flex-wrap items-center gap-3 p-4">
