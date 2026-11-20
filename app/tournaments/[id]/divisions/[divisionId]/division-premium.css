@@ -176,3 +176,59 @@
  .gt-division-athletes .gt-athlete-card { transition:none; }
  .gt-division-athletes .gt-athlete-card:hover { transform:none; }
 }
+
+
+/* Approved layout correction: full-width desktop content and genuine two-column overview. */
+.gt-division-main { width:100%; max-width:1152px; margin:0 auto; padding-left:20px; padding-right:20px; }
+.gt-division-main [role="tabpanel"] { min-width:0; }
+.gt-division-overview { width:100%; margin-top:14px; }
+.gt-division-overview .gt-division-athletes { position:static!important; left:auto!important; transform:none!important; width:100%!important; max-width:none!important; margin-top:16px; }
+.gt-division-overview .gt-division-athletes > ul.grid { grid-template-columns:repeat(3,minmax(0,1fr))!important; gap:11px; }
+.gt-division-overview .gt-pair-notice > div { min-height:94px; padding:18px 20px; margin:0; border:1.5px solid #b5cff5; border-radius:16px; background:linear-gradient(108deg,#eaf3ff,#f8fbff 60%,#e7f1ff); box-shadow:0 4px 16px rgba(11,69,157,.1); }
+.gt-division-overview .gt-pair-notice p:first-child { font-size:20px; color:#073781; font-weight:800; }
+.gt-division-overview .gt-pair-notice p:last-child { margin-top:4px; font-size:13px; line-height:1.6; }
+.gt-division-summary { overflow:hidden; border:1px solid #b5d0f4; border-radius:17px; background:linear-gradient(155deg,#fff,#f2f7ff); box-shadow:0 7px 18px rgba(14,72,153,.12); }
+.gt-division-summary h2 { display:flex; align-items:center; gap:10px; margin:0; padding:15px 17px; font-size:17px; font-weight:800; color:#fff; background:linear-gradient(110deg,#0751ad,#092e73); }
+.gt-division-summary dl { padding:9px 15px 14px; }
+.gt-division-summary dl > div { display:grid; grid-template-columns:40% 1fr; gap:8px; padding:9px 0; border-bottom:1px solid #d4e2f7; font-size:12px; line-height:1.5; }
+.gt-division-summary dl > div:last-child { border-bottom:0; }
+.gt-division-summary dt { color:#365681; font-weight:600; }
+.gt-division-summary dd { color:#12336d; font-weight:700; overflow-wrap:anywhere; }
+.gt-division-summary-notes h2 { color:#063c8b; background:linear-gradient(110deg,#fff8e6,#e9f2ff); }
+.gt-division-summary-notes h2 svg { color:#daa02b; }
+.gt-division-summary-notes p { margin:0 16px; padding:12px 0; font-size:13px; line-height:1.7; color:#213f6d; border-bottom:1px solid #dfebfb; }
+.gt-division-summary-notes p:last-child { border-bottom:0; margin-bottom:5px; }
+.gt-division-overview .gt-division-athletes .gt-athlete-card { min-height:150px; }
+.gt-division-overview .gt-division-athletes .gt-athlete-card > div:first-child { flex-basis:31%; }
+.gt-division-overview .gt-division-athletes .gt-athlete-card > div:first-child img { width:68px; height:68px; }
+.gt-division-hero .gt-division-stat span { display:block; max-width:100%; font-weight:800; }
+.gt-division-main > .mt-3.grid > a { min-height:60px; }
+.gt-division-main [role="tablist"] button { font-size:15px; }
+@media (min-width:1280px) {
+  .gt-division-main { max-width:1280px; }
+  .gt-division-overview { grid-template-columns:minmax(0,1fr) 310px; }
+  .gt-division-hero > div.relative { max-width:1280px; }
+}
+@media (min-width:768px) and (max-width:1279px) {
+  .gt-division-overview { display:block; }
+  .gt-division-sidebar { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:18px; }
+}
+@media (max-width:767px) {
+  .gt-division-main { padding-left:12px; padding-right:12px; }
+  .gt-division-overview { display:block; margin-top:10px; }
+  .gt-division-sidebar { margin-top:20px; }
+  .gt-division-overview .gt-division-athletes { margin-top:12px; }
+  .gt-division-overview .gt-division-athletes > ul.grid { grid-template-columns:minmax(0,1fr)!important; gap:8px; }
+  .gt-division-overview .gt-pair-notice > div { padding:14px; min-height:78px; }
+  .gt-division-overview .gt-pair-notice p:first-child { font-size:16px; }
+  .gt-division-overview .gt-pair-notice p:last-child { font-size:12px; }
+  .gt-division-overview .gt-division-athletes .gt-athlete-card { min-height:90px; }
+  .gt-division-overview .gt-division-athletes .gt-athlete-card > div:first-child { flex-basis:74px; }
+  .gt-division-overview .gt-division-athletes .gt-athlete-card > div:first-child img { width:52px; height:52px; }
+  .gt-division-summary dl > div { grid-template-columns:41% 1fr; }
+}
+.gt[data-gt-theme="dark"] .gt-division-summary { background:linear-gradient(160deg,#0e316b,#071b43); border-color:#446caa; }
+.gt[data-gt-theme="dark"] .gt-division-summary dt, .gt[data-gt-theme="dark"] .gt-division-summary dd,
+.gt[data-gt-theme="dark"] .gt-division-summary-notes p { color:#e5efff; }
+.gt[data-gt-theme="dark"] .gt-pair-notice > div { background:linear-gradient(110deg,#163b78,#112e62); }
+.gt[data-gt-theme="dark"] .gt-pair-notice p:first-child { color:#fff0bd; }
