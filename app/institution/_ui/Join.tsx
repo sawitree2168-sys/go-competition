@@ -15,6 +15,7 @@ export default function Join({ admin, onJoined, onCancel }: { admin: boolean; on
   const [role, setRole] = useState<"teacher" | "manager">("teacher");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState("");
 
   useEffect(() => {
     const t = setTimeout(async () => {
@@ -30,11 +31,21 @@ export default function Join({ admin, onJoined, onCancel }: { admin: boolean; on
   const join = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chosen) return;
-    setBusy(true); setError("");
-    const { data, error: err } = await staffDb()!.rpc("gt_academy_join_v1", { p_name: chosen, p_role: role });
-    setBusy(false);
-    if (err || !data?.ok) { setError(portalError(data?.error)); return; }
-    onJoined(data.academy_id);
+    setBusy(true); setError(""); setSubmitted("");
+    try {
+      const db = staffDb();
+      if (!db) { setError("ระบบยังไม่พร้อม กรุณาลองใหม่"); return; }
+      const { data, error: err } = await db.rpc("gt_academy_join_v1", { p_name: chosen, p_role: role });
+      if (err || !data?.ok) { setError(portalError(data?.error)); return; }
+      if (data.status === "pending") {
+        setSubmitted(`ส่งคำขอเข้าร่วมสถาบัน ${chosen} เรียบร้อยแล้ว · รอผู้ดูแลระบบอนุมัติสิทธิ์ก่อนจึงจะจัดการนักกีฬาและตั้งชื่อผู้ใช้ได้ · ไม่ต้องสมัครซ้ำ`);
+        return;
+      }
+      setSubmitted(`ยืนยันสถาบัน ${chosen} สำเร็จแล้ว`);
+      onJoined(data.academy_id);
+    } catch {
+      setError("เชื่อมต่อระบบไม่สำเร็จ กรุณาลองใหม่");
+    } finally { setBusy(false); }
   };
 
   return (
@@ -84,9 +95,13 @@ export default function Join({ admin, onJoined, onCancel }: { admin: boolean; on
         <p className="rounded-xl bg-[var(--gt-surface-2)] px-4 py-3 text-sm text-[var(--gt-muted)]">
           {admin ? "บัญชีเจ้าของระบบ: ใช้งานได้ทันที" : "สถาบันที่มีอยู่แล้วต้องรอผู้ดูแลอนุมัติก่อนใช้งานสิทธิ์จัดการ · บัญชีครูและเจ้าของสถาบันมีสิทธิ์ต่างกัน · กรุณาเลือกเฉพาะสถาบันที่คุณสอนหรือเป็นเจ้าของจริง"}
         </p>
+        {submitted && <div role="status" aria-live="polite" className="rounded-xl border-2 border-[var(--gt-cta)] bg-[var(--gt-cta-soft)] p-4">
+          <h2 className="text-lg font-bold">✓ รับคำขอเรียบร้อยแล้ว</h2><p className="mt-1 text-sm">{submitted}</p>
+          <p className="mt-2 text-xs text-[var(--gt-muted)]">สถานะ: รออนุมัติ · บัญชี GO MASTER ยังไม่เปิดใช้จนกว่าจะอนุมัติ</p>
+        </div>}
         {error && <p role="alert" className="text-sm text-[var(--gt-bad)]">{error}</p>}
         <div className="flex flex-wrap gap-2">
-          <button type="submit" disabled={!chosen || busy} className="gt-cta-btn min-h-12 flex-1 px-6 disabled:opacity-50">{busy ? "กำลังบันทึก…" : "ยืนยันสถาบันของฉัน"}</button>
+          <button type="submit" disabled={!chosen || busy || !!submitted} className="gt-cta-btn min-h-12 flex-1 px-6 disabled:opacity-50">{busy ? "กำลังบันทึก…" : submitted ? "ส่งคำขอแล้ว" : "ยืนยันสถาบันของฉัน"}</button>
           {onCancel && <button type="button" onClick={onCancel} className="gt-outline-btn min-h-12 px-5">ยกเลิก</button>}
         </div>
       </form>
