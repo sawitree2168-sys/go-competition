@@ -36,5 +36,7 @@
 @media(max-width:380px){.meeting-picker-fields{grid-template-columns:1fr}}
 
 .meeting-page-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 8px;font-size:.875rem}
-.meeting-page-nav button{min-height:44px;padding:6px 12px;border:1px solid #8dafd7;border-radius:8px;background:var(--gt-surface,white);color:inherit;font-weight:600;cursor:pointer}
+.meeting-page-nav button,.meeting-page-select select{min-height:44px;padding:6px 10px;border:1px solid #8dafd7;border-radius:8px;background:var(--gt-surface,white);color:inherit;font-weight:600;cursor:pointer}
 .meeting-page-nav button:disabled{opacity:.55;cursor:default}
+.meeting-page-select{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.meeting-page-select select{padding-inline:6px;font-variant-numeric:tabular-nums}

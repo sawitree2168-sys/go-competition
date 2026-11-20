@@ -41,6 +41,7 @@ function Picker({side,selected,other,level,onLevel,onPick}:{
  const currentResult=resultForQuery?.requestedPage===page?resultForQuery.data:null;
  const paging=resultForQuery?.data;
  const pageCount=paging?Math.ceil(paging.total/paging.page_size):0;
+ const displayedPage=Math.min(currentResult?.page??page,pageCount);
  const rows=canSearch?currentResult?.rows??[]:[];
  const failed=failedKey===searchKey;
  const loading=canSearch&&!currentResult&&!failed;
@@ -90,9 +91,15 @@ function Picker({side,selected,other,level,onLevel,onPick}:{
   <p className="meeting-picker-current">{selected?`เลือกแล้ว ${selected.full_name} · ${selected.go_id}`:'ยังไม่ได้เลือกนักกีฬา'}</p>
   <span role="status" className="meeting-search-note">{message}</span>
   {canSearch&&pageCount>1&&<div className="meeting-page-nav" role="group" aria-label={`เปลี่ยนหน้ารายชื่อนักกีฬาคนที่ ${side}`}>
-   <button type="button" disabled={loading||page<=1} onClick={()=>setPage(page-1)}>ก่อนหน้า</button>
-   <span>หน้า {currentResult?.page??page} / {pageCount}</span>
-   <button type="button" disabled={loading||page>=pageCount} onClick={()=>setPage(page+1)}>ถัดไป</button>
+   <button type="button" disabled={loading||displayedPage<=1} onClick={()=>setPage(displayedPage-1)}>ก่อนหน้า</button>
+   <div className="meeting-page-select">
+    <span>หน้า</span>
+    <select aria-label={`เลือกเลขหน้ารายชื่อนักกีฬาคนที่ ${side}`} value={displayedPage} onChange={e=>setPage(Number(e.target.value))}>
+     {Array.from({length:pageCount},(_,index)=>index+1).map(number=><option key={number} value={number}>{number}</option>)}
+    </select>
+    <span>/ {pageCount}</span>
+   </div>
+   <button type="button" disabled={loading||displayedPage>=pageCount} onClick={()=>setPage(displayedPage+1)}>ถัดไป</button>
   </div>}
   {rows.length>0&&<ul className="meeting-options" aria-label={`ผลค้นหานักกีฬาคนที่ ${side}`}>
    {rows.map(athlete=><li key={athlete.go_id}>
