@@ -24,6 +24,7 @@ export default function Join({ onJoined, onCancel }: { admin: boolean; onJoined:
   },[q]);
   const typed=q.trim().replace(/\s+/g," ");
   const existing=list?.find(a=>a.name.toLocaleLowerCase()===typed.toLocaleLowerCase());
+  const knownName=Boolean(list?.some(a=>a.name===selected));
   const isExisting=Boolean(list?.find(a=>a.name===selected)?.academy_id);
   const join=async(e:React.FormEvent)=>{
     e.preventDefault();
@@ -31,7 +32,7 @@ export default function Join({ onJoined, onCancel }: { admin: boolean; onJoined:
     setBusy(true);setError("");
     try{
       const db=staffDb();if(!db)throw Error("ระบบยังไม่พร้อม กรุณาลองใหม่");
-      const {data,error:err}=await db.rpc("gt_academy_join_v1",{p_name:selected,p_role:isExisting?"teacher":"manager"});
+      const {data,error:err}=await db.rpc("gt_academy_join_v1",{p_name:selected,p_role:knownName?"teacher":"manager"});
       if(err||!data?.ok) {
         const reason=data?.error==="EMAIL_UNVERIFIED"?"กรุณายืนยันอีเมลของบัญชีก่อน":data?.error==="REVOKED"?"บัญชีนี้ถูกยกเลิกสิทธิ์สถาบันแล้ว":portalError(data?.error);
         setError(reason);return;
@@ -69,8 +70,9 @@ export default function Join({ onJoined, onCancel }: { admin: boolean; onJoined:
         </>}
       </div>
       <p className="rounded-xl bg-[#edf5ff] p-3 text-sm text-[#345778]">{isExisting?
-        "สถาบันนี้มีชื่ออยู่แล้ว ระบบจะส่งคำขอให้เจ้าของสถาบันที่ยืนยันตัวตนแล้วจัดการเอง":
-        "สถาบันใหม่: ระบบสร้างบัญชีเจ้าของให้ผู้สมัครที่ยืนยันอีเมลแล้วโดยอัตโนมัติ ไม่ต้องให้แอดมินออกบัญชี"}</p>
+        "สถาบันนี้มีบัญชีแล้ว ระบบส่งคำขอให้เจ้าของสถาบันพิจารณาเอง":
+        knownName ? "ชื่อนี้มีในผลการแข่งขันเดิมแล้ว หากยังไม่มีเจ้าของที่ยืนยันสิทธิ์ ระบบจะบันทึกคำขอไว้ก่อนเพื่อป้องกันการแอบอ้าง" :
+        "สถาบันใหม่: ระบบสร้างบัญชีเจ้าของให้ผู้สมัครที่ยืนยันบัญชีแล้วโดยอัตโนมัติ ไม่ต้องให้แอดมินออกบัญชี"}</p>
       {message&&<div role="status" aria-live="polite" className="rounded-xl border-2 border-[#81c5a5] bg-[#effaf4] p-4 text-[#1a6039]"><b>✓ บันทึกสำเร็จ</b><p className="mt-1 text-sm">{message}</p></div>}
       {error&&<p role="alert" className="rounded-xl border border-[#eeb0b0] bg-[#fff2f2] p-3 text-sm text-[#aa2222]">{error}</p>}
       <button type="submit" disabled={!selected||busy||Boolean(message)} className="min-h-14 w-full rounded-xl bg-[#0c61c3] px-5 text-lg font-bold text-white disabled:opacity-60">{busy?"กำลังบันทึก…":message?"ส่งคำขอแล้ว":"ยืนยันและไปต่อ"}</button>
