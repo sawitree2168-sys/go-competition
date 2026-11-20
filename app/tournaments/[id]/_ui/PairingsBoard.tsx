@@ -38,9 +38,10 @@ function useCanManage(tournamentId: string) {
 
 type SeatInfo = { id: string; name: string; institution?: string; rank?: string | null; photo?: string | null; score: number; won: boolean; lost: boolean };
 
-function Photo({ s, className }: { s: SeatInfo; className: string }) {
-  if (!s.photo) return <img src={DEFAULT_AVATAR} alt="" loading="lazy" className={`${className} shrink-0 object-contain`} />;
-  return <img src={s.photo} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`${className} shrink-0 rounded-lg border-2 border-[var(--gt-cta)]/40 object-cover`} />;
+function Photo({ s, className, onOpen }: { s: SeatInfo; className: string; onOpen: (s: SeatInfo) => void }) {
+  return <button type="button" onClick={() => onOpen(s)} aria-label={`ขยายรูป ${s.name}`} className="shrink-0 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--gt-cta)]">
+    <img src={s.photo || DEFAULT_AVATAR} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`${className} rounded-lg border-2 border-[var(--gt-cta)]/60 ${s.photo ? "object-cover" : "object-contain"}`} />
+  </button>;
 }
 function ColourChip({ colour }: { colour: "black" | "white" }) {
   return (
@@ -53,12 +54,12 @@ function ColourChip({ colour }: { colour: "black" | "white" }) {
 function WonTag() { return <span className="ml-1.5 inline-block rounded-md bg-[var(--gt-win-bg)] px-1.5 align-middle text-xs font-semibold text-[var(--gt-win-ink)]">ชนะ</span>; }
 
 /** Desktop: photo left, details right. Mobile: centred column. */
-function Side({ s, colour }: { s: SeatInfo; colour: "black" | "white" }) {
+function Side({ s, colour, showPhotos, onOpen }: { s: SeatInfo; colour: "black" | "white"; showPhotos: boolean; onOpen: (s: SeatInfo) => void }) {
   return (
     <div className={`flex min-w-0 flex-col items-center gap-1.5 text-center md:flex-row md:items-center md:gap-4 md:text-left ${s.lost ? "opacity-60" : ""}`}>
       <div className="flex items-center gap-2 md:contents">
         <span className="md:hidden"><ColourChip colour={colour} /></span>
-        <Photo s={s} className={`h-20 w-20 md:h-24 md:w-24 ${s.won ? "ring-4 ring-[var(--gt-gold)] rounded-full" : ""}`} />
+        {showPhotos && <Photo s={s} onOpen={onOpen} className={`h-20 w-20 md:h-24 md:w-24 ${s.won ? "ring-4 ring-[var(--gt-gold)] rounded-full" : ""}`} />}
       </div>
       <div className="min-w-0">
         <p className="flex items-center justify-center gap-2 md:justify-start">
@@ -75,7 +76,7 @@ function Side({ s, colour }: { s: SeatInfo; colour: "black" | "white" }) {
   );
 }
 
-function TableCard({ m, black, white, controls }: { m: Match; black: SeatInfo; white: SeatInfo; controls: React.ReactNode }) {
+function TableCard({ m, black, white, controls, showPhotos, onOpen }: { m: Match; black: SeatInfo; white: SeatInfo; controls: React.ReactNode; showPhotos: boolean; onOpen: (s: SeatInfo) => void }) {
   const done = m.state === "verified";
   const status = done ? resultLabel(m) || "บันทึกผลแล้ว" : "รอผลการแข่งขัน";
   return (
@@ -87,13 +88,13 @@ function TableCard({ m, black, white, controls }: { m: Match; black: SeatInfo; w
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-3 py-3 md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-5 md:px-5 md:py-4">
         <span className="gt-num hidden self-start rounded-lg bg-[var(--gt-btn-black)] px-3 py-1 text-lg font-bold text-white md:inline-block">โต๊ะ {m.board_number ?? "–"}</span>
-        <Side s={black} colour="black" />
+        <Side s={black} colour="black" showPhotos={showPhotos} onOpen={onOpen} />
         <span className="flex h-full flex-col items-center justify-center">
           <span aria-hidden="true" className="w-px flex-1 bg-[var(--gt-line)]" />
           <span className="my-1 rounded-full border border-[var(--gt-cta)]/40 bg-[var(--gt-cta-soft)] px-2.5 py-1 text-sm font-bold text-[var(--gt-cta)] md:text-base">VS</span>
           <span aria-hidden="true" className="w-px flex-1 bg-[var(--gt-line)]" />
         </span>
-        <Side s={white} colour="white" />
+        <Side s={white} colour="white" showPhotos={showPhotos} onOpen={onOpen} />
       </div>
       {/* status / result bar */}
       <div className="mx-3 mb-3 flex flex-col gap-2 rounded-xl bg-[var(--gt-surface-2)] px-3 py-2.5 md:mx-4 md:flex-row md:items-center md:gap-4">
@@ -143,6 +144,9 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
   const [pool, setPool] = useState("all");
   const [q, setQ] = useState("");
   const [page, setPage] = useState(0);
+  const [showPhotos, setShowPhotos] = useState(true);
+  const [view, setView] = useState<"cards" | "table">("cards");
+  const [zoomed, setZoomed] = useState<SeatInfo | null>(null);
   const staff = useCanManage(tournamentId);
 
   const before = useMemo(
@@ -204,12 +208,18 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border-2 border-[var(--gt-cta)]/50 bg-[var(--gt-surface)] p-2 text-sm font-semibold">
+        <span className="mr-auto">มุมมองการแข่งขัน</span>
+        <button type="button" aria-pressed={view === "cards"} onClick={() => setView("cards")} className={`min-h-11 rounded-lg border px-4 ${view === "cards" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>▦ การ์ด</button>
+        <button type="button" aria-pressed={view === "table"} onClick={() => setView("table")} className={`min-h-11 rounded-lg border px-4 ${view === "table" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>☷ ตาราง</button>
+        <button type="button" aria-pressed={showPhotos} onClick={() => setShowPhotos(v => !v)} className="min-h-11 rounded-lg border border-[var(--gt-line)] px-4">{showPhotos ? "ซ่อนรูปนักกีฬา" : "แสดงรูปนักกีฬา"}</button>
+      </div>
       {staff && <p className="rounded-xl border border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-3 py-2 text-sm text-[var(--gt-gold-ink)]">คุณเป็นผู้จัดงานนี้ — ลงผลได้จากหน้านี้ (เฉพาะรอบล่าสุด) · ผู้ชมทั่วไปจะไม่เห็นปุ่มลงผล</p>}
 
-      <ul className="space-y-3">
+      {view === "cards" ? <ul className="space-y-3">
         {tables.map((m) => (
           <TableCard key={m.id} m={m} black={seat(m.black_athlete_id, m)} white={seat(m.white_athlete_id, m)}
-            controls={staff && round === latest ? <StaffResult key={`${m.id}:${m.state}`} m={m} divisionId={divisionId} /> : null} />
+            controls={staff && round === latest ? <StaffResult key={`${m.id}:${m.state}`} m={m} divisionId={divisionId} /> : null} showPhotos={showPhotos} onOpen={setZoomed} />
         ))}
         {cur === pages - 1 && roundByes.map((b) => {
           const p = people[b.athlete_id];
@@ -222,7 +232,26 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
           );
         })}
         {!all.length && !roundByes.length && <li className="gt-card p-6 text-center text-sm text-[var(--gt-muted)]">ไม่พบโต๊ะที่ค้นหา</li>}
-      </ul>
+      </ul> : <div className="overflow-x-auto rounded-2xl border-2 border-[var(--gt-cta)]/60 bg-[var(--gt-surface)]">
+        <table className="w-full min-w-[680px] text-left text-sm">
+          <thead className="bg-[var(--gt-cta-soft)]"><tr><th className="p-3">โต๊ะ</th><th className="p-3">ดำ</th><th className="p-3">ขาว</th><th className="p-3">ผลการแข่งขัน</th></tr></thead>
+          <tbody>{tables.map(m => {const b = seat(m.black_athlete_id,m), w = seat(m.white_athlete_id,m);return <tr key={m.id} className="border-t border-[var(--gt-line)]">
+            <td className="p-3 font-bold">{m.board_number ?? "—"}</td>
+            <td className="p-3"><div className="flex items-center gap-2">{showPhotos && <Photo s={b} onOpen={setZoomed} className="h-12 w-12" />}<span>{b.name}<small className="block text-[var(--gt-muted)]">{b.rank ?? ""}</small></span></div></td>
+            <td className="p-3"><div className="flex items-center gap-2">{showPhotos && <Photo s={w} onOpen={setZoomed} className="h-12 w-12" />}<span>{w.name}<small className="block text-[var(--gt-muted)]">{w.rank ?? ""}</small></span></div></td>
+            <td className="p-3 font-semibold">{m.state === "verified" ? resultLabel(m) || "บันทึกผลแล้ว" : "รอผล"}{staff && round === latest && <details className="mt-2"><summary className="cursor-pointer text-[var(--gt-cta)]">ลงผล / แก้ไขผล</summary><StaffResult m={m} divisionId={divisionId}/></details>}</td>
+          </tr>})}</tbody>
+        </table>
+        {!tables.length && <p className="p-6 text-center">ไม่พบโต๊ะที่ค้นหา</p>}
+      </div>}
+      {zoomed && <div role="dialog" aria-modal="true" aria-label={`รูปนักกีฬา ${zoomed.name}`} onClick={() => setZoomed(null)} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4">
+        <div onClick={e => e.stopPropagation()} className="w-full max-w-sm rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-4 text-center shadow-2xl">
+          <button type="button" onClick={() => setZoomed(null)} className="mb-2 ml-auto block min-h-11 rounded-lg border px-4">ปิด ✕</button>
+          <img src={zoomed.photo || DEFAULT_AVATAR} alt={zoomed.name} className="mx-auto max-h-[65vh] w-auto max-w-full rounded-xl object-contain" />
+          <p className="mt-3 text-xl font-bold">{zoomed.name}</p>
+          <p className="text-sm text-[var(--gt-muted)]">{zoomed.rank ?? ""}{zoomed.institution ? ` · ${zoomed.institution}` : ""}</p>
+        </div>
+      </div>}
 
       {pages > 1 && (
         <nav aria-label="หน้าโต๊ะ" className="flex flex-wrap items-center justify-center gap-2">

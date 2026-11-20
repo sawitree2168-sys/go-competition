@@ -64,6 +64,12 @@ function Platform() {
       </div>
       <ErrorNote text={action.error} />
 
+      <nav aria-label="จัดการระบบ" className="grid grid-cols-2 gap-2 rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-2 shadow-sm sm:grid-cols-4">
+        <Link href="/organizer" className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] bg-[var(--gt-cta)] px-2 text-center text-sm font-bold text-white">▦ จัดการการแข่งขัน</Link>
+        <Link href="/tournaments" className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] px-2 text-center text-sm font-bold">◉ หน้าสาธารณะ</Link>
+        <a href="#photo-inbox" className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] px-2 text-center text-sm font-bold">✓ ตรวจภาพผล</a>
+        <Link href="/news" className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] px-2 text-center text-sm font-bold">▥ ข่าวสาร / สรุปผล</Link>
+      </nav>
       <div className="site-metrics"><div>รายการแข่งขัน<b>{events.length}</b></div><div>ผู้จัด<b>{orgs?.length??0}</b></div><div><a href="#photo-inbox">ตรวจภาพผลที่ส่งมา →</a></div><div><a href="/news">ข่าวสารและสรุปผล →</a></div></div>
       <PhotoInbox/>
       <AthleteAccounts />

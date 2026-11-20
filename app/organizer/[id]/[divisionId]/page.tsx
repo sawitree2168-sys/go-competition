@@ -41,7 +41,7 @@ function Console({ eventId, divisionId }: { eventId: string; divisionId: string 
           <a href={`/tournaments/${eventId}/divisions/${divisionId}?tab=pairs`} target="_blank" rel="noopener" className="text-sm text-[var(--gt-cta)] underline">ดูหน้าสาธารณะ ↗</a>
         </div>
       </div>
-      <div role="tablist" aria-label="ขั้นตอน" className="gt-tabs grid grid-cols-2 gap-1 sm:grid-cols-5 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
+      <div role="tablist" aria-label="ขั้นตอน" className="gt-tabs grid grid-cols-2 gap-2 rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-2 shadow-sm sm:grid-cols-5">
         {TABS.map(([k, label]) => (
           <button key={k} role="tab" type="button" aria-selected={current === k} onClick={() => setTab(k)} className="min-h-11 rounded-xl px-2 text-sm font-semibold">{label}</button>
         ))}

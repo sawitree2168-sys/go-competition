@@ -257,7 +257,12 @@ function EventConsole({ id }: { id: string }) {
         <p className="text-sm text-[var(--gt-muted)]">{thaiDate(event.event_date)}</p>
       </div>
 
-      <div className="site-operation-nav"><a href="#event-divisions" aria-current="page">มอนิเตอร์ / จับคู่ / ลงผล</a><button type="button" aria-pressed={settingsOpen} onClick={()=>setSettingsOpen(!settingsOpen)}>ตั้งค่าการแข่งขันเฉพาะงาน</button></div>
+      <nav aria-label="ศูนย์ควบคุมรายการแข่งขัน" className="grid grid-cols-2 gap-2 rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-2 shadow-sm sm:grid-cols-4">
+        <a href="#event-divisions" className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] bg-[var(--gt-cta)] px-2 text-center text-sm font-bold text-white">▦ จับคู่ / ลงผล</a>
+        <Link href={`/organizer/${id}/referees`} className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] px-2 text-center text-sm font-bold">✓ จัดการกรรมการ</Link>
+        <Link href={`/tournaments/${id}`} className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] px-2 text-center text-sm font-bold">◉ หน้าสาธารณะ</Link>
+        <button type="button" aria-pressed={settingsOpen} onClick={() => setSettingsOpen(!settingsOpen)} className="min-h-16 rounded-xl border-2 border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-2 text-sm font-bold">⚙ ตั้งค่างาน</button>
+      </nav>
       {settingsOpen && <EventSettings id={id} onSaved={load}/>}
       <section id="event-divisions" className="space-y-2">
         <h2 className="font-bold">เลือกรุ่นเพื่อมอนิเตอร์ จับคู่ และลงผล</h2>
