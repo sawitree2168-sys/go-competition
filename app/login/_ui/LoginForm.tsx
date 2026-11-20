@@ -31,12 +31,24 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
     if (!db) return setError("ระบบยังไม่พร้อม กรุณาลองใหม่ภายหลัง");
     const who = id.trim();
     if (!who || !password) return setError("กรุณากรอกอีเมล / รหัส GO / เลขดั้ง / ชื่อ และรหัสผ่าน");
-    const problem = identifierProblem(who);
+    const staffUsername = /^[a-z][a-z0-9_-]{3,31}$/i.test(who) && !looksLikeEmail(who);
+    const problem = staffUsername ? "" : identifierProblem(who);
     if (problem) return setError(problem);
     setBusy(true);
     try {
       setRemember(remember);
-      if (looksLikeEmail(who)) {
+      if (staffUsername) {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        if (!url || !key) { setError("ระบบเข้าสู่ระบบยังไม่พร้อม"); return; }
+        const response = await fetch(`${url}/functions/v1/staff-username-login`, {
+          method: "POST", headers: { "content-type": "application/json", apikey: key },
+          body: JSON.stringify({ username: who, password })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.session) { setError(result.message ?? "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"); return; }
+        const { error: err } = await db.auth.setSession(result.session);
+        if (err) { setError(authErrorMessage(err.message)); return; }
+      } else if (looksLikeEmail(who)) {
         const { error: err } = await db.auth.signInWithPassword({ email: who, password });
         if (err) { setError(authErrorMessage(err.message)); return; }
       } else {
@@ -73,8 +85,8 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
       <h1 className="text-[2rem] sm:text-[2.625rem]">{heading}</h1>
       <p className="mt-1 text-base text-[var(--gt-muted)] sm:text-lg">ยินดีต้อนรับสู่ GO TOURNAMENT</p>
       <form onSubmit={submit} noValidate className="mt-7 space-y-5">
-        <Field label="อีเมล หรือรหัสนักกีฬา" icon="person" value={id} onChange={(e) => setId(e.target.value)} placeholder="อีเมล / รหัส GO / เลขดั้ง / ชื่อ-นามสกุล"
-          hint="นักกีฬา: ใช้รหัส GO เลขทะเบียนดั้ง หรือชื่อ-นามสกุล ได้ทั้งหมด" autoComplete="username" autoCapitalize="none" spellCheck={false} />
+        <Field label="ชื่อผู้ใช้ / อีเมล / รหัสนักกีฬา" icon="person" value={id} onChange={(e) => setId(e.target.value)} placeholder="GOMASTER / อีเมล / รหัส GO / ชื่อ"
+          hint="สถาบัน: ใช้ชื่อผู้ใช้ · นักกีฬา: ใช้รหัส GO เลขดั้ง หรือชื่อ-นามสกุล" autoComplete="username" autoCapitalize="none" spellCheck={false} />
         <PasswordField label="รหัสผ่าน" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="รหัสผ่าน" autoComplete="current-password" />
         <div className="flex items-center justify-between gap-3">
           <label className="flex min-h-11 items-center gap-2.5 text-base">
