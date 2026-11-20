@@ -30,6 +30,16 @@ export default function CompetitionPanel({ children, className = "", title, cont
     const focused = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
     document.body.classList.add("cd-has-fullscreen");
+    // A widened wrapper (translate / transform) would trap the fixed full-screen panel: lift those while open.
+    const lifted: [HTMLElement, string, string][] = [];
+    for (let el = panel.current?.parentElement; el && el !== document.body; el = el.parentElement) {
+      const cs = getComputedStyle(el);
+      if (cs.translate !== "none" || cs.transform !== "none" || cs.filter !== "none") {
+        lifted.push([el, el.style.getPropertyValue("translate"), el.style.getPropertyValue("transform")]);
+        el.style.setProperty("translate", "none", "important");
+        el.style.setProperty("transform", "none", "important");
+      }
+    }
     toggle.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { if (closeRef.current) closeRef.current(); else setOpen(false); }
@@ -43,6 +53,7 @@ export default function CompetitionPanel({ children, className = "", title, cont
     return () => {
       document.body.style.overflow = previous;
       document.body.classList.remove("cd-has-fullscreen");
+      for (const [el, t, tf] of lifted) { el.style.removeProperty("translate"); el.style.removeProperty("transform"); if (t) el.style.setProperty("translate", t); if (tf) el.style.setProperty("transform", tf); }
       document.removeEventListener("keydown", onKey);
       focused?.focus();
     };
