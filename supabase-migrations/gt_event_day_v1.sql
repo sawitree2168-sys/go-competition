@@ -146,3 +146,10 @@ grant execute on function public.gt_staff_resolve_call_v1(bigint) to authenticat
 grant execute on function public.gt_staff_event_day_v1(uuid) to authenticated;
 grant execute on function public.gt_referee_call_admin_v1(text, text, uuid, text, text) to anon, authenticated;
 grant execute on function public.gt_referee_day_v1(text, text, uuid) to anon, authenticated;
+
+-- tightening after the Supabase security advisor (applied as gt_event_day_v1_tighten)
+revoke execute on function public.gt_staff_set_division_day_v1(uuid, text[], text) from anon;
+revoke execute on function public.gt_staff_set_ceremony_done_v1(uuid, text, boolean) from anon;
+revoke execute on function public.gt_staff_resolve_call_v1(bigint) from anon;
+revoke execute on function public.gt_staff_event_day_v1(uuid) from anon;
+alter function gt_private.hhmm(text) set search_path = pg_catalog;
