@@ -49,8 +49,30 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   const [step,setStep]=useState(0);
   const [full,setFull]=useState(false);
   const [editing,setEditing]=useState<string|null>(null);
+  const [attendance,setAttendance]=useState<Record<string,"present"|"absent">>({});
   const [history,setHistory]=useState<string[]>(["ระบบจำลองพร้อมใช้งาน · รอบ 1 ประกาศคู่แล้ว"]);
   const append=(message:string)=>setHistory(old=>[message,...old].slice(0,12));
+  const attendanceKey=(g:Game,side:"black"|"white")=>`${g.id}:${side}`;
+  const statusOf=(g:Game,side:"black"|"white")=>attendance[attendanceKey(g,side)]??"unchecked";
+  const setAthleteAttendance=(g:Game,side:"black"|"white",value:"present"|"absent")=>{
+    if(view==="public"||g.state==="verified"||g.table_status==="playing")return;
+    const key=attendanceKey(g,side);
+    const next={...attendance,[key]:value};
+    setAttendance(next);
+    setGames(old=>old.map(m=>m.id!==g.id?m:{...m,table_status:next[attendanceKey(g,"black")]==="present"&&next[attendanceKey(g,"white")]==="present"?"checked":"waiting"}));
+    append(`โต๊ะ ${g.board_number} · ${side==="black"?"ฝ่ายดำ":"ฝ่ายขาว"} ${value==="present"?"มาแล้ว":"ไม่มา"} (จำลอง)`);
+  };
+  const athleteCheck=(g:Game,side:"black"|"white")=>{
+    const current=statusOf(g,side);
+    return <div className="gt-reference-attendance" role="group" aria-label={`เช็กชื่อ${side==="black"?"ฝ่ายดำ":"ฝ่ายขาว"} โต๊ะ ${g.board_number}`}>
+      <span className="gt-reference-attendance-title">{side==="black"?"● ดำ":"○ ขาว"} · {personMap[side==="black"?g.black_athlete_id:g.white_athlete_id].name}</span>
+      <div className="gt-reference-attendance-options">
+        <button type="button" className="gt-reference-attend-present" aria-pressed={current==="present"} onClick={()=>setAthleteAttendance(g,side,"present")} disabled={g.state==="verified"||g.table_status==="playing"}>✓ มาแล้ว</button>
+        <button type="button" className="gt-reference-attend-absent" aria-pressed={current==="absent"} onClick={()=>setAthleteAttendance(g,side,"absent")} disabled={g.state==="verified"||g.table_status==="playing"}>✕ ไม่มา</button>
+      </div>
+      <span className={`gt-reference-attendance-badge ${current==="present"?"is-present":current==="absent"?"is-absent":"is-unchecked"}`}>{current==="present"?"✓ มาแล้ว":current==="absent"?"✕ ไม่มา":"ยังไม่เช็กชื่อ"}</span>
+    </div>;
+  };
   const update=(id:string, stage:"check"|"play"|"black"|"white"|"draw")=>{
     const g=games.find(m=>m.id===id);if(!g)return;
     if(view==="public")return;
@@ -68,7 +90,7 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
     const waiting=pending.find(m=>m.table_status==="waiting");
     const checked=pending.find(m=>m.table_status==="checked");
     const playing=pending.find(m=>m.state!=="verified"&&m.table_status==="playing");
-    if(waiting)update(waiting.id,"check");
+    if(waiting){const side=statusOf(waiting,"black")==="unchecked"?"black":statusOf(waiting,"white")==="unchecked"?"white":null;if(side)setAthleteAttendance(waiting,side,"present");else {setAthleteAttendance(waiting,"black","present");setAthleteAttendance(waiting,"white","present");}}
     else if(checked)update(checked.id,"play");
     else if(playing){update(playing.id,step%2?"white":"black");setStep(v=>v+1);}
     else if(round<5){const next=round+1;setGames(old=>[...old,...makeRound(next,old)]);setRound(next);append(`ประกาศจับคู่รอบที่ ${next} (ข้อมูลจำลอง)`);}
@@ -76,7 +98,7 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   };
   useEffect(()=>{if(!auto)return;const timer=window.setInterval(()=>{const rows=games.filter(m=>m.round_number===round);if(rows.every(m=>m.state==="verified")&&round===5){setAuto(false);return;} // simulation steps run only while enabled
     const w=rows.find(m=>m.table_status==="waiting"),c=rows.find(m=>m.table_status==="checked"),p=rows.find(m=>m.state!=="verified"&&m.table_status==="playing");
-    if(w)update(w.id,"check");else if(c)update(c.id,"play");else if(p)update(p.id,"black");else if(round<5){let nr=round+1;setGames(old=>[...old,...makeRound(nr,old)]);setRound(nr);append(`ประกาศรอบที่ ${nr} (จำลอง)`);}
+    if(w){const side=statusOf(w,"black")==="unchecked"?"black":statusOf(w,"white")==="unchecked"?"white":null;if(side)setAthleteAttendance(w,side,"present");else {setAthleteAttendance(w,"black","present");setAthleteAttendance(w,"white","present");}}else if(c)update(c.id,"play");else if(p)update(p.id,"black");else if(round<5){let nr=round+1;setGames(old=>[...old,...makeRound(nr,old)]);setRound(nr);append(`ประกาศรอบที่ ${nr} (จำลอง)`);}
   },3500);return()=>window.clearInterval(timer); // intentional state-driven interval for demo only
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[auto,games,round]);
@@ -93,8 +115,10 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
     {photo(id)}<span className="min-w-0"><span className="mb-1 flex items-center gap-1 text-xs font-semibold text-[#385577]"><span className={`h-4 w-4 shrink-0 rounded-full border ${color==="black"?"bg-[#101b2e] border-[#101b2e]":"bg-white border-[#7a92b2]"}`}/>{color==="black"?"หมากดำ":"หมากขาว"}</span><strong className="gt-reference-person-name block text-base text-[#102d58] [overflow-wrap:anywhere]">{personMap[id].name}</strong><small className="gt-reference-person-meta block text-sm text-[#536f93]">{personMap[id].rank} · {personMap[id].institution}</small></span>
   </div>;
   const controls=(g:Game)=><div className="gt-reference-actions">
-    {g.table_status==="waiting"&&<button type="button" onClick={()=>update(g.id,"check")} className="gt-reference-blue">✓ เช็กชื่อ</button>}
-    {g.table_status==="checked"&&<button type="button" onClick={()=>update(g.id,"play")} className="gt-reference-blue">▶ เริ่มแข่งขัน</button>}
+    {(g.table_status==="waiting"||g.table_status==="checked")&&<div className="gt-reference-attendance-grid">
+      {athleteCheck(g,"black")}{athleteCheck(g,"white")}
+    </div>}
+    {g.table_status==="checked"&&<button type="button" onClick={()=>update(g.id,"play")} className="gt-reference-blue">▶ เริ่มแข่งขัน (มาแล้วทั้งคู่)</button>}
     {g.table_status==="playing"&&g.state!=="verified"&&<button type="button" onClick={()=>setEditing(g.id)} className="gt-reference-gold">✎ ลงผลทุกประเภท</button>}
     {g.state==="verified"&&<><strong className="text-green-800">✓ บันทึกผลแล้ว (จำลอง)</strong><button type="button" onClick={()=>setEditing(g.id)} className="gt-reference-secondary">แก้ไขผล</button></>}
   </div>;
@@ -127,7 +151,7 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
           className={`min-h-12 rounded-xl border-2 px-2 text-sm font-semibold ${view===v?"border-[#d6a43a] bg-[#0a62c4] text-white":"border-[#84b4e9] bg-white text-[#0e478e]"}`}>{v==="admin"?"แอดมินจับคู่":v==="referee"?"กรรมการ":"สาธารณะ"}</button>)}</div>
       </section>
       <div className="gt-reference-metrics grid grid-cols-2 gap-2 sm:grid-cols-4">{[
-        ["รอบแข่งขัน",`${round} / 5`],["โต๊ะทั้งหมด",String(rows.length)],["เช็กชื่อ / เริ่มแล้ว",`${checked} / ${rows.length}`],["ลงผลแล้ว",`${done} / ${rows.length}`]
+        ["รอบแข่งขัน",`${round} / 5`],["โต๊ะทั้งหมด",String(rows.length)],["เช็กชื่อครบทั้งคู่",`${rows.filter(g=>statusOf(g,"black")==="present"&&statusOf(g,"white")==="present").length} / ${rows.length}`],["ลงผลแล้ว",`${done} / ${rows.length}`]
       ].map(([k,v])=><div key={k} className="rounded-xl border-2 border-[#81b0e6] border-b-[4px] border-b-[#d6a43a] bg-white p-3"><small className="text-[#57769a]">{k}</small><strong className="mt-1 block text-2xl text-[#0958b4]">{v}</strong></div>)}</div>
       <div className="gt-reference-panel grid grid-cols-1 gap-3 p-4 sm:grid-cols-[1fr_auto]">
         <div><strong>ความคืบหน้ารอบ {round}: {progress}%</strong><div className="mt-2 h-4 overflow-hidden rounded-full bg-[#dceaff]"><div className="h-full rounded-full bg-[#d6a43a] transition-all" style={{width:`${progress}%`}}/></div><p className="mt-1 text-xs text-[#647c9f]">ข้อมูลเปลี่ยนเมื่อกดลงผลหรือเปิดจำลองอัตโนมัติ</p></div>
@@ -162,7 +186,7 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
       <section className="rounded-2xl border-2 border-[#89b6e9] bg-white p-4">
         <div className="flex flex-wrap justify-between gap-2"><h2 className="text-lg font-bold">กิจกรรมล่าสุด (จำลอง)</h2>{allDone&&round<5&&<button onClick={applyNext} className="rounded-lg border-2 border-[#d6a43a] bg-[#095fc2] px-3 py-2 text-white">จับคู่รอบต่อไป ›</button>}</div>
         <ol className="mt-3 space-y-2">{history.map((h,i)=><li key={i} className="rounded-lg border border-[#bdd6f3] bg-[#f4f9ff] p-3 text-sm">{h}</li>)}</ol>
-        <button type="button" onClick={()=>{setGames(INITIAL);setRound(1);setAuto(false);setHistory(["เริ่มจำลองใหม่ · รอบที่ 1"]);}} className="mt-3 min-h-11 rounded-xl border-2 border-[#d6a43a] bg-white px-4 font-semibold">↻ เริ่มจำลองใหม่</button>
+        <button type="button" onClick={()=>{setGames(INITIAL);setRound(1);setAuto(false);setHistory(["เริ่มจำลองใหม่ · รอบที่ 1"]);setAttendance({});}} className="mt-3 min-h-11 rounded-xl border-2 border-[#d6a43a] bg-white px-4 font-semibold">↻ เริ่มจำลองใหม่</button>
       </section>
     </main>
   </div>;
