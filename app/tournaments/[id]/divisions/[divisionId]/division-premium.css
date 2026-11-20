@@ -244,3 +244,17 @@
  .gt-division-hero-image { background-position:65% center!important; }
  .gt-division-hero-shade { background:linear-gradient(90deg,rgba(2,21,69,.83) 0%,rgba(2,29,89,.63) 62%,rgba(2,21,72,.25) 100%)!important; }
 }
+
+/* Approved image background for every division (21 Nov). Never shade, blur or tint it. */
+.gt-division-hero { background:#052366; }
+.gt-division-hero-image {
+ background-image:url("/event-hero-approved.png")!important;
+ background-position:center center!important;
+ background-size:cover!important;
+ opacity:1!important;
+ filter:none!important;
+}
+.gt-division-hero-shade { display:none!important; background:none!important; opacity:0!important; }
+@media (max-width:767px) {
+ .gt-division-hero-image { background-position:center center!important; }
+}

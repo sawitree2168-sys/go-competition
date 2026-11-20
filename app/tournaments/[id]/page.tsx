@@ -104,10 +104,10 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
         {/* Hero: same dark photo in both themes */}
         <section className="relative overflow-hidden bg-[#061537] text-white">
           <picture>
-            <source media="(min-width: 768px)" srcSet="/event-hero-wide.webp" />
-            <img src="/event-hero-m.webp" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-right" />
+            <source media="(min-width: 768px)" srcSet="/event-hero-approved.png" />
+            <img src="/event-hero-approved.png" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center" />
           </picture>
-          <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,14,40,.92)_0%,rgba(4,14,40,.7)_45%,rgba(4,14,40,0)_75%)]" />
+          {/* Approved background already provides a dark text-safe area. No overlay/filter. */}
           <div className="relative mx-auto max-w-6xl px-4 pb-7 pt-6 sm:px-6 sm:pb-10 sm:pt-10">
             <div className="flex items-start justify-between gap-3">
               <p className="flex items-center gap-3 pt-1 text-xs font-bold tracking-[.18em] text-[#e9c46a] sm:text-sm">THAI GO TOURNAMENT<span aria-hidden="true" className="h-px w-10 bg-current sm:w-16" /></p>
