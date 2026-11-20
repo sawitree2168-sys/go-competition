@@ -161,6 +161,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
   const [tab, setTab] = useState<"pending" | "done">("pending");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetail, setMobileDetail] = useState(false);
+  const [showPhotos, setShowPhotos] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
 
@@ -255,6 +256,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
         ))}
       </div>
       <p className="px-4 pt-2 text-xs text-[var(--gt-muted)]">เช็คชื่อแล้ว {checked}/{seats} คน · แตะโต๊ะเพื่อลงผล</p>
+      <div className="px-4 pt-2"><button type="button" onClick={() => setShowPhotos(v => !v)} aria-pressed={showPhotos} className="min-h-11 rounded-xl border-2 border-[var(--gt-cta)]/50 bg-[var(--gt-surface)] px-4 text-sm font-semibold">{showPhotos ? "ซ่อนรูปนักกีฬา" : "แสดงรูปนักกีฬา"}</button></div>
       <ul className="relative z-10 flex-1 space-y-2.5 p-3 pb-28 lg:pb-36">
         {list.map((t) => {
           const active = selected?.id === t.id;
@@ -264,6 +266,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
               <button type="button" onClick={() => pick(t)} aria-current={active ? "true" : undefined}
                 className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${active ? "border-[var(--gt-cta)] bg-[var(--gt-cta-soft)] shadow-[inset_4px_0_0_var(--gt-cta)]" : "border-[var(--gt-line)] bg-[var(--gt-surface)] hover:border-[var(--gt-cta)]/50"}`}>
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border-2 border-[var(--gt-cta)]/70 text-xl font-bold text-[var(--gt-ink)]">{two(t.board)}</span>
+                {showPhotos && <span className="flex shrink-0 -space-x-1"><img src={t.black.photo || DEFAULT_AVATAR} alt="" className="h-11 w-9 rounded-lg border border-[var(--gt-gold)] object-cover" /><img src={t.white.photo || DEFAULT_AVATAR} alt="" className="h-11 w-9 rounded-lg border border-[var(--gt-gold)] object-cover" /></span>}
                 <span className="min-w-0 flex-1 space-y-1">
                   <span className="flex items-center gap-2"><Stone colour="black" /><span className="truncate font-medium">{t.black.name ?? "—"}</span></span>
                   <span className="flex items-center gap-2"><Stone colour="white" /><span className="truncate font-medium">{t.white.name ?? "—"}</span></span>
@@ -346,6 +349,7 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
   const [err, setErr] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [zoom, setZoom] = useState<Side | null>(null);
   const names = { black: firstName(t.black.name), white: firstName(t.white.name) };
   const summary = summaryLine({ board: t.board, winner, method, margin, names: undefined });
   const winnerNeeded = needsWinner(method);
@@ -373,7 +377,7 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
     const p = t[side];
     return (
       <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-3 sm:p-4">
-        <img src={p.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-14 w-14 shrink-0 sm:h-20 sm:w-20 ${p.photo ? "rounded-lg object-cover" : "object-contain"}`} />
+        <button type="button" onClick={() => setZoom(p)} aria-label={`ขยายรูป ${p.name ?? "นักกีฬา"}`} className="shrink-0 rounded-lg focus-visible:outline-2 focus-visible:outline-[var(--gt-cta)]"><img src={p.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-14 w-14 sm:h-20 sm:w-20 border-2 border-[var(--gt-gold)] ${p.photo ? "rounded-lg object-cover" : "object-contain"}`} /></button>
         <div className="min-w-0 flex-1">
           <p className="text-lg font-bold leading-tight text-[var(--gt-ink)] sm:text-xl">{p.name ?? "—"}</p>
           {p.rank && <p className="text-sm text-[var(--gt-cta)]">{p.rank}</p>}
@@ -450,6 +454,15 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
         </div>
       )}
 
+      {zoom && createPortal(
+        <div role="dialog" aria-modal="true" aria-label={`รูปนักกีฬา ${zoom.name ?? ""}`} onClick={() => setZoom(null)} className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-4">
+          <div onClick={e => e.stopPropagation()} className="w-full max-w-sm rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-4 text-center shadow-2xl">
+            <button type="button" onClick={() => setZoom(null)} className="mb-3 ml-auto block min-h-11 rounded-lg border px-4">ปิด ✕</button>
+            <img src={zoom.photo || DEFAULT_AVATAR} alt={zoom.name || "นักกีฬา"} className="mx-auto max-h-[65vh] max-w-full rounded-lg object-contain" />
+            <p className="mt-3 text-lg font-bold">{zoom.name}</p>
+            {zoom.rank && <p className="text-sm text-[var(--gt-muted)]">{zoom.rank}</p>}
+          </div>
+        </div>, portalTarget())}
       {confirming && createPortal(
         <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" className="fixed inset-0 z-50 grid place-items-center bg-black/55 p-4" onClick={() => !busy && setConfirming(false)}>
           <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md space-y-4 rounded-2xl bg-[var(--gt-surface)] p-5 text-[var(--gt-ink)] shadow-2xl">
