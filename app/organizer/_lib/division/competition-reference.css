@@ -133,3 +133,9 @@
 .gt-reference-attendance-badge.is-absent{background:#c82935;color:#fff;border-color:#a10d20}
 .gt-reference-attendance-badge.is-unchecked{background:#e6edf8;color:#3b5678;border-color:#b2c6df}
 @media(max-width:650px){.gt-reference-attendance-grid{grid-template-columns:minmax(0,1fr)}.gt-reference-attendance-options button{font-size:15px!important}.gt-reference-attendance-title{font-size:15px}}
+
+
+/* Save confirmation and double-no-show in the interactive sandbox. */
+.gt-reference-save-feedback{position:sticky;top:8px;z-index:80;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border:3px solid #19813d;border-radius:14px;background:#d7f8df;color:#102d1a;font-size:15px;font-weight:800;box-shadow:0 5px 18px #0e512b2d;overflow-wrap:anywhere}
+.gt-reference-save-feedback button{flex-shrink:0;min-width:42px;min-height:42px;border:2px solid #19813d;border-radius:10px;color:#102d1a;background:#fff}
+.gt-reference-both-absent{width:100%;border:2px solid #a51c2e;border-radius:10px;background:#bf2434;color:white;font-size:14px;font-weight:800;padding:11px;text-align:center}
