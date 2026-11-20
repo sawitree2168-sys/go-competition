@@ -125,7 +125,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     {!ov?<div className="rounded-xl border border-[#bfd1eb] bg-white p-8 text-center" role={error?"alert":"status"}>{error||"กำลังโหลดข้อมูลสถาบัน…"}</div>:<div className="space-y-5">
       {view==="home"&&<Home ov={ov} records={filtered} track={tracking} apps={apps} filters={filters} go={go}/>}
       {view==="tracking"&&<Tracking ov={ov} track={tracking} filters={filters}/>}
-      {view==="teachers"&&<AcademyStaff academyId={academyId}/>}
+      {view==="teachers"&&<AcademyStaff academyId={academyId} students={ov.students.map(a=>({id:a.id,name:a.name}))}/>}
       {view==="students"&&<Students ov={ov} canEdit={access} reload={load} workspaceType={workspaceType}/>}
       {view==="awards"&&<Awards ov={ov} records={filtered} filters={filters}/>}
       {view==="stats"&&<Stats ov={ov} records={filtered} filters={filters}/>}
