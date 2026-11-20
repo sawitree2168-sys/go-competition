@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { themeBootScript } from "../tournaments/[id]/_ui/ThemeToggle";
 import "../tournaments/[id]/_ui/theme.css";
+import "./referee-design.css";
 
 
 export const metadata: Metadata = {
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RefereeLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="gt min-h-screen w-full" suppressHydrationWarning>
+    <div className="gt gt-referee-design min-h-screen w-full" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       <main className="w-full">{children}</main>
     </div>

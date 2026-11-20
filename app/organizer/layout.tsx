@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { themeBootScript } from "../tournaments/[id]/_ui/ThemeToggle";
 import "../tournaments/[id]/_ui/theme.css";
+import "./organizer-design.css";
 import { StaffProvider } from "./_lib/staff";
 import OrganizerBar from "./_lib/OrganizerBar";
 

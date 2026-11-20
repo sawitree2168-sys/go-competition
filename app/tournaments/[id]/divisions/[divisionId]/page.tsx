@@ -1,6 +1,7 @@
 import EventOrganizer from "@/components/EventOrganizer";
 import "./division-refresh.css";
 import "./division-premium.css";
+import "./division-design.css";
 import Link from "next/link";
 import { Header, Icon, Shell } from "../../_ui/chrome";
 import SiteBar from "../../_ui/SiteBar";

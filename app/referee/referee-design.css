@@ -1,0 +1,21 @@
+/* Referee visual-only skin. Keeps MineShortcut, result controls and access flow unchanged. */
+.gt-referee-design{--gt-referee-blue:#0a60c4;--gt-referee-gold:#d5a63a}
+.gt-referee-design>main>div>header{background:linear-gradient(120deg,#0b6ed3,#074da3)!important;border-bottom:4px solid #d5a63a;box-shadow:0 5px 18px #0b459333}
+.gt-referee-design>main>div>header summary{border:2px solid #e8bf5f!important;border-radius:12px;background:#0b61ba!important;color:#fff;min-width:0}
+.gt-referee-design>main>div>header summary:hover{background:#0751a5!important}
+.gt-referee-design .gt-card{border:2px solid #8eb7ec;border-bottom:4px solid #d5a63a;border-radius:17px;box-shadow:0 4px 14px #0953a41a}
+.gt-referee-design .gt-card h1,.gt-referee-design .gt-card h2{letter-spacing:-.02em}
+.gt-referee-design .gt-card [role="tablist"]{border:2px solid #d5a63a;border-radius:12px;background:var(--gt-surface);padding:3px}
+.gt-referee-design .gt-card [role="tablist"] button{border-bottom:3px solid transparent;min-width:0;font-weight:700}
+.gt-referee-design .gt-card [role="tablist"] button[aria-selected="true"]{background:var(--gt-cta-soft);border-bottom-color:#d5a63a;color:var(--gt-cta)}
+.gt-referee-design [aria-label="โต๊ะแข่งขัน"] ul li button[aria-current="true"]{border:2px solid #d5a63a!important;box-shadow:inset 4px 0 0 #d5a63a,0 3px 10px #0a50aa1b}
+.gt-referee-design [aria-label="โต๊ะแข่งขัน"] ul li button{border-width:2px;border-radius:12px;min-width:0}
+.gt-referee-design [aria-label="โต๊ะแข่งขัน"] ul li button:active{transform:scale(.99)}
+.gt-referee-design input,.gt-referee-design select,.gt-referee-design textarea{border-width:2px}
+.gt-referee-design .gt-cta-btn{background:#0864ce;border:2px solid #d5a63a;border-radius:12px;color:#fff;font-weight:700}
+.gt-referee-design .gt-cta-btn:active,.gt-referee-design .gt-gold-btn:active{filter:brightness(.88);transform:translateY(1px)}
+.gt-referee-design button:focus-visible,.gt-referee-design a:focus-visible{outline:3px solid #d5a63a;outline-offset:2px}
+.gt-referee-design [aria-label^="ขยายรูป"]{border:2px solid #d5a63a;border-radius:12px}
+.gt-referee-design [role="dialog"]{z-index:100}
+@media(max-width:420px){.gt-referee-design>main>div>header .max-w-6xl{padding-inline:10px;gap:7px}.gt-referee-design>main>div>header summary{padding-inline:8px;font-size:12px}.gt-referee-design [aria-label="โต๊ะแข่งขัน"] ul li button{padding-inline:8px;gap:6px}.gt-referee-design [aria-label="โต๊ะแข่งขัน"] ul li img{max-width:44px}.gt-referee-design .gt-card{border-radius:14px}}
+@media(prefers-reduced-motion:reduce){.gt-referee-design [aria-label="โต๊ะแข่งขัน"] ul li button:active{transform:none}}

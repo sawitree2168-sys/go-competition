@@ -1,0 +1,17 @@
+/* Public division: blue, gold and white — visual layer over existing functional exports. */
+.gt-division-main{--division-accent:#0c65ce;--division-gold:#d2a334}
+.gt-division-hero{border-bottom:5px solid #d2a334;box-shadow:0 5px 15px #0b4d9026}
+.gt-division-main .gt-card{border:2px solid #8db6e8;border-bottom:4px solid #d2a334;border-radius:17px;box-shadow:0 4px 15px #0b4d9014}
+.gt-division-main h2{color:var(--gt-ink);font-weight:750}
+.gt-division-main [role="tablist"]{border:2px solid #d2a334;border-radius:15px;background:var(--gt-surface);padding:5px;gap:5px}
+.gt-division-main [role="tablist"] button{min-width:0;min-height:45px;border:2px solid transparent;border-radius:10px;font-weight:700}
+.gt-division-main [role="tablist"] button[aria-selected="true"],.gt-division-main [role="tablist"] button[aria-current="page"]{border-color:#d2a334;background:#0965cf;color:#fff}
+.gt-division-main .gt-report-buttons button{min-height:50px;border:2px solid #d2a334;background:linear-gradient(120deg,#0a75d9,#0755b6);box-shadow:0 3px 0 #d2a33442;font-weight:700}
+.gt-division-main .gt-report-buttons button:active{transform:translateY(1px);filter:brightness(.92)}
+.gt-division-main .gt-report-table{border:2px solid #d2a334}
+.gt-division-main .gt-report-table th{background:#095ab8;color:#fff;border:1px solid #83b0e3}
+.gt-division-main .gt-report-table td{border:1px solid #bad0ed}
+.gt-division-main .gt-report-table tbody tr:nth-child(even){background:#edf5ff}
+.gt-division-main button:focus-visible,.gt-division-main a:focus-visible{outline:3px solid #d2a334;outline-offset:2px}
+.gt-division-main .gt-cta-btn{border:2px solid #d2a334}
+@media(max-width:420px){.gt-division-main .gt-report-buttons{display:grid;grid-template-columns:minmax(0,1fr);gap:7px}.gt-division-main .gt-report-buttons button{width:100%;font-size:14px;min-width:0}.gt-division-main [role="tablist"]{gap:3px;padding:4px}.gt-division-main [role="tablist"] button{font-size:12px;padding:8px 5px}.gt-division-main .gt-card{border-radius:13px}}
