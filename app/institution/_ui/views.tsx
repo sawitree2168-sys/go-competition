@@ -3,7 +3,7 @@
 import {LinkStudents} from "./AcademyPeople";
 import { DisplayModeToggle, useInstitutionDisplayMode } from "./DisplayMode";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
 import { RANK_OPTIONS } from "@/lib/competition-day.mjs";
 import { OUTCOME, achievements, amountDue, baht, portalError, studentReport, studentStats, totals } from "@/lib/institution-portal.mjs";
@@ -240,23 +240,39 @@ function AddStudent({ academyId, canEdit, reload }: { academyId: string; canEdit
 
 export function Tracking({ ov, track, filters }: { ov: Overview; track: Track[] } & F) {
   const [mode,setMode] = useInstitutionDisplayMode("tracking");
+  const [onlyMine,setOnlyMine] = useState(false);
+  const [myStudentIds,setMyStudentIds] = useState<string[]>([]);
+  useEffect(()=>{
+    let active=true;
+    void (async()=>{
+      const db=staffDb();if(!db)return;
+      const {data}=await db.rpc("gt_teacher_my_students_v1",{p_academy:ov.academy.id});
+      if(active)setMyStudentIds(data?.ok?(data.items??[]).map((x:{id:string})=>x.id):[]);
+    })();
+    return()=>{active=false;};
+  },[ov.academy.id]);
+  const visibleTrack=useMemo(()=>onlyMine?track.filter(t=>myStudentIds.includes(t.athlete_id)):track,[track,myStudentIds,onlyMine]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [selected, setSelected] = useState<string | null>(null);
-  const rows = useMemo(() => track.filter(t => {
+  const rows = useMemo(() => visibleTrack.filter(t => {
     const student = ov.students.find(s => s.id === t.athlete_id);
     const matches = `${student?.name ?? ""} ${student?.nickname ?? ""} ${t.title} ${t.division}`.toLowerCase().includes(query.trim().toLowerCase());
     return matches && (status === "all" || t.outcome === status);
-  }), [track, ov.students, query, status]);
-  const pending = track.filter(t => t.outcome === "pending").length;
-  const wins = track.filter(t => t.outcome === "win").length;
-  const names = new Set(track.map(t => t.athlete_id)).size;
+  }), [visibleTrack, ov.students, query, status]);
+  const pending = visibleTrack.filter(t => t.outcome === "pending").length;
+  const wins = visibleTrack.filter(t => t.outcome === "win").length;
+  const names = new Set(visibleTrack.map(t => t.athlete_id)).size;
   const chosen = rows.find(t => `${t.athlete_id}:${t.tournament_id}` === selected) ?? rows[0];
   const athlete = ov.students.find(s => s.id === chosen?.athlete_id);
   return (
     <div className="space-y-4">
       <SectionTitle right={filters}>{ov.academy.name} · ติดตามนักกีฬา</SectionTitle>
       <p className="text-sm text-[var(--gt-muted)]">ติดตามนักกีฬาในสังกัดทั้งหมดด้วยข้อมูลเดียวกับ GO FAN · เลือกรายชื่อเพื่อเปิดผลจับคู่ ผลการแข่งขัน และตารางอันดับจริง</p>
+      <div role="group" aria-label="เลือกนักกีฬาที่ต้องการติดตาม" className="inline-flex flex-wrap gap-2 rounded-xl border-2 border-[#b9cfea] bg-white p-2 text-sm font-bold">
+        <button type="button" aria-pressed={!onlyMine} onClick={()=>setOnlyMine(false)} className={`rounded-lg px-4 py-2 ${!onlyMine?"bg-[#0a5fbd] text-white":"bg-[#f2f7ff] text-[#164c88]"}`}>นักกีฬาทั้งสถาบัน</button>
+        <button type="button" aria-pressed={onlyMine} onClick={()=>setOnlyMine(true)} className={`rounded-lg px-4 py-2 ${onlyMine?"bg-[#0a5fbd] text-white":"bg-[#f2f7ff] text-[#164c88]"}`}>นักเรียนที่ฉันสอน ({myStudentIds.length})</button>
+      </div>
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {[["นักกีฬาในรายการ", names], ["รอผลแข่งขัน", pending], ["ผลชนะล่าสุด", wins]].map(([label, value]) => (
           <div key={String(label)} className="gt-card rounded-2xl border-2 border-[var(--gt-line)] p-3 text-center sm:p-5">
