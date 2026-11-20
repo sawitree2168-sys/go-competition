@@ -38,7 +38,7 @@ export default function Join({ onJoined, onCancel }: { admin: boolean; onJoined:
         setError(reason);return;
       }
       if(data.status==="pending"){
-        setMessage(`บันทึกคำขอเข้าร่วม “${selected}” แล้ว · เจ้าของสถาบันสามารถอนุมัติครูได้จากหน้าของตนเอง ไม่ต้องส่งเรื่องให้ผู้ดูแลเว็บไซต์ · ไม่ต้องสมัครซ้ำ`);
+        setMessage(`ส่งคำขอเข้าร่วม “${selected}” สำเร็จแล้ว · ไม่ต้องกดสมัครซ้ำ หากสถาบันมีเจ้าของที่ยืนยันแล้ว เจ้าของสามารถอนุมัติครูได้เอง ส่วนชื่อสถาบันเดิมที่ยังไม่มีเจ้าของยืนยันจะต้องตรวจสอบสิทธิ์ก่อน`);
         return;
       }
       setMessage("เปิดหน้าสถาบันเรียบร้อยแล้ว");
@@ -53,6 +53,20 @@ export default function Join({ onJoined, onCancel }: { admin: boolean; onJoined:
         <h1 className="mt-1 text-2xl font-bold">เลือกสถาบันของคุณ</h1>
         <p className="mt-2 text-sm">เลือกชื่อเดิมหรือเพิ่มสถาบันใหม่ เพียงครั้งเดียว</p>
       </div>
+      <section aria-label="คำแนะนำสำหรับผู้สมัครใหม่" className="space-y-3 rounded-xl border-2 border-[#bed5ef] bg-[#f3f8ff] p-4">
+        <h2 className="text-lg font-bold text-[#0e478f]">เริ่มใช้งานอย่างไร?</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-[#c5d8f2] bg-white p-3">
+            <p className="font-bold text-[#125ab0]">👩‍🏫 ฉันเป็นครูในสถาบัน</p>
+            <p className="mt-1 text-sm text-[#355473]">เลือกชื่อสถาบันที่สอนอยู่ แล้วกดส่งคำขอ เจ้าของสถาบันจะอนุมัติให้ครั้งเดียว ไม่ต้องใช้รหัสผ่านของเจ้าของ</p>
+          </div>
+          <div className="rounded-xl border border-[#e6ce90] bg-white p-3">
+            <p className="font-bold text-[#82570a]">🏫 ฉันเป็นเจ้าของสถาบัน</p>
+            <p className="mt-1 text-sm text-[#355473]">หากเป็นสถาบันใหม่ที่ยังไม่มีชื่อในระบบ สามารถสร้างสถาบันได้เอง ส่วนสถาบันที่มีชื่ออยู่แล้วต้องตรวจสอบสิทธิ์เจ้าของก่อน</p>
+          </div>
+        </div>
+        <p className="text-xs text-[#4b6079]">หลังได้รับสิทธิ์แล้ว ใช้บัญชีของตนเองเข้าสู่ระบบเพื่อดูนักกีฬา ติดตามผล และสมัครแข่งขันได้ ไม่ต้องสมัครใหม่ทุกครั้ง</p>
+      </section>
       <label htmlFor="institute-search" className="block font-bold">ชื่อสถาบัน
        <input id="institute-search" type="search" value={q} onChange={e=>{setQ(e.target.value);setSelected("");setMessage("");}} className={`${inputCls} mt-2 border-2 border-[#b7cdeb]`} placeholder="พิมพ์ชื่อสถาบัน เช่น GO MASTER" autoComplete="off"/>
       </label>
@@ -70,7 +84,7 @@ export default function Join({ onJoined, onCancel }: { admin: boolean; onJoined:
         </>}
       </div>
       <p className="rounded-xl bg-[#edf5ff] p-3 text-sm text-[#345778]">{isExisting?
-        "สถาบันนี้มีบัญชีแล้ว ระบบส่งคำขอให้เจ้าของสถาบันพิจารณาเอง":
+        "สถาบันนี้มีบัญชีแล้ว หากคุณเป็นครู ระบบจะส่งคำขอให้เจ้าของสถาบันอนุมัติ ไม่ต้องใช้รหัสผ่านของเจ้าของ":
         knownName ? "ชื่อนี้มีในผลการแข่งขันเดิมแล้ว หากยังไม่มีเจ้าของที่ยืนยันสิทธิ์ ระบบจะบันทึกคำขอไว้ก่อนเพื่อป้องกันการแอบอ้าง" :
         "สถาบันใหม่: ระบบสร้างบัญชีเจ้าของให้ผู้สมัครที่ยืนยันบัญชีแล้วโดยอัตโนมัติ ไม่ต้องให้แอดมินออกบัญชี"}</p>
       {message&&<div role="status" aria-live="polite" className="rounded-xl border-2 border-[#81c5a5] bg-[#effaf4] p-4 text-[#1a6039]"><b>✓ บันทึกสำเร็จ</b><p className="mt-1 text-sm">{message}</p></div>}
