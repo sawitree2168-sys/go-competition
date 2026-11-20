@@ -9,6 +9,7 @@ import { Home, Students, Tracking, Awards, Stats, Reports } from "./views";
 import Apply from "./Apply";
 import Join from "./Join";
 import StaffUsername from "./StaffUsername";
+import InstituteLogin from "./InstituteLogin";
 import { AcademyStaff } from "./AcademyPeople";
 
 type Mine = { id: string; name: string; role: "manager" | "teacher"; status: "active" | "pending" };
@@ -48,12 +49,7 @@ export default function Portal(){
     </header>
     <main className="mx-auto max-w-7xl px-4 py-6 sm:py-9">
       {state.mode==="loading"&&<p role="status" className="rounded-2xl border border-[#bfd1eb] bg-white p-10 text-center">กำลังเปิดหน้าสถาบัน…</p>}
-      {state.mode==="out"&&<div className="mx-auto max-w-xl rounded-2xl border-2 border-[#b9d0f1] bg-white p-6 text-center shadow-sm sm:p-10">
-        <h1 className="text-3xl font-bold">สำหรับสถาบันหมากล้อม</h1>
-        <p className="my-4 text-base text-[#426087]">ติดตามผลนักกีฬาทั้งสถาบัน ดูสถิติ และสมัครแข่งขันในที่เดียว</p>
-        <Link href="/login?next=/institution" className="gt-cta-btn inline-flex min-h-12 w-full items-center justify-center text-lg">เข้าสู่ระบบสถาบัน</Link>
-        <p className="mt-3 text-sm">มีบัญชีแล้ว ไม่ต้องสมัครใหม่</p>
-      </div>}
+      {state.mode==="out"&&<InstituteLogin onSuccess={loadMine}/>}
       {(state.mode==="none"||joining)&&<div>
         <Join admin={state.admin} onCancel={joining?()=>setJoining(false):undefined} onJoined={async id=>{setJoining(false);setAcademyId(id);await loadMine();}}/>
       </div>}
