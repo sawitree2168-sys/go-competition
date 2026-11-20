@@ -128,6 +128,12 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   const rows=games.filter(m=>m.round_number===round);
   const filtered=rows.filter(m=>[String(m.board_number),personMap[m.black_athlete_id].name,personMap[m.white_athlete_id].name].join(" ").toLocaleLowerCase("th").includes(search.toLocaleLowerCase("th")));
   const done=rows.filter(m=>m.state==="verified").length;
+  const absentPlayers=rows.flatMap(g=>(["black","white"] as const).filter(side=>statusOf(g,side)==="absent").map(side=>({
+    key:`${g.id}-${side}`,
+    board:g.board_number,
+    side:side==="black"?"ดำ":"ขาว",
+    name:personMap[side==="black"?g.black_athlete_id:g.white_athlete_id].name
+  })));
   const checked=rows.filter(m=>m.table_status!=="waiting").length;
   const allDone=rows.length>0&&done===rows.length;
   const progress=Math.round(done/Math.max(1,rows.length)*100);
@@ -136,6 +142,18 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   const photo=(id:string)=>showPhotos&&<AthleteAvatar src={personMap[id].photo} name={personMap[id].name} zoom variant="portrait" className="gt-reference-athlete-photo h-[76px] w-[70px] sm:h-[94px] sm:w-[84px]"/>;
   const person=(id:string,color:"black"|"white")=><div className="gt-reference-person flex min-w-0 items-center gap-3">
     {photo(id)}<span className="min-w-0"><span className="mb-1 flex items-center gap-1 text-xs font-semibold text-[#385577]"><span className={`h-4 w-4 shrink-0 rounded-full border ${color==="black"?"bg-[#101b2e] border-[#101b2e]":"bg-white border-[#7a92b2]"}`}/>{color==="black"?"หมากดำ":"หมากขาว"}</span><strong className="gt-reference-person-name block text-base text-[#102d58] [overflow-wrap:anywhere]">{personMap[id].name}</strong><small className="gt-reference-person-meta block text-sm text-[#536f93]">{personMap[id].rank} · {personMap[id].institution}</small></span>
+  </div>;
+  // Attendance is informational for ALL three views. Never equate "not arrived"
+  // with an automatic forfeiture; the referee/admin must decide that separately.
+  const attendanceDisplay=(g:Game)=><div className="gt-reference-attendance-readonly" aria-label={`สถานะเช็กชื่อโต๊ะ ${g.board_number}`}>
+    {(["black","white"] as const).map(side=>{
+      const state=statusOf(g,side);
+      const name=personMap[side==="black"?g.black_athlete_id:g.white_athlete_id].name;
+      return <div key={side} className="gt-reference-attendance-readonly-person">
+        <span className="gt-reference-attendance-readonly-name">{side==="black"?"● ดำ":"○ ขาว"} · {name}</span>
+        <span className={`gt-reference-attendance-badge ${state==="present"?"is-present":state==="absent"?"is-absent":"is-unchecked"}`}>{state==="present"?"✓ มาแล้ว":state==="absent"?"✕ ไม่มา":"ยังไม่เช็กชื่อ"}</span>
+      </div>;
+    })}
   </div>;
   const controls=(g:Game)=><div className="gt-reference-actions">
     {(g.table_status==="waiting"||g.table_status==="checked")&&<div className="gt-reference-attendance-grid">
@@ -151,14 +169,16 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
       <strong className="text-lg text-[#0a418a]">โต๊ะ {g.board_number}</strong><span className={`rounded-full border px-3 py-1 text-xs font-semibold ${stateStyle(g)}`}>{label(g)}</span>
     </header>
     <div className="gt-reference-two-players grid grid-cols-1 gap-3 p-3 sm:grid-cols-2">{person(g.black_athlete_id,"black")}{person(g.white_athlete_id,"white")}</div>
+    {attendanceDisplay(g)}
     {actions&&view!=="public"&&<div className="border-t border-[#e2ecfa] p-3">{controls(g)}</div>}
   </article>;
   const table=<div className="gt-reference-table">
     <div className="gt-reference-mobile-table">{filtered.map(g=><div className="gt-reference-mobile-record" key={g.id}>
       <button type="button" className="gt-reference-mobile-row" onClick={()=>setFull(true)}><strong>โต๊ะ {g.board_number}</strong><span><b>ดำ</b> {personMap[g.black_athlete_id].name}<small>ขาว {personMap[g.white_athlete_id].name}</small></span><span>{label(g)}<small>⛶ เต็มจอ</small></span></button>
+      {attendanceDisplay(g)}
       {view!=="public"&&<div className="p-2">{controls(g)}</div>}
     </div>)}</div>
-    <div className="gt-reference-desktop-table"><table><thead><tr><th>โต๊ะ</th><th>ฝ่ายดำ</th><th>ฝ่ายขาว</th><th>ผลการแข่งขัน</th></tr></thead><tbody>{filtered.map(g=><tr key={g.id}><td>โต๊ะ {g.board_number}</td><td>{person(g.black_athlete_id,"black")}</td><td>{person(g.white_athlete_id,"white")}</td><td><p>{label(g)}</p>{view!=="public"&&controls(g)}</td></tr>)}</tbody></table></div>
+    <div className="gt-reference-desktop-table"><table><thead><tr><th>โต๊ะ</th><th>ฝ่ายดำ</th><th>ฝ่ายขาว</th><th>ผลการแข่งขัน</th></tr></thead><tbody>{filtered.map(g=><tr key={g.id}><td>โต๊ะ {g.board_number}</td><td>{person(g.black_athlete_id,"black")}</td><td>{person(g.white_athlete_id,"white")}</td><td><p>{label(g)}</p>{attendanceDisplay(g)}{view!=="public"&&controls(g)}</td></tr>)}</tbody></table></div>
   </div>;
   const activeGame=games.find(g=>g.id===editing);
   return <div className="gt-reference-day min-h-screen pb-16 text-[#102d58]">
@@ -180,6 +200,13 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
       <div className="gt-reference-metrics grid grid-cols-2 gap-2 sm:grid-cols-4">{[
         ["รอบแข่งขัน",`${round} / 5`],["โต๊ะทั้งหมด",String(rows.length)],["เช็กชื่อครบทั้งคู่",`${rows.filter(g=>statusOf(g,"black")==="present"&&statusOf(g,"white")==="present").length} / ${rows.length}`],["ลงผลแล้ว",`${done} / ${rows.length}`]
       ].map(([k,v])=><div key={k} className="rounded-xl border-2 border-[#81b0e6] border-b-[4px] border-b-[#d6a43a] bg-white p-3"><small className="text-[#57769a]">{k}</small><strong className="mt-1 block text-2xl text-[#0958b4]">{v}</strong></div>)}</div>
+      {absentPlayers.length>0&&<section className="gt-reference-absence-notice" role="status" aria-live="polite">
+        <h2>แจ้งเตือนนักกีฬายังไม่มา · {absentPlayers.length} คน (รอบ {round})</h2>
+        <p>สถานะเช็กชื่อจากการจำลอง ยังไม่ใช่ผลแพ้ชนะ และเปลี่ยนเป็น “มาแล้ว” ได้ก่อนเริ่มเกม</p>
+        <div className="gt-reference-absence-list">
+          {absentPlayers.map(p=><span key={p.key} className="gt-reference-absence-tag">โต๊ะ {p.board} · {p.side} · {p.name} · ไม่มา</span>)}
+        </div>
+      </section>}
       <div className="gt-reference-panel grid grid-cols-1 gap-3 p-4 sm:grid-cols-[1fr_auto]">
         <div><strong>ความคืบหน้ารอบ {round}: {progress}%</strong><div className="mt-2 h-4 overflow-hidden rounded-full bg-[#dceaff]"><div className="h-full rounded-full bg-[#d6a43a] transition-all" style={{width:`${progress}%`}}/></div><p className="mt-1 text-xs text-[#647c9f]">ข้อมูลเปลี่ยนเมื่อกดลงผลหรือเปิดจำลองอัตโนมัติ</p></div>
         <div className="flex flex-wrap items-center gap-2">
