@@ -1,5 +1,6 @@
 import EventOrganizer from "@/components/EventOrganizer";
 import Link from "next/link";
+import { EVENT_BANNERS } from "@/lib/event-banners";
 import { Header, Icon, Shell } from "./_ui/chrome";
 import SiteBar from "./_ui/SiteBar";
 import ShareButton from "./_ui/ShareButton";
@@ -62,6 +63,7 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
 
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date());
   const win = registrationWindow(event.registration_open_date, event.registration_close_date, today);
+  const banner = EVENT_BANNERS[id];
   const rows: SeatRow[] = divisions.map((d) => {
     const count = entrants.filter((e) => divisionKey(e.division_name) === divisionKey(d.name)).length;
     const s = seatStatus(count, d.seats_limit);
@@ -101,15 +103,15 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
           </ul>
         </nav>
 
-        {/* Hero: same dark photo in both themes */}
-        <section className="relative overflow-hidden bg-[#061537] text-white">
-          <picture>
-            <source media="(min-width: 768px)" srcSet="/event-hero-approved.png" />
-            <img src="/event-hero-approved.png" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center" />
-          </picture>
-          {/* Approved background already provides a dark text-safe area. No overlay/filter. */}
-          <div className="relative mx-auto max-w-6xl px-4 pb-7 pt-6 sm:px-6 sm:pb-10 sm:pt-10">
-            <div className="flex items-start justify-between gap-3">
+        {banner ? (
+          /* Event's own banner: shown whole (its artwork already has the title), details underneath */
+          <section className="bg-[#061537] text-white">
+            <picture>
+              <source media="(min-width: 768px)" srcSet={banner.src} />
+              <img src={banner.mobile} alt={event.title} width={banner.width} height={banner.height} className="block h-auto w-full" />
+            </picture>
+            <div className="mx-auto max-w-6xl px-4 pb-6 pt-4 sm:px-6 sm:pb-8 sm:pt-5">
+              <div className="flex items-start justify-between gap-3">
               <p className="flex items-center gap-3 pt-1 text-xs font-bold tracking-[.18em] text-[#e9c46a] sm:text-sm">THAI GO TOURNAMENT<span aria-hidden="true" className="h-px w-10 bg-current sm:w-16" /></p>
               <span className="flex shrink-0 items-center gap-2">
                 <span className={`rounded-full px-3.5 py-1 text-sm font-bold ${win.tone === "open" ? "bg-[#c9f2cf] text-[#126b2c]" : win.tone === "soon" ? "bg-[#dbe8ff] text-[#1550b0]" : "bg-white/20 text-white"}`}>
@@ -118,22 +120,56 @@ export default async function TournamentDetail({ params }: { params: Promise<{ i
                 <span className="hidden sm:block [&_button]:border-white/40 [&_button]:bg-white/10 [&_button]:text-white"><ShareButton title={event.title} /></span>
               </span>
             </div>
-            <h1 className="mt-3 max-w-[78%] text-[34px] font-extrabold leading-[1.08] tracking-tight sm:max-w-[60%] sm:text-5xl lg:text-6xl">{event.title}</h1>
-            <EventOrganizer title={event.title} onDark />
-            <span aria-hidden="true" className="mt-4 block h-[3px] w-40 rounded-full bg-[#e9c46a] sm:w-52" />
-            <p className="mt-4 flex items-center gap-3 text-lg sm:text-xl"><Icon name="calendar" className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />{weekdayDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
-            <p className="mt-2 flex items-center gap-3 text-lg text-[#b9cdf3] sm:text-xl"><Icon name="pin" className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />{event.venue ?? "สถานที่รอยืนยัน"}</p>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <span className="inline-flex min-h-12 items-center gap-3 rounded-xl bg-white px-4 text-base font-semibold text-[#0b1f45] shadow-lg sm:text-lg">
-                <Icon name="calendar" className="h-6 w-6 text-[#1f9a4b]" /><span aria-hidden="true" className="h-6 w-px bg-[#cfd8e6]" />
-                {win.text}{win.date ? ` ${thaiShort(win.date)}` : ""}
-              </span>
-              {win.tone !== "closed" && event.registration_mode !== "closed" && (
-                <Link href={`/tournaments/${id}/register`} className="gt-cta-btn hidden min-h-12 items-center gap-2 px-6 text-lg md:inline-flex">สมัครแข่งขัน <Icon name="chevron" className="h-4 w-4" /></Link>
-              )}
+              <h1 className="sr-only">{event.title}</h1>
+              <EventOrganizer title={event.title} onDark />
+              <p className="mt-4 flex items-center gap-3 text-lg sm:text-xl"><Icon name="calendar" className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />{weekdayDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
+              <p className="mt-2 flex items-center gap-3 text-lg text-[#b9cdf3] sm:text-xl"><Icon name="pin" className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />{event.venue ?? "สถานที่รอยืนยัน"}</p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <span className="inline-flex min-h-12 items-center gap-3 rounded-xl bg-white px-4 text-base font-semibold text-[#0b1f45] shadow-lg sm:text-lg">
+                  <Icon name="calendar" className="h-6 w-6 text-[#1f9a4b]" /><span aria-hidden="true" className="h-6 w-px bg-[#cfd8e6]" />
+                  {win.text}{win.date ? ` ${thaiShort(win.date)}` : ""}
+                </span>
+                {win.tone !== "closed" && event.registration_mode !== "closed" && (
+                  <Link href={`/tournaments/${id}/register`} className="gt-cta-btn hidden min-h-12 items-center gap-2 px-6 text-lg md:inline-flex">สมัครแข่งขัน <Icon name="chevron" className="h-4 w-4" /></Link>
+                )}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        ) : (
+          /* Hero: same dark photo in both themes */
+          <section className="relative overflow-hidden bg-[#061537] text-white">
+            <picture>
+              <source media="(min-width: 768px)" srcSet="/event-hero-approved.png" />
+              <img src="/event-hero-approved.png" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center" />
+            </picture>
+            {/* Approved background already provides a dark text-safe area. No overlay/filter. */}
+            <div className="relative mx-auto max-w-6xl px-4 pb-7 pt-6 sm:px-6 sm:pb-10 sm:pt-10">
+              <div className="flex items-start justify-between gap-3">
+                <p className="flex items-center gap-3 pt-1 text-xs font-bold tracking-[.18em] text-[#e9c46a] sm:text-sm">THAI GO TOURNAMENT<span aria-hidden="true" className="h-px w-10 bg-current sm:w-16" /></p>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className={`rounded-full px-3.5 py-1 text-sm font-bold ${win.tone === "open" ? "bg-[#c9f2cf] text-[#126b2c]" : win.tone === "soon" ? "bg-[#dbe8ff] text-[#1550b0]" : "bg-white/20 text-white"}`}>
+                    {win.tone === "open" ? "เปิดรับสมัคร" : win.tone === "soon" ? "รอเปิดรับสมัคร" : "ปิดรับสมัครแล้ว"}
+                  </span>
+                  <span className="hidden sm:block [&_button]:border-white/40 [&_button]:bg-white/10 [&_button]:text-white"><ShareButton title={event.title} /></span>
+                </span>
+              </div>
+              <h1 className="mt-3 max-w-[78%] text-[34px] font-extrabold leading-[1.08] tracking-tight sm:max-w-[60%] sm:text-5xl lg:text-6xl">{event.title}</h1>
+              <EventOrganizer title={event.title} onDark />
+              <span aria-hidden="true" className="mt-4 block h-[3px] w-40 rounded-full bg-[#e9c46a] sm:w-52" />
+              <p className="mt-4 flex items-center gap-3 text-lg sm:text-xl"><Icon name="calendar" className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />{weekdayDate(event.event_date) ?? "รอประกาศวันแข่งขัน"}</p>
+              <p className="mt-2 flex items-center gap-3 text-lg text-[#b9cdf3] sm:text-xl"><Icon name="pin" className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />{event.venue ?? "สถานที่รอยืนยัน"}</p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <span className="inline-flex min-h-12 items-center gap-3 rounded-xl bg-white px-4 text-base font-semibold text-[#0b1f45] shadow-lg sm:text-lg">
+                  <Icon name="calendar" className="h-6 w-6 text-[#1f9a4b]" /><span aria-hidden="true" className="h-6 w-px bg-[#cfd8e6]" />
+                  {win.text}{win.date ? ` ${thaiShort(win.date)}` : ""}
+                </span>
+                {win.tone !== "closed" && event.registration_mode !== "closed" && (
+                  <Link href={`/tournaments/${id}/register`} className="gt-cta-btn hidden min-h-12 items-center gap-2 px-6 text-lg md:inline-flex">สมัครแข่งขัน <Icon name="chevron" className="h-4 w-4" /></Link>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
 
         <main className="relative mx-auto max-w-6xl px-3 sm:px-4">
           {/* Totals */}
