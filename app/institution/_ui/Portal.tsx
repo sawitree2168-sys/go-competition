@@ -10,6 +10,7 @@ import { BoardLogo, Deco, ICONS, MENU, selectCls, type Application, type Overvie
 import Join from "./Join";
 import { Home, Students, Tracking, Awards, Stats, Reports } from "./views";
 import Apply from "./Apply";
+import StaffUsername from "./StaffUsername";
 
 type Mine = { id: string; name: string; role: "manager" | "teacher"; status: "active" | "pending" };
 type State =
@@ -239,6 +240,7 @@ function Workspace({ academyId, mine, onPick, onJoin }: { academyId: string; min
 
         <Hero compact={view !== "home"} name={name} />
         {view === "home" && <AcademyStaff academyId={academyId}/> }
+        {view === "home" && canEdit && <StaffUsername role={me?.role ?? "teacher"} /> }
 
         {ov?.access === "pending" && (
           <p role="status" className="rounded-2xl border border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-4 py-3 text-sm text-[var(--gt-gold-ink)]">
