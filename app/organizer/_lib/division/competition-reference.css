@@ -70,3 +70,47 @@
  .gt-reference-modal-card>header{font-size:14px}
 }
 @media(prefers-reduced-motion:reduce){.gt-reference-day button,.gt-reference-modal button{transition:none}}
+
+
+/* Saved reference UI alignment: banner, navigation, spacious mobile athlete cards. */
+.gt-reference-title-wrap{padding-block:10px 6px}
+.gt-reference-event-title{font-family:Georgia,"Times New Roman",serif;font-size:clamp(25px,3.8vw,44px)!important;font-style:italic;color:#ffdf91!important;letter-spacing:.02em;text-shadow:1px 1px #703a0a,0 2px 3px #000,0 0 8px #ffe29a80!important}
+.gt-reference-event-subtitle{color:#fff;font-weight:700;font-size:clamp(12px,1.65vw,17px)}
+.gt-reference-main-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:8px;border:3px solid #c7922c;border-radius:17px;background:linear-gradient(#0c4da3,#041b58);box-shadow:inset 0 2px 2px #bbd6fa,0 4px 12px #071c5740}
+.gt-reference-main-nav button{min-width:0;min-height:56px;padding:9px 4px;border:2px solid #91b5e2;border-radius:12px;color:#fff;font-size:clamp(12px,1.5vw,16px);font-weight:800;text-align:center;background:linear-gradient(#12519a,#051e58)}
+.gt-reference-main-nav button[aria-pressed=true]{background:linear-gradient(#fff4c6,#ffd75a 51%,#d99b20)!important;border-color:#b78018!important;color:#09285f!important;box-shadow:inset 0 2px 2px #fff,0 3px 0 #99651a!important}
+.gt-reference-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.gt-reference-match-card{min-width:0}
+.gt-reference-two-players{gap:12px}
+.gt-reference-person{min-width:0;align-items:center}
+.gt-reference-person-name{font-size:17px;font-weight:800;line-height:1.4}
+.gt-reference-person-meta{font-size:13px;line-height:1.4}
+.gt-reference-person [data-athlete-photo=true]{flex-shrink:0}
+.gt-reference-athlete-photo{border:2px solid #bc9033;border-radius:10px;box-shadow:0 3px 5px #07346a35}
+.gt-reference-day .gt-reference-metrics>div{padding:14px 12px}
+.gt-reference-day .gt-reference-board-section{max-width:100%}
+@media(max-width:1100px){
+ .gt-reference-card-grid{grid-template-columns:minmax(0,1fr)!important}
+ .gt-reference-match-card{width:100%}
+ .gt-reference-person-name{font-size:clamp(16px,2vw,19px)}
+ .gt-reference-two-players{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .gt-reference-main{max-width:100%;width:100%;padding-inline:12px}
+}
+@media(max-width:600px){
+ .gt-reference-card-grid{grid-template-columns:minmax(0,1fr)!important}
+ .gt-reference-main{padding-inline:10px}
+ .gt-reference-main-nav{padding:5px;gap:5px}
+ .gt-reference-main-nav button{min-height:55px;font-size:12px;line-height:1.25}
+ .gt-reference-event-title{font-size:clamp(24px,7vw,32px)!important}
+ .gt-reference-two-players{grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:11px!important;gap:8px}
+ .gt-reference-person{flex-direction:column;align-items:center;text-align:center;gap:7px}
+ .gt-reference-athlete-photo{height:82px!important;width:76px!important}
+ .gt-reference-person-name{font-size:15px;line-height:1.3}
+ .gt-reference-person-meta{font-size:12px}
+ .gt-reference-match-card header{padding:12px!important}
+ .gt-reference-match-card header strong{font-size:19px}
+ .gt-reference-actions button{min-height:48px;font-size:15px}
+ .gt-reference-metrics strong{font-size:24px}
+ .gt-reference-day .gt-reference-panel{padding:12px}
+}
+@media(max-width:390px){.gt-reference-person-name{font-size:14px}.gt-reference-athlete-photo{width:65px!important;height:73px!important}.gt-reference-main-nav button{font-size:11px}}
