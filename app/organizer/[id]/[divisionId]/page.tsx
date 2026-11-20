@@ -47,7 +47,7 @@ function Console({ eventId, divisionId }: { eventId: string; divisionId: string 
           <button key={k} role="tab" type="button" aria-selected={current === k} onClick={() => setTab(k)} className="min-h-11 rounded-xl px-2 text-sm font-semibold">{label}</button>
         ))}
       </div>
-      {data.regs.length === 0 && <PreparedRoster eventId={eventId} divisionName={data.division.name} />}
+      {data.regs.length === 0 && <PreparedRoster eventId={eventId} divisionId={divisionId} divisionName={data.division.name} />}
       {current === "monitor" && data.regs.length > 0 && <Monitor data={data} onResults={()=>setTab("rounds")}/>}
       {current === "entrants" && <section className="gt-card overflow-x-auto"><table><thead><tr><th>#</th><th>นักกีฬา</th><th>สถาบัน</th><th>ระดับ</th></tr></thead><tbody>{data.regs.map((r,i)=><tr key={r.athlete_id}><td>{i+1}</td><td>{r.gt_athletes?.full_name}</td><td>{r.display_institution||r.gt_athletes?.school_name}</td><td>{r.competition_rank_reference||r.gt_athletes?.current_rank}</td></tr>)}</tbody></table></section>}
       {current === "pools" && <PoolsPanel data={data} reload={reload} />}
