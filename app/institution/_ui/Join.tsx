@@ -24,7 +24,7 @@ export default function Join({ onJoined, onCancel }: { admin: boolean; onJoined:
   },[q]);
   const typed=q.trim().replace(/\s+/g," ");
   const existing=list?.find(a=>a.name.toLocaleLowerCase()===typed.toLocaleLowerCase());
-  const isExisting=Boolean(list?.some(a=>a.name===selected));
+  const isExisting=Boolean(list?.find(a=>a.name===selected)?.academy_id);
   const join=async(e:React.FormEvent)=>{
     e.preventDefault();
     if(!selected||busy||message)return;
