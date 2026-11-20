@@ -11,6 +11,7 @@ import { DEFAULT_AVATAR } from "../../tournaments/[id]/_ui/MatchCard";
 import { resultLabel, staffErrorMessage } from "@/lib/competition-day.mjs";
 import { METHODS, buildResult, formFromResult, needsWinner, summaryLine } from "@/lib/referee-result.mjs";
 import { divisionLabel, divisionSortValue } from "@/lib/division-display";
+import { staffDb } from "@/app/organizer/_lib/staff";
 
 type Side = { id: string; name: string | null; institution: string | null; rank?: string | null; photo?: string | null; score?: number; checked_in: boolean };
 type Table = {
@@ -139,7 +140,8 @@ function CodeForm({ busy, error, onSubmit }: { busy: boolean; error: string; onS
     <div className="relative mx-auto mt-6 max-w-md">
       <form onSubmit={(e) => { e.preventDefault(); if (/^\d{6}$/.test(value)) onSubmit(value); }} className="gt-card relative z-10 space-y-4 p-6 text-center">
         <h1 className="text-2xl font-bold">หน้ากรรมการ</h1>
-        <p className="text-sm text-[var(--gt-muted)]">ใส่รหัส 6 หลัก ที่ผู้จัดส่งมาพร้อมลิงก์</p>
+        <MineShortcut />
+        <p className="text-sm text-[var(--gt-muted)]">กรรมการแบบลิงก์: ใส่รหัส 6 หลัก ที่ผู้จัดส่งมาพร้อมลิงก์ (ไม่ใช่รหัสผ่านเข้าระบบ)</p>
         <input value={value} onChange={(e) => setValue(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code"
           aria-label="รหัส 6 หลัก" placeholder="••••••" autoFocus
           className="gt-num min-h-16 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface-2)] text-center text-3xl tracking-[0.4em]" />
@@ -481,5 +483,50 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
           </div>
         </div>, portalTarget())}
     </section>
+  );
+}
+
+/**
+ * Referees with an account (chosen by the organiser for an event) never type a 6-digit code:
+ * if this browser is signed in, show their events and open the console directly.
+ */
+function MineShortcut() {
+  const [events, setEvents] = useState<{ access_id: string; title: string }[] | null>(null);
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  useEffect(() => {
+    const d = staffDb();
+    if (!d) return;
+    d.auth.getSession().then(async ({ data }) => {
+      if (!data.session) { setEvents([]); return; }
+      const { data: access } = await d.rpc("gt_my_access_v1");
+      setEvents((access?.referee ?? []) as { access_id: string; title: string }[]);
+    });
+  }, []);
+  const go = async (id: string) => {
+    setBusy(id); setError("");
+    const { data, error: e } = await staffDb()!.rpc("gt_referee_open_mine_v1", { p_access: id });
+    if (e || !data?.token) { setBusy(""); setError("เปิดไม่สำเร็จ กรุณาลองใหม่"); return; }
+    saveCode(data.token, data.code);
+    window.location.assign(`/referee/${encodeURIComponent(data.token)}`);
+  };
+  if (events === null) return null;
+  if (!events.length) {
+    return (
+      <p className="rounded-xl bg-[var(--gt-cta-soft)] p-3 text-sm">
+        กรรมการที่มีบัญชี: <a href="/login?next=/account" className="font-semibold text-[var(--gt-cta)] underline">เข้าสู่ระบบ</a> ด้วยเลขดั้ง / ชื่อ + รหัสผ่าน แล้วกด “เปิดหน้ากรรมการ” ในหน้าบัญชีของฉัน
+      </p>
+    );
+  }
+  return (
+    <div className="space-y-2 rounded-xl border-2 border-[var(--gt-cta)] p-3 text-left">
+      <p className="text-sm font-semibold">คุณเป็นกรรมการของงาน (ไม่ต้องใส่รหัส):</p>
+      {events.map((e) => (
+        <button key={e.access_id} type="button" onClick={() => go(e.access_id)} disabled={!!busy} className="gt-cta-btn min-h-12 w-full disabled:opacity-60">
+          {busy === e.access_id ? "กำลังเปิด…" : `เปิดหน้ากรรมการ · ${e.title}`}
+        </button>
+      ))}
+      {error && <p role="alert" className="text-sm text-[var(--gt-bad)]">{error}</p>}
+    </div>
   );
 }
