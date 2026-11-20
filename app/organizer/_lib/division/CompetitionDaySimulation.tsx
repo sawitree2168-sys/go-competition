@@ -69,9 +69,27 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   },[storageKey]);
   useEffect(()=>{
     if(!restored)return;
-    try{window.localStorage.setItem(storageKey,JSON.stringify({attendance,games,round,history}));}
-    catch(e){console.warn("Cannot save sandbox attendance",e);setFeedback("บันทึกในเครื่องไม่สำเร็จ กรุณาตรวจพื้นที่เก็บข้อมูลหรือโหมดส่วนตัวของเบราว์เซอร์");}
+    try{
+      const serialized=JSON.stringify({attendance,games,round,history});
+      if(window.localStorage.getItem(storageKey)!==serialized)window.localStorage.setItem(storageKey,serialized);
+    }catch(e){console.warn("Cannot save sandbox attendance",e);setFeedback("บันทึกในเครื่องไม่สำเร็จ กรุณาตรวจพื้นที่เก็บข้อมูลหรือโหมดส่วนตัวของเบราว์เซอร์");}
   },[storageKey,restored,attendance,games,round,history]);
+  // Keep referee, organizer and public demo tabs on this device in sync.
+  // This does not replace real database-backed multi-device live updates.
+  useEffect(()=>{
+    const sync=(e:StorageEvent)=>{
+      if(e.key!==storageKey||!e.newValue)return;
+      try{
+        const parsed=JSON.parse(e.newValue) as {attendance?:Record<string,"present"|"absent">;games?:Game[];round?:number;history?:string[]};
+        if(parsed.attendance&&typeof parsed.attendance==="object")setAttendance(parsed.attendance);
+        if(Array.isArray(parsed.games))setGames(parsed.games);
+        if(typeof parsed.round==="number")setRound(parsed.round);
+        if(Array.isArray(parsed.history))setHistory(parsed.history.slice(0,12));
+      }catch(e){console.warn("Invalid simulation sync data",e);}
+    };
+    window.addEventListener("storage",sync);
+    return()=>window.removeEventListener("storage",sync);
+  },[storageKey]);
   const append=(message:string)=>setHistory(old=>[message,...old].slice(0,12));
   const attendanceKey=(g:Game,side:"black"|"white")=>`${g.id}:${side}`;
   const statusOf=(g:Game,side:"black"|"white"):"unchecked"|"present"|"absent"=>attendance[attendanceKey(g,side)]??"unchecked";
