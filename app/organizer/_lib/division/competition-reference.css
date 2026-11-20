@@ -154,3 +154,105 @@
 .gt-reference-mobile-record>.gt-reference-attendance-readonly{padding:7px}
 .gt-reference-desktop-table .gt-reference-attendance-readonly{grid-template-columns:1fr;padding:5px 0;border:0}
 @media(max-width:650px){.gt-reference-attendance-readonly{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:7px}.gt-reference-attendance-readonly-person{flex-direction:column;align-items:stretch;padding:8px 5px;text-align:center}.gt-reference-attendance-readonly-name{font-size:11px}.gt-reference-attendance-readonly .gt-reference-attendance-badge{min-width:0;font-size:12px}}
+
+
+/* Result-verdict visibility and portrait layout repair, 20 Nov 2026. */
+.gt-reference-day .gt-reference-match-card[data-result-state="verified"]{
+  border:3px solid #328442!important;
+  box-shadow:0 3px 0 #1b662e7a,0 7px 18px #166b3329!important;
+  background:linear-gradient(180deg,#eefaf0 0%,#fff 65%)!important;
+}
+.gt-reference-day .gt-reference-match-card[data-result-state="verified"]>header{
+  background:linear-gradient(115deg,#0a6432,#167b46)!important;
+  border-bottom:3px solid #d4ad50!important;
+}
+.gt-reference-day .gt-reference-match-card[data-result-state="verified"]>header strong{color:#fff!important}
+.gt-reference-day .gt-reference-match-card[data-result-state="playing"]{
+  border-color:#3674b8!important;
+  box-shadow:0 3px 0 #18538a55,0 5px 14px #1a528627!important;
+}
+.gt-reference-match-final-result{
+  margin:8px 12px;
+  padding:10px 12px;
+  border:2px solid #2b813e;
+  border-radius:11px;
+  background:#c9f2d1;
+  color:#103e20;
+  font-size:14px;
+  font-weight:800;
+  overflow-wrap:anywhere;
+}
+.gt-reference-day .gt-reference-person{
+  min-width:0!important;
+  width:100%;
+  height:auto!important;
+  overflow:visible;
+}
+.gt-reference-day .gt-reference-person>.gt-athlete-portrait-frame{
+  display:block!important;
+  flex:0 0 76px!important;
+  width:76px!important;
+  min-width:76px!important;
+  max-width:76px!important;
+  height:90px!important;
+  min-height:90px!important;
+  max-height:90px!important;
+  overflow:hidden;
+  border:2px solid #b58a30;
+  border-radius:11px;
+  background:#e8f1fb;
+}
+.gt-reference-day .gt-reference-person>.gt-athlete-portrait-frame>button{
+  width:100%!important;
+  height:100%!important;
+  display:block!important;
+  overflow:hidden;
+}
+.gt-reference-day .gt-reference-person>.gt-athlete-portrait-frame img{
+  display:block;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover;
+  border:0!important;
+}
+.gt-reference-day .gt-reference-two-players{
+  align-items:start!important;
+  min-height:0!important;
+  grid-auto-rows:auto!important;
+  gap:12px!important;
+}
+.gt-reference-day .gt-reference-person>span:last-child{
+  display:block;
+  min-width:0;
+  max-width:100%;
+  height:auto;
+  overflow-wrap:anywhere;
+  align-self:center;
+}
+.gt-reference-day .gt-reference-person-name,
+.gt-reference-day .gt-reference-person-meta{
+  position:static!important;
+  display:block;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+@media(max-width:600px){
+  .gt-reference-day .gt-reference-person{display:flex!important;flex-direction:column!important;justify-content:flex-start;align-items:center!important}
+  .gt-reference-day .gt-reference-person>.gt-athlete-portrait-frame{
+    flex:0 0 92px!important;
+    width:80px!important;
+    min-width:80px!important;
+    max-width:80px!important;
+    height:92px!important;
+    min-height:92px!important;
+    max-height:92px!important;
+  }
+  .gt-reference-day .gt-reference-person>span:last-child{text-align:center;align-self:stretch}
+  .gt-reference-day .gt-reference-two-players{grid-template-columns:repeat(2,minmax(0,1fr))!important;min-width:0}
+}
+@media(max-width:390px){
+  .gt-reference-day .gt-reference-person>.gt-athlete-portrait-frame{
+    flex-basis:82px!important;width:72px!important;min-width:72px!important;max-width:72px!important;
+    height:82px!important;min-height:82px!important;max-height:82px!important;
+  }
+}
