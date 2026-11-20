@@ -77,3 +77,54 @@
 .gt-board-card.kind-done{opacity:.85}
 .gt-board-progress{display:block;height:8px;margin-top:6px;border-radius:999px;background:#e6edf6;overflow:hidden}
 .gt-board-progress>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#f2b92c,#1f8a4c)}
+/* Ceremony group, planned times, late cards */
+.gt-board-card.kind-ceremony{border-color:#c99937;box-shadow:0 0 0 3px #f6e2a8}
+.gt-board-card.kind-ceremony .gt-board-band{background:linear-gradient(90deg,#f6d36b,#e9b53c);color:#3a2a00}
+.gt-board-chips .kind-ceremony b{background:#e9b53c;color:#3a2a00}
+.gt-board-card.is-late{border-color:#c62828;box-shadow:0 0 0 3px #f5b5b5}
+.gt-board-card.is-late .gt-board-band{background:#c62828}
+.gt-board-wait{font-weight:600;opacity:.95}
+.gt-board-time{margin:0;padding:5px 9px;border-radius:9px;font-size:14px;background:#f1f5fb;color:#173861}
+.gt-board-time.u-soon{background:#fff1c2;color:#7a4b00}
+.gt-board-time.u-late{background:#fde2e2;color:#a01818}
+.gt-board-ceremony{display:grid;gap:6px;padding:8px;border:1.5px dashed #d8b45a;border-radius:12px;background:#fffaf0}
+.gt-board-ceremony label{display:flex;align-items:center;gap:8px;min-height:40px;font-weight:600}
+.gt-board-ceremony input{width:22px;height:22px;accent-color:#1f8a4c}
+/* Schedule editor */
+.gt-schedule-row{display:grid;gap:6px;padding:8px;border:1px solid #c6d9f1;border-radius:12px;background:#f8fbff}
+.gt-schedule-name{font-size:15px}
+.gt-schedule-times{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.gt-schedule-times label{display:grid;gap:2px;font-size:12px;color:#536b8b}
+.gt-schedule-times input{min-height:40px;padding:2px 6px;border:1.5px solid #9ebfe7;border-radius:9px;background:white;color:#0b2a5c;font-size:15px}
+.gt-schedule-cer input{border-color:#d8b45a;background:#fffaf0}
+/* Alert bar (every organiser page of an event) */
+.gt-alertbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;flex-direction:column;border-top:3px solid #ca993a;background:#0b2a5c;color:white;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 14px #0b31653d}
+.site-operations main{padding-bottom:6rem}
+@media print{.gt-alertbar{display:none}}
+.gt-alertbar.lvl-red{background:#b71c1c}.gt-alertbar.lvl-amber{background:#8a5a00}.gt-alertbar.lvl-green{background:#1f7a45}
+.gt-alertbar-row{display:flex;gap:8px;align-items:center;width:100%;max-width:80rem;margin:0 auto;padding:6px 12px}
+.gt-alertbar-main{display:flex;flex:1;min-width:0;align-items:center;gap:8px;min-height:44px;text-align:left;font-weight:700;color:inherit}
+.gt-alertbar-count{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:999px;background:white;color:#b71c1c;font-size:15px}
+.gt-alertbar.lvl-green .gt-alertbar-count{color:#1f7a45}.gt-alertbar.lvl-amber .gt-alertbar-count{color:#8a5a00}
+.gt-alertbar.lvl-red .gt-alertbar-count{animation:gt-pulse 1.2s ease-in-out infinite}
+@keyframes gt-pulse{50%{transform:scale(1.15)}}
+.gt-alertbar-sound{min-height:40px;padding:0 10px;border:1.5px solid #ffffff80;border-radius:10px;font-size:13px;font-weight:600;color:inherit;white-space:nowrap}
+.gt-alertbar-list{width:100%;max-width:80rem;max-height:60vh;overflow:auto;margin:0 auto;padding:10px 12px 0;display:grid;gap:6px}
+.gt-alertbar-list li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px;border-radius:12px;background:white;color:#0b2a5c;border-left:6px solid #1f8a4c}
+.gt-alertbar-list li.lvl-red{border-left-color:#c62828}.gt-alertbar-list li.lvl-amber{border-left-color:#e0a91c}
+.gt-alertbar-go{display:inline-flex;align-items:center;min-height:42px;padding:0 12px;border-radius:10px;background:linear-gradient(#ffe27a,#f2b92c);color:#3a2a00;font-weight:700}
+.gt-alertbar-ack{min-height:42px;padding:0 12px;border:1.5px solid #9ebfe7;border-radius:10px;font-weight:600}
+@media(prefers-reduced-motion:reduce){.gt-alertbar.lvl-red .gt-alertbar-count{animation:none}}
+/* Medal list (full screen / PNG / PDF) */
+.gt-medals{padding:12px;color:#0b2a5c}
+.gt-medals h2{font-size:22px;font-weight:700;margin:0 0 4px}
+.gt-medals-sum{margin:0 0 10px;color:#536b8b}
+.gt-medal-group{margin:0 0 12px;border:2px solid #d8b45a;border-radius:14px;overflow:hidden;break-inside:avoid}
+.gt-medal-group h3{display:flex;justify-content:space-between;margin:0;padding:8px 12px;font-size:18px;font-weight:700;background:#fff1b8}
+.gt-medal-group.tone-silver{border-color:#9aa9bd}.gt-medal-group.tone-silver h3{background:#e8eef6}
+.gt-medal-group.tone-bronze{border-color:#c98a4b}.gt-medal-group.tone-bronze h3{background:#f7dfc6}
+.gt-medal-group h3 span{font-size:14px;font-weight:600}
+.gt-medal-group ol{margin:0;padding:6px 12px 8px 36px;list-style:decimal;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 16px}
+.gt-medal-group li b{display:block;font-size:16px}
+.gt-medal-group li small{color:#536b8b}
+.gt-medal-none{margin:0;padding:8px 12px;color:#8494aa}

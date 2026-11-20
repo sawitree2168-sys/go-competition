@@ -4,6 +4,8 @@ import "../tournaments/[id]/_ui/theme.css";
 import "./organizer-reference.css";
 import { StaffProvider } from "./_lib/staff";
 import OrganizerBar from "./_lib/OrganizerBar";
+import { EventDayProvider } from "./_lib/EventDay";
+import AlertBar from "./_lib/AlertBar";
 
 
 export const metadata: Metadata = {
@@ -17,7 +19,10 @@ export default function OrganizerLayout({ children }: { children: React.ReactNod
       <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       <StaffProvider>
         <OrganizerBar />
-        <main className="mx-auto w-full max-w-7xl px-3 pb-16 pt-4 sm:px-5">{children}</main>
+        <EventDayProvider>
+          <AlertBar />
+          <main className="mx-auto w-full max-w-7xl px-3 pb-16 pt-4 sm:px-5">{children}</main>
+        </EventDayProvider>
       </StaffProvider>
     </div>
   );

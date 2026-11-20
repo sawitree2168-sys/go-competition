@@ -83,3 +83,21 @@
     background:#fff!important;
   }
 }
+/* Referee status: where this division stands + calls to the admin */
+.gt-ref-status{display:grid;gap:8px;padding:12px 14px;border:2px solid #9ebfe7;border-radius:16px;background:#f4f8ff;color:#0b2a5c}
+.gt-ref-status.is-waiting{border-color:#1f8a4c;background:#e9f8ef}
+.gt-ref-status.is-finished{border-color:#0b4fae;background:#eaf2ff}
+.gt-ref-headline{margin:0;font-size:18px;font-weight:700;line-height:1.45}
+.gt-ref-headline.small{font-size:15px;font-weight:600}
+.gt-ref-status.is-waiting .gt-ref-headline{color:#11703a}
+.gt-ref-sub{margin:0;font-size:14px;color:#365a85}
+.gt-ref-calls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.gt-ref-call{display:grid;gap:2px;min-height:52px;padding:8px 12px;border-radius:12px;font-weight:700;font-size:15px;text-align:center;border:2px solid #9ebfe7;background:white;color:#0b2a5c}
+.gt-ref-call small{font-size:12px;font-weight:500;opacity:.85}
+.gt-ref-call.ok{border-color:#1f8a4c;background:#1f8a4c;color:white}
+.gt-ref-call.bad{border-color:#c62828;color:#a01818;background:#fff5f5}
+.gt-ref-call:disabled{opacity:.6}
+.gt-ref-fresh{display:flex;justify-content:space-between;gap:8px;align-items:center;min-height:52px;padding:8px 14px;border-radius:12px;background:#f2b92c;color:#3a2a00;font-weight:800;font-size:17px;animation:gt-ref-flash 1s ease-in-out 3}
+.gt-ref-fresh span{font-size:13px;font-weight:600}
+@keyframes gt-ref-flash{50%{filter:brightness(1.25)}}
+@media(prefers-reduced-motion:reduce){.gt-ref-fresh{animation:none}}

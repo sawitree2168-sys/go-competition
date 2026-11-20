@@ -5,7 +5,7 @@ import Link from "next/link";
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import Gate from "../_lib/Gate";
 import { ErrorNote, staffDb, useAction, useStaff } from "../_lib/staff";
-import { divisionKey, divisionLabel, divisionSortValue, thaiDate } from "@/lib/division-display";
+import { divisionKey, divisionSortValue, thaiDate } from "@/lib/division-display";
 import { mapEntrantsToDivisions } from "@/lib/competition-day.mjs";
 import { OrganizerQueue } from "@/app/tournaments/[id]/_ui/RegisterPanel";
 import PaymentSettings from "./PaymentSettings";
@@ -313,7 +313,7 @@ function EventConsole({ id }: { id: string }) {
         <h2 className="text-lg font-bold">โต๊ะกรรมการ · ทุกรุ่น</h2>
         <p className="text-sm text-[var(--gt-muted)]">รุ่นที่ลงผลครบแล้วขึ้นก่อน ระบบไม่จับคู่เอง แอดมินตรวจผลแล้วกดจับคู่ทีละรุ่น</p>
         {settingsOpen && <ByeRuleSetting key={event.bye_sos_mode ?? "none"} id={id} mode={event.bye_sos_mode} onSaved={load} />}
-        <DivisionBoard eventId={id} players={regCount} sheet={sheetCount} />
+        <DivisionBoard sheet={sheetCount} />
       </section>
 
       {settingsOpen && <>

@@ -27,6 +27,10 @@ function Console({ eventId, divisionId }: { eventId: string; divisionId: string 
   useEffect(() => {
     const want = new URLSearchParams(window.location.search).get("tab");
     if (want && TABS.some(([k]) => k === want)) queueMicrotask(() => setTab(want as Tab));
+    // the alert bar asks for a tab while we are already on this page
+    const onTab = (e: Event) => { const t = (e as CustomEvent<string>).detail; if (TABS.some(([k]) => k === t)) setTab(t as Tab); };
+    window.addEventListener("gt-open-tab", onTab);
+    return () => window.removeEventListener("gt-open-tab", onTab);
   }, []);
 
   if (missing) return <p className="py-10 text-center">ไม่พบรุ่นนี้</p>;

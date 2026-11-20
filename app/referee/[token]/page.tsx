@@ -11,6 +11,7 @@ import { DEFAULT_AVATAR } from "../../tournaments/[id]/_ui/MatchCard";
 import { resultLabel, staffErrorMessage } from "@/lib/competition-day.mjs";
 import { METHODS, buildResult, formFromResult, needsWinner, summaryLine } from "@/lib/referee-result.mjs";
 import { divisionLabel, divisionSortValue } from "@/lib/division-display";
+import RefereeStatus from "./RefereeStatus";
 import { staffDb } from "@/app/organizer/_lib/staff";
 
 type Side = { id: string; name: string | null; institution: string | null; rank?: string | null; photo?: string | null; score?: number; checked_in: boolean };
@@ -332,6 +333,9 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
       {error && <p role="alert" className="rounded-xl border border-[var(--gt-bad)] bg-[var(--gt-surface)] px-4 py-3 text-sm text-[var(--gt-bad)]">{error}</p>}
       {tables === null && <p className="py-10 text-center text-[var(--gt-muted)]" role="status">กำลังโหลด…</p>}
       {tables?.length === 0 && <p className="gt-card p-5 text-center">รุ่นนี้ยังไม่ประกาศคู่</p>}
+      {tables && tables.length > 0 && !mobileDetail && (
+        <RefereeStatus db={db} token={token} code={code} divisionId={divisionId} round={round} total={0} pending={pending.length} eventDate={opened.tournament.event_date} />
+      )}
 
       {tables && tables.length > 0 && (
         <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
