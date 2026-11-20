@@ -328,6 +328,7 @@ export function Awards({ ov, records, filters }: { ov: Overview; records: Rec[] 
 }
 
 export function Stats({ ov, records, filters }: { ov: Overview; records: Rec[] } & F) {
+  const [mode,setMode] = useInstitutionDisplayMode("stats");
   const rows = studentStats(records, ov.students);
   const t = totals(records, ov.students);
   const pct = t.games ? Math.round((t.wins / t.games) * 100) : 0;
@@ -342,7 +343,8 @@ export function Stats({ ov, records, filters }: { ov: Overview; records: Rec[] }
         {t.draws > 0 && <p>เสมอ <b className="gt-num text-2xl">{t.draws}</b></p>}
         <p>อัตราชนะ <b className="gt-num text-2xl">{pct}%</b></p>
       </div>
-      <div className="gt-card overflow-x-auto">
+      <div className="flex justify-end"><DisplayModeToggle mode={mode} onChange={setMode}/></div>
+      {mode === "cards" ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{rows.map(r=><article key={r.student.id} className="gt-card space-y-3 border-2 border-[#bcd1e9] p-4"><StudentName s={r.student} sub={r.student.rank}/><div className="grid grid-cols-3 gap-2 text-center"><div className="rounded-lg bg-[#edf5ff] p-2"><strong className="gt-num block text-xl">{r.games}</strong><span className="text-xs">เกม</span></div><div className="rounded-lg bg-[#e6f7ec] p-2"><strong className="gt-num block text-xl text-[#176738]">{r.wins}</strong><span className="text-xs">ชนะ</span></div><div className="rounded-lg bg-[#fff0f1] p-2"><strong className="gt-num block text-xl text-[#a42841]">{r.losses}</strong><span className="text-xs">แพ้</span></div></div><div className="flex justify-between text-sm"><span>{r.events} รายการ</span><b>อัตราชนะ {r.rate == null ? "—" : `${r.rate}%`}</b></div><div className="h-2 overflow-hidden rounded-full bg-[#e8edf6]"><div className="h-full rounded-full bg-[#1770d5]" style={{width:`${r.rate??0}%`}}/></div></article>)}{!rows.length&&<Empty>ยังไม่มีนักเรียน</Empty>}</div> : <div className="gt-card overflow-x-auto">
         <table className="w-full min-w-[34rem] text-left text-sm">
           <thead className="bg-[var(--gt-cta-soft)]"><tr>
             <th className="px-4 py-2.5 font-medium">นักเรียน</th><th className="px-2 py-2.5 text-center font-medium">รายการ</th><th className="px-2 py-2.5 text-center font-medium">เกม</th>
@@ -375,6 +377,7 @@ export function Stats({ ov, records, filters }: { ov: Overview; records: Rec[] }
 }
 
 export function Reports({ ov, records, filters }: { ov: Overview; records: Rec[] } & F) {
+  const [mode,setMode] = useInstitutionDisplayMode("reports");
   const rows = studentReport(records, ov.students);
   return (
     <div className="space-y-4">
@@ -403,9 +406,9 @@ export function Reports({ ov, records, filters }: { ov: Overview; records: Rec[]
           })}
         </div>
       </section>
-      <section className="gt-card overflow-hidden">
-        {rows.length ? <ReportTable rows={rows} full /> : <div className="p-4"><Empty>ยังไม่มีนักเรียน</Empty></div>}
-      </section>
+      <div className="flex justify-end"><DisplayModeToggle mode={mode} onChange={setMode}/></div>
+      {mode === "cards" ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{rows.map(r=><div key={r.student.id} className="gt-card space-y-3 border-2 border-[#bcd1e9] p-4"><StudentName s={r.student} sub={r.student.rank}/><div className="rounded-lg bg-[#edf5ff] p-3 text-sm"><p className="font-semibold">{r.line}</p><p className="mt-1">{r.note}</p></div><p className="text-xs text-[var(--gt-muted)]">{r.latest ? `${r.latest.title} · ${r.latest.division}` : "ยังไม่มีผลแข่งขันล่าสุด"}</p></div>)}{!rows.length&&<Empty>ยังไม่มีนักเรียน</Empty>}</div> :
+        <section className="gt-card overflow-hidden">{rows.length ? <ReportTable rows={rows} full /> : <div className="p-4"><Empty>ยังไม่มีนักเรียน</Empty></div>}</section>}
       <button type="button" onClick={() => window.print()} className="gt-outline-btn min-h-11 px-5 text-sm print:hidden">พิมพ์ / บันทึกเป็น PDF</button>
     </div>
   );
