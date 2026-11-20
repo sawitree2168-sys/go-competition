@@ -3,7 +3,9 @@
 import Monitor from "../../_lib/division/Monitor";
 import PreparedRoster from "../../_lib/division/PreparedRoster";
 import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
+import { divisionSound } from "@/lib/sound-events.mjs";
+import { play } from "@/lib/sounds";
 import Gate from "../../_lib/Gate";
 import { useDivision } from "../../_lib/division/useDivision";
 import PoolsPanel from "../../_lib/division/PoolsPanel";
@@ -23,6 +25,14 @@ export default function OrganizerDivision({ params }: { params: Promise<{ id: st
 function Console({ eventId, divisionId }: { eventId: string; divisionId: string }) {
   const { data, missing, reload, live } = useDivision(divisionId);
   const [tab, setTab] = useState<Tab | null>("monitor");
+  // เสียง: เช็คอิน / ลงผลมีคนชนะ (whoever entered it: admin or a line referee). Uses the 🔔 switch in the alert bar.
+  const prevMatches = useRef<typeof data extends null ? never : NonNullable<typeof data>["matches"] | null>(null);
+  useEffect(() => {
+    if (!data) return;
+    const kind = divisionSound(prevMatches.current, data.matches);
+    if (kind) play(kind);
+    prevMatches.current = data.matches;
+  }, [data]);
   // โต๊ะกรรมการ (all divisions) links here with ?tab=rounds etc.
   useEffect(() => {
     const want = new URLSearchParams(window.location.search).get("tab");

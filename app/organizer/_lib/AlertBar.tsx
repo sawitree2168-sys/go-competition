@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { divisionLabel } from "@/lib/division-display";
 import { countdownText, elapsedText, minutesUntil, urgency } from "@/lib/event-day.mjs";
 import { staffDb } from "./staff";
+import { play, SOUND_KEY } from "@/lib/sounds";
 import { useEventDay, type DivisionDay, type DivisionStatus, type RefereeCall } from "./EventDay";
 
 /**
@@ -18,7 +19,6 @@ type Level = "red" | "amber" | "green";
 type Alert = { key: string; level: Level; icon: string; title: string; detail: string; href: string; tab: string; callId?: number };
 
 const LEVEL_ORDER: Record<Level, number> = { red: 0, amber: 1, green: 2 };
-const SOUND_KEY = "gt-alert-sound";
 const CALL_TEXT: Record<RefereeCall["kind"], string> = { problem: "มีปัญหา ขอแอดมินมาที่สาย", results_done: "ลงผลครบแล้ว พร้อมจับคู่", when_next: "ถามว่าจะออกคู่รอบถัดไปเมื่อไร" };
 
 export function buildAlerts(rows: DivisionStatus[], days: Map<string, DivisionDay>, calls: RefereeCall[], readySince: Map<string, number>, eventDate: string | null, eventId: string, now = Date.now()): Alert[] {
@@ -64,22 +64,7 @@ export function buildAlerts(rows: DivisionStatus[], days: Map<string, DivisionDa
   return out.sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level]);
 }
 
-function beep() {
-  try {
-    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new Ctx();
-    [0, 0.22].forEach((t, i) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.frequency.value = i ? 1046 : 784; o.connect(g); g.connect(ctx.destination);
-      g.gain.setValueAtTime(0.0001, ctx.currentTime + t);
-      g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t + 0.2);
-      o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.22);
-    });
-    window.setTimeout(() => void ctx.close(), 800);
-  } catch { /* no audio */ }
-  try { navigator.vibrate?.([120, 80, 120]); } catch { /* no vibration */ }
-}
+const beep = () => play("alert", true);
 
 export default function AlertBar() {
   const day = useEventDay();

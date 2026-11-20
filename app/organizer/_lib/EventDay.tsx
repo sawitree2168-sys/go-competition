@@ -6,6 +6,8 @@ import { staffDb, useStaff } from "./staff";
 import { divisionSortValue } from "@/lib/division-display";
 import { roundsOf } from "@/lib/competition-day.mjs";
 import { useLiveFingerprint, type LiveStatus } from "../../tournaments/[id]/_ui/live";
+import { startedRounds } from "@/lib/sound-events.mjs";
+import { play } from "@/lib/sounds";
 
 /**
  * Competition-day picture of one event, shared by every organiser page of that event
@@ -94,6 +96,7 @@ function Feed({ eventId, children }: { eventId: string; children: ReactNode }) {
   const [dayReady, setDayReady] = useState(false);
   const readySince = useRef<Map<string, number>>(new Map());
   const [sinceView, setSinceView] = useState<Map<string, number>>(new Map());
+  const lastRounds = useRef<Map<string, number> | null>(null);
 
   useEffect(() => {
     try { readySince.current = new Map(JSON.parse(sessionStorage.getItem(SINCE_KEY) ?? "[]")); } catch { /* no storage */ }
@@ -129,6 +132,10 @@ function Feed({ eventId, children }: { eventId: string; children: ReactNode }) {
     try { sessionStorage.setItem(SINCE_KEY, JSON.stringify([...since])); } catch { /* no storage */ }
 
     setSinceView(new Map(since));
+    // เริ่มแข่งรอบใหม่ (any division of this event): fanfare
+    const rounds = new Map(next.map((d) => [d.id, Math.max(0, ...d.pools.map((p) => p.last))] as [string, number]));
+    if (startedRounds(lastRounds.current, rounds).length) play("roundStart");
+    lastRounds.current = rounds;
     setEventDate((ev.data as { event_date: string | null } | null)?.event_date ?? null);
     setRows(next);
     if (day.error) { setDayReady(false); setDays(new Map()); setCalls([]); }
