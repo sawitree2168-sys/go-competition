@@ -182,11 +182,12 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
     {g.table_status==="playing"&&g.state!=="verified"&&<button type="button" onClick={()=>setEditing(g.id)} className="gt-reference-gold">✎ ลงผลทุกประเภท</button>}
     {g.state==="verified"&&<><strong className="text-green-800">✓ บันทึกผลแล้ว (จำลอง)</strong><button type="button" onClick={()=>setEditing(g.id)} className="gt-reference-secondary">แก้ไขผล</button></>}
   </div>;
-  const board=(g:Game,actions=true)=><article key={g.id} className="gt-reference-match-card overflow-hidden rounded-2xl border-[3px] border-[#8fb7eb] border-b-[#d6a43a] bg-white shadow-sm">
+  const board=(g:Game,actions=true)=><article key={g.id} data-result-state={g.state==="verified"?"verified":g.table_status==="playing"?"playing":"pending"} className="gt-reference-match-card overflow-hidden rounded-2xl border-[3px] border-[#8fb7eb] border-b-[#d6a43a] bg-white shadow-sm">
     <header className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#d6a43a] bg-[#e9f3ff] p-3">
-      <strong className="text-lg text-[#0a418a]">โต๊ะ {g.board_number}</strong><span className={`rounded-full border px-3 py-1 text-xs font-semibold ${stateStyle(g)}`}>{label(g)}</span>
+      <strong className="text-lg text-[#0a418a]">โต๊ะ {g.board_number}</strong><span className={`rounded-full border px-3 py-1 text-xs font-semibold ${stateStyle(g)}`}>{g.state==="verified"?"✓ ตัดสินผลแล้ว":label(g)}</span>
     </header>
     <div className="gt-reference-two-players grid grid-cols-1 gap-3 p-3 sm:grid-cols-2">{person(g.black_athlete_id,"black")}{person(g.white_athlete_id,"white")}</div>
+    {g.state==="verified"&&<p className="gt-reference-match-final-result" role="status">✓ ตัดสินผลแล้ว · {label(g)}</p>}
     {attendanceDisplay(g)}
     {actions&&view!=="public"&&<div className="border-t border-[#e2ecfa] p-3">{controls(g)}</div>}
   </article>;
