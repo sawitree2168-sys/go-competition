@@ -33,7 +33,15 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
         </div>
       </div>
 
-      <section className="gt-card overflow-hidden" aria-labelledby="rep-h">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {([{id:"students",label:"นักกีฬา",detail:"จัดการรายชื่อและติดตามผล"},{id:"tracking",label:"ผลการแข่งขัน",detail:"รอบ โต๊ะ และผลล่าสุด"},{id:"stats",label:"สถิติพัฒนาการ",detail:"วิเคราะห์การเติบโตของนักกีฬา"},{id:"reports",label:"รายงาน",detail:"สรุปผลงานรายบุคคล"}] as const).map((item)=>
+          <button key={item.id} type="button" onClick={()=>go(item.id)} className="group rounded-[20px] border-[3px] border-[#e7b950] bg-[linear-gradient(145deg,#0a3e89,#08306c)] p-4 text-left text-white shadow-[0_7px_14px_rgba(8,44,98,.17)] transition hover:-translate-y-0.5 hover:border-[#f9d779]">
+            <span className="flex items-center justify-between"><span className="h-9 w-9 text-[#ffdc83]">{ICONS[item.id==="reports"?"reports":item.id]}</span><span className="grid h-9 w-9 place-items-center rounded-full bg-[#edbb55] font-black text-[#0e3470]">›</span></span>
+            <strong className="mt-3 block text-lg">{item.label}</strong><span className="block text-xs text-white/80">{item.detail}</span>
+          </button>
+        )}
+      </div>
+      <section className="gt-card overflow-hidden border-[3px] border-[#bed1eb]" aria-labelledby="rep-h">
         <header className="flex items-start gap-3 px-4 pb-3 pt-4 sm:px-6">
           <span className="h-9 w-9 shrink-0 text-[var(--gt-cta)] sm:h-11 sm:w-11">{ICONS.awards}</span>
           <div>
@@ -167,7 +175,7 @@ function TrackTable({ rows, who, compact = false }: { rows: Track[]; who: Map<st
 
 /* ------------------------------------------------------------- menus */
 
-export function Students({ ov, canEdit, reload }: { ov: Overview; canEdit: boolean; reload: () => Promise<void> }) {
+export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov: Overview; canEdit: boolean; reload: () => Promise<void>; workspaceType?:"academy"|"independent_coach" }) {
   const [mode,setMode] = useInstitutionDisplayMode("students");
   const [q, setQ] = useState("");
   const list = useMemo(() => {
@@ -188,9 +196,9 @@ export function Students({ ov, canEdit, reload }: { ov: Overview; canEdit: boole
           ))}
         </ul>
       ) : <Empty>{q ? "ไม่พบนักเรียนที่ค้นหา" : "ยังไม่มีนักเรียน — เพิ่มนักเรียนใหม่ได้ด้านล่าง หรือรายชื่อจะขึ้นเองเมื่อนักเรียนลงแข่งในนามสถาบันนี้"}</Empty>}
-      {canEdit&&<LinkStudents academyId={ov.academy.id} reload={reload}/>}
-      <AddStudent academyId={ov.academy.id} canEdit={canEdit} reload={reload} />
-      <p className="text-xs text-[var(--gt-muted)]">รายชื่อมาจากการแข่งขันที่ลงในนามสถาบันนี้ (ล่าสุด) และนักเรียนที่ครูเพิ่ม · ข้อมูลส่วนตัว เช่น วันเกิด เบอร์ผู้ปกครอง ไม่แสดงในหน้านี้</p>
+      {canEdit&&<LinkStudents academyId={ov.academy.id} reload={reload} workspaceType={workspaceType}/>}
+      {workspaceType==="academy"&&<AddStudent academyId={ov.academy.id} canEdit={canEdit} reload={reload} />}
+      <p className="text-xs text-[var(--gt-muted)]">{workspaceType==="academy"?"รายชื่อรวมผู้ที่ลงแข่งในนามสถาบันนี้ และนักเรียนที่ครูเชื่อมเอง":"รายชื่อรวมเฉพาะนักเรียนที่ครูเชื่อมกับพื้นที่ส่วนตัว"} · นักเรียนหนึ่งคนมีได้หลายครูและหลายสถาบัน โดยไม่เปลี่ยนชื่อในรายการแข่งขันเดิม · ไม่แสดงข้อมูลส่วนตัวของผู้ปกครอง</p>
     </div>
   );
 }
