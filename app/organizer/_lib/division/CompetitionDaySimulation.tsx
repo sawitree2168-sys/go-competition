@@ -88,9 +88,9 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   const progress=Math.round(done/Math.max(1,rows.length)*100);
   const lastRound=Math.max(1,...games.map(g=>g.round_number));
   const reports=<RoundReportButtons eventTitle="ZEER GO KYU WAR 2026 · โหมดจำลอง" divisionName="รุ่นตัวอย่าง 1–2 คิว · ไม่ใช่ผลจริง" round={round} matches={games} byes={[]} people={personMap}/>;
-  const photo=(id:string)=>showPhotos&&<AthleteAvatar src={personMap[id].photo} name={personMap[id].name} zoom className="h-14 w-14 sm:h-16 sm:w-16"/>;
-  const person=(id:string,color:"black"|"white")=><div className="flex min-w-0 items-center gap-2">
-    {photo(id)}<span className="min-w-0"><span className="mb-1 flex items-center gap-1 text-xs font-semibold text-[#385577]"><span className={`h-4 w-4 shrink-0 rounded-full border ${color==="black"?"bg-[#101b2e] border-[#101b2e]":"bg-white border-[#7a92b2]"}`}/>{color==="black"?"หมากดำ":"หมากขาว"}</span><strong className="block text-sm text-[#102d58] [overflow-wrap:anywhere]">{personMap[id].name}</strong><small className="block text-xs text-[#536f93]">{personMap[id].rank} · {personMap[id].institution}</small></span>
+  const photo=(id:string)=>showPhotos&&<AthleteAvatar src={personMap[id].photo} name={personMap[id].name} zoom variant="portrait" className="gt-reference-athlete-photo h-[76px] w-[70px] sm:h-[94px] sm:w-[84px]"/>;
+  const person=(id:string,color:"black"|"white")=><div className="gt-reference-person flex min-w-0 items-center gap-3">
+    {photo(id)}<span className="min-w-0"><span className="mb-1 flex items-center gap-1 text-xs font-semibold text-[#385577]"><span className={`h-4 w-4 shrink-0 rounded-full border ${color==="black"?"bg-[#101b2e] border-[#101b2e]":"bg-white border-[#7a92b2]"}`}/>{color==="black"?"หมากดำ":"หมากขาว"}</span><strong className="gt-reference-person-name block text-base text-[#102d58] [overflow-wrap:anywhere]">{personMap[id].name}</strong><small className="gt-reference-person-meta block text-sm text-[#536f93]">{personMap[id].rank} · {personMap[id].institution}</small></span>
   </div>;
   const controls=(g:Game)=><div className="gt-reference-actions">
     {g.table_status==="waiting"&&<button type="button" onClick={()=>update(g.id,"check")} className="gt-reference-blue">✓ เช็กชื่อ</button>}
@@ -98,11 +98,11 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
     {g.table_status==="playing"&&g.state!=="verified"&&<button type="button" onClick={()=>setEditing(g.id)} className="gt-reference-gold">✎ ลงผลทุกประเภท</button>}
     {g.state==="verified"&&<><strong className="text-green-800">✓ บันทึกผลแล้ว (จำลอง)</strong><button type="button" onClick={()=>setEditing(g.id)} className="gt-reference-secondary">แก้ไขผล</button></>}
   </div>;
-  const board=(g:Game,actions=true)=><article key={g.id} className="overflow-hidden rounded-2xl border-[3px] border-[#8fb7eb] border-b-[#d6a43a] bg-white shadow-sm">
+  const board=(g:Game,actions=true)=><article key={g.id} className="gt-reference-match-card overflow-hidden rounded-2xl border-[3px] border-[#8fb7eb] border-b-[#d6a43a] bg-white shadow-sm">
     <header className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#d6a43a] bg-[#e9f3ff] p-3">
       <strong className="text-lg text-[#0a418a]">โต๊ะ {g.board_number}</strong><span className={`rounded-full border px-3 py-1 text-xs font-semibold ${stateStyle(g)}`}>{label(g)}</span>
     </header>
-    <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2">{person(g.black_athlete_id,"black")}{person(g.white_athlete_id,"white")}</div>
+    <div className="gt-reference-two-players grid grid-cols-1 gap-3 p-3 sm:grid-cols-2">{person(g.black_athlete_id,"black")}{person(g.white_athlete_id,"white")}</div>
     {actions&&view!=="public"&&<div className="border-t border-[#e2ecfa] p-3">{controls(g)}</div>}
   </article>;
   const table=<div className="gt-reference-table">
@@ -115,11 +115,12 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   const activeGame=games.find(g=>g.id===editing);
   return <div className="gt-reference-day min-h-screen pb-16 text-[#102d58]">
     <header className={`${DEMO_BG} border-b-[5px] border-[#d6a43a] px-4 py-5 text-white`}>
-      <div className="mx-auto max-w-6xl">{publicDemo ? <Link href="/tournaments" className="text-sm underline">← ดูรายการแข่งขันสาธารณะ</Link> : <Link href={`/organizer/${eventId}/${divisionId}`} className="text-sm underline">← กลับหน้ารุ่นการแข่งขันจริง</Link>}
-      <p className="mt-3 text-xs font-bold tracking-widest text-[#ffe29a]">GO TOURNAMENT • INTERACTIVE DEMO</p><h1 className="mt-1 text-2xl font-bold sm:text-3xl">จำลองการแข่งขันจริง · รุ่น 1–2 คิว</h1>
+      <div className="mx-auto max-w-6xl gt-reference-title-wrap">{publicDemo ? <Link href="/tournaments" className="text-sm underline">← ดูรายการแข่งขันสาธารณะ</Link> : <Link href={`/organizer/${eventId}/${divisionId}`} className="text-sm underline">← กลับหน้ารุ่นการแข่งขันจริง</Link>}
+      <p className="mt-3 text-xs font-bold tracking-widest text-[#ffe29a]">⚫ ⚪ GO TOURNAMENT • INTERACTIVE DEMO</p><h1 className="gt-reference-event-title mt-1 text-2xl font-bold sm:text-3xl">ZEER GO KYU WAR 2026</h1><p className="gt-reference-event-subtitle">วันเสาร์ที่ 5 ธันวาคม 2569 · Zeer Rangsit ชั้น 2 THE HUB</p><p className="mt-2 text-base font-bold text-[#fff0bc]">จำลองการแข่งขันจริง · รุ่น 1–2 คิว</p>
       <p className="mt-2 text-sm text-[#e2efff]">โหมดฝึกใช้งานเท่านั้น — ไม่เขียนผลลงฐานข้อมูล ไม่ใช่รายชื่อหรือผลแข่งขันจริง</p></div>
     </header>
-    <main className="mx-auto max-w-6xl space-y-4 px-3 py-4 sm:px-6">
+    <main className="gt-reference-main mx-auto max-w-6xl space-y-4 px-3 py-4 sm:px-6">
+      <nav className="gt-reference-main-nav" aria-label="เมนูจำลองการแข่งขัน"><button type="button" aria-pressed={view==="admin"} onClick={()=>setView("admin")}>♛ แอดมินจับคู่</button><button type="button" aria-pressed={view==="referee"} onClick={()=>setView("referee")}>▣ ลงผลกรรมการ</button><button type="button" aria-pressed={view==="public"} onClick={()=>setView("public")}>◉ หน้าสาธารณะ</button></nav>
       <section className="gt-reference-panel p-3">
         <div className="flex flex-wrap items-center justify-between gap-2"><strong>เลือกมุมมอง</strong><span className="text-xs text-[#647c9f]">ทั้ง 3 มุมมองใช้ข้อมูลจำลองชุดเดียวกัน</span></div>
         <div className="mt-2 grid grid-cols-3 gap-2">{(["admin","referee","public"] as const).map(v=><button key={v} type="button" aria-pressed={view===v} onClick={()=>setView(v)}
@@ -147,10 +148,10 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
       </section>
       {reports}
       <section aria-label="โต๊ะแข่งขัน" className="gt-reference-board-section"><div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-bold">โต๊ะแข่งขัน · รอบ {round}</h2><span className="text-sm text-[#527298]">แสดง {filtered.length} / {rows.length} โต๊ะ</span></div>
-        {!filtered.length?<p className="rounded-xl border-2 border-[#89b6e9] bg-white p-5">ไม่พบโต๊ะที่ค้นหา</p>:mode==="cards"?<div className="grid gap-3 md:grid-cols-2">{filtered.map(g=>board(g))}</div>:table}
+        {!filtered.length?<p className="rounded-xl border-2 border-[#89b6e9] bg-white p-5">ไม่พบโต๊ะที่ค้นหา</p>:mode==="cards"?<div className="gt-reference-card-grid grid gap-3">{filtered.map(g=>board(g))}</div>:table}
       </section>
       {full&&<CompetitionPanel title="โต๊ะแข่งขัน (โหมดจำลอง)" context="ZEER GO KYU WAR 2026 · จำลองเท่านั้น" onClose={()=>setFull(false)}>
-        <div className="grid gap-3 p-3 md:grid-cols-2">{filtered.map(g=>board(g,false))}</div>
+        <div className="gt-reference-fullscreen-boards grid gap-3 p-3">{filtered.map(g=>board(g,false))}</div>
       </CompetitionPanel>}
       {activeGame&&<SimulationResultDialog board={activeGame.board_number} black={personMap[activeGame.black_athlete_id].name} white={personMap[activeGame.white_athlete_id].name} onClose={()=>setEditing(null)}
         onConfirm={(code,resultMargin,w,selectedMethod)=>{
