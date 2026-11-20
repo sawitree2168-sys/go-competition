@@ -71,6 +71,15 @@ async function athletes(identifier: string) {
   return (rows ?? []).filter((r) => who.kind !== 'go_id' || r.go_id === who.go_id).filter((r) => who.kind !== 'dan' || r.dan_number === who.dan_number);
 }
 
+/** Open the account of a registry athlete (no account yet) with the athlete default password. */
+async function createAthlete(a, password: string) {
+  const uid = await newUser(password, a.full_name, 'athlete');
+  const ok = await rpc('gt_athlete_self_register_v2', { p_go_id: a.go_id, p_name: a.full_name, p_dan: a.dan_number ?? '', p_user: uid }).catch(() => false);
+  if (ok !== true) { await admin.auth.admin.deleteUser(uid); return null; }
+  await rpc('gt_easy_register_v1', { p_user: uid, p_kind: 'athlete', p_name: a.full_name, p_key: null, p_academy: null, p_organizer: null });
+  return uid;
+}
+
 async function caller(req: Request) {
   const token = (req.headers.get('authorization') || '').replace(/^Bearer /, '');
   const { data: { user } } = await admin.auth.getUser(token);
@@ -173,12 +182,21 @@ Deno.serve(async (req: Request) => {
         const free = ath.filter((a) => !a.user_id);
         if (!free.length) return respond({ message: 'นักกีฬาคนนี้เปลี่ยนรหัสผ่านแล้ว · ถ้าลืม กด “ลืมรหัสผ่าน” ใช้เบอร์โทร + วันเกิด หรือให้ครูรีเซ็ตให้' }, 401);
         if (free.length > 1 || ath.length > 1) return respond({ message: 'มีชื่อนี้มากกว่า 1 คน กรุณาเข้าด้วยรหัส GO (ดูได้ที่หน้านักกีฬา)' }, 409);
-        const a = free[0];
-        const uid = await newUser(password, a.full_name, 'athlete');
-        const ok = await rpc('gt_athlete_self_register_v2', { p_go_id: a.go_id, p_name: a.full_name, p_dan: a.dan_number ?? '', p_user: uid }).catch(() => false);
-        if (ok !== true) { await admin.auth.admin.deleteUser(uid); return respond({ message: 'เปิดบัญชีนักกีฬาไม่สำเร็จ กรุณาลองใหม่ หรือแจ้งครู' }, 409); }
-        await rpc('gt_easy_register_v1', { p_user: uid, p_kind: 'athlete', p_name: a.full_name, p_key: null, p_academy: null, p_organizer: null });
+        const uid = await createAthlete(free[0], password);
+        if (!uid) return respond({ message: 'เปิดบัญชีนักกีฬาไม่สำเร็จ กรุณาลองใหม่ หรือแจ้งครู' }, 409);
         return sessionReply(uid, await signIn(uid, password), password);
+      }
+      // An athlete who is also a referee: the referee default works too while the account still uses its default
+      // (one person = one account; the athlete account is opened if needed).
+      if (kinds.includes('referee') && ath.length === 1) {
+        const a = ath[0];
+        const athDefault = await rpc('gt_easy_default_password_v1', { p_kind: 'athlete', p_key: null });
+        let uid = a.user_id;
+        if (!uid) uid = await createAthlete(a, athDefault);
+        else { const acc = await rpc('gt_easy_account_v1', { p_user: uid }); if (!acc?.using_default) uid = null; }
+        const session = uid ? await signIn(uid, athDefault) : null;
+        if (session) return sessionReply(uid, session, athDefault);
+        if (a.user_id) return respond({ message: 'บัญชีนี้เปลี่ยนรหัสผ่านแล้ว ใช้รหัสที่ตั้งเอง · ถ้าลืม กด “ลืมรหัสผ่าน”' }, 401);
       }
       if (kinds.includes('institution') && r.academy) {
         const uid = await createAccount('institution', r.academy.name, r.key, password, r.academy.id, null);
