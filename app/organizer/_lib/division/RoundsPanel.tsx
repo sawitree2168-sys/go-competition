@@ -87,6 +87,13 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
   // รายชื่อพักรอ: not checked in at an open table, or absent in the last round and not yet decided.
   const waiting = (state.lastRound ? waitingList(everyone, matches, state.lastRound) : []) as Waiting[];
   const undecided = waiting.filter((w: { kind: string }) => w.kind === "absent");
+  // ลงผลครบแล้วระบบยังไม่จับคู่เอง: รอให้กรรมการตรวจ/แก้ผลหน้างานก่อน แล้วกด "จับคู่รอบถัดไป" เอง
+  // ถ้ามีการแก้ผลรอบล่าสุดหลังกดแล้ว ร่างคู่จะปิดเอง ต้องกดจับคู่ใหม่ (กันจับคู่จากผลเก่า)
+  const resultsKey = `${state.nextRound}|` + matches.filter((m) => m.round_number === state.lastRound)
+    .map((m) => `${m.id}:${m.state}:${m.winner_athlete_id ?? ""}:${m.result_code ?? ""}:${m.result_margin ?? ""}`).sort().join(",");
+  const [pairingFor, setPairingFor] = useState<string | null>(null);
+  const pairingOpen = state.nextRound === 1 || pairingFor === resultsKey;
+  const lastRoundGames = matches.filter((m) => m.round_number === state.lastRound && m.state !== "void").length;
 
   return (
     <div className="space-y-4">
@@ -106,7 +113,16 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
           ตรวจรายชื่อพักรอให้ครบก่อน ({undecided.length} คน) แล้วจึงจับคู่รอบที่ {state.nextRound}
         </p>
       )}
-      {state.nextRound && undecided.length === 0 && <Proposal key={`${state.nextRound}-${matches.length}-${regs.length}`} round={state.nextRound} pool={pool} regs={regs} byId={byId} matches={matches} byes={byes} score={score} divisionId={data.division.id} reload={async () => { setOpenRound(null); await reload(); }} />}
+      {state.nextRound && undecided.length === 0 && !pairingOpen && (
+        <section className="gt-card space-y-3 border-[var(--gt-ok)] p-4">
+          <h3 className="font-bold text-[var(--gt-ok)]">ลงผลรอบที่ {state.lastRound} ครบแล้ว ({lastRoundGames} โต๊ะ)</h3>
+          <p className="text-sm">ระบบยังไม่จับคู่จนกว่ากรรมการจะกดปุ่มด้านล่าง ถ้ามีการโต้แย้งผล ให้ตรวจและกด “แก้ผล” ที่โต๊ะนั้นในรอบที่ {state.lastRound} ให้เรียบร้อยก่อน</p>
+          <button type="button" onClick={() => { setOpenRound(null); setPairingFor(resultsKey); }} className="gt-gold-btn min-h-12 w-full">
+            ผลถูกต้องแล้ว — จับคู่รอบที่ {state.nextRound}
+          </button>
+        </section>
+      )}
+      {state.nextRound && undecided.length === 0 && pairingOpen && <Proposal key={`${state.nextRound}-${matches.length}-${regs.length}`} round={state.nextRound} pool={pool} regs={regs} byId={byId} matches={matches} byes={byes} score={score} divisionId={data.division.id} onClose={state.nextRound > 1 ? () => setPairingFor(null) : undefined} reload={async () => { setOpenRound(null); setPairingFor(null); await reload(); }} />}
 
       {state.lastRound > 0 && (
         <section className="space-y-3">
@@ -226,9 +242,9 @@ function TableCard({ m, byId, score, editable, reload }: { m: Match; byId: Map<s
 
 type Slot = { board: number; side: "black" | "white" } | { board: 0; side: "bye" };
 
-function Proposal({ round, pool, regs, byId, matches, byes, score, divisionId, reload }: {
+function Proposal({ round, pool, regs, byId, matches, byes, score, divisionId, reload, onClose }: {
   round: number; pool: string; regs: Reg[]; byId: Map<string, Reg>; matches: Match[]; byes: { athlete_id: string }[];
-  score: Map<string, number>; divisionId: string; reload: () => Promise<void>;
+  score: Map<string, number>; divisionId: string; reload: () => Promise<void>; onClose?: () => void;
 }) {
   const [seed, setSeed] = useState(1);
   const [edited, setEdited] = useState<{ seed: number; tables: Table[]; bye: string | null } | null>(null);
@@ -311,6 +327,7 @@ function Proposal({ round, pool, regs, byId, matches, byes, score, divisionId, r
         <h3 className="mr-auto font-bold">ร่างคู่รอบที่ {round} {pool && `· สาย ${pool}`}</h3>
         {edited && edited.seed === seed && <button type="button" onClick={() => { setEdited(null); setPick(null); }} className="min-h-11 px-2 text-sm text-[var(--gt-muted)] underline">กลับเป็นร่างอัตโนมัติ</button>}
         {!manual && <button type="button" onClick={() => { setSeed((x) => x + 1); setEdited(null); setPick(null); }} className="gt-outline-btn min-h-11 px-3 text-sm">สุ่มใหม่</button>}
+        {onClose && <button type="button" onClick={onClose} className="gt-outline-btn min-h-11 px-3 text-sm">ปิดร่าง กลับไปแก้ผล</button>}
       </div>
       {manual && <p className="rounded-xl bg-[var(--gt-warn-soft)] px-3 py-2 text-sm text-[var(--gt-warn)]">ระบบหาคู่อัตโนมัติไม่ทัน (ผู้เล่นมาก) — เรียงตามคะแนนให้แล้ว แตะชื่อเพื่อสลับจนไม่มีคู่ที่เคยเจอกัน แล้วกดประกาศ</p>}
       <p className="text-sm text-[var(--gt-muted)]">
