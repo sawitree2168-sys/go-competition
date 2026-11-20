@@ -101,3 +101,36 @@
 .gt-report-win{color:#198042;font-weight:700}.gt-report-won strong{color:#0b3d82}.gt-round-report .cd-match-table{font-size:14px}.gt-round-report .cd-player strong{font-size:15px}.gt-round-report .cd-player small{font-size:12px}.gt-round-report .cd-player .cd-avatar{width:44px;height:44px}
 .cd-expanded .overflow-x-auto{overflow:visible}
 .cd-report-row{margin:0 0 14px}
+
+
+/* 20 Nov 2026 — blue / gold / white dashboard refresh (visual-only). */
+.cd-dashboard .cd-event-hero{border-bottom:5px solid #d7a93a;background:#fff;box-shadow:0 5px 18px #0c438b20}
+.cd-dashboard .cd-hero-inner{position:relative}
+.cd-dashboard .cd-poster-link{border:3px solid #d7a93a;box-shadow:0 6px 18px #114a8d30}
+.cd-dashboard .cd-hero-copy h1{font-weight:800;letter-spacing:-.02em}
+.cd-dashboard .cd-event-status{border:2px solid #cf9d29;box-shadow:0 2px 0 #d8b45a30;font-weight:700}
+.cd-dashboard .cd-stat-grid>div,.cd-dashboard .cd-stat-grid>button{border:2px solid #8aafe4;border-bottom:4px solid #d2a43e;box-shadow:0 5px 14px #10438b0c}
+.cd-dashboard .cd-tabs{padding:7px;border:2px solid #d8ae47;border-radius:16px;background:#fff;box-shadow:0 4px 14px #174d9a16}
+.cd-dashboard .cd-tabs button{border:2px solid transparent;border-radius:11px;min-height:50px;font-weight:750}
+.cd-dashboard .cd-tabs button[aria-current="page"]{background:#0864cf;color:white;border-color:#d6a93b;box-shadow:0 3px 9px #0c519a24}
+.cd-progress-overview{display:grid;grid-template-columns:minmax(0,1fr) 172px minmax(0,1.1fr);align-items:center;gap:20px;margin:18px 0 22px;padding:22px;border:2px solid #8aafe4;border-bottom:5px solid #d6a93b;border-radius:20px;background:linear-gradient(112deg,#fff 10%,#ecf4ff 100%);box-shadow:0 7px 20px #11478614;min-width:0}
+.cd-progress-copy,.cd-progress-updates{min-width:0}
+.cd-progress-eyebrow{display:block;color:#b17c1c;font-size:12px;font-weight:800;letter-spacing:.08em}
+.cd-dashboard .cd-progress-copy h2{margin:6px 0 4px;font-size:clamp(20px,2.2vw,27px);color:#073e87}
+.cd-progress-subtitle,.cd-progress-footnote{color:#4c6384;font-size:13px}
+.cd-progress-numbers{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
+.cd-progress-numbers strong{font-size:39px;line-height:1;color:#0864cf}
+.cd-progress-numbers span{font-weight:700;color:#213d64}
+.cd-progress-donut{width:164px;height:164px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:3px solid #e8f0fe;box-shadow:inset 0 2px 8px #0b4b8a12,0 4px 14px #0c438b15}
+.cd-progress-donut>div{width:118px;height:118px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff;color:#0b4d9d}
+.cd-progress-donut strong{font-size:36px;line-height:1.1}.cd-progress-donut small{font-size:11px;font-weight:700}
+.cd-progress-updates{padding:13px;border-radius:15px;border:2px solid #d9e7f8;background:#fff}
+.cd-dashboard .cd-progress-updates h3{margin:0 0 9px;color:#073e87;font-size:16px;font-weight:800}
+.cd-progress-updates ul{list-style:none;padding:0;margin:0}
+.cd-progress-updates li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 8px;padding:8px 0;border-bottom:1px solid #d9e7f8;font-size:13px}
+.cd-update-board{font-weight:800;color:#0959b9}.cd-update-name{overflow-wrap:anywhere}
+.cd-progress-updates li strong{grid-column:2;color:#12603a}
+.cd-progress-empty{font-size:13px;color:#576c86}
+.cd-progress-updates button{margin-top:10px;padding:8px 11px;min-height:42px;border:2px solid #d6a93b;border-radius:10px;background:#0d5cb9;color:#fff;font-weight:800}
+@media(max-width:940px){.cd-progress-overview{grid-template-columns:minmax(0,1fr) 145px}.cd-progress-donut{width:140px;height:140px}.cd-progress-donut>div{width:100px;height:100px}.cd-progress-updates{grid-column:1/-1}}
+@media(max-width:540px){.cd-progress-overview{grid-template-columns:minmax(0,1fr) 108px;gap:12px;padding:14px;margin:12px 0 17px;border-radius:15px}.cd-progress-donut{width:104px;height:104px}.cd-progress-donut>div{width:76px;height:76px}.cd-progress-donut strong{font-size:25px}.cd-progress-donut small{font-size:9px}.cd-progress-numbers strong{font-size:31px}.cd-progress-copy h2{font-size:20px}.cd-progress-subtitle,.cd-progress-footnote{font-size:11px}.cd-progress-updates{grid-column:1/-1;padding:11px}.cd-dashboard .cd-tabs{gap:5px;padding:5px}.cd-dashboard .cd-tabs button{font-size:12px;min-width:0;padding:8px 3px;min-height:47px}.cd-dashboard .cd-stat-grid>div,.cd-dashboard .cd-stat-grid>button{min-width:0;overflow-wrap:anywhere}}
