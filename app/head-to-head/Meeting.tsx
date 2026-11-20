@@ -18,6 +18,8 @@ function rankOrigin(athlete: MeetingAthlete) {
  return '';
 }
 
+type AthleteSearchPage = {rows:MeetingAthlete[];total:number;page:number;page_size:number};
+
 function Picker({side,selected,other,level,onLevel,onPick}:{
  side:1|2;
  selected:MeetingAthlete|null;
@@ -27,52 +29,59 @@ function Picker({side,selected,other,level,onLevel,onPick}:{
  onPick:(id:string)=>void;
 }) {
  const [query,setQuery]=useState('');
- const [result,setResult]=useState<{key:string;rows:MeetingAthlete[];total:number}|null>(null);
+ const [page,setPage]=useState(1);
+ const [result,setResult]=useState<{queryKey:string;requestedPage:number;data:AthleteSearchPage}|null>(null);
  const [failedKey,setFailedKey]=useState<string|null>(null);
  const [showResults,setShowResults]=useState(!selected);
  const term=query.trim().slice(0,80);
  const canSearch=showResults&&(term.length>=2||(!term&&level!=='all'));
- const searchKey=JSON.stringify([level,term]);
- const currentResult=result?.key===searchKey?result:null;
+ const queryKey=JSON.stringify([level,term]);
+ const searchKey=JSON.stringify([queryKey,page]);
+ const resultForQuery=result?.queryKey===queryKey?result:null;
+ const currentResult=resultForQuery?.requestedPage===page?resultForQuery.data:null;
+ const paging=resultForQuery?.data;
+ const pageCount=paging?Math.ceil(paging.total/paging.page_size):0;
  const rows=canSearch?currentResult?.rows??[]:[];
- const message=!canSearch?'':failedKey===searchKey?'ค้นหาไม่สำเร็จ กรุณาลองใหม่':
+ const failed=failedKey===searchKey;
+ const loading=canSearch&&!currentResult&&!failed;
+ const message=!canSearch?'':failed?'ค้นหาไม่สำเร็จ กรุณาลองใหม่':
   !currentResult?'กำลังค้นหา…':currentResult.total===0?'ไม่พบรายชื่อในระดับที่เลือก':
-  currentResult.total>rows.length?`พบ ${currentResult.total.toLocaleString('th-TH')} คน · แสดง ${rows.length} คน พิมพ์ชื่อเพื่อค้นหาเพิ่มเติม`:
-  `พบ ${rows.length} คน`;
+  pageCount<=1?`พบ ${currentResult.total} คน`:
+  `พบ ${currentResult.total.toLocaleString('th-TH')} คน · แสดง ${((currentResult.page-1)*currentResult.page_size+1).toLocaleString('th-TH')}–${((currentResult.page-1)*currentResult.page_size+rows.length).toLocaleString('th-TH')}`;
 
  useEffect(()=>{
   if (!canSearch) return;
   const controller=new AbortController();
   const timer=setTimeout(async()=>{
    try {
-    const params=new URLSearchParams({q:term,level});
+    const params=new URLSearchParams({q:term,level,page:String(page)});
     const response=await fetch(`/api/athletes/search?${params}`,{signal:controller.signal});
     if(!response.ok) throw new Error('Athlete search failed');
-    const data=await response.json() as {rows:MeetingAthlete[];total:number};
+    const data=await response.json() as AthleteSearchPage;
     if (!controller.signal.aborted) {
      setFailedKey(null);
-     setResult({key:searchKey,rows:data.rows,total:data.total});
+     setResult({queryKey,requestedPage:page,data});
     }
    } catch {
     if (!controller.signal.aborted) setFailedKey(searchKey);
    }
   },250);
   return()=>{clearTimeout(timer);controller.abort();};
- },[canSearch,level,searchKey,term]);
+ },[canSearch,level,page,queryKey,searchKey,term]);
 
  return <div className="meeting-picker">
   <div className="meeting-picker-fields">
    <div className="meeting-picker-name">
     <label htmlFor={`player-${side}`}>นักกีฬาคนที่ {side}</label>
     <input id={`player-${side}`} type="search" value={query}
-     onFocus={()=>setShowResults(true)} onChange={e=>{setQuery(e.target.value);setShowResults(true);}}
+     onFocus={()=>setShowResults(true)} onChange={e=>{setQuery(e.target.value);setPage(1);setShowResults(true);}}
      placeholder={selected?.full_name??'ค้นหาชื่อ นามสกุล หรือรหัส GO'} autoComplete="off"/>
    </div>
    <div className="meeting-picker-level">
     <label htmlFor={`player-level-${side}`}>ระดับฝีมือ</label>
     <select id={`player-level-${side}`} value={level} aria-label={`ระดับฝีมือนักกีฬาคนที่ ${side}`} onChange={e=>{
      const value=e.target.value;
-     if(isMeetingLevel(value)){onLevel(value);setShowResults(true);}
+     if(isMeetingLevel(value)){onLevel(value);setPage(1);setShowResults(true);}
     }}>
      {meetingLevels.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
     </select>
@@ -80,6 +89,11 @@ function Picker({side,selected,other,level,onLevel,onPick}:{
   </div>
   <p className="meeting-picker-current">{selected?`เลือกแล้ว ${selected.full_name} · ${selected.go_id}`:'ยังไม่ได้เลือกนักกีฬา'}</p>
   <span role="status" className="meeting-search-note">{message}</span>
+  {canSearch&&pageCount>1&&<div className="meeting-page-nav" role="group" aria-label={`เปลี่ยนหน้ารายชื่อนักกีฬาคนที่ ${side}`}>
+   <button type="button" disabled={loading||page<=1} onClick={()=>setPage(page-1)}>ก่อนหน้า</button>
+   <span>หน้า {currentResult?.page??page} / {pageCount}</span>
+   <button type="button" disabled={loading||page>=pageCount} onClick={()=>setPage(page+1)}>ถัดไป</button>
+  </div>}
   {rows.length>0&&<ul className="meeting-options" aria-label={`ผลค้นหานักกีฬาคนที่ ${side}`}>
    {rows.map(athlete=><li key={athlete.go_id}>
     <button type="button" disabled={athlete.go_id===other} onClick={()=>onPick(athlete.go_id)}>

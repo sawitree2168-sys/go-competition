@@ -34,3 +34,7 @@
 .meeting-options .meeting-rank-source{font-size:.8125rem}
 .meeting-options button:hover .meeting-rank-source{color:#294865}
 @media(max-width:380px){.meeting-picker-fields{grid-template-columns:1fr}}
+
+.meeting-page-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 8px;font-size:.875rem}
+.meeting-page-nav button{min-height:44px;padding:6px 12px;border:1px solid #8dafd7;border-radius:8px;background:var(--gt-surface,white);color:inherit;font-weight:600;cursor:pointer}
+.meeting-page-nav button:disabled{opacity:.55;cursor:default}
