@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { divisionLabel } from "@/lib/division-display";
 import { countdownText, elapsedText, minutesUntil, urgency } from "@/lib/event-day.mjs";
 import { staffDb } from "./staff";
-import { play, SOUND_KEY } from "@/lib/sounds";
+import { play, SOUND_KEY, unlockSoundOnFirstTap } from "@/lib/sounds";
 import { useEventDay, type DivisionDay, type DivisionStatus, type RefereeCall } from "./EventDay";
 
 /**
@@ -64,7 +64,7 @@ export function buildAlerts(rows: DivisionStatus[], days: Map<string, DivisionDa
   return out.sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level]);
 }
 
-const beep = () => play("alert", true);
+const beep = () => play("alert", { force: true });
 
 export default function AlertBar() {
   const day = useEventDay();
@@ -75,6 +75,7 @@ export default function AlertBar() {
   const seen = useRef<Set<string> | null>(null);
 
   useEffect(() => { try { queueMicrotask(() => setSound(localStorage.getItem(SOUND_KEY) === "1")); } catch { /* no storage */ } }, []);
+  useEffect(() => unlockSoundOnFirstTap(), []);
   useEffect(() => { const t = window.setInterval(() => setNow(Date.now()), 15000); return () => window.clearInterval(t); }, []);
 
   const alerts = useMemo(() => (day?.rows ? buildAlerts(day.rows, day.days, day.calls, day.readySince, day.eventDate, day.eventId, now) : []), [day, now]);

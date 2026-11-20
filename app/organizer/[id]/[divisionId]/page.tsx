@@ -30,7 +30,7 @@ function Console({ eventId, divisionId }: { eventId: string; divisionId: string 
   useEffect(() => {
     if (!data) return;
     const kind = divisionSound(prevMatches.current, data.matches);
-    if (kind) play(kind);
+    if (kind) play(kind, { unlessRecent: true });
     prevMatches.current = data.matches;
   }, [data]);
   // โต๊ะกรรมการ (all divisions) links here with ?tab=rounds etc.

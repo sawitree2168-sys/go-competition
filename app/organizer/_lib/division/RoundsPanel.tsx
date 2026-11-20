@@ -9,6 +9,7 @@ import MatchCard, { type Seat } from "../../../tournaments/[id]/_ui/MatchCard";
 import ResultControls from "../../../tournaments/[id]/_ui/ResultControls";
 import RoundReportButtons, { RoundTable, type ReportPerson } from "@/components/RoundReport";
 import { divisionLabel } from "@/lib/division-display";
+import { play } from "@/lib/sounds";
 import { isWithdrawn, nameOf, poolArg, poolKey, poolName, pts, schoolOf, type DivisionData, type Match, type Reg } from "./types";
 
 type Table = { board: number; black: string; white: string };
@@ -206,10 +207,12 @@ function TableCard({ m, byId, score, editable, reload }: { m: Match; byId: Map<s
   const done = m.state === "verified";
 
   const record = async (code: string, margin: string | null) => {
+    if (/^(black|white)_win/.test(code)) play("result"); // right away, on the tap
     const ok = await action.run(() => staffDb()!.rpc("gt_staff_record_result_v1", { p_match: m.id, p_result: code, p_margin: margin }));
     if (ok) { setEditing(false); await reload(); }
   };
   const checkin = async (side: "black" | "white", present: boolean) => {
+    if (present) play("checkin"); // right away, on the tap
     const ok = await action.run(() => staffDb()!.rpc("gt_staff_checkin_v1", { p_match: m.id, p_side: side, p_present: present }));
     if (ok) await reload();
   };

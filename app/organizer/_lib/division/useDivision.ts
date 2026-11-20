@@ -46,7 +46,7 @@ export function useDivision(divisionId: string) {
     const { data: fp, error } = await staffDb()!.rpc("gt_division_live_v1", { p_division: divisionId });
     if (error) throw error;
     return fp as string | null;
-  }, () => { void fetchAll(); }, { interval: 8000, enabled: staff.status === "staff" });
+  }, () => { void fetchAll(); }, { interval: 4000, enabled: staff.status === "staff" });
 
   return { data, missing, reload, live };
 }
