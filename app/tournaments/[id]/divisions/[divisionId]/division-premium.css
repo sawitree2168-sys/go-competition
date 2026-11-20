@@ -232,3 +232,15 @@
 .gt[data-gt-theme="dark"] .gt-division-summary-notes p { color:#e5efff; }
 .gt[data-gt-theme="dark"] .gt-pair-notice > div { background:linear-gradient(110deg,#163b78,#112e62); }
 .gt[data-gt-theme="dark"] .gt-pair-notice p:first-child { color:#fff0bd; }
+
+/* High-clarity vector banner: real event text remains HTML, sharp at every screen size. */
+.gt-division-hero { background-color:#041b5e; }
+.gt-division-hero-image { background-image:url("/division-go-crisp.svg")!important; background-position:center center!important; background-size:cover!important; opacity:1!important; filter:none!important; }
+.gt-division-hero-shade { background:linear-gradient(90deg,rgba(1,16,58,.76) 0%,rgba(1,25,81,.56) 37%,rgba(1,24,70,.19) 67%,rgba(1,19,59,0) 100%)!important; }
+.gt-division-hero .gt-division-title { filter:drop-shadow(0 3px 2px rgba(0,15,55,.8)); }
+.gt-division-hero .gt-division-subtitle,.gt-division-hero .gt-division-date { font-weight:700; text-shadow:0 2px 5px rgba(0,10,50,.95); }
+.gt-division-hero .gt-division-stat { background:linear-gradient(150deg,rgba(6,60,153,.95),rgba(1,26,86,.95)); backdrop-filter:blur(3px); }
+@media(max-width:767px) {
+ .gt-division-hero-image { background-position:65% center!important; }
+ .gt-division-hero-shade { background:linear-gradient(90deg,rgba(2,21,69,.83) 0%,rgba(2,29,89,.63) 62%,rgba(2,21,72,.25) 100%)!important; }
+}
