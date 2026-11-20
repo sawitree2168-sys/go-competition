@@ -371,7 +371,7 @@ export function Stats({ ov, records, filters }: { ov: Overview; records: Rec[] }
           </tbody>
         </table>
         {!rows.length && <div className="p-4"><Empty>ยังไม่มีนักเรียน</Empty></div>}
-      </div>
+      </div>}
     </div>
   );
 }
