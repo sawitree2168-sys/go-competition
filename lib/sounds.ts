@@ -14,19 +14,22 @@ export type SoundKind = "alert" | "checkin" | "result" | "roundStart";
 export const SOUND_KEY = "gt-alert-sound";
 
 // Bell sounds ("ติ๊ง~"): a pure tone that strikes instantly and rings out, plus quieter overtones.
-type Tune = { notes: number[]; step: number; ring: number; partials: [number, number][] };
+type Tune = { notes: number[]; step: number; ring: number; partials: [number, number][]; times?: number[] };
 const BELL: [number, number][] = [[1, 1], [2, 0.35], [3, 0.12]];      // ratio, loudness
 const CHIME: [number, number][] = [[1, 1], [2.76, 0.25], [5.4, 0.08]]; // glassy bell
+const RING: [number, number][] = [[1, 1], [2.4, 0.5], [3.9, 0.3], [5.2, 0.15]]; // boxing-ring bell, metallic
+// ระฆังเวที: 3 quick strikes, played 3 times with a pause between
+const RING_TIMES = [0, 1, 2].flatMap((g) => [0, 1, 2].map((i) => g * 1.4 + i * 0.28));
 const TUNES: Record<SoundKind, Tune> = {
   alert: { notes: [1319, 1047, 1319, 1047], step: 0.2, ring: 0.5, partials: BELL },
   // เช็คอิน: "ติ๊ง-ติ๊ง"
   checkin: { notes: [1568, 2093], step: 0.16, ring: 0.9, partials: CHIME },
   // ลงผล มีคนชนะ: rising bell chime
   result: { notes: [1047, 1319, 1568, 2093], step: 0.12, ring: 1.1, partials: BELL },
-  // เริ่มแข่งรอบใหม่: longer ascending bells
-  roundStart: { notes: [784, 1047, 1319, 1568, 2093], step: 0.18, ring: 1.4, partials: BELL },
+  // เริ่มแข่งรอบใหม่: boxing-ring bell ติ๊ง-ติ๊ง-ติ๊ง × 3 (chosen 21 Nov 2026)
+  roundStart: { notes: RING_TIMES.map(() => 1175), step: 0, ring: 1.2, partials: RING, times: RING_TIMES },
 };
-const VIBRATE: Record<SoundKind, number[]> = { alert: [150, 80, 150], checkin: [60], result: [100, 60, 100], roundStart: [250, 100, 250, 100, 400] };
+const VIBRATE: Record<SoundKind, number[]> = { alert: [150, 80, 150], checkin: [60], result: [100, 60, 100], roundStart: [120, 160, 120, 160, 120, 1000, 120, 160, 120, 160, 120, 1000, 120, 160, 120, 160, 120] };
 
 let ctx: AudioContext | null = null;
 let out: AudioNode | null = null;
@@ -76,7 +79,7 @@ export function play(kind: SoundKind, { force = false, unlessRecent = false } = 
   if (a) {
     const t = TUNES[kind], start = a.ctx.currentTime + 0.01;
     t.notes.forEach((f, i) => {
-      const at = start + i * t.step;
+      const at = start + (t.times ? t.times[i] : i * t.step);
       for (const [ratio, level] of t.partials) {
         const o = a.ctx.createOscillator(), g = a.ctx.createGain();
         o.type = "sine"; o.frequency.value = f * ratio; o.connect(g); g.connect(a.out);
