@@ -6,22 +6,25 @@
  *
  * Browsers start audio "suspended" unless it is created during a tap. So one shared AudioContext is created
  * and resumed on the first tap anywhere on the page, and every sound reuses it — otherwise sounds triggered
- * later by fresh data (a referee's check-in) are silent. Sounds are loud on purpose (busy hall): square /
- * sawtooth waves through a compressor, near full volume.
+ * later by fresh data (a referee's check-in) are silent. Sounds are loud on purpose (busy hall): 
+ * bell tones (instant strike, ring out) through a compressor, near full volume.
  */
 export type SoundKind = "alert" | "checkin" | "result" | "roundStart";
 
 export const SOUND_KEY = "gt-alert-sound";
 
-type Tune = { notes: number[]; step: number; len: number; type: OscillatorType };
+// Bell sounds ("ติ๊ง~"): a pure tone that strikes instantly and rings out, plus quieter overtones.
+type Tune = { notes: number[]; step: number; ring: number; partials: [number, number][] };
+const BELL: [number, number][] = [[1, 1], [2, 0.35], [3, 0.12]];      // ratio, loudness
+const CHIME: [number, number][] = [[1, 1], [2.76, 0.25], [5.4, 0.08]]; // glassy bell
 const TUNES: Record<SoundKind, Tune> = {
-  alert: { notes: [784, 1046, 784, 1046], step: 0.18, len: 0.16, type: "square" },
-  // เช็คอิน: clear "ding-ding"
-  checkin: { notes: [1175, 1568], step: 0.12, len: 0.22, type: "square" },
-  // ลงผล มีคนชนะ: rising three-note chime
-  result: { notes: [784, 988, 1319], step: 0.13, len: 0.3, type: "sawtooth" },
-  // เริ่มแข่งรอบใหม่: fanfare
-  roundStart: { notes: [523, 659, 784, 1046, 1046], step: 0.16, len: 0.34, type: "sawtooth" },
+  alert: { notes: [1319, 1047, 1319, 1047], step: 0.2, ring: 0.5, partials: BELL },
+  // เช็คอิน: "ติ๊ง-ติ๊ง"
+  checkin: { notes: [1568, 2093], step: 0.16, ring: 0.9, partials: CHIME },
+  // ลงผล มีคนชนะ: rising bell chime
+  result: { notes: [1047, 1319, 1568, 2093], step: 0.12, ring: 1.1, partials: BELL },
+  // เริ่มแข่งรอบใหม่: longer ascending bells
+  roundStart: { notes: [784, 1047, 1319, 1568, 2093], step: 0.18, ring: 1.4, partials: BELL },
 };
 const VIBRATE: Record<SoundKind, number[]> = { alert: [150, 80, 150], checkin: [60], result: [100, 60, 100], roundStart: [250, 100, 250, 100, 400] };
 
@@ -37,7 +40,7 @@ function audio(): { ctx: AudioContext; out: AudioNode } | null {
       ctx = new Ctx();
       const comp = ctx.createDynamicsCompressor();
       comp.threshold.value = -20; comp.knee.value = 10; comp.ratio.value = 6;
-      const master = ctx.createGain(); master.gain.value = 1.6;
+      const master = ctx.createGain(); master.gain.value = 2.2;
       comp.connect(master); master.connect(ctx.destination);
       out = comp;
     }
@@ -73,13 +76,16 @@ export function play(kind: SoundKind, { force = false, unlessRecent = false } = 
   if (a) {
     const t = TUNES[kind], start = a.ctx.currentTime + 0.01;
     t.notes.forEach((f, i) => {
-      const o = a.ctx.createOscillator(), g = a.ctx.createGain(), at = start + i * t.step;
-      o.type = t.type; o.frequency.value = f; o.connect(g); g.connect(a.out);
-      g.gain.setValueAtTime(0.0001, at);
-      g.gain.exponentialRampToValueAtTime(0.9, at + 0.01);
-      g.gain.setValueAtTime(0.9, at + t.len * 0.6);
-      g.gain.exponentialRampToValueAtTime(0.0001, at + t.len);
-      o.start(at); o.stop(at + t.len + 0.02);
+      const at = start + i * t.step;
+      for (const [ratio, level] of t.partials) {
+        const o = a.ctx.createOscillator(), g = a.ctx.createGain();
+        o.type = "sine"; o.frequency.value = f * ratio; o.connect(g); g.connect(a.out);
+        const ring = t.ring / ratio; // overtones die away sooner, like a real bell
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(level, at + 0.004);   // instant strike
+        g.gain.exponentialRampToValueAtTime(0.0001, at + ring);   // ring out
+        o.start(at); o.stop(at + ring + 0.05);
+      }
     });
   }
   try { navigator.vibrate?.(VIBRATE[kind]); } catch { /* no vibration */ }
