@@ -3,11 +3,22 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /** The same live content stays mounted when expanded; exports include every visible row. */
-export default function CompetitionPanel({ children, className = "", title, context }: {
-  children: ReactNode; className?: string; title: string; context: string;
+/**
+ * `onClose`: the panel opens straight in full screen (e.g. from a "ดูเต็มจอ" button) and closing calls it.
+ * The photo switch hides athlete pictures on screen and in the PNG / PDF at the same time.
+ */
+export default function CompetitionPanel({ children, className = "", title, context, onClose }: {
+  children: ReactNode; className?: string; title: string; context: string; onClose?: () => void;
 }) {
   const [includePhotos, setIncludePhotos] = useState(true);
-  const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(false);
+  const expanded = onClose ? true : open;
+  const closeRef = useRef(onClose);
+  useEffect(() => { closeRef.current = onClose; }, [onClose]);
+  const setExpanded = (v: boolean | ((x: boolean) => boolean)) => {
+    const next = typeof v === "function" ? v(expanded) : v;
+    if (!next && onClose) onClose(); else setOpen(next);
+  };
   const [busy, setBusy] = useState<"png" | "pdf" | null>(null);
   const [error, setError] = useState("");
   const panel = useRef<HTMLElement>(null);
@@ -21,7 +32,7 @@ export default function CompetitionPanel({ children, className = "", title, cont
     document.body.classList.add("cd-has-fullscreen");
     toggle.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setExpanded(false);
+      if (e.key === "Escape") { if (closeRef.current) closeRef.current(); else setOpen(false); }
       if (e.key !== "Tab") return;
       const controls = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input, select, [tabindex="0"]') ?? []);
       const first = controls[0], last = controls[controls.length - 1];
@@ -85,16 +96,20 @@ export default function CompetitionPanel({ children, className = "", title, cont
     } finally { setBusy(null); }
   }
 
-  return <section ref={panel} className={`cd-panel cd-download-panel ${className} ${expanded ? "cd-expanded" : ""}`}
+  return <section ref={panel} className={`cd-panel cd-download-panel ${className} ${expanded ? "cd-expanded" : ""} ${includePhotos ? "" : "gt-hide-photos"}`}
     role={expanded ? "dialog" : undefined} aria-modal={expanded || undefined} aria-label={title}>
     <div className="cd-panel-controls" data-export-ignore="true">
-      <span>{title}</span><button ref={toggle} type="button" aria-expanded={expanded} onClick={() => setExpanded(v => !v)}>{expanded ? "✕ กลับมุมมองเดิม" : "⛶ ดูเต็มหน้า"}</button>
+      <span>{title}</span>
+      <span className="cd-panel-buttons">
+        <button type="button" aria-pressed={includePhotos} onClick={() => setIncludePhotos(v => !v)}>{includePhotos ? "ซ่อนรูป" : "แสดงรูป"}</button>
+        <button ref={toggle} type="button" aria-expanded={expanded} onClick={() => setExpanded(v => !v)}>{expanded ? (onClose ? "✕ ปิด" : "✕ กลับมุมมองเดิม") : "⛶ ดูเต็มหน้า"}</button>
+      </span>
     </div>
     <div className="cd-panel-reader"><div ref={content} className="cd-export-content">
       <p className="cd-export-context">{context}</p>{children}
     </div></div>
     <div className="cd-download-actions" data-export-ignore="true">
-      <label className="cd-export-photo-option"><input type="checkbox" checked={includePhotos} disabled={!!busy} onChange={e => setIncludePhotos(e.target.checked)} /> แสดงรูปนักกีฬาในไฟล์ที่บันทึก</label>
+      <label className="cd-export-photo-option"><input type="checkbox" checked={includePhotos} disabled={!!busy} onChange={e => setIncludePhotos(e.target.checked)} /> แสดงรูปนักกีฬา (บนจอและในไฟล์)</label>
       <button type="button" disabled={!!busy} onClick={() => void download("png")}>{busy === "png" ? "กำลังสร้างรูป…" : "↓ ดาวน์โหลดรูป PNG"}</button>
       <button type="button" disabled={!!busy} onClick={() => void download("pdf")}>{busy === "pdf" ? "กำลังสร้าง PDF…" : "↓ ดาวน์โหลด PDF"}</button>
       {error && <p role="alert">{error}</p>}

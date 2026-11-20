@@ -7,6 +7,8 @@ import { noShowResult, pairingPlayers, waitingList, recommendedRounds, resultLab
 import { ErrorNote, staffDb, useAction } from "../staff";
 import MatchCard, { type Seat } from "../../../tournaments/[id]/_ui/MatchCard";
 import ResultControls from "../../../tournaments/[id]/_ui/ResultControls";
+import RoundReportButtons, { RoundTable, type ReportPerson } from "@/components/RoundReport";
+import { divisionLabel } from "@/lib/division-display";
 import { isWithdrawn, nameOf, poolArg, poolKey, poolName, pts, schoolOf, type DivisionData, type Match, type Reg } from "./types";
 
 type Table = { board: number; black: string; white: string };
@@ -57,6 +59,10 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
   const state = roundState(matches, byes, totalRounds);
   const { score } = scoresFrom(everyone.map((r) => r.athlete_id), matches, byes);
   const [openRound, setOpenRound] = useState<number | null>(null);
+  const [view, setView] = useState<"cards" | "table">("cards");
+  const [showPhotos, setShowPhotos] = useState(true);
+  const people = useMemo(() => Object.fromEntries(everyone.map((r): [string, ReportPerson] => [r.athlete_id,
+    { name: nameOf(r), institution: schoolOf(r), rank: r.gt_athletes?.current_rank ?? null, photo: r.gt_athletes?.avatar_url ?? null }])), [everyone]);
   const shown = openRound ?? state.lastRound;
   const action = useAction();
 
@@ -122,8 +128,16 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
               <span className="text-[var(--gt-muted)]">ยังไม่มาเกิน 15 นาที กด “คู่ชนะบาย” ในรายชื่อพักรอ (ไม่ต้องจับคู่ใหม่)</span>
             </p>
           )}
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border-2 border-[var(--gt-cta)]/50 bg-[var(--gt-surface)] p-2 text-sm font-semibold">
+            <span className="mr-auto">มุมมอง</span>
+            <button type="button" aria-pressed={view === "cards"} onClick={() => setView("cards")} className={`min-h-11 rounded-lg border px-4 ${view === "cards" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>▦ การ์ด (ลงผล)</button>
+            <button type="button" aria-pressed={view === "table"} onClick={() => setView("table")} className={`min-h-11 rounded-lg border px-4 ${view === "table" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>☷ ตาราง</button>
+            <button type="button" aria-pressed={showPhotos} onClick={() => setShowPhotos((v) => !v)} className="min-h-11 rounded-lg border border-[var(--gt-line)] px-4">{showPhotos ? "ซ่อนรูป" : "แสดงรูป"}</button>
+          </div>
+          <RoundReportButtons eventTitle="GO TOURNAMENT" divisionName={`${divisionLabel(data.division.name)}${pool ? ` · สาย ${pool}` : ""}`} round={shown} matches={matches} byes={byes} people={people} />
           {!latest && <p className="text-sm text-[var(--gt-muted)]">รอบเก่า: ดูได้อย่างเดียว (แก้ผลได้เฉพาะรอบล่าสุดก่อนออกคู่รอบถัดไป)</p>}
-          <ul className="space-y-2">
+          {view === "table" && <div className={`cd-panel ${showPhotos ? "" : "gt-hide-photos"}`}><RoundTable kind="results" round={shown} matches={matches} byes={byes} people={people} /></div>}
+          <ul className={`space-y-2 ${view === "table" ? "hidden" : ""} ${showPhotos ? "" : "gt-hide-photos"}`}>
             {roundMatches.map((m) => <TableCard key={m.id} m={m} byId={byId} score={scoreBefore} editable={latest} reload={reload} />)}
             {roundBye && (
               <li className="gt-card flex items-center gap-3 px-4 py-3 text-sm">

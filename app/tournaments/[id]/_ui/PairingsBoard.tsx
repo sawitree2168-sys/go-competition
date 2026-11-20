@@ -9,6 +9,7 @@ import { DEFAULT_AVATAR } from "./MatchCard";
 import ResultControls from "./ResultControls";
 import { pingLive } from "./live";
 import type { Bye, Match, Person } from "./data";
+import RoundReportButtons from "@/components/RoundReport";
 
 /**
  * Public "จับคู่ & ผลการแข่งขัน" board (design 16 Nov 2026, light + dark): round buttons, search, pool filter,
@@ -132,8 +133,8 @@ function StaffResult({ m, divisionId }: { m: Match; divisionId: string }) {
   );
 }
 
-export default function PairingsBoard({ matches, byes, people, tournamentId, divisionId }: {
-  matches: Match[]; byes: Bye[]; people: Record<string, Person>; tournamentId: string; divisionId: string;
+export default function PairingsBoard({ matches, byes, people, tournamentId, divisionId, eventTitle = "GO TOURNAMENT", divisionName = "" }: {
+  matches: Match[]; byes: Bye[]; people: Record<string, Person>; tournamentId: string; divisionId: string; eventTitle?: string; divisionName?: string;
 }) {
   const rounds = useMemo(() => [...new Set([...matches.map((m) => m.round_number), ...byes.map((b) => b.round_number)])].sort((a, b) => a - b), [matches, byes]);
   const pools = useMemo(() => [...new Set(matches.map((m) => m.pool_label ?? ""))].sort(), [matches]);
@@ -214,6 +215,8 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
         <button type="button" aria-pressed={view === "table"} onClick={() => setView("table")} className={`min-h-11 rounded-lg border px-4 ${view === "table" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>☷ ตาราง</button>
         <button type="button" aria-pressed={showPhotos} onClick={() => setShowPhotos(v => !v)} className="min-h-11 rounded-lg border border-[var(--gt-line)] px-4">{showPhotos ? "ซ่อนรูปนักกีฬา" : "แสดงรูปนักกีฬา"}</button>
       </div>
+      <RoundReportButtons eventTitle={eventTitle} divisionName={divisionName} round={round} pool={pool === "all" ? null : pool} matches={matches} byes={byes} people={people} />
+      <p className="-mt-2 text-xs text-[var(--gt-muted)]">มือถือมองตารางเล็กไป? กดปุ่มด้านบน 1 ครั้งเพื่อดูเต็มจอ และดาวน์โหลดเป็นรูปหรือ PDF</p>
       {staff && <p className="rounded-xl border border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-3 py-2 text-sm text-[var(--gt-gold-ink)]">คุณเป็นผู้จัดงานนี้ — ลงผลได้จากหน้านี้ (เฉพาะรอบล่าสุด) · ผู้ชมทั่วไปจะไม่เห็นปุ่มลงผล</p>}
 
       {view === "cards" ? <ul className="space-y-3">

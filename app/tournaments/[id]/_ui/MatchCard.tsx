@@ -19,7 +19,7 @@ export {DEFAULT_ATHLETE_PHOTO as DEFAULT_AVATAR} from "@/lib/athlete-photo.mjs";
 export function Avatar({ seat, size = "md" }: { seat: Seat; size?: "md" | "lg" }) {
   const dim = size === "lg" ? "h-20 w-20 sm:h-24 sm:w-24" : "h-14 w-14";
   const style = seat.photo ? "rounded-lg border-2 border-[var(--gt-surface)] object-cover shadow" : "object-contain";
-  return <AthleteAvatar src={seat.photo} name={seat.name ?? "นักกีฬา"} className={`${dim} ${style}`} />;
+  return <AthleteAvatar src={seat.photo} name={seat.name ?? "นักกีฬา"} className={`${dim} ${style}`} zoom />;
 }
 
 function Side({ seat, colour, extra }: { seat: Seat; colour: "black" | "white"; extra?: React.ReactNode }) {

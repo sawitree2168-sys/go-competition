@@ -164,6 +164,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetail, setMobileDetail] = useState(false);
   const [showPhotos, setShowPhotos] = useState(true);
+  const [view, setView] = useState<"cards" | "table">("cards");
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
 
@@ -258,8 +259,34 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
         ))}
       </div>
       <p className="px-4 pt-2 text-xs text-[var(--gt-muted)]">เช็คชื่อแล้ว {checked}/{seats} คน · แตะโต๊ะเพื่อลงผล</p>
-      <div className="px-4 pt-2"><button type="button" onClick={() => setShowPhotos(v => !v)} aria-pressed={showPhotos} className="min-h-11 rounded-xl border-2 border-[var(--gt-cta)]/50 bg-[var(--gt-surface)] px-4 text-sm font-semibold">{showPhotos ? "ซ่อนรูปนักกีฬา" : "แสดงรูปนักกีฬา"}</button></div>
-      <ul className="relative z-10 flex-1 space-y-2.5 p-3 pb-28 lg:pb-36">
+      <div className="flex flex-wrap gap-2 px-4 pt-2" role="group" aria-label="มุมมอง">
+        <button type="button" aria-pressed={view === "cards"} onClick={() => setView("cards")} className={`min-h-11 rounded-xl border-2 px-3 text-sm font-semibold ${view === "cards" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-cta)]/50 bg-[var(--gt-surface)]"}`}>▦ การ์ด</button>
+        <button type="button" aria-pressed={view === "table"} onClick={() => setView("table")} className={`min-h-11 rounded-xl border-2 px-3 text-sm font-semibold ${view === "table" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-cta)]/50 bg-[var(--gt-surface)]"}`}>☷ ตาราง</button>
+        <button type="button" onClick={() => setShowPhotos(v => !v)} aria-pressed={showPhotos} className="min-h-11 rounded-xl border-2 border-[var(--gt-cta)]/50 bg-[var(--gt-surface)] px-3 text-sm font-semibold">{showPhotos ? "ซ่อนรูป" : "แสดงรูป"}</button>
+      </div>
+      {view === "table" && (
+        <div className="relative z-10 flex-1 overflow-x-auto p-3 pb-28 lg:pb-36">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-[var(--gt-cta-soft)]"><tr><th className="p-2">โต๊ะ</th><th className="p-2">ดำ</th><th className="p-2">ขาว</th><th className="p-2">สถานะ</th></tr></thead>
+            <tbody>
+              {list.map((t) => (
+                <tr key={t.id} onClick={() => pick(t)} className={`cursor-pointer border-t border-[var(--gt-line)] ${selected?.id === t.id ? "bg-[var(--gt-cta-soft)]" : ""}`}>
+                  <td className="p-2 text-base font-bold"><button type="button" onClick={(e) => { e.stopPropagation(); pick(t); }} className="min-h-10">{two(t.board)}</button></td>
+                  {([t.black, t.white] as const).map((p, i) => (
+                    <td key={i} className="p-2"><span className="flex items-center gap-2">
+                      {showPhotos && <img src={p.photo || DEFAULT_AVATAR} alt="" className="h-9 w-8 shrink-0 rounded-md border border-[var(--gt-gold)] object-cover" />}
+                      <span className="min-w-0"><span className="block font-medium leading-tight">{p.name ?? "—"}</span><span className="block text-xs text-[var(--gt-muted)]">{p.rank ?? ""}</span></span>
+                    </span></td>
+                  ))}
+                  <td className="p-2 text-xs font-medium">{t.state === "verified" ? "บันทึกแล้ว" : "รอผล"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {tables && !list.length && <p className="py-6 text-center text-sm text-[var(--gt-muted)]">{q ? "ไม่พบโต๊ะที่ค้นหา" : tab === "pending" ? "ลงผลครบทุกโต๊ะแล้ว" : "ยังไม่มีโต๊ะที่บันทึกผล"}</p>}
+        </div>
+      )}
+      <ul className={`relative z-10 flex-1 space-y-2.5 p-3 pb-28 lg:pb-36 ${view === "table" ? "hidden" : ""}`}>
         {list.map((t) => {
           const active = selected?.id === t.id;
           const isDone = t.state === "verified";

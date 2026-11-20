@@ -8,6 +8,7 @@ import SiteBar from "@/app/tournaments/[id]/_ui/SiteBar";
 import AthletePhotoViewer from "./AthletePhotoViewer";
 import MenuIcon from "./MenuIcon";
 import CompetitionPanel from "./CompetitionPanel";
+import RoundReportButtons from "./RoundReport";
 import { divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
 import { roundsOf, resultLabel } from "@/lib/competition-day.mjs";
 import { boardMode, standingsMode, divisionProgress, latestPairings } from "@/lib/competition-dashboard.mjs";
@@ -175,6 +176,9 @@ function CompetitionWorkspace({ row, event, entrants, active, selectTab }: { row
       {pools.some(p => p !== "") && active !== "entrants" && <label className="cd-filter"><span>สายการแข่งขัน</span><select value={selectedPool} onChange={e => setPool(e.target.value)}><option value="*">ทุกสาย</option>{pools.map(p => <option key={p} value={p}>{p ? `สาย ${p}` : "ไม่ระบุสาย"}</option>)}</select></label>}
       {showBoard && <div className="cd-rounds" aria-label="เลือกรอบการแข่งขัน"><button type="button" aria-pressed={selectedRound === "latest"} onClick={() => setRound("latest")}>ล่าสุด</button>{rounds.map(n => <button type="button" key={n} aria-pressed={selectedRound === n} onClick={() => setRound(n)}>รอบ {n}</button>)}</div>}
     </div>}
+    {showBoard && mode === "live" && published.length > 0 && <RoundReportButtons className="cd-report-row" eventTitle={event.title} divisionName={divisionLabel(row.division.name)}
+      round={selectedRound === "latest" ? published[published.length - 1] : selectedRound} pool={selectedPool === "*" ? null : selectedPool}
+      matches={row.matches} byes={row.byes} people={Object.fromEntries(row.people)} />}
     <div className={active === "overview" ? "cd-work-grid" : "cd-work-single"}>
       <div className="cd-work-main">
         {showBoard && <CompetitionPanel className={`cd-match-view-${matchView}`} title="คู่แข่งขัน" context={`${event.title} · ${divisionLabel(row.division.name)} · ${selectedRound === "latest" ? "รอบล่าสุด" : `รอบ ${selectedRound}`}${selectedPool !== "*" ? ` · สาย ${selectedPool}` : ""}${search ? ` · ค้นหา: ${search}` : ""}`}><PanelTitle title="รอบแข่งขันล่าสุด" demo={mode === "demo"} />

@@ -86,7 +86,7 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
   }, [zoom]);
 
   const Face = ({ r, size }: { r: Row; size: string }) => (
-    <button type="button" onClick={() => setZoom(r)} aria-label={`ดูรูป ${r.display_name ?? ""}`} className={`${size} shrink-0 rounded-full print:pointer-events-none ${photo(r) === DEFAULT_AVATAR ? "" : "overflow-hidden"}`}>
+    <button type="button" data-athlete-photo="true" onClick={() => setZoom(r)} aria-label={`ดูรูป ${r.display_name ?? ""}`} className={`${size} shrink-0 rounded-full print:pointer-events-none ${photo(r) === DEFAULT_AVATAR ? "" : "overflow-hidden"}`}>
       <img src={photo(r)} alt="" loading="lazy" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-full w-full ${photo(r) === DEFAULT_AVATAR ? "object-contain" : "object-cover"}`} />
     </button>
   );

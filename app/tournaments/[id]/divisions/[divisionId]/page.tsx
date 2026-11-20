@@ -12,6 +12,8 @@ import { boardSize, divisionKey, divisionLabel, thaiDate } from "@/lib/division-
 import { friendshipAward, resultLabel } from "@/lib/competition-day.mjs";
 import CrossTable from "../../_ui/CrossTable";
 import PairingsBoard from "../../_ui/PairingsBoard";
+import RoundReportButtons from "@/components/RoundReport";
+import CompetitionPanel from "@/components/CompetitionPanel";
 import RegisterPanel from "../../_ui/RegisterPanel";
 import NewsPanel, { type RoundItem } from "../../_ui/NewsPanel";
 import { roundNews } from "@/lib/round-news.mjs";
@@ -100,7 +102,7 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
   const inPool = <T extends { pool_label?: string | null }>(rows: T[], pool: string) => rows.filter((x) => (x.pool_label ?? "") === pool);
 
   const pairsPanel = rounds.length
-    ? <div className="relative lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2"><PairingsBoard matches={matches} byes={byes} people={Object.fromEntries(people)} tournamentId={id} divisionId={divisionId} /></div>
+    ? <div className="relative lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2"><PairingsBoard matches={matches} byes={byes} people={Object.fromEntries(people)} tournamentId={id} divisionId={divisionId} eventTitle={event.title} divisionName={label} /></div>
     : <Notice title="ยังไม่ประกาศคู่แข่งขัน" body="ผู้ตัดสินจะจับคู่แบบสวิส: โต๊ะ 1 คือผู้มีคะแนนสูงสุด" />;
 
   const verified = matches.filter((m) => m.state === "verified");
@@ -113,7 +115,8 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
         <PoolTitle pool={pool} />
         {pr.map((r) => (
           <section key={r} className="mt-4">
-            <h2 className="text-lg font-bold">ผลรอบที่ {r}</h2>
+            <div className="flex flex-wrap items-center gap-2"><h2 className="mr-auto text-lg font-bold">ผลรอบที่ {r}</h2></div>
+            <RoundReportButtons className="mt-2" eventTitle={event.title} divisionName={label} round={r} pool={multi ? pool : null} matches={matches} byes={byes} people={Object.fromEntries(people)} />
             <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1.5">
               {pv.filter((m) => m.round_number === r).sort(byBoard).map((m) => (
                 <li key={m.id} className="gt-card min-w-0 px-3 py-2.5">
@@ -144,9 +147,11 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
   const standingsPanel = standings.some((s) => s.wins + s.losses + s.byes > 0) ? (
     <div className="relative mt-4 space-y-4 lg:left-1/2 lg:w-[min(64rem,calc(100vw-2rem))] lg:-translate-x-1/2">
       {pools.map((pool) => (
-        <CrossTable key={pool || "all"} title={`ตารางอันดับ ${label}${pool ? ` · สาย ${pool}` : ""}`}
+        <CompetitionPanel key={pool || "all"} title={`ตารางอันดับ ${label}${pool ? ` · สาย ${pool}` : ""}`} context={`${event.title} · ตารางอันดับ ${label}${pool ? ` · สาย ${pool}` : ""}`}>
+        <CrossTable title={`ตารางอันดับ ${label}${pool ? ` · สาย ${pool}` : ""}`}
           rows={inPool(standings, pool)} matches={inPool(matches, pool)} byes={inPool(byes, pool)} medals={medals} rounds={roundsOf(division)}
           photos={Object.fromEntries([...people].map(([k, v]) => [k, v.photo ?? null]))} />
+        </CompetitionPanel>
       ))}
       <p className="text-xs text-[var(--gt-muted)]">คะแนน = ชนะ + บาย (เสมอ ½) · คะแนนเท่ากันดู SOS แล้ว SOSOS (นับคู่ที่ได้เล่นจริง · {byeRule(event.bye_sos_mode).short}) · นับเฉพาะผลที่ยืนยันแล้ว{multi ? " · อันดับแยกตามสาย" : ""}</p>
     </div>
