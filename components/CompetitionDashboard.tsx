@@ -218,6 +218,13 @@ export default function CompetitionDashboard({ event, divisions, entrants, initi
   const hasDemo = divisions.some(d => boardMode(d.boardAvailable, d.matches, d.byes) === "demo");
   const hasResults = divisions.some(d => d.matches.some(m => m.state === "verified"));
   const boards = divisions.reduce((sum, d) => sum + latestPairings(d.matches, d.byes).matches.length, 0);
+  // A snapshot of verified games in the selected division's latest published round.
+  // Do not infer activity timestamps from match order.
+  const lastMatches = selected ? latestPairings(selected.matches, selected.byes).matches : [];
+  const completeMatches = lastMatches.filter(m => m.state === "verified").length;
+  const percent = lastMatches.length ? Math.round(completeMatches / lastMatches.length * 100) : 0;
+  const lastVerified = [...lastMatches].filter(m => m.state === "verified").sort((a,b) => (a.board_number ?? 999) - (b.board_number ?? 999)).slice(0,3);
+  const selectedPeople = new Map(selected?.people ?? []);
   const announcements = divisions.flatMap(d => d.announcements).sort((a, b) => b.created_at.localeCompare(a.created_at));
   const selectTab = (tab: Tab) => { setActive(tab); document.getElementById("competition-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
   const selectedMode = selected ? boardMode(selected.boardAvailable, selected.matches, selected.byes) : "error";
@@ -238,6 +245,28 @@ export default function CompetitionDashboard({ event, divisions, entrants, initi
         <div><MenuIcon name="stats" /><span><small>โต๊ะที่ประกาศ · รอบล่าสุด</small><strong>{boards || "–"} <em>{boards ? "โต๊ะ" : "รอจับคู่"}</em></strong></span></div>
         <button type="button" onClick={() => selectTab("announcements")}><MenuIcon name="news" /><span><small>ประกาศล่าสุด</small><strong className="cd-stat-announcement">{announcements[0]?.title ?? "เตรียมพร้อมก่อนแข่งขัน"}</strong></span><span aria-hidden="true">›</span></button>
       </div>
+      <section className="cd-progress-overview" aria-label="ภาพรวมผลการแข่งขันรุ่นที่เลือก">
+        <div className="cd-progress-copy">
+          <span className="cd-progress-eyebrow">GO TOURNAMENT · LIVE SCORE</span>
+          <h2>ความคืบหน้าการแข่งขัน</h2>
+          <p className="cd-progress-subtitle">{selected ? divisionLabel(selected.division.name) : "รอเลือกรุ่นการแข่งขัน"} · รอบล่าสุดที่ประกาศ</p>
+          <div className="cd-progress-numbers"><strong>{completeMatches}</strong><span>/ {lastMatches.length} โต๊ะบันทึกผลแล้ว</span></div>
+          <p className="cd-progress-footnote">คำนวณจากผลที่ยืนยันแล้วในรอบล่าสุดเท่านั้น</p>
+        </div>
+        <div className="cd-progress-donut" role="img" aria-label={`บันทึกผลแล้ว ${completeMatches} จาก ${lastMatches.length} โต๊ะ คิดเป็น ${percent} เปอร์เซ็นต์`}
+          style={{ background: `conic-gradient(#d6aa37 0% ${percent}%, #d9e6f9 ${percent}% 100%)` }}>
+          <div><strong>{percent}%</strong><small>บันทึกผลแล้ว</small></div>
+        </div>
+        <div className="cd-progress-updates">
+          <h3>ผลที่ยืนยันในรอบล่าสุด</h3>
+          {lastVerified.length ? <ul>{lastVerified.map(m => <li key={m.id}>
+            <span className="cd-update-board">โต๊ะ {m.board_number ?? "—"}</span>
+            <span className="cd-update-name">{selectedPeople.get(m.black_athlete_id)?.name ?? "ผู้แข่งขัน"} – {selectedPeople.get(m.white_athlete_id)?.name ?? "ผู้แข่งขัน"}</span>
+            <strong>{resultLabel(m) || "บันทึกผลแล้ว"}</strong>
+          </li>)}</ul> : <p className="cd-progress-empty">ยังไม่มีผลที่ยืนยันในรอบล่าสุด</p>}
+          <button type="button" onClick={() => selectTab("pairings")}>ดูผลการแข่งขันทั้งหมด ›</button>
+        </div>
+      </section>
       {hasDemo && <aside className="cd-learning-banner"><span className="cd-learning-icon"><MenuIcon name="faq" /></span><div><strong>ทดลองเรียนรู้หน้าแข่งขันได้ก่อนวันงาน</strong><p>เลือกรุ่น ลองค้นหาชื่อ ดูหมายเลขโต๊ะ สีหมาก และอันดับในข้อมูลตัวอย่าง เมื่อผู้จัดจับคู่จริง ระบบจะแสดงข้อมูลจริงแทนให้เอง</p></div><ExampleTag /></aside>}
       <div className="cd-section-line"><h2>สถานะการแข่งขันแยกตามรุ่น</h2><div className="cd-live-status"><span>{live.offline ? "ขาดการเชื่อมต่อ · กำลังลองใหม่" : live.pending ? "กำลังอัปเดต…" : "อัปเดตอัตโนมัติทุก 10 วินาที"}{live.checkedAt ? ` · ${live.checkedAt}` : ""}</span><button type="button" disabled={live.pending} onClick={() => void live.refresh()}>↻ รีเฟรช</button></div></div>
         <nav className="cd-tabs" aria-label="เมนูหน้าแข่งขัน">{TABS.map(tab => <button type="button" key={tab.id} aria-current={active === tab.id ? "page" : undefined} onClick={() => setActive(tab.id)}><MenuIcon name={tab.icon} />{tab.label}</button>)}</nav>
