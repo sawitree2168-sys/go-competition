@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- existing public poster and decorative artwork */
 import Link from "next/link";
+import { EVENT_BANNERS } from "@/lib/event-banners";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
@@ -217,6 +218,8 @@ export default function CompetitionDashboard({ event, divisions, entrants, initi
   const hasPairings = divisions.some(d => boardMode(d.boardAvailable, d.matches, d.byes) === "live");
   const hasDemo = divisions.some(d => boardMode(d.boardAvailable, d.matches, d.byes) === "demo");
   const hasResults = divisions.some(d => d.matches.some(m => m.state === "verified"));
+  const ownBanner = EVENT_BANNERS[event.id];
+  const banner = ownBanner ? ownBanner.competition ?? ownBanner : null;
   const boards = divisions.reduce((sum, d) => sum + latestPairings(d.matches, d.byes).matches.length, 0);
   const announcements = divisions.flatMap(d => d.announcements).sort((a, b) => b.created_at.localeCompare(a.created_at));
   const selectTab = (tab: Tab) => { setActive(tab); document.getElementById("competition-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }); };
@@ -224,13 +227,24 @@ export default function CompetitionDashboard({ event, divisions, entrants, initi
   const workspaceMode = active === "entrants" ? "live" : active === "announcements" ? "none" : active === "standings" && selected
     ? standingsMode(selected.standingsAvailable, selectedMode, selected.standings) : selectedMode;
   return <div className={`competition-page cd-dashboard cd-view-${active}`}><SiteBar current="/tournaments" />
-    <header className="cd-event-hero"><img src="/event-hero-board.webp" alt="" className="cd-hero-art" /><div className="cd-hero-inner">
+    {banner ? (
+      /* Event's own banner, shown whole (its artwork carries the title); status, date, venue underneath */
+      <header className="cd-event-hero cd-has-banner">
+        <picture><source media="(min-width: 768px)" srcSet={banner.src} /><img src={banner.mobile} alt={event.title} width={banner.width} height={banner.height} className="cd-banner-img" /></picture>
+        <div className="cd-banner-band"><div className="cd-banner-band-inner">
+          <span className={`cd-event-status ${hasResults ? "live" : ""}`}><span />{hasResults ? "ติดตามผลการแข่งขัน" : hasPairings ? "ประกาศคู่แข่งขันแล้ว" : "เตรียมพร้อมก่อนแข่งขัน"}</span>
+          <h1 className="sr-only">{event.title}</h1>
+          <p>{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"} <span>│</span> {event.venue ?? "รอประกาศสถานที่"}</p>
+          <Link href={`/tournaments/${event.id}`}>รายละเอียดงานและการสมัคร →</Link>
+        </div></div>
+      </header>
+    ) : <header className="cd-event-hero"><img src="/event-hero-board.webp" alt="" className="cd-hero-art" /><div className="cd-hero-inner">
       {event.poster_url && <Link href={`/tournaments/${event.id}`} className="cd-poster-link"><img src={event.poster_url} alt={`โปสเตอร์ ${event.title}`} /></Link>}
       <div className="cd-hero-copy"><span className={`cd-event-status ${hasResults ? "live" : ""}`}><span />{hasResults ? "ติดตามผลการแข่งขัน" : hasPairings ? "ประกาศคู่แข่งขันแล้ว" : "เตรียมพร้อมก่อนแข่งขัน"}</span>
         <h1>{event.title}</h1><p>{thaiDate(event.event_date) ?? "รอประกาศวันแข่งขัน"} <span>│</span> {event.venue ?? "รอประกาศสถานที่"}</p>
         <p className="cd-hero-caption">ค้นหาคู่แข่งขัน ตรวจโต๊ะ และติดตามอันดับได้ในหน้าเดียว</p>
         <Link href={`/tournaments/${event.id}`}>รายละเอียดงานและการสมัคร →</Link>
-      </div></div></header>
+      </div></div></header>}
     <main className="competition-content cd-content">
       <div className="cd-stat-grid">
         <div><MenuIcon name="entrants" /><span><small>ผู้สมัครแข่งขัน</small><strong>{entrants.length} <em>สิทธิ์</em></strong></span></div>

@@ -122,3 +122,13 @@
 /* MatchCard with photos hidden: the ดำ/ขาว chip sat on the photo's corner and covered the name; show it inline above the name */
 .gt-hide-photos .gt-seat-chip{position:static;margin:0 auto}
 .cd-exporting .gt-card:has(.gt-fitzoom){overflow:visible;width:max-content;min-width:100%}
+/* Event's own banner on the หน้าแข่งขัน page: picture whole, details in a band underneath */
+.cd-dashboard .cd-event-hero.cd-has-banner{display:block;padding:0;min-height:0;background:#0a3f9c;color:white;border-bottom:0;overflow:hidden}
+.cd-dashboard .cd-event-hero.cd-has-banner:after{display:none}
+.cd-banner-img{display:block;width:100%;height:auto}
+.cd-banner-band{background:linear-gradient(90deg,#062a73,#0b4fae);color:white;border-bottom:3px solid #e9c46a}
+.cd-banner-band-inner{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;max-width:1440px;margin:0 auto;padding:12px max(16px,4vw)}
+.cd-banner-band-inner p{margin:0;font-size:18px;font-weight:600}
+.cd-banner-band-inner p span{opacity:.6;margin:0 6px}
+.cd-banner-band-inner a{margin-left:auto;color:#ffe39a;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:640px){.cd-banner-band-inner p{font-size:15px;width:100%}.cd-banner-band-inner a{margin-left:0}}
