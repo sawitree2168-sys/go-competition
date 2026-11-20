@@ -220,7 +220,7 @@ export default function CompetitionDashboard({ event, divisions, entrants, initi
   const boards = divisions.reduce((sum, d) => sum + latestPairings(d.matches, d.byes).matches.length, 0);
   // A snapshot of verified games in the selected division's latest published round.
   // Do not infer activity timestamps from match order.
-  const lastMatches = selected ? latestPairings(selected.matches, selected.byes).matches : [];
+  const lastMatches: Match[] = selected ? latestPairings(selected.matches, selected.byes).matches as Match[] : [];
   const completeMatches = lastMatches.filter(m => m.state === "verified").length;
   const percent = lastMatches.length ? Math.round(completeMatches / lastMatches.length * 100) : 0;
   const lastVerified = [...lastMatches].filter(m => m.state === "verified").sort((a,b) => (a.board_number ?? 999) - (b.board_number ?? 999)).slice(0,3);
