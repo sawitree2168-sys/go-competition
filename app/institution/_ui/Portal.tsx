@@ -32,7 +32,7 @@ export default function Portal(){
     const [{data:mine},{data:access}]=await Promise.all([db.rpc("gt_my_academies_v1"),db.rpc("gt_my_access_v1")]);
     const list=(mine??[]) as Mine[];
     setState({mode:list.length?"ready":"none",mine:list,email:session.session.user.email??"",admin:Boolean(access?.platform_role)});
-    setAcademyId(current=>list.some(a=>a.id===current)?current:(list.find(a=>a.status==="active")??list[0])?.id??"");
+    setAcademyId(current=>{const requested=new URLSearchParams(window.location.search).get("academy");return list.some(a=>a.id===current)?current:(list.find(a=>a.id===requested)??list.find(a=>a.status==="active")??list[0])?.id??"";});
   },[]);
   useEffect(()=>{void loadMine();},[loadMine]);
   const selected=state.mine.find(a=>a.id===academyId);
