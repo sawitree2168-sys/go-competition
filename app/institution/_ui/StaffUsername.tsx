@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
 
-export default function StaffUsername({ role }: { role: "manager" | "teacher" | "admin" }) {
-  const [username, setUsername] = useState(role === "manager" ? "GOMASTER" : "");
+export default function StaffUsername({ role, academyName }: { role: "manager" | "teacher" | "admin"; academyName?: string }) {
+  const [username, setUsername] = useState(role === "manager" && academyName?.trim().toLowerCase() === "go master" ? "GOMASTER" : "");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   async function save(e: React.FormEvent) {
@@ -22,8 +22,8 @@ export default function StaffUsername({ role }: { role: "manager" | "teacher" | 
   }
   return (
     <form onSubmit={save} className="gt-card space-y-3 border-2 border-[var(--gt-line)] p-4 sm:p-5">
-      <h2 className="text-lg font-bold">ตั้งชื่อผู้ใช้สำหรับเข้าสู่ระบบสถาบัน</h2>
-      <p className="text-sm text-[var(--gt-muted)]">ตั้งเพียงครั้งเดียว แล้วใช้ชื่อผู้ใช้และรหัสผ่านบัญชีเดิมแทนอีเมลได้ ไม่ต้องรหัส OTP ทุกครั้ง</p>
+      <h2 className="text-lg font-bold">ตั้งชื่อผู้ใช้เพิ่มเติม (ไม่บังคับ)</h2>
+      <p className="text-sm text-[var(--gt-muted)]">เข้าสู่ระบบด้วยชื่อสถาบันและรหัสผ่านได้อยู่แล้ว หากต้องการชื่อเรียกสั้น ๆ ส่วนตัวจึงค่อยตั้งที่นี่</p>
       <div className="flex flex-col gap-2 sm:flex-row">
         <label className="sr-only" htmlFor="staff-username">ชื่อผู้ใช้ภาษาอังกฤษ</label>
         <input id="staff-username" className="min-h-12 min-w-0 flex-1 rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3"
