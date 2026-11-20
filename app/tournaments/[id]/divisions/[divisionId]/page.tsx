@@ -11,6 +11,7 @@ import AthleteGrid, { type AthleteCard } from "../../_ui/AthleteGrid";
 import { boardSize, divisionKey, divisionLabel, thaiDate } from "@/lib/division-display";
 import { friendshipAward, resultLabel } from "@/lib/competition-day.mjs";
 import CrossTable from "../../_ui/CrossTable";
+import RoundResultsReport from "../../_ui/RoundResultsReport";
 import PairingsBoard from "../../_ui/PairingsBoard";
 import RegisterPanel from "../../_ui/RegisterPanel";
 import NewsPanel, { type RoundItem } from "../../_ui/NewsPanel";
@@ -114,6 +115,14 @@ export default async function DivisionPage({ params }: { params: Promise<{ id: s
         {pr.map((r) => (
           <section key={r} className="mt-4">
             <h2 className="text-lg font-bold">ผลรอบที่ {r}</h2>
+            <RoundResultsReport
+              title={`ผลการแข่งขันรายรอบ · ${label} · รอบที่ ${r}${pool ? ` · สาย ${pool}` : ""}`}
+              filename={`results_${divisionId}_round_${r}_${pool || "all"}`}
+              rows={pv.filter((m) => m.round_number === r).sort(byBoard).map(m => ({
+                id:m.id, board:m.board_number, black:nameOf(m.black_athlete_id),
+                white:nameOf(m.white_athlete_id), result:resultText(m),
+              }))}
+            />
             <ol className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-1.5">
               {pv.filter((m) => m.round_number === r).sort(byBoard).map((m) => (
                 <li key={m.id} className="gt-card min-w-0 px-3 py-2.5">
