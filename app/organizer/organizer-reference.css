@@ -1,0 +1,45 @@
+/* Scopes real organizer UI to reference navy / metallic-gold, without changing access or results. */
+.site-operations{--gt-reference-navy:#072b71;--gt-reference-gold:#c29127}
+.site-operations .gt-sitebar{background:linear-gradient(105deg,#061c58,#073f94 44%,#051947)!important;border-bottom:4px solid #c9982c!important}
+.site-operations .gt-card{border:2px solid #8aaedb;border-bottom:3px solid #c59634;border-radius:16px;box-shadow:0 3px 9px #0c30741b}
+.site-operations .gt-cta-btn{background:linear-gradient(#0d57ae,#06296e)!important;border:2px solid #c99c38!important;color:white!important;box-shadow:inset 0 1px #acd0ff,0 3px 0 #b27e2280}
+.site-operations .gt-gold-btn{background:linear-gradient(#fff1b7,#ffce50 56%,#ce8c12)!important;border:2px solid #bc8424!important;color:#092b69!important;box-shadow:inset 0 1px #fff,0 3px 0 #a16c23}
+.site-operations button,.site-operations a{touch-action:manipulation}
+.site-operations button:active,.site-operations .gt-cta-btn:active,.site-operations .gt-gold-btn:active{transform:translateY(2px) scale(.985);filter:brightness(.92);box-shadow:inset 0 3px 6px #0002!important}
+.site-operations button[aria-pressed=true]{border-color:#c38a23!important;background:linear-gradient(#fff2b9,#ffd661,#d49b26)!important;color:#082b6a!important;box-shadow:inset 0 2px #fff9,0 3px 0 #98641e!important}
+.site-operations button:focus-visible,.site-operations a:focus-visible{outline:3px solid #d9ad4a;outline-offset:3px}
+.site-operations [role=tablist]{border:2px solid #d0a13a!important;border-radius:16px;padding:6px;background:var(--gt-surface)}
+.site-operations [role=tablist] button[aria-selected=true]{border:2px solid #d2a23d;background:linear-gradient(#fff2b4,#ffd561,#d49b25)!important;color:#082b69!important;box-shadow:0 3px 0 #a0712d}
+.gt-monitor-ref-metrics>div{border:2px solid #90b4e1;border-bottom:4px solid #c58e29;background:linear-gradient(#fff,#eaf2ff);border-radius:14px}
+.gt-monitor-ref-tools{border:3px solid #c69531!important;gap:10px}
+.gt-monitor-ref-switch{display:flex;flex-wrap:wrap;gap:7px;min-width:0}
+.gt-monitor-ref-switch button{min-height:46px;padding:8px 13px;font-size:14px;border:2px solid #92b6e5;border-radius:11px;background:var(--gt-surface);font-weight:700}
+.gt-monitor-ref .gt-report-buttons button{border:2px solid #c38d27!important;border-radius:12px;background:linear-gradient(#0c55a5,#082e77)!important;color:white!important;box-shadow:0 3px 0 #bc882b}
+.gt-monitor-ref .site-monitor-card{border:3px solid #c38f2a;border-radius:18px;overflow:hidden;box-shadow:0 5px 14px #0b31652b}
+.gt-monitor-ref .site-monitor-card>header{background:linear-gradient(#0c54ac,#072b70);color:white;border-bottom:3px solid #ca993a}
+.gt-monitor-ref .site-monitor-players{min-width:0;gap:10px}
+.gt-monitor-ref .site-monitor-players>div{min-width:0;overflow-wrap:anywhere}
+.gt-monitor-ref-table{overflow:hidden;border:3px solid #bf8d27!important}
+.gt-monitor-desktop{overflow-x:auto}
+.gt-monitor-desktop table{border-collapse:collapse;width:100%;min-width:760px}
+.gt-monitor-desktop th{background:linear-gradient(#0c54a5,#082867);color:white;border:1px solid #a0bde5;padding:10px;text-align:left}
+.gt-monitor-desktop td{border:1px solid #b8cce8;padding:10px;vertical-align:middle}
+.gt-monitor-mobile{display:none}
+@media(max-width:760px){
+ .site-operations>main{padding-left:10px;padding-right:10px}
+ .gt-monitor-mobile{display:block}
+ .gt-monitor-desktop{display:none}
+ .gt-monitor-mobile-item{padding:9px;border-bottom:2px solid #b7cdea}
+ .gt-monitor-mobile-item>button:first-child{display:grid;grid-template-columns:58px minmax(0,1fr);gap:6px 9px;width:100%;text-align:left;min-width:0;padding:5px;color:#072f78}
+ .gt-monitor-mobile-item>button:first-child>b{grid-row:1/3;padding:10px 4px;border:2px solid #c99937;border-radius:10px;background:linear-gradient(#134b9b,#062463);color:white;text-align:center}
+ .gt-monitor-mobile-item>button:first-child>span{min-width:0;overflow-wrap:anywhere;font-size:13px;font-weight:700}
+ .gt-monitor-mobile-item small{display:block;font-size:12px;font-weight:500;color:#557198;margin-top:4px}
+ .gt-monitor-mobile-item>button:first-child>span:last-child{color:#8b5c0a}
+ .gt-monitor-mobile-item>.gt-cta-btn{margin-top:8px;width:100%}
+ .gt-monitor-ref-tools>input{width:100%;flex:1 1 100%}
+ .gt-monitor-ref-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+ .gt-monitor-ref-switch button{min-width:0;font-size:13px;padding:8px 4px}
+ .gt-monitor-ref .gt-report-buttons{display:grid;grid-template-columns:1fr;gap:8px}
+ .gt-monitor-ref .gt-report-buttons button{min-width:0}
+}
+@media(prefers-reduced-motion:reduce){.site-operations button{transition:none}}

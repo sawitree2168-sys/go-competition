@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { themeBootScript } from "../tournaments/[id]/_ui/ThemeToggle";
 import "../tournaments/[id]/_ui/theme.css";
+import "./organizer-reference.css";
 import { StaffProvider } from "./_lib/staff";
 import OrganizerBar from "./_lib/OrganizerBar";
 
@@ -16,7 +17,7 @@ export default function OrganizerLayout({ children }: { children: React.ReactNod
       <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       <StaffProvider>
         <OrganizerBar />
-        <main className="mx-auto w-full max-w-4xl px-4 pb-16 pt-4">{children}</main>
+        <main className="mx-auto w-full max-w-7xl px-3 pb-16 pt-4 sm:px-5">{children}</main>
       </StaffProvider>
     </div>
   );
