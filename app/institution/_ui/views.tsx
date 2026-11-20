@@ -229,12 +229,70 @@ function AddStudent({ academyId, canEdit, reload }: { academyId: string; canEdit
 }
 
 export function Tracking({ ov, track, filters }: { ov: Overview; track: Track[] } & F) {
-  const pending = track.filter((t) => t.outcome === "pending").length;
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+  const [selected, setSelected] = useState<string | null>(null);
+  const rows = useMemo(() => track.filter(t => {
+    const student = ov.students.find(s => s.id === t.athlete_id);
+    const matches = `${student?.name ?? ""} ${student?.nickname ?? ""} ${t.title} ${t.division}`.toLowerCase().includes(query.trim().toLowerCase());
+    return matches && (status === "all" || t.outcome === status);
+  }), [track, ov.students, query, status]);
+  const pending = track.filter(t => t.outcome === "pending").length;
+  const wins = track.filter(t => t.outcome === "win").length;
+  const names = new Set(track.map(t => t.athlete_id)).size;
+  const chosen = rows.find(t => `${t.athlete_id}:${t.tournament_id}` === selected) ?? rows[0];
+  const athlete = ov.students.find(s => s.id === chosen?.athlete_id);
   return (
     <div className="space-y-4">
-      <SectionTitle right={filters}>ติดตามผล</SectionTitle>
-      <p className="text-sm text-[var(--gt-muted)]">โต๊ะล่าสุดของนักเรียนแต่ละคนในแต่ละรุ่น{pending ? ` · รอผล ${pending} โต๊ะ` : ""} · กดชื่อรายการเพื่อดูผังคู่และผลแบบเรียลไทม์</p>
-      {track.length ? <TrackTable rows={track} who={byId(ov)} /> : <Empty>ยังไม่มีนักเรียนลงแข่งในช่วงที่เลือก</Empty>}
+      <SectionTitle right={filters}>{ov.academy.name} · ติดตามนักกีฬา</SectionTitle>
+      <p className="text-sm text-[var(--gt-muted)]">ติดตามนักกีฬาในสังกัดทั้งหมดด้วยข้อมูลเดียวกับ GO FAN · เลือกรายชื่อเพื่อเปิดผลจับคู่ ผลการแข่งขัน และตารางอันดับจริง</p>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        {[["นักกีฬาในรายการ", names], ["รอผลแข่งขัน", pending], ["ผลชนะล่าสุด", wins]].map(([label, value]) => (
+          <div key={String(label)} className="gt-card rounded-2xl border-2 border-[var(--gt-line)] p-3 text-center sm:p-5">
+            <strong className="gt-num block text-2xl text-[var(--gt-cta)] sm:text-3xl">{value}</strong>
+            <span className="text-xs text-[var(--gt-muted)] sm:text-sm">{label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="gt-card space-y-3 border-2 border-[var(--gt-line)] p-3 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-lg font-bold">★ นักกีฬาของ {ov.academy.name} ({rows.length})</h3>
+          <Link href="/go-fan" className="gt-outline-btn inline-flex min-h-10 items-center px-3 text-sm">เปิด GO FAN</Link>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input type="search" aria-label="ค้นหานักกีฬาในสถาบัน" className={inputCls} placeholder="ค้นหาชื่อนักกีฬา / รายการ / รุ่น" value={query} onChange={e => setQuery(e.target.value)} />
+          <select aria-label="กรองผลแข่งขัน" className={selectCls} value={status} onChange={e => setStatus(e.target.value)}>
+            <option value="all">ทุกสถานะ</option><option value="pending">รอผล</option><option value="win">ชนะ</option><option value="loss">แพ้</option><option value="draw">เสมอ</option>
+          </select>
+        </div>
+        {rows.length ? <div className="grid gap-2 sm:grid-cols-2">
+          {rows.map(t => {
+            const s = ov.students.find(x => x.id === t.athlete_id);
+            const active = chosen?.athlete_id === t.athlete_id && chosen?.tournament_id === t.tournament_id;
+            return <button key={`${t.athlete_id}:${t.tournament_id}:${t.division}`} type="button" onClick={() => setSelected(`${t.athlete_id}:${t.tournament_id}`)}
+              aria-pressed={active} className={`flex min-w-0 items-center justify-between gap-2 rounded-xl border-2 p-3 text-left transition active:scale-[.99] ${active ? "border-[var(--gt-cta)] bg-[var(--gt-cta-soft)]" : "border-[var(--gt-line)] hover:border-[var(--gt-cta)]"}`}>
+              <div className="min-w-0"><strong className="block truncate">{s?.name ?? "นักกีฬา"}</strong><span className="block truncate text-xs text-[var(--gt-muted)]">{t.title} · {t.division}</span><span className="text-xs">รอบ {t.round} · โต๊ะ {t.board ?? "รอประกาศ"}</span></div>
+              <Chip tone={OUTCOME[t.outcome].tone as "win"}>{OUTCOME[t.outcome].label}</Chip>
+            </button>;
+          })}
+        </div> : <Empty>ไม่พบนักกีฬาในช่วงเวลาหรือเงื่อนไขที่เลือก</Empty>}
+      </div>
+      {chosen && athlete && <section className="gt-card space-y-4 border-2 border-[var(--gt-cta)] p-4 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xl font-bold">{athlete.name}</h3>
+          <Chip tone={OUTCOME[chosen.outcome].tone as "win"}>{OUTCOME[chosen.outcome].label}</Chip>
+        </div>
+        <p className="text-sm text-[var(--gt-muted)]">{chosen.title} · {chosen.division}</p>
+        <div className="grid grid-cols-2 gap-3 rounded-xl bg-[var(--gt-cta-soft)] p-4 text-center">
+          <div><b className="gt-num block text-2xl">รอบ {chosen.round}</b><span className="text-xs text-[var(--gt-muted)]">รอบล่าสุด</span></div>
+          <div><b className="gt-num block text-2xl">{chosen.board ? `โต๊ะ ${chosen.board}` : "รอประกาศ"}</b><span className="text-xs text-[var(--gt-muted)]">โต๊ะแข่งขัน</span></div>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Link href={`/go-fan?event=${encodeURIComponent(chosen.tournament_id)}&search=${encodeURIComponent(athlete.name)}`} className="gt-cta-btn flex min-h-12 items-center justify-center px-4 text-center">★ ดูผลจับคู่และอันดับใน GO FAN</Link>
+          <Link href={`/athletes/${athlete.id}`} className="gt-outline-btn flex min-h-12 items-center justify-center px-4 text-center">ดูประวัติและพัฒนาการนักกีฬา</Link>
+        </div>
+        <p className="text-xs text-[var(--gt-muted)]">ผลและคู่แข่งขันอ้างอิงข้อมูลจริงจากระบบ GO FAN ไม่มีการจำลองคะแนนหรืออันดับ</p>
+      </section>}
     </div>
   );
 }
@@ -317,6 +375,29 @@ export function Reports({ ov, records, filters }: { ov: Overview; records: Rec[]
     <div className="space-y-4">
       <SectionTitle right={filters}>รายงาน</SectionTitle>
       <p className="text-sm text-[var(--gt-muted)]">ผลล่าสุดและจุดเด่นของนักเรียนทุกคน · กดชื่อเพื่อดูประวัติ สถิติ และคู่แข่งรายคน</p>
+      <section className="gt-card space-y-3 border-2 border-[var(--gt-line)] p-4 sm:p-5">
+        <h3 className="text-lg font-bold">แนวโน้มการเติบโตจากการแข่งขัน</h3>
+        <p className="text-xs text-[var(--gt-muted)]">เปรียบเทียบอัตราชนะของการแข่งขันสองรายการล่าสุดที่มีผลจริง ไม่ใช่ระดับฝีมือจากการสอบหรือคะแนน Elo</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {ov.students.map(student => {
+            const history = records.filter(r => r.athlete_id === student.id && r.games > 0)
+              .sort((x,y) => String(y.date ?? "").localeCompare(String(x.date ?? "")));
+            if (!history.length) return null;
+            const now = history[0], before = history[1];
+            const currentRate = Math.round(now.wins / now.games * 100);
+            const previousRate = before ? Math.round(before.wins / before.games * 100) : null;
+            const delta = previousRate == null ? null : currentRate - previousRate;
+            return <div key={student.id} className="rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-3">
+              <StudentName s={student} sub={now.title} small />
+              <div className="mt-3 flex items-end justify-between gap-2"><span className="text-sm text-[var(--gt-muted)]">อัตราชนะล่าสุด</span><strong className="gt-num text-xl">{currentRate}%</strong></div>
+              <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-[var(--gt-surface-2)]"><div className="h-full rounded-full bg-[var(--gt-cta)]" style={{width:`${currentRate}%`}} /></div>
+              <p className={`mt-2 text-sm font-semibold ${delta != null && delta > 0 ? "text-[var(--gt-win-ink)]" : "text-[var(--gt-muted)]"}`}>
+                {delta == null ? "ยังไม่มีผลครั้งก่อนให้เปรียบเทียบ" : delta > 0 ? `↑ เพิ่มขึ้น ${delta} จุดเปอร์เซ็นต์` : delta < 0 ? `↓ ลดลง ${Math.abs(delta)} จุดเปอร์เซ็นต์` : "เท่ากับรายการก่อน"}
+              </p>
+            </div>;
+          })}
+        </div>
+      </section>
       <section className="gt-card overflow-hidden">
         {rows.length ? <ReportTable rows={rows} full /> : <div className="p-4"><Empty>ยังไม่มีนักเรียน</Empty></div>}
       </section>
