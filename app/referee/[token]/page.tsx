@@ -164,6 +164,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetail, setMobileDetail] = useState(false);
   const [showPhotos, setShowPhotos] = useState(true);
+  const [listView, setListView] = useState<"cards" | "table">("cards");
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
 
@@ -258,8 +259,12 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
         ))}
       </div>
       <p className="px-4 pt-2 text-xs text-[var(--gt-muted)]">เช็คชื่อแล้ว {checked}/{seats} คน · แตะโต๊ะเพื่อลงผล</p>
-      <div className="px-4 pt-2"><button type="button" onClick={() => setShowPhotos(v => !v)} aria-pressed={showPhotos} className="min-h-11 rounded-xl border-2 border-[var(--gt-cta)]/50 bg-[var(--gt-surface)] px-4 text-sm font-semibold">{showPhotos ? "ซ่อนรูปนักกีฬา" : "แสดงรูปนักกีฬา"}</button></div>
-      <ul className="relative z-10 flex-1 space-y-2.5 p-3 pb-28 lg:pb-36">
+      <div className="flex flex-wrap items-center gap-2 px-4 pt-2">
+        <button type="button" onClick={() => setListView("cards")} aria-pressed={listView === "cards"} className={`min-h-11 rounded-xl border-2 px-3 text-sm font-bold ${listView === "cards" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>▦ การ์ด</button>
+        <button type="button" onClick={() => setListView("table")} aria-pressed={listView === "table"} className={`min-h-11 rounded-xl border-2 px-3 text-sm font-bold ${listView === "table" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>☷ ตาราง</button>
+        <button type="button" onClick={() => setShowPhotos(v => !v)} aria-pressed={showPhotos} className="min-h-11 rounded-xl border-2 border-[var(--gt-cta)]/50 bg-[var(--gt-surface)] px-3 text-sm font-semibold">{showPhotos ? "ซ่อนรูป" : "แสดงรูป"}</button>
+      </div>
+      {listView === "cards" ? <ul className="relative z-10 flex-1 space-y-2.5 p-3 pb-28 lg:pb-36">
         {list.map((t) => {
           const active = selected?.id === t.id;
           const isDone = t.state === "verified";
@@ -282,7 +287,18 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
           );
         })}
         {tables && !list.length && <li className="py-6 text-center text-sm text-[var(--gt-muted)]">{q ? "ไม่พบโต๊ะที่ค้นหา" : tab === "pending" ? "ลงผลครบทุกโต๊ะแล้ว" : "ยังไม่มีโต๊ะที่บันทึกผล"}</li>}
-      </ul>
+      </ul> : <div className="relative z-10 w-full overflow-x-auto p-3 pb-24">
+        <table className="w-full min-w-[390px] border-collapse text-sm">
+          <thead className="bg-[var(--gt-cta)] text-white"><tr><th className="p-2">โต๊ะ</th><th className="p-2">ดำ</th><th className="p-2">ขาว</th><th className="p-2">ผล</th></tr></thead>
+          <tbody>{list.map(t => <tr key={t.id} className="border-b-2 border-[var(--gt-line)]">
+            <td className="p-2 font-bold">{two(t.board)}</td>
+            <td className="p-2">{showPhotos && <img src={t.black.photo || DEFAULT_AVATAR} alt="" className="mb-1 h-10 w-10 rounded-lg border border-[var(--gt-gold)] object-cover" />}<span className="block font-medium">{t.black.name ?? "—"}</span></td>
+            <td className="p-2">{showPhotos && <img src={t.white.photo || DEFAULT_AVATAR} alt="" className="mb-1 h-10 w-10 rounded-lg border border-[var(--gt-gold)] object-cover" />}<span className="block font-medium">{t.white.name ?? "—"}</span></td>
+            <td className="p-2"><button type="button" onClick={() => pick(t)} className="min-h-11 rounded-lg border-2 border-[var(--gt-gold)] bg-[var(--gt-cta)] px-2 font-bold text-white">{t.state === "verified" ? "ดูผล" : "ลงผล"}</button></td>
+          </tr>)}</tbody>
+        </table>
+        {tables && !list.length && <p className="p-4 text-center">ไม่พบโต๊ะที่ค้นหา</p>}
+      </div>}
       <Deco className="absolute -bottom-2 -left-6 w-[115%] max-w-none opacity-95" />
     </section>
   );

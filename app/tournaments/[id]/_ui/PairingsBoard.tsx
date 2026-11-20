@@ -1,13 +1,10 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- athlete photos come from storage URLs */
 
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { resultLabel, scoresFrom } from "@/lib/competition-day.mjs";
-import { staffDb } from "@/app/organizer/_lib/staff";
 import { DEFAULT_AVATAR } from "./MatchCard";
-import ResultControls from "./ResultControls";
-import { pingLive } from "./live";
+import FullscreenReport from "./FullscreenReport";
 import type { Bye, Match, Person } from "./data";
 
 /**
@@ -18,23 +15,6 @@ import type { Bye, Match, Person } from "./data";
  */
 const PAGE = 10;
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
-
-/** Is the signed-in user (if any) staff of this event? */
-function useCanManage(tournamentId: string) {
-  const [can, setCan] = useState(false);
-  useEffect(() => {
-    const db = staffDb();
-    if (!db) return;
-    let live = true;
-    db.auth.getSession().then(async ({ data }) => {
-      if (!data.session) return;
-      const { data: ok } = await db.rpc("gt_can_manage_tournament_v1", { p_tournament: tournamentId });
-      if (live) setCan(Boolean(ok));
-    });
-    return () => { live = false; };
-  }, [tournamentId]);
-  return can;
-}
 
 type SeatInfo = { id: string; name: string; institution?: string; rank?: string | null; photo?: string | null; score: number; won: boolean; lost: boolean };
 
@@ -109,30 +89,7 @@ function TableCard({ m, black, white, controls, showPhotos, onOpen }: { m: Match
   );
 }
 
-function StaffResult({ m, divisionId }: { m: Match; divisionId: string }) {
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [error, setError] = useState("");
-  const done = m.state === "verified";
-  const record = async (code: string, margin: string | null) => {
-    setBusy(true); setError("");
-    const { error: e } = await staffDb()!.rpc("gt_staff_record_result_v1", { p_match: m.id, p_result: code, p_margin: margin });
-    setBusy(false);
-    if (e) { setError("บันทึกไม่สำเร็จ กรุณาลองใหม่"); return; }
-    setEditing(false); pingLive(divisionId);
-    window.setTimeout(() => router.refresh(), 500);
-  };
-  if (done && !editing) return <button type="button" onClick={() => setEditing(true)} className="min-h-10 text-sm text-[var(--gt-muted)] underline">แก้ผล (ผู้จัด)</button>;
-  return (
-    <div>
-      <ResultControls busy={busy} onRecord={record} onCancel={done ? () => setEditing(false) : undefined} />
-      {error && <p role="alert" className="mt-1 text-sm text-[var(--gt-bad)]">{error}</p>}
-    </div>
-  );
-}
-
-export default function PairingsBoard({ matches, byes, people, tournamentId, divisionId }: {
+export default function PairingsBoard({ matches, byes, people, divisionId }: {
   matches: Match[]; byes: Bye[]; people: Record<string, Person>; tournamentId: string; divisionId: string;
 }) {
   const rounds = useMemo(() => [...new Set([...matches.map((m) => m.round_number), ...byes.map((b) => b.round_number)])].sort((a, b) => a - b), [matches, byes]);
@@ -147,7 +104,7 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
   const [showPhotos, setShowPhotos] = useState(true);
   const [view, setView] = useState<"cards" | "table">("cards");
   const [zoomed, setZoomed] = useState<SeatInfo | null>(null);
-  const staff = useCanManage(tournamentId);
+  // Public reports are deliberately read-only; result entry is only on the protected staff/referee pages.
 
   const before = useMemo(
     () => scoresFrom(Object.keys(people), matches.filter((m) => m.round_number < round), byes.filter((b) => b.round_number < round)).score,
@@ -214,12 +171,42 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
         <button type="button" aria-pressed={view === "table"} onClick={() => setView("table")} className={`min-h-11 rounded-lg border px-4 ${view === "table" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>☷ ตาราง</button>
         <button type="button" aria-pressed={showPhotos} onClick={() => setShowPhotos(v => !v)} className="min-h-11 rounded-lg border border-[var(--gt-line)] px-4">{showPhotos ? "ซ่อนรูปนักกีฬา" : "แสดงรูปนักกีฬา"}</button>
       </div>
-      {staff && <p className="rounded-xl border border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-3 py-2 text-sm text-[var(--gt-gold-ink)]">คุณเป็นผู้จัดงานนี้ — ลงผลได้จากหน้านี้ (เฉพาะรอบล่าสุด) · ผู้ชมทั่วไปจะไม่เห็นปุ่มลงผล</p>}
 
+
+      <FullscreenReport title={`ตารางจับคู่และผลการแข่งขัน · รอบที่ ${round}${pool === "all" ? "" : ` · สาย ${pool}`}`}
+        filename={`pairings_${divisionId}_round_${round}_${pool}`} inline={view === "table"}>
+        <table className="w-full min-w-[960px] border-collapse text-left text-base">
+          <thead className="bg-[#0c3d87] text-white"><tr>
+            <th className="border border-[#c5d6ed] px-4 py-3">โต๊ะ</th>
+            <th className="border border-[#c5d6ed] px-4 py-3">ผู้เล่นหมากดำ</th>
+            <th className="border border-[#c5d6ed] px-4 py-3">ผู้เล่นหมากขาว</th>
+            <th className="border border-[#c5d6ed] px-4 py-3">ผลการแข่งขัน</th>
+          </tr></thead>
+          <tbody>
+            {all.map((m,i) => { const b = seat(m.black_athlete_id,m), w=seat(m.white_athlete_id,m); return <tr key={m.id} className={i%2?"bg-[#edf4ff]":"bg-white"}>
+              <td className="border border-[#c5d6ed] px-4 py-3 font-bold">{m.board_number ?? "—"}</td>
+              {[b,w].map((p,j)=><td key={p.id} className="border border-[#c5d6ed] px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <span className={`h-5 w-5 shrink-0 rounded-full border ${j ? "bg-white border-[#9eabc1]" : "bg-[#171a21]"}`} />
+                  {showPhotos && <img src={p.photo || DEFAULT_AVATAR} alt="" loading="eager" className="h-14 w-14 shrink-0 rounded-lg border-2 border-[#d3ac42] object-cover" />}
+                  <div><strong className="block text-base">{p.name}</strong><span className="block text-sm">{p.rank ?? ""} {p.institution ?? ""}</span></div>
+                </div>
+              </td>)}
+              <td className="border border-[#c5d6ed] px-4 py-3 font-bold">{m.state === "verified" ? resultLabel(m) || "บันทึกผลแล้ว" : "รอผล"}</td>
+            </tr>})}
+            {roundByes.map(b => <tr key={`bye-${b.athlete_id}`} className="bg-[#fff5d9]">
+              <td className="border border-[#c5d6ed] px-4 py-3">บาย</td>
+              <td className="border border-[#c5d6ed] px-4 py-3 font-bold">{people[b.athlete_id]?.name ?? "ผู้เข้าแข่งขัน"}</td>
+              <td className="border border-[#c5d6ed] px-4 py-3">—</td>
+              <td className="border border-[#c5d6ed] px-4 py-3">บาย +1 คะแนน</td>
+            </tr>)}
+          </tbody>
+        </table>
+      </FullscreenReport>
       {view === "cards" ? <ul className="space-y-3">
         {tables.map((m) => (
           <TableCard key={m.id} m={m} black={seat(m.black_athlete_id, m)} white={seat(m.white_athlete_id, m)}
-            controls={staff && round === latest ? <StaffResult key={`${m.id}:${m.state}`} m={m} divisionId={divisionId} /> : null} showPhotos={showPhotos} onOpen={setZoomed} />
+            controls={null} showPhotos={showPhotos} onOpen={setZoomed} />
         ))}
         {cur === pages - 1 && roundByes.map((b) => {
           const p = people[b.athlete_id];
@@ -232,18 +219,7 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
           );
         })}
         {!all.length && !roundByes.length && <li className="gt-card p-6 text-center text-sm text-[var(--gt-muted)]">ไม่พบโต๊ะที่ค้นหา</li>}
-      </ul> : <div className="overflow-x-auto rounded-2xl border-2 border-[var(--gt-cta)]/60 bg-[var(--gt-surface)]">
-        <table className="w-full min-w-[680px] text-left text-sm">
-          <thead className="bg-[var(--gt-cta-soft)]"><tr><th className="p-3">โต๊ะ</th><th className="p-3">ดำ</th><th className="p-3">ขาว</th><th className="p-3">ผลการแข่งขัน</th></tr></thead>
-          <tbody>{tables.map(m => {const b = seat(m.black_athlete_id,m), w = seat(m.white_athlete_id,m);return <tr key={m.id} className="border-t border-[var(--gt-line)]">
-            <td className="p-3 font-bold">{m.board_number ?? "—"}</td>
-            <td className="p-3"><div className="flex items-center gap-2">{showPhotos && <Photo s={b} onOpen={setZoomed} className="h-12 w-12" />}<span>{b.name}<small className="block text-[var(--gt-muted)]">{b.rank ?? ""}</small></span></div></td>
-            <td className="p-3"><div className="flex items-center gap-2">{showPhotos && <Photo s={w} onOpen={setZoomed} className="h-12 w-12" />}<span>{w.name}<small className="block text-[var(--gt-muted)]">{w.rank ?? ""}</small></span></div></td>
-            <td className="p-3 font-semibold">{m.state === "verified" ? resultLabel(m) || "บันทึกผลแล้ว" : "รอผล"}{staff && round === latest && <details className="mt-2"><summary className="cursor-pointer text-[var(--gt-cta)]">ลงผล / แก้ไขผล</summary><StaffResult m={m} divisionId={divisionId}/></details>}</td>
-          </tr>})}</tbody>
-        </table>
-        {!tables.length && <p className="p-6 text-center">ไม่พบโต๊ะที่ค้นหา</p>}
-      </div>}
+      </ul> : null}
       {zoomed && <div role="dialog" aria-modal="true" aria-label={`รูปนักกีฬา ${zoomed.name}`} onClick={() => setZoomed(null)} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4">
         <div onClick={e => e.stopPropagation()} className="w-full max-w-sm rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-4 text-center shadow-2xl">
           <button type="button" onClick={() => setZoomed(null)} className="mb-2 ml-auto block min-h-11 rounded-lg border px-4">ปิด ✕</button>
@@ -253,7 +229,7 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
         </div>
       </div>}
 
-      {pages > 1 && (
+      {view === "cards" && pages > 1 && (
         <nav aria-label="หน้าโต๊ะ" className="flex flex-wrap items-center justify-center gap-2">
           <button type="button" disabled={cur === 0} onClick={() => setPage(cur - 1)} className="min-h-11 rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-4 disabled:opacity-40">‹ ก่อนหน้า</button>
           {Array.from({ length: pages }, (_, i) => (

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { crossTable } from "@/lib/competition-day.mjs";
 import { DEFAULT_AVATAR } from "./MatchCard";
+import FullscreenReport from "./FullscreenReport";
 
 /**
  * ตารางอันดับ (approved design 16 Nov 2026, blue–white):
@@ -191,7 +192,11 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
       {large ? tableView : (
         <>
           <div className={view === "cards" ? "sm:hidden" : "hidden"}>{cardsView}</div>
-          <div className={view === "cards" ? "hidden sm:block" : ""}>{tableView}</div>
+          <div className={view === "cards" ? "hidden sm:block" : ""}>
+            <FullscreenReport title={title} filename={`standings_${title}`} inline>
+              {tableView}
+            </FullscreenReport>
+          </div>
         </>
       )}
       {!shown.length && <p className="p-4 text-center text-sm text-[var(--gt-muted)]">ไม่พบนักกีฬาที่ค้นหา</p>}
@@ -211,7 +216,7 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
               {zoom.institution && <p className="text-sm text-[var(--gt-muted)]">{zoom.institution}</p>}
               <p className="gt-num text-sm">อันดับ {zoom.no} · {fmt(zoom.score)} คะแนน{zoom.current_rank ? ` · ${zoom.current_rank}` : ""}</p>
             </figcaption>
-            <button type="button" className="mt-4 min-h-11 w-full rounded-xl border border-[var(--gt-line)] text-sm">ปิด</button>
+            <button type="button" onClick={() => setZoom(null)} className="mt-4 min-h-11 w-full rounded-xl border border-[var(--gt-line)] text-sm">ปิด</button>
           </figure>
         </div>,
         // Portal to the themed page wrapper (not inside the shifted table) so the overlay covers the whole screen.
