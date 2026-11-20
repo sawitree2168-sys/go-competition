@@ -50,6 +50,7 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   const [full,setFull]=useState(false);
   const [editing,setEditing]=useState<string|null>(null);
   const [attendance,setAttendance]=useState<Record<string,"present"|"absent">>({});
+  const [history,setHistory]=useState<string[]>(["ระบบจำลองพร้อมใช้งาน · รอบ 1 ประกาศคู่แล้ว"]);
   const [restored,setRestored]=useState(false);
   const [feedback,setFeedback]=useState("");
   const storageKey=`gt-competition-day-demo:v2:${eventId}:${divisionId}`;
@@ -71,7 +72,6 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
     try{window.localStorage.setItem(storageKey,JSON.stringify({attendance,games,round,history}));}
     catch(e){console.warn("Cannot save sandbox attendance",e);setFeedback("บันทึกในเครื่องไม่สำเร็จ กรุณาตรวจพื้นที่เก็บข้อมูลหรือโหมดส่วนตัวของเบราว์เซอร์");}
   },[storageKey,restored,attendance,games,round,history]);
-  const [history,setHistory]=useState<string[]>(["ระบบจำลองพร้อมใช้งาน · รอบ 1 ประกาศคู่แล้ว"]);
   const append=(message:string)=>setHistory(old=>[message,...old].slice(0,12));
   const attendanceKey=(g:Game,side:"black"|"white")=>`${g.id}:${side}`;
   const statusOf=(g:Game,side:"black"|"white"):"unchecked"|"present"|"absent"=>attendance[attendanceKey(g,side)]??"unchecked";
