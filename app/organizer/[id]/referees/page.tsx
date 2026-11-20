@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useState } from "react";
 import Gate from "../../_lib/Gate";
+import EventPeople from "./EventPeople";
 import { ErrorNote, staffDb, useAction, useStaff } from "../../_lib/staff";
 
 type Referee = { id: string; referee_name: string; expires_at: string; revoked_at: string | null; last_used_at: string | null; created_at: string; locked: boolean };
@@ -86,8 +87,10 @@ function Referees({ id }: { id: string }) {
         <p className="text-sm text-[var(--gt-muted)]">กรรมการทำได้เฉพาะ <strong>เช็คอินที่โต๊ะ</strong> และ <strong>ลงผล</strong> ของงานนี้ ไม่เห็นข้อมูลส่วนตัว ไม่จับคู่ และไม่ตัดชื่อ ทุกผลที่ลงจะบันทึกชื่อกรรมการไว้</p>
       </div>
 
+      <EventPeople id={id} onChange={load} />
+
       <form onSubmit={create} className="gt-card space-y-3 p-4">
-        <h2 className="font-bold">เพิ่มกรรมการ</h2>
+        <h2 className="font-bold">เพิ่มกรรมการแบบลิงก์ (ไม่มีบัญชี)</h2>
         <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
           <label className="block space-y-1">
             <span className="text-sm font-medium">ชื่อกรรมการ</span>

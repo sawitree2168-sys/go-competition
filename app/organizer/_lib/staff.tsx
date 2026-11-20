@@ -43,7 +43,7 @@ type StaffState =
   | { status: "loading" }
   | { status: "signed_out" }
   | { status: "not_staff"; email: string; suspended: boolean }
-  | { status: "staff"; email: string; platformRole: string | null; organizers: OrganizerAccess[]; session: Session };
+  | { status: "staff"; email: string; platformRole: string | null; organizers: OrganizerAccess[]; session: Session; eventIds: string[] };
 
 const Ctx = createContext<StaffState>({ status: "loading" });
 export const useStaff = () => useContext(Ctx);
@@ -66,7 +66,9 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
       const platformRole: string | null = data?.platform_role ?? null;
       const organizers = ((data?.organizers ?? []) as OrganizerAccess[]);
       const usable = organizers.filter((o) => o.status === "active");
-      if (platformRole || usable.length) setState({ status: "staff", email, platformRole, organizers, session });
+      // Pairing admins of single events (given by that event's organiser) also use the organiser pages.
+      const eventIds = ((data?.events ?? []) as { id: string }[]).map((e) => e.id);
+      if (platformRole || usable.length || eventIds.length) setState({ status: "staff", email, platformRole, organizers, session, eventIds });
       else setState({ status: "not_staff", email, suspended: organizers.length > 0 });
     };
     db.auth.getSession().then(({ data }) => check(data.session));

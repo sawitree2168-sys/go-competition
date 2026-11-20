@@ -3,25 +3,71 @@
 import Link from "next/link";
 import { useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
-import { authErrorMessage, looksLikeEmail } from "@/lib/auth-routing.mjs";
+import { authErrorMessage, destinationFor, looksLikeEmail } from "@/lib/auth-routing.mjs";
+import { callEasy, toIsoDate } from "@/lib/easy-auth.mjs";
 import { Field, FormError, FormNote, PasswordField } from "../_ui/fields";
 import { setRemember } from "@/app/organizer/_lib/staff";
 import { callAthlete, identifierKind } from "@/lib/athlete-auth.mjs";
 
 export default function ForgotForm() {
-  const [kind, setKind] = useState<"athlete" | "email">("email");
+  const [kind, setKind] = useState<"easy" | "email" | "athlete">("easy");
   return (
     <div>
       <h1 className="text-3xl font-bold sm:text-4xl">ลืมรหัสผ่าน</h1>
-      <div role="tablist" aria-label="ประเภทบัญชี" className="mt-4 grid grid-cols-2 gap-1 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
-        {([["email", "สถาบัน / ครู / บัญชีอีเมล"], ["athlete", "นักกีฬา (ไม่มีอีเมล)"]] as const).map(([k, l]) => (
+      <div role="tablist" aria-label="วิธีตั้งรหัสใหม่" className="mt-4 grid grid-cols-3 gap-1 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-1">
+        {([["easy", "เบอร์โทร + วันเกิด"], ["email", "บัญชีอีเมล"], ["athlete", "รหัสจากแอดมิน"]] as const).map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-            className={`min-h-11 rounded-xl px-2 text-[15px] font-semibold ${kind === k ? "bg-[var(--gt-cta)] text-white" : "text-[var(--gt-ink)]"}`}>{l}</button>
+            className={`min-h-11 rounded-xl px-1 text-[14px] font-semibold sm:text-[15px] ${kind === k ? "bg-[var(--gt-cta)] text-white" : "text-[var(--gt-ink)]"}`}>{l}</button>
         ))}
       </div>
-      <p className="mt-3 rounded-xl border border-[#bad0ed] bg-[#edf5ff] p-3 text-sm text-[#244b80]">หากเป็นเจ้าของสถาบันหรือครู ให้เลือก “สถาบัน / ครู / บัญชีอีเมล” แล้วกรอกอีเมลของบัญชีส่วนตัว ไม่ต้องเลือกช่องนักกีฬาและไม่ต้องใช้รหัส 24 ตัวจากผู้ดูแลระบบ</p>
-      <div className="mt-5">{kind === "athlete" ? <AthleteReset /> : <EmailReset />}</div>
+      <div className="mt-5">{kind === "easy" ? <EasyReset /> : kind === "athlete" ? <AthleteReset /> : <EmailReset />}</div>
     </div>
+  );
+}
+
+/** Anyone signing in by name: prove phone + birth date (given when applying, or saved after first sign-in) and set a new password. */
+function EasyReset() {
+  const [who, setWho] = useState("");
+  const [phone, setPhone] = useState("");
+  const [birth, setBirth] = useState("");
+  const [pw, setPw] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault(); setError("");
+    if (who.trim().length < 2) return setError("กรุณากรอกชื่อ-นามสกุล หรือรหัส GO");
+    const iso = toIsoDate(birth);
+    if (!iso) return setError("กรุณากรอกวันเกิด เช่น 07/03/2558");
+    if (phone.replace(/\D/g, "").length < 9) return setError("กรุณากรอกเบอร์โทร");
+    if (pw.length < 6) return setError("รหัสผ่านใหม่อย่างน้อย 6 ตัวอักษร");
+    const db = staffDb(); if (!db) return setError("ระบบยังไม่พร้อม กรุณาลองใหม่ภายหลัง");
+    setBusy(true);
+    const r = await callEasy("forgot", { identifier: who, phone, birth_date: iso, new_password: pw });
+    if (!r.ok || !r.data?.session) { setBusy(false); return setError(r.data?.message ?? "ตั้งรหัสใหม่ไม่สำเร็จ"); }
+    setRemember(true);
+    await db.auth.setSession(r.data.session);
+    const { data } = await db.rpc("gt_my_access_v1");
+    window.location.assign(destinationFor(data, null));
+  };
+  return (
+    <form onSubmit={submit} noValidate className="space-y-4">
+      <FormNote tone="info" text="ใช้เบอร์โทรและวันเกิดที่เคยกรอกตอนสมัครแข่ง หรือที่บันทึกไว้หลังเข้าระบบครั้งแรก แล้วตั้งรหัสใหม่ได้ทันที" />
+      <Field label="ชื่อ-นามสกุล / รหัส GO / ชื่อที่ใช้เข้าระบบ" icon="person" value={who} onChange={(e) => setWho(e.target.value)} autoCapitalize="none" spellCheck={false} />
+      <Field label="เบอร์โทร" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="08x-xxx-xxxx" />
+      <Field label="วันเกิด" value={birth} onChange={(e) => setBirth(e.target.value)} placeholder="วว/ดด/ปปปป เช่น 07/03/2558" />
+      <PasswordField label="รหัสผ่านใหม่" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" hint="อย่างน้อย 6 ตัวอักษร" />
+      <FormError text={error} />
+      <button type="submit" disabled={busy} className="gt-cta-btn flex min-h-12 w-full items-center justify-center text-lg disabled:opacity-60">{busy ? "กำลังตรวจสอบ…" : "ตั้งรหัสใหม่และเข้าสู่ระบบ"}</button>
+      <div className="rounded-xl bg-[var(--gt-cta-soft)] p-3 text-sm text-[var(--gt-muted)]">
+        <p className="font-semibold text-[var(--gt-ink)]">ไม่เคยให้เบอร์โทรไว้?</p>
+        <ul className="mt-1 list-disc space-y-0.5 pl-5">
+          <li>นักเรียน: ให้ครูหรือสถาบันกด “รีเซ็ตรหัส” ให้ แล้วเข้าด้วยรหัสเริ่มต้นของนักกีฬา</li>
+          <li>ครูในสถาบัน: ให้เจ้าของสถาบันรีเซ็ตให้</li>
+          <li>เจ้าของสถาบัน / ผู้จัดงาน: ติดต่อแอดมินระบบ</li>
+        </ul>
+      </div>
+      <p className="text-center"><Link href="/login" className="font-semibold text-[var(--gt-cta)] hover:underline">← กลับไปหน้าเข้าสู่ระบบ</Link></p>
+    </form>
   );
 }
 

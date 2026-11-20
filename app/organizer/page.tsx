@@ -17,6 +17,7 @@ function EventList() {
   const platform = isPlatformAdmin(staff);
   const orgIds = staff.status === "staff" ? staff.organizers.filter((o) => o.status === "active").map((o) => o.id) : [];
   const orgKey = orgIds.join(",");
+  const eventKey = staff.status === "staff" ? staff.eventIds.join(",") : "";
   const [rows, setRows] = useState<Row[] | null>(null);
 
   useEffect(() => {
@@ -24,9 +25,12 @@ function EventList() {
     // Published events are readable by everyone, so an organiser's list is limited to their own organisers' events.
     let q = staffDb()!.from("gt_tournaments").select("id,title,event_date,published,organizer_id,gt_organizers(name)")
       .order("event_date", { ascending: false, nullsFirst: false });
-    if (!platform) q = q.in("organizer_id", orgKey ? orgKey.split(",") : ["00000000-0000-0000-0000-000000000000"]);
+    if (!platform) {
+      const ids = orgKey ? orgKey.split(",") : ["00000000-0000-0000-0000-000000000000"];
+      q = eventKey ? q.or(`organizer_id.in.(${ids.join(",")}),id.in.(${eventKey})`) : q.in("organizer_id", ids);
+    }
     q.then(({ data }) => setRows((data ?? []) as unknown as Row[]));
-  }, [staff.status, platform, orgKey]);
+  }, [staff.status, platform, orgKey, eventKey]);
 
   const groups = new Map<string, Row[]>();
   for (const r of rows ?? []) {
