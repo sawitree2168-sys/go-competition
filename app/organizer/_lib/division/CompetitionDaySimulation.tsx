@@ -38,7 +38,7 @@ const label = (g: Game) => g.state==="verified"?resultLabel(g):({waiting:"รอ
 const stateStyle = (g:Game)=>g.state==="verified"?"border-green-600 bg-green-50 text-green-800":g.table_status==="playing"?"border-blue-600 bg-blue-50 text-blue-900":"border-amber-500 bg-amber-50 text-amber-900";
 const DEMO_BG="gt-reference-banner";
 
-export default function CompetitionDaySimulation({eventId,divisionId}: {eventId:string;divisionId:string}) {
+export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=false}: {eventId:string;divisionId:string;publicDemo?:boolean}) {
   const [games,setGames]=useState<Game[]>(INITIAL);
   const [round,setRound]=useState(1);
   const [mode,setMode]=useState<"cards"|"table">("cards");
@@ -115,7 +115,7 @@ export default function CompetitionDaySimulation({eventId,divisionId}: {eventId:
   const activeGame=games.find(g=>g.id===editing);
   return <div className="gt-reference-day min-h-screen pb-16 text-[#102d58]">
     <header className={`${DEMO_BG} border-b-[5px] border-[#d6a43a] px-4 py-5 text-white`}>
-      <div className="mx-auto max-w-6xl"><Link href={`/organizer/${eventId}/${divisionId}`} className="text-sm underline">← กลับหน้ารุ่นการแข่งขันจริง</Link>
+      <div className="mx-auto max-w-6xl">{publicDemo ? <Link href="/tournaments" className="text-sm underline">← ดูรายการแข่งขันสาธารณะ</Link> : <Link href={`/organizer/${eventId}/${divisionId}`} className="text-sm underline">← กลับหน้ารุ่นการแข่งขันจริง</Link>}
       <p className="mt-3 text-xs font-bold tracking-widest text-[#ffe29a]">GO TOURNAMENT • INTERACTIVE DEMO</p><h1 className="mt-1 text-2xl font-bold sm:text-3xl">จำลองการแข่งขันจริง · รุ่น 1–2 คิว</h1>
       <p className="mt-2 text-sm text-[#e2efff]">โหมดฝึกใช้งานเท่านั้น — ไม่เขียนผลลงฐานข้อมูล ไม่ใช่รายชื่อหรือผลแข่งขันจริง</p></div>
     </header>
