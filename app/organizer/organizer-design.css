@@ -1,0 +1,31 @@
+/* GO TOURNAMENT 2026: scoped blue / gold / white operations UI.
+   Visual layer only: no data, permissions, exports or result actions changed. */
+.site-operations{--gt-operation-blue:#0864ce;--gt-operation-gold:#d3a335}
+.site-operations .gt-sitebar{background:linear-gradient(110deg,#0968ce,#0750a9)!important;border-bottom:3px solid var(--gt-operation-gold)!important;box-shadow:0 4px 14px #0e468b30}
+.site-operations .gt-sitebar a:focus-visible,.site-operations button:focus-visible,.site-operations a:focus-visible{outline:3px solid #e4b348;outline-offset:2px}
+.site-operations .gt-sitebar>a,.site-operations .gt-sitebar span{min-width:0}
+.site-operations .gt-card{border:2px solid #90b6e8;border-radius:16px;box-shadow:0 4px 0 #d8e5f7}
+.site-operations [role="tablist"]{border:2px solid #d0a13b!important;border-radius:16px;background:var(--gt-surface);gap:6px;padding:6px}
+.site-operations [role="tablist"] button{min-width:0;border:2px solid transparent;border-radius:11px;min-height:47px;font-weight:700}
+.site-operations [role="tablist"] button[aria-selected="true"]{border-color:#d3a335;background:#0864ce;color:white;box-shadow:0 2px 6px #08488a24}
+.gt-pairing-intro{display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:16px;align-items:center;padding:17px 20px;border:3px solid #d3a335;border-radius:18px;background:linear-gradient(105deg,#0968ce,#0751a9);color:#fff;box-shadow:0 5px 16px #08488a26}
+.gt-pairing-eyebrow{display:block;color:#f6d68a;font-size:11px;letter-spacing:.07em;font-weight:700}
+.gt-pairing-intro h2{font-size:clamp(20px,2.4vw,28px);font-weight:750;line-height:1.3;margin:6px 0;color:#fff}
+.gt-pairing-intro p{font-size:13px;color:#eaf3ff;line-height:1.5}
+.gt-pairing-donut{height:110px;width:110px;border-radius:50%;display:grid;place-items:center;justify-self:end}
+.gt-pairing-donut>div{display:flex;height:78px;width:78px;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;background:white;color:#0753ac}
+.gt-pairing-donut strong{font-size:24px;line-height:1.1}.gt-pairing-donut small{font-size:10px;font-weight:700}
+.gt-pairing-design .site-metrics>div{border:2px solid #83b0e8;border-bottom:3px solid #d3a335;border-radius:13px}
+.gt-pairing-filters{border-color:#d3a335!important;gap:10px}
+.gt-pairing-filters input,.gt-pairing-filters select{border:2px solid #a8c5eb!important;border-radius:10px;background:var(--gt-surface);padding-inline:10px}
+.gt-pairing-card-grid{gap:14px}
+.gt-pairing-match-card{overflow:hidden;border:2px solid #89b6ea;border-bottom:4px solid #d3a335;border-radius:16px;background:var(--gt-surface);box-shadow:0 5px 12px #074e9520}
+.gt-pairing-match-card header{background:#e8f2ff;border-bottom:2px solid #d3a335;padding:10px 14px;font-weight:700;color:#0a4f9b}
+.gt-pairing-match-card .site-monitor-players{padding:10px}
+.gt-pairing-match-card .site-monitor-players>div{min-width:0;overflow-wrap:anywhere}
+.gt-pairing-table{border:2px solid #d3a335!important}
+.gt-pairing-table table{min-width:700px;width:100%;border-collapse:collapse}
+.gt-pairing-table th{background:#0b61bd;color:#fff}
+.gt-pairing-table td,.gt-pairing-table th{border:1px solid #a2bce1;padding:10px;text-align:left}
+.gt-pairing-table tr:nth-child(even){background:var(--gt-surface-2)}
+@media(max-width:420px){.gt-pairing-intro{padding:12px;gap:8px;grid-template-columns:minmax(0,1fr) 82px}.gt-pairing-intro h2{font-size:19px}.gt-pairing-intro p{font-size:11px}.gt-pairing-donut{height:79px;width:79px}.gt-pairing-donut>div{height:58px;width:58px}.gt-pairing-donut strong{font-size:18px}.gt-pairing-donut small{font-size:8px}.site-operations .gt-sitebar .max-w-4xl{gap:6px;padding-left:10px;padding-right:10px}.site-operations .gt-sitebar .max-w-4xl .gt-outline-btn{padding-inline:8px;font-size:12px}.gt-pairing-filters{padding:10px!important}.gt-pairing-match-card .site-monitor-players{gap:6px}}
