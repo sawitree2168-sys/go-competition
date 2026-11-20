@@ -96,6 +96,8 @@
 
 /* Photo show/hide toggle (any page): wrap content in .gt-hide-photos */
 .gt-hide-photos [data-athlete-photo],.gt-hide-photos .cd-photo-open{display:none!important}
+/* Photos hidden: the stone sat on the photo's corner, so it drifted onto the table border. Put it inline before the name instead. */
+.gt-hide-photos .cd-avatar-wrap .cd-stone{position:static;display:block;width:16px;height:16px;margin:0 4px 0 2px}
 .cd-panel-buttons{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .gt-report-buttons{display:flex;flex-wrap:wrap;gap:8px}.gt-report-buttons button{flex:1 1 12rem;min-height:46px;padding:8px 14px;border:2px solid #0b62cf;border-radius:12px;background:linear-gradient(140deg,#0980ed,#0351be);color:#fff;font-weight:600;font-size:15px;box-shadow:0 2px 0 #e9bd55}.gt-report-buttons button:hover{filter:brightness(1.08)}
 .gt-report-win{color:#198042;font-weight:700}.gt-report-won strong{color:#0b3d82}.gt-round-report .cd-match-table{font-size:14px}.gt-round-report .cd-player strong{font-size:15px}.gt-round-report .cd-player small{font-size:12px}.gt-round-report .cd-player .cd-avatar{width:44px;height:44px}
