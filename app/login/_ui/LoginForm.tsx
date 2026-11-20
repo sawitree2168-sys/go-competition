@@ -36,8 +36,14 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
   const [signed, setSigned] = useState<Signed | null>(null);
 
   const goOn = async () => {
-    if (stay) { window.location.reload(); return; }
     const { data } = await staffDb()!.rpc("gt_my_access_v1");
+    if (stay) {
+      // Signed in from an organiser page: stay only if this account may use it; referees / athletes / teachers go to their own page.
+      const staff = Boolean(data?.platform_role) || (data?.organizers ?? []).some((o: { status: string }) => o.status === "active") || (data?.events ?? []).length > 0;
+      if (staff) { window.location.reload(); return; }
+      window.location.assign(destinationFor(data, null));
+      return;
+    }
     window.location.assign(destinationFor(data, nextParam()));
   };
 

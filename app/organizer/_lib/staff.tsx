@@ -1,5 +1,6 @@
 "use client";
 
+import { shownName } from "@/lib/easy-auth.mjs";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { staffErrorMessage } from "@/lib/competition-day.mjs";
@@ -62,7 +63,7 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
       // Platform owner/admin, or a member of an organiser whose account is active.
       const { data } = await db.rpc("gt_my_access_v1");
       if (!active) return;
-      const email = session.user.email ?? "";
+      const email = shownName(session.user);
       const platformRole: string | null = data?.platform_role ?? null;
       const organizers = ((data?.organizers ?? []) as OrganizerAccess[]);
       const usable = organizers.filter((o) => o.status === "active");

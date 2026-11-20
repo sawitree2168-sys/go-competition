@@ -13,9 +13,9 @@ export default function Gate({ children }: { children: React.ReactNode }) {
     return (
       <div className="gt-card mx-auto mt-10 max-w-md space-y-2 p-6 text-center">
         <h1 className="text-lg font-bold">{staff.suspended ? "บัญชีผู้จัดนี้ถูกระงับชั่วคราว" : "บัญชีนี้ยังไม่มีสิทธิ์ผู้จัด"}</h1>
-        <p className="text-sm text-[var(--gt-muted)]">{staff.email} — ติดต่อเจ้าของระบบ GO TOURNAMENT</p>
+        <p className="text-sm text-[var(--gt-muted)]">{staff.email} · หน้านี้สำหรับผู้จัดและแอดมินจับคู่ · กรรมการและนักกีฬา ไปที่ “บัญชีของฉัน” (งานที่เป็นกรรมการอยู่ในนั้น)</p>
         <div className="grid grid-cols-2 gap-2 pt-2">
-          <Link href="/account" className="gt-outline-btn flex min-h-11 items-center justify-center font-semibold">บัญชีของฉัน</Link>
+          <Link href="/account" className="gt-cta-btn flex min-h-11 items-center justify-center font-semibold">บัญชีของฉัน</Link>
           <button type="button" onClick={() => staffDb()?.auth.signOut()} className="gt-outline-btn min-h-11 font-semibold">ออกจากระบบ</button>
         </div>
       </div>

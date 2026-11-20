@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
 import { destinationFor } from "@/lib/auth-routing.mjs";
 import LoginForm from "./LoginForm";
+import { shownName } from "@/lib/easy-auth.mjs";
 
 /** Login page: the form, or — when this browser is already signed in — a shortcut onward. */
 export default function LoginPage() {
@@ -16,7 +17,7 @@ export default function LoginPage() {
     db.auth.getSession().then(async ({ data }) => {
       if (!live || !data.session) return;
       const { data: access } = await db.rpc("gt_my_access_v1");
-      if (live) setSignedIn({ email: data.session.user.email ?? "", to: destinationFor(access, new URLSearchParams(window.location.search).get("next")) });
+      if (live) setSignedIn({ email: shownName(data.session.user), to: destinationFor(access, new URLSearchParams(window.location.search).get("next")) });
     });
     return () => { live = false; };
   }, []);
