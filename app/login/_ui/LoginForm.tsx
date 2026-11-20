@@ -113,6 +113,7 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
 
       <p className="mt-4 rounded-xl bg-[var(--gt-cta-soft)] px-3 py-3 text-sm text-[var(--gt-muted)]">บัญชีสถาบัน GO MASTER: หากยังไม่เคยเปิดบัญชีเจ้าของ ต้องสมัครบัญชีส่วนตัวหนึ่งครั้ง ผูกสิทธิ์สถาบัน และตั้งชื่อผู้ใช้ก่อน จึงจะใช้ GOMASTER กับรหัสผ่านได้</p>
       <p className="mt-6 text-center text-base">ยังไม่มีบัญชี? <Link href="/signup" className="font-semibold text-[var(--gt-cta)] hover:underline">สมัครสมาชิก</Link></p>
+      <p className="mt-3 text-center text-sm"><Link href="/signup?type=institution" className="font-semibold text-[var(--gt-cta)] underline underline-offset-2">ลงทะเบียนครู / ผู้ดูแลสถาบัน GO MASTER</Link></p>
       {!stay && <p className="mt-3 text-center text-base"><Link href="/tournaments" className="font-normal text-[var(--gt-cta)] underline underline-offset-2">ดูการแข่งขันโดยไม่เข้าสู่ระบบ</Link></p>}
       <p className="mt-6 rounded-xl bg-[var(--gt-cta-soft)] px-3 py-2.5 text-center text-sm text-[var(--gt-muted)]">
         กรรมการ: เปิดลิงก์ที่ได้รับจากผู้จัด แล้วกรอกรหัส 6 หลัก ไม่ต้องเข้าสู่ระบบที่หน้านี้
