@@ -48,6 +48,11 @@ export default function InstituteLogin({onSuccess}:{onSuccess:()=>Promise<void>}
       <p className="mt-2 text-sm">ติดตามนักกีฬาและผลงานทั้งสังกัดในหน้าจอเดียว</p>
     </div>
     <form onSubmit={submit} className="space-y-4 p-5 sm:p-7">
+      <div className="rounded-xl border border-[#c3d5ec] bg-[#edf5ff] p-3 text-sm text-[#284d7b]">
+        <p className="font-bold">สำหรับเจ้าของสถาบันและครู</p>
+        <p className="mt-1">มีบัญชีแล้ว ใช้ชื่อผู้ใช้หรืออีเมลของตัวเองกับรหัสผ่านได้เลย ครูไม่ต้องใช้บัญชีของเจ้าของสถาบัน</p>
+        <p className="mt-1">ยังไม่มีบัญชี? เลือก “ยังไม่มีบัญชี” ด้านล่าง แล้วเลือกสถาบันที่สังกัดเพื่อส่งคำขอเข้าร่วม</p>
+      </div>
       <label className="block text-base font-semibold">ชื่อผู้ใช้
         <input autoComplete="username" autoCapitalize="none" spellCheck={false} value={user} onChange={e=>setUser(e.target.value)}
           placeholder="ชื่อสถาบัน เช่น GO MASTER" className="mt-2 min-h-14 w-full rounded-xl border-2 border-[#acc5e7] bg-white px-4 text-lg text-[#133b70] focus:border-[#1e72d4]" />
