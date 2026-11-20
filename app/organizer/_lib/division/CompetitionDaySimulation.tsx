@@ -53,7 +53,7 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   const [history,setHistory]=useState<string[]>(["ระบบจำลองพร้อมใช้งาน · รอบ 1 ประกาศคู่แล้ว"]);
   const append=(message:string)=>setHistory(old=>[message,...old].slice(0,12));
   const attendanceKey=(g:Game,side:"black"|"white")=>`${g.id}:${side}`;
-  const statusOf=(g:Game,side:"black"|"white")=>attendance[attendanceKey(g,side)]??"unchecked";
+  const statusOf=(g:Game,side:"black"|"white"):"unchecked"|"present"|"absent"=>attendance[attendanceKey(g,side)]??"unchecked";
   const setAthleteAttendance=(g:Game,side:"black"|"white",value:"present"|"absent")=>{
     if(view==="public"||g.state==="verified"||g.table_status==="playing")return;
     const key=attendanceKey(g,side);
