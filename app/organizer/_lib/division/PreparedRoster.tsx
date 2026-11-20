@@ -33,7 +33,7 @@ export default function PreparedRoster({ eventId, divisionName }: { eventId: str
       <div className="rounded-xl border-2 border-[#dfb44a] bg-[#fff7db] p-3 text-sm text-[#604711]">
         ขั้นตอนถัดไป: ตรวจรายชื่อและรุ่นที่สมัคร จากนั้นกดนำเข้าในหน้าผู้จัด แล้วกลับมารุ่นนี้เพื่อจัดสายและออกคู่จริง
       </div>
-      <Link href={`/organizer/${eventId}#event-divisions`} className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border-2 border-[#d4a33a] bg-[var(--gt-cta)] px-4 text-center font-bold text-white">กลับหน้าผู้จัด · ตรวจและนำเข้ารายชื่อ</Link>
+      <Link href={`/organizer/${eventId}#event-readiness`} className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border-2 border-[#d4a33a] bg-[var(--gt-cta)] px-4 text-center font-bold text-white">กลับหน้าผู้จัด · ตรวจและนำเข้ารายชื่อ</Link>
       {rows===null && !error && <p role="status" className="text-sm text-[var(--gt-muted)]">กำลังอ่านรายชื่อใบสมัคร…</p>}
       {error && <p role="alert" className="text-sm text-[var(--gt-bad)]">โหลดรายชื่อใบสมัครไม่ได้ กรุณาลองรีเฟรช</p>}
       {rows!==null && rows.length>0 && <>
