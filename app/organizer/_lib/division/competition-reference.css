@@ -114,3 +114,22 @@
  .gt-reference-day .gt-reference-panel{padding:12px}
 }
 @media(max-width:390px){.gt-reference-person-name{font-size:14px}.gt-reference-athlete-photo{width:65px!important;height:73px!important}.gt-reference-main-nav button{font-size:11px}}
+
+
+/* Individual player attendance: unambiguous high-contrast statuses. */
+.gt-reference-actions{width:100%}
+.gt-reference-attendance-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%}
+.gt-reference-attendance{display:flex;flex-direction:column;gap:7px;min-width:0;padding:10px;border:2px solid #a6bedf;border-radius:12px;background:#f8fbff}
+.gt-reference-attendance-title{font-size:13px;font-weight:800;color:#122e61;overflow-wrap:anywhere;line-height:1.35}
+.gt-reference-attendance-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.gt-reference-day .gt-reference-attend-present,.gt-reference-day .gt-reference-attend-absent{min-height:46px;border:2px solid #8aa6c8;border-radius:10px;background:#fff;color:#102e60;font-size:13px;font-weight:800;padding:6px 4px;box-shadow:none}
+.gt-reference-day .gt-reference-attend-present[aria-pressed=true]{background:#41c964!important;color:#0b0b0b!important;border-color:#147a36!important;box-shadow:inset 0 2px #a8f0b9,0 3px 0 #187b38!important}
+.gt-reference-day .gt-reference-attend-absent[aria-pressed=true]{background:#c82935!important;color:#fff!important;border-color:#a10d20!important;box-shadow:inset 0 2px #f58289,0 3px 0 #790b18!important}
+.gt-reference-day .gt-reference-attend-present[aria-pressed=true]:active{background:#32ad52!important;color:#000!important}
+.gt-reference-day .gt-reference-attend-absent[aria-pressed=true]:active{background:#9b1828!important;color:#fff!important}
+.gt-reference-attendance-options button:disabled{cursor:not-allowed;opacity:.72}
+.gt-reference-attendance-badge{display:block;text-align:center;padding:7px 9px;border:2px solid transparent;border-radius:9px;font-size:13px;font-weight:800}
+.gt-reference-attendance-badge.is-present{background:#41c964;color:#0b0b0b;border-color:#147a36}
+.gt-reference-attendance-badge.is-absent{background:#c82935;color:#fff;border-color:#a10d20}
+.gt-reference-attendance-badge.is-unchecked{background:#e6edf8;color:#3b5678;border-color:#b2c6df}
+@media(max-width:650px){.gt-reference-attendance-grid{grid-template-columns:minmax(0,1fr)}.gt-reference-attendance-options button{font-size:15px!important}.gt-reference-attendance-title{font-size:15px}}
