@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { crossTable } from "@/lib/competition-day.mjs";
 import { DEFAULT_AVATAR } from "./MatchCard";
+import FitZoom from "@/components/FitZoom";
 
 /**
  * ตารางอันดับ (approved design 16 Nov 2026, blue–white):
  * desktop/print = one table: rank (medals 1–3) | athlete (photo, institution, rank chip) | score | round 1..n pills | SOS | SOSOS;
- * phone = "สรุป" cards (default) or "ตาราง" (the same table, scrolls sideways). Tap a photo to see it large.
+ * phone = "ตาราง" (default: the whole table shrunk to the screen width, zoom − / +, tap for full screen + download)
+ * or "สรุป" cards. Tap a photo to see it large.
  * Round pill = opponent's row number + result: green "14+" won, pink "3-" lost, "5=" draw, grey number = waiting for the result.
  */
 export type CrossRow = {
@@ -70,7 +72,7 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
 }) {
   const table = crossTable(rows.filter((r) => r.athlete_id), matches, byes, rounds) as Row[];
   const roundCount = table[0]?.cells.length ?? rounds;
-  const [view, setView] = useState<"cards" | "table">("cards");
+  const [view, setView] = useState<"cards" | "table">("table");
   const [q, setQ] = useState("");
   const [zoom, setZoom] = useState<Row | null>(null);
   const term = q.trim().toLowerCase();
@@ -96,7 +98,7 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
   };
 
   const tableView = (
-    <div className="overflow-x-auto">
+    <FitZoom>
       <table className="gt-num w-full min-w-[760px] border-collapse text-center">
         <thead>
           <tr className="bg-[var(--gt-table-head)] text-white [&>th]:font-semibold">
@@ -135,7 +137,7 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
           })}
         </tbody>
       </table>
-    </div>
+    </FitZoom>
   );
 
   const cardsView = (
@@ -178,7 +180,7 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
         {!large && (
           <div className="flex flex-wrap gap-2 print:hidden">
             <div role="tablist" aria-label="รูปแบบการแสดง" className="flex flex-1 rounded-xl border border-[var(--gt-line)] p-0.5 sm:hidden">
-              {(["cards", "table"] as const).map((v) => (
+              {(["table", "cards"] as const).map((v) => (
                 <button key={v} role="tab" type="button" aria-selected={view === v} onClick={() => setView(v)}
                   className={`min-h-10 flex-1 rounded-[10px] text-sm font-semibold ${view === v ? "bg-[var(--gt-brand)] text-white" : ""}`}>{v === "cards" ? "สรุป" : "ตาราง"}</button>
               ))}

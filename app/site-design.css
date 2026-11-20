@@ -72,3 +72,22 @@ body{background:#f2f8ff;color:#082557}b,strong{font-weight:700}
 .gt .news-results-table td.news-player-cell :is(strong,small,a){text-align:left!important}
 .gt .news-results-table td.news-player-cell small{display:block;margin-left:0;padding-left:0}
 .news-placing-label{font-weight:600;white-space:normal}
+/* ResultPicker (compact, phone-friendly): who won → how → other results */
+.gt-result-picker{display:grid;gap:8px;border:0;margin:0;padding:0;min-width:0}
+.gt-result-picker legend{font-weight:700;margin-bottom:6px}
+.gt-rp-winners{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gt-rp-win{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;border:2px solid #99bce8;border-radius:12px;background:#fff;font-size:17px;font-weight:700;color:#0b2a5c}
+.gt-rp-win small{font-size:12px;font-weight:600;color:#06419e;background:#e6efff;border-radius:6px;padding:1px 6px}
+.gt-rp-win[aria-pressed=true]{border-color:#e0a91c;background:#fff1b8;box-shadow:0 0 0 2px #f6d470}
+.gt-rp-stone{width:20px;height:20px;border-radius:50%;flex-shrink:0;border:1.5px solid #14171e;background:#14171e}
+.gt-rp-stone.white{background:#fff;border-color:#9aa3b2}
+.gt-rp-methods,.gt-rp-others{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.gt-rp-others{grid-template-columns:1fr 1fr}
+.gt-rp-methods button,.gt-rp-others button{min-height:44px;padding:4px 6px;border:1.5px solid #b5cde9;border-radius:10px;background:#fff;font-size:14px;font-weight:600;color:#173861;line-height:1.25}
+.gt-rp-others button{background:#f6f8fb;color:#4a5a72}
+.gt-rp-others small{font-size:11px;color:#6b7c95}
+.gt-rp-methods button[aria-pressed=true],.gt-rp-others button[aria-pressed=true]{border-color:#e0a91c;background:#fff1b8;color:#3a2a00}
+.gt-rp-methods button:disabled{opacity:.45}
+.gt-result-picker:disabled{opacity:.6}
+.gt-rp-summary{margin:0;font-size:13px;color:#536b8b;text-align:center}
+.gt-rp-summary strong{color:#0b2a5c}

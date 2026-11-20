@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { PanelContext } from "./FitZoom";
 
 /** The same live content stays mounted when expanded; exports include every visible row. */
 /**
@@ -65,6 +66,9 @@ export default function CompetitionPanel({ children, className = "", title, cont
     try {
       await document.fonts.ready;
       const root = content.current;
+      // Shrunk-to-fit tables (FitZoom) are exported at their real size.
+      root.classList.add("cd-exporting");
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
       await Promise.all(Array.from(root.querySelectorAll("img")).map(img => img.decode().catch(() => undefined)));
       const { toCanvas } = await import("html-to-image");
       const width = Math.max(root.clientWidth, root.scrollWidth);
@@ -104,7 +108,7 @@ export default function CompetitionPanel({ children, className = "", title, cont
       }
     } catch {
       setError("ดาวน์โหลดไม่สำเร็จ กรุณาลองอีกครั้งเมื่อเชื่อมต่ออินเทอร์เน็ต ภาพนักกีฬาอาจยังโหลดไม่ครบ");
-    } finally { setBusy(null); }
+    } finally { content.current?.classList.remove("cd-exporting"); setBusy(null); }
   }
 
   return <section ref={panel} className={`cd-panel cd-download-panel ${className} ${expanded ? "cd-expanded" : ""} ${includePhotos ? "" : "gt-hide-photos"}`}
@@ -117,7 +121,8 @@ export default function CompetitionPanel({ children, className = "", title, cont
       </span>
     </div>
     <div className="cd-panel-reader"><div ref={content} className="cd-export-content">
-      <p className="cd-export-context">{context}</p>{children}
+      <p className="cd-export-context">{context}</p>
+      <PanelContext.Provider value={{ expanded, expand: () => setExpanded(true) }}>{children}</PanelContext.Provider>
     </div></div>
     <div className="cd-download-actions" data-export-ignore="true">
       <label className="cd-export-photo-option"><input type="checkbox" checked={includePhotos} disabled={!!busy} onChange={e => setIncludePhotos(e.target.checked)} /> แสดงรูปนักกีฬา (บนจอและในไฟล์)</label>

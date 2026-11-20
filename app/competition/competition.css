@@ -103,3 +103,22 @@
 .gt-report-win{color:#198042;font-weight:700}.gt-report-won strong{color:#0b3d82}.gt-round-report .cd-match-table{font-size:14px}.gt-round-report .cd-player strong{font-size:15px}.gt-round-report .cd-player small{font-size:12px}.gt-round-report .cd-player .cd-avatar{width:44px;height:44px}
 .cd-expanded .overflow-x-auto{overflow:visible}
 .cd-report-row{margin:0 0 14px}
+/* FitZoom: a wide table shrunk to the phone width, with − / พอดีจอ / + and a full-screen button */
+.gt-fitzoom-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;background:#eef5ff;border-bottom:1px solid #c6d9f1}
+.gt-fitzoom-bar button{min-height:40px;min-width:44px;padding:0 12px;border:1.5px solid #8fb4e1;border-radius:10px;background:white;color:#073a85;font-weight:700;font-size:16px}
+.gt-fitzoom-bar button[aria-pressed=true]{background:#0b5ed0;border-color:#0b5ed0;color:white}
+.gt-fitzoom-bar button:disabled{opacity:.4}
+.gt-fitzoom-bar .gt-fitzoom-full{flex:1 1 auto;background:linear-gradient(#ffe27a,#f2b92c);border-color:#d39d22;color:#3a2a00;font-size:14px}
+.gt-fitzoom-scroll{overflow:auto;-webkit-overflow-scrolling:touch}
+.gt-fitzoom-sizer{position:relative;overflow:hidden}
+.gt-fitzoom-inner{transform-origin:0 0}
+.gt-fitzoom-sizer[style] .gt-fitzoom-inner{position:absolute;top:0;left:0}
+.gt-fitzoom-sizer[style] .sticky{position:static}
+.gt-fitzoom-hint{margin:0;padding:6px 10px;font-size:12px;color:#536b8b;text-align:center;background:#f6faff}
+.cd-expanded .gt-fitzoom-scroll{overflow:auto}
+.cd-exporting .gt-fitzoom-scroll,.cd-exporting .gt-fitzoom-sizer{width:auto!important;height:auto!important;overflow:visible!important}
+.cd-exporting .gt-fitzoom-inner{position:static!important;transform:none!important}
+@media print{.gt-fitzoom-bar,.gt-fitzoom-hint{display:none}.gt-fitzoom-sizer{width:auto!important;height:auto!important;overflow:visible}.gt-fitzoom-inner{position:static!important;transform:none!important;width:auto!important}}
+/* MatchCard with photos hidden: the ดำ/ขาว chip sat on the photo's corner and covered the name; show it inline above the name */
+.gt-hide-photos .gt-seat-chip{position:static;margin:0 auto}
+.cd-exporting .gt-card:has(.gt-fitzoom){overflow:visible;width:max-content;min-width:100%}
