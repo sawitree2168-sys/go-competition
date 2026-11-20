@@ -5,6 +5,8 @@ import Link from "next/link";
 import AthleteAvatar from "@/components/AthleteAvatar";
 import RoundReportButtons, { type ReportMatch, type ReportPerson } from "@/components/RoundReport";
 import CompetitionPanel from "@/components/CompetitionPanel";
+import SimulationResultDialog from "./SimulationResultDialog";
+import "./competition-reference.css";
 import { resultLabel, scoresFrom } from "@/lib/competition-day.mjs";
 
 type Person = ReportPerson & { id: string };
@@ -34,7 +36,7 @@ const makeRound = (round: number, existing: Game[]): Game[] => {
 const INITIAL = makeRound(1,[]);
 const label = (g: Game) => g.state==="verified"?resultLabel(g):({waiting:"รอเช็กชื่อ",checked:"ตรวจผู้เล่นแล้ว",playing:"กำลังแข่งขัน",finished:"บันทึกผลแล้ว"} as const)[g.table_status];
 const stateStyle = (g:Game)=>g.state==="verified"?"border-green-600 bg-green-50 text-green-800":g.table_status==="playing"?"border-blue-600 bg-blue-50 text-blue-900":"border-amber-500 bg-amber-50 text-amber-900";
-const DEMO_BG="bg-[linear-gradient(115deg,#0b6dd5,#073d8b)]";
+const DEMO_BG="gt-reference-banner";
 
 export default function CompetitionDaySimulation({eventId,divisionId}: {eventId:string;divisionId:string}) {
   const [games,setGames]=useState<Game[]>(INITIAL);
@@ -46,6 +48,7 @@ export default function CompetitionDaySimulation({eventId,divisionId}: {eventId:
   const [auto,setAuto]=useState(false);
   const [step,setStep]=useState(0);
   const [full,setFull]=useState(false);
+  const [editing,setEditing]=useState<string|null>(null);
   const [history,setHistory]=useState<string[]>(["ระบบจำลองพร้อมใช้งาน · รอบ 1 ประกาศคู่แล้ว"]);
   const append=(message:string)=>setHistory(old=>[message,...old].slice(0,12));
   const update=(id:string, stage:"check"|"play"|"black"|"white"|"draw")=>{
@@ -89,11 +92,11 @@ export default function CompetitionDaySimulation({eventId,divisionId}: {eventId:
   const person=(id:string,color:"black"|"white")=><div className="flex min-w-0 items-center gap-2">
     {photo(id)}<span className="min-w-0"><span className="mb-1 flex items-center gap-1 text-xs font-semibold text-[#385577]"><span className={`h-4 w-4 shrink-0 rounded-full border ${color==="black"?"bg-[#101b2e] border-[#101b2e]":"bg-white border-[#7a92b2]"}`}/>{color==="black"?"หมากดำ":"หมากขาว"}</span><strong className="block text-sm text-[#102d58] [overflow-wrap:anywhere]">{personMap[id].name}</strong><small className="block text-xs text-[#536f93]">{personMap[id].rank} · {personMap[id].institution}</small></span>
   </div>;
-  const controls=(g:Game)=><div className="flex flex-wrap gap-2">
-    {g.table_status==="waiting"&&<button onClick={()=>update(g.id,"check")} className="min-h-11 rounded-lg border-2 border-[#d6a43a] bg-[#0c63c4] px-3 text-sm font-semibold text-white">✓ เช็กชื่อ</button>}
-    {g.table_status==="checked"&&<button onClick={()=>update(g.id,"play")} className="min-h-11 rounded-lg border-2 border-[#d6a43a] bg-[#0c63c4] px-3 text-sm font-semibold text-white">เริ่มแข่งขัน</button>}
-    {g.table_status==="playing"&&g.state!=="verified"&&<><button onClick={()=>update(g.id,"black")} className="min-h-11 rounded-lg border-2 border-[#d6a43a] bg-[#101b2e] px-3 text-xs font-semibold text-white">ดำชนะ</button><button onClick={()=>update(g.id,"white")} className="min-h-11 rounded-lg border-2 border-[#d6a43a] bg-white px-3 text-xs font-semibold text-[#173a73]">ขาวชนะ</button><button onClick={()=>update(g.id,"draw")} className="min-h-11 rounded-lg border-2 border-[#d6a43a] bg-[#fff1bd] px-3 text-xs font-semibold text-[#173a73]">เสมอ</button></>}
-    {g.state==="verified"&&<span className="text-sm font-semibold text-green-800">✓ ยืนยันผล (จำลอง)</span>}
+  const controls=(g:Game)=><div className="gt-reference-actions">
+    {g.table_status==="waiting"&&<button type="button" onClick={()=>update(g.id,"check")} className="gt-reference-blue">✓ เช็กชื่อ</button>}
+    {g.table_status==="checked"&&<button type="button" onClick={()=>update(g.id,"play")} className="gt-reference-blue">▶ เริ่มแข่งขัน</button>}
+    {g.table_status==="playing"&&g.state!=="verified"&&<button type="button" onClick={()=>setEditing(g.id)} className="gt-reference-gold">✎ ลงผลทุกประเภท</button>}
+    {g.state==="verified"&&<><strong className="text-green-800">✓ บันทึกผลแล้ว (จำลอง)</strong><button type="button" onClick={()=>setEditing(g.id)} className="gt-reference-secondary">แก้ไขผล</button></>}
   </div>;
   const board=(g:Game,actions=true)=><article key={g.id} className="overflow-hidden rounded-2xl border-[3px] border-[#8fb7eb] border-b-[#d6a43a] bg-white shadow-sm">
     <header className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#d6a43a] bg-[#e9f3ff] p-3">
@@ -102,34 +105,38 @@ export default function CompetitionDaySimulation({eventId,divisionId}: {eventId:
     <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2">{person(g.black_athlete_id,"black")}{person(g.white_athlete_id,"white")}</div>
     {actions&&view!=="public"&&<div className="border-t border-[#e2ecfa] p-3">{controls(g)}</div>}
   </article>;
-  const table=<div className="overflow-x-auto rounded-xl border-2 border-[#d6a43a] bg-white">
-    <table className="w-full min-w-[670px] border-collapse text-left text-sm"><thead className="bg-[#0b5fbf] text-white"><tr><th className="p-3">โต๊ะ</th><th className="p-3">ดำ</th><th className="p-3">ขาว</th><th className="p-3">สถานะ / ผล</th></tr></thead><tbody>{filtered.map(g=><tr key={g.id} className="border-b-2 border-[#c4d9f1] odd:bg-white even:bg-[#edf5ff]"><td className="p-3 align-top font-bold">โต๊ะ {g.board_number}</td><td className="p-3 align-top">{person(g.black_athlete_id,"black")}</td><td className="p-3 align-top">{person(g.white_athlete_id,"white")}</td><td className="p-3 align-top"><span className="font-semibold">{label(g)}</span>{view!=="public"&&<div className="mt-2">{controls(g)}</div>}</td></tr>)}</tbody></table>
+  const table=<div className="gt-reference-table">
+    <div className="gt-reference-mobile-table">{filtered.map(g=><div className="gt-reference-mobile-record" key={g.id}>
+      <button type="button" className="gt-reference-mobile-row" onClick={()=>setFull(true)}><strong>โต๊ะ {g.board_number}</strong><span><b>ดำ</b> {personMap[g.black_athlete_id].name}<small>ขาว {personMap[g.white_athlete_id].name}</small></span><span>{label(g)}<small>⛶ เต็มจอ</small></span></button>
+      {view!=="public"&&<div className="p-2">{controls(g)}</div>}
+    </div>)}</div>
+    <div className="gt-reference-desktop-table"><table><thead><tr><th>โต๊ะ</th><th>ฝ่ายดำ</th><th>ฝ่ายขาว</th><th>ผลการแข่งขัน</th></tr></thead><tbody>{filtered.map(g=><tr key={g.id}><td>โต๊ะ {g.board_number}</td><td>{person(g.black_athlete_id,"black")}</td><td>{person(g.white_athlete_id,"white")}</td><td><p>{label(g)}</p>{view!=="public"&&controls(g)}</td></tr>)}</tbody></table></div>
   </div>;
-
-  return <div className="min-h-screen bg-[#eff6ff] pb-16 text-[#102d58]">
+  const activeGame=games.find(g=>g.id===editing);
+  return <div className="gt-reference-day min-h-screen pb-16 text-[#102d58]">
     <header className={`${DEMO_BG} border-b-[5px] border-[#d6a43a] px-4 py-5 text-white`}>
       <div className="mx-auto max-w-6xl"><Link href={`/organizer/${eventId}/${divisionId}`} className="text-sm underline">← กลับหน้ารุ่นการแข่งขันจริง</Link>
       <p className="mt-3 text-xs font-bold tracking-widest text-[#ffe29a]">GO TOURNAMENT • INTERACTIVE DEMO</p><h1 className="mt-1 text-2xl font-bold sm:text-3xl">จำลองการแข่งขันจริง · รุ่น 1–2 คิว</h1>
       <p className="mt-2 text-sm text-[#e2efff]">โหมดฝึกใช้งานเท่านั้น — ไม่เขียนผลลงฐานข้อมูล ไม่ใช่รายชื่อหรือผลแข่งขันจริง</p></div>
     </header>
     <main className="mx-auto max-w-6xl space-y-4 px-3 py-4 sm:px-6">
-      <section className="rounded-2xl border-[3px] border-[#d6a43a] bg-white p-3 shadow-sm">
+      <section className="gt-reference-panel p-3">
         <div className="flex flex-wrap items-center justify-between gap-2"><strong>เลือกมุมมอง</strong><span className="text-xs text-[#647c9f]">ทั้ง 3 มุมมองใช้ข้อมูลจำลองชุดเดียวกัน</span></div>
         <div className="mt-2 grid grid-cols-3 gap-2">{(["admin","referee","public"] as const).map(v=><button key={v} type="button" aria-pressed={view===v} onClick={()=>setView(v)}
           className={`min-h-12 rounded-xl border-2 px-2 text-sm font-semibold ${view===v?"border-[#d6a43a] bg-[#0a62c4] text-white":"border-[#84b4e9] bg-white text-[#0e478e]"}`}>{v==="admin"?"แอดมินจับคู่":v==="referee"?"กรรมการ":"สาธารณะ"}</button>)}</div>
       </section>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{[
+      <div className="gt-reference-metrics grid grid-cols-2 gap-2 sm:grid-cols-4">{[
         ["รอบแข่งขัน",`${round} / 5`],["โต๊ะทั้งหมด",String(rows.length)],["เช็กชื่อ / เริ่มแล้ว",`${checked} / ${rows.length}`],["ลงผลแล้ว",`${done} / ${rows.length}`]
       ].map(([k,v])=><div key={k} className="rounded-xl border-2 border-[#81b0e6] border-b-[4px] border-b-[#d6a43a] bg-white p-3"><small className="text-[#57769a]">{k}</small><strong className="mt-1 block text-2xl text-[#0958b4]">{v}</strong></div>)}</div>
-      <div className="grid grid-cols-1 gap-3 rounded-2xl border-2 border-[#d6a43a] bg-white p-4 sm:grid-cols-[1fr_auto]">
+      <div className="gt-reference-panel grid grid-cols-1 gap-3 p-4 sm:grid-cols-[1fr_auto]">
         <div><strong>ความคืบหน้ารอบ {round}: {progress}%</strong><div className="mt-2 h-4 overflow-hidden rounded-full bg-[#dceaff]"><div className="h-full rounded-full bg-[#d6a43a] transition-all" style={{width:`${progress}%`}}/></div><p className="mt-1 text-xs text-[#647c9f]">ข้อมูลเปลี่ยนเมื่อกดลงผลหรือเปิดจำลองอัตโนมัติ</p></div>
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" onClick={applyNext} className="min-h-11 rounded-xl border-2 border-[#d6a43a] bg-[#0b65c9] px-4 text-sm font-bold text-white">▶ เหตุการณ์ถัดไป</button>
           <button type="button" aria-pressed={auto} onClick={()=>setAuto(v=>!v)} className="min-h-11 rounded-xl border-2 border-[#0b65c9] bg-white px-4 text-sm font-bold text-[#0b65c9]">{auto?"■ หยุดอัตโนมัติ":"⟳ จำลองสดทุก 3.5 วินาที"}</button>
         </div>
       </div>
-      <section className="rounded-2xl border-[3px] border-[#d6a43a] bg-white p-3">
-        <div className="flex flex-wrap items-center gap-2">
+      <section className="gt-reference-panel p-3">
+        <div className="gt-reference-toolbar flex flex-wrap items-center gap-2">
           <label className="font-semibold">รอบ <select className="min-h-11 rounded-lg border-2 border-[#89b6e9] bg-white p-2" value={round} onChange={e=>{setRound(Number(e.target.value));setAuto(false);}}>{Array.from({length:lastRound},(_,i)=><option key={i+1} value={i+1}>{i+1}</option>)}</select></label>
           <button aria-pressed={mode==="cards"} onClick={()=>setMode("cards")} className={`min-h-11 rounded-xl border-2 px-3 font-semibold ${mode==="cards"?"border-[#d6a43a] bg-[#095fc2] text-white":"border-[#89b6e9]"}`}>▦ การ์ด</button>
           <button aria-pressed={mode==="table"} onClick={()=>setMode("table")} className={`min-h-11 rounded-xl border-2 px-3 font-semibold ${mode==="table"?"border-[#d6a43a] bg-[#095fc2] text-white":"border-[#89b6e9]"}`}>☷ ตาราง</button>
@@ -139,12 +146,18 @@ export default function CompetitionDaySimulation({eventId,divisionId}: {eventId:
         <input type="search" value={search} onChange={e=>setSearch(e.target.value)} className="mt-3 min-h-12 w-full rounded-xl border-2 border-[#89b6e9] bg-white px-3" placeholder="ค้นหาชื่อหรือหมายเลขโต๊ะ"/>
       </section>
       {reports}
-      <section aria-label="โต๊ะแข่งขัน"><div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-bold">โต๊ะแข่งขัน · รอบ {round}</h2><span className="text-sm text-[#527298]">แสดง {filtered.length} / {rows.length} โต๊ะ</span></div>
+      <section aria-label="โต๊ะแข่งขัน" className="gt-reference-board-section"><div className="mb-2 flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-bold">โต๊ะแข่งขัน · รอบ {round}</h2><span className="text-sm text-[#527298]">แสดง {filtered.length} / {rows.length} โต๊ะ</span></div>
         {!filtered.length?<p className="rounded-xl border-2 border-[#89b6e9] bg-white p-5">ไม่พบโต๊ะที่ค้นหา</p>:mode==="cards"?<div className="grid gap-3 md:grid-cols-2">{filtered.map(g=>board(g))}</div>:table}
       </section>
       {full&&<CompetitionPanel title="โต๊ะแข่งขัน (โหมดจำลอง)" context="ZEER GO KYU WAR 2026 · จำลองเท่านั้น" onClose={()=>setFull(false)}>
         <div className="grid gap-3 p-3 md:grid-cols-2">{filtered.map(g=>board(g,false))}</div>
       </CompetitionPanel>}
+      {activeGame&&<SimulationResultDialog board={activeGame.board_number} black={personMap[activeGame.black_athlete_id].name} white={personMap[activeGame.white_athlete_id].name} onClose={()=>setEditing(null)}
+        onConfirm={(code,resultMargin,w,selectedMethod)=>{
+          setGames(old=>old.map(g=>g.id===activeGame.id?{...g,winner_athlete_id:w==="black"?g.black_athlete_id:w==="white"?g.white_athlete_id:null,result_code:code,result_margin:resultMargin,state:"verified",table_status:"finished"}:g));
+          append(`โต๊ะ ${activeGame.board_number} · ${selectedMethod} · ${w==="black"?"ดำชนะ":w==="white"?"ขาวชนะ":"ผลพิเศษ"} (จำลอง)`);
+          setEditing(null);
+        }} />}
       <section className="rounded-2xl border-2 border-[#89b6e9] bg-white p-4">
         <div className="flex flex-wrap justify-between gap-2"><h2 className="text-lg font-bold">กิจกรรมล่าสุด (จำลอง)</h2>{allDone&&round<5&&<button onClick={applyNext} className="rounded-lg border-2 border-[#d6a43a] bg-[#095fc2] px-3 py-2 text-white">จับคู่รอบต่อไป ›</button>}</div>
         <ol className="mt-3 space-y-2">{history.map((h,i)=><li key={i} className="rounded-lg border border-[#bdd6f3] bg-[#f4f9ff] p-3 text-sm">{h}</li>)}</ol>
