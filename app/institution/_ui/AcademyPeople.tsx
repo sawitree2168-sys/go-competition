@@ -1,9 +1,11 @@
 "use client";
 import {useCallback,useEffect,useState} from "react";
 import {staffDb} from "@/app/organizer/_lib/staff";
+import {DisplayModeToggle,useInstitutionDisplayMode} from "./DisplayMode";
 type Teacher={name:string;role:string};
 type Request={user_id:string;name:string;role:string;created_at:string};
 export function AcademyStaff({academyId}:{academyId:string}){
+ const [mode,setMode]=useInstitutionDisplayMode("teachers");
  const [data,setData]=useState<{can_add:boolean;staff:Teacher[]}|null>(null);
  const [requests,setRequests]=useState<Request[]>([]);
  const [email,setEmail]=useState("");
@@ -34,7 +36,8 @@ export function AcademyStaff({academyId}:{academyId:string}){
      <div className="flex gap-2"><button disabled={busy} type="button" className="min-h-11 rounded-lg bg-[#0d65c6] px-4 font-semibold text-white disabled:opacity-60" onClick={()=>void decide(item.user_id,true)}>อนุมัติ</button><button disabled={busy} type="button" className="min-h-11 rounded-lg border border-[#a3b9d5] px-3 disabled:opacity-60" onClick={()=>void decide(item.user_id,false)}>ปฏิเสธ</button></div>
     </div>)}
    </div>}
-   <div className="grid gap-2 sm:grid-cols-2">{data?.staff?.map((teacher,i)=><div className="rounded-xl border border-[#b5d0f0] bg-[#f1f7ff] p-3" key={i}>
+   <div className="flex justify-end"><DisplayModeToggle mode={mode} onChange={setMode}/></div>
+   {mode==="table" ? <div className="overflow-x-auto rounded-xl border border-[#b5d0f0]"><table className="w-full text-left text-sm"><thead className="bg-[#e8f2ff]"><tr><th className="px-4 py-3">ชื่อครู / ผู้ดูแล</th><th className="px-4 py-3">สิทธิ์</th></tr></thead><tbody className="divide-y divide-[#d9e6f6]">{data?.staff?.map((person,i)=><tr key={i}><td className="px-4 py-3 font-semibold">{person.name}</td><td className="px-4 py-3">{person.role==="manager"?"เจ้าของ / ผู้ดูแล":"ครูผู้สอน"}</td></tr>)}</tbody></table></div> : <div className="grid gap-2 sm:grid-cols-2">{data?.staff?.map((teacher,i)=><div className="rounded-xl border border-[#b5d0f0] bg-[#f1f7ff] p-3" key={i}>
     <p className="font-semibold">{teacher.name}</p><p className="text-xs text-[#4e6382]">{teacher.role==="manager"?"เจ้าของ / ผู้ดูแล":"ครูผู้สอน"}</p>
    </div>)}</div>
    {data?.can_add&&<form className="flex flex-wrap gap-2" onSubmit={async e=>{
