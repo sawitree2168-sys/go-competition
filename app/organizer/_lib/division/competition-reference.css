@@ -1,0 +1,72 @@
+/* GO TOURNAMENT reference design — scoped to simulation, not global login/results. */
+.gt-reference-day{--ref-navy:#042b70;--ref-royal:#0b459a;--ref-gold:#b98220;--ref-gold-light:#ffe79a;--ref-border:#d8a63e;background:radial-gradient(circle at 50% 0%,#eaf4ff,#f4f8ff 55%,#edf3fb)}
+.gt-reference-day button,.gt-reference-modal button{transition:transform .12s ease,box-shadow .15s ease,filter .15s ease,background-color .15s ease;touch-action:manipulation}
+.gt-reference-day button:active,.gt-reference-modal button:active{transform:translateY(2px) scale(.98);filter:brightness(.9);box-shadow:inset 0 3px 6px #0003!important}
+.gt-reference-day button:focus-visible,.gt-reference-modal button:focus-visible{outline:3px solid #c79125;outline-offset:3px}
+.gt-reference-day button[aria-pressed=true],.gt-reference-modal button[aria-pressed=true]{background:linear-gradient(#fff0b3,#ffd660 48%,#c98b16)!important;color:#082c6a!important;border-color:#b8801e!important;box-shadow:inset 0 2px 3px #fff9,0 3px 0 #9c6516,0 4px 12px #9563213c!important}
+.gt-reference-banner{position:relative;background:linear-gradient(130deg,#061b56 0%,#074397 35%,#09266c 65%,#04113f 100%);border-bottom:5px ridge #deb34f;box-shadow:inset 0 -2px 0 #f5d785,0 4px 20px #06235a40}
+.gt-reference-banner:after{content:"";position:absolute;pointer-events:none;inset:0;background:radial-gradient(ellipse at 28% 0%,#1f81d64a,transparent 50%);mix-blend-mode:screen}
+.gt-reference-banner>div{position:relative;z-index:1}
+.gt-reference-banner h1{color:white;text-shadow:0 3px 5px #081636,0 0 1px #ffe2a0}
+.gt-reference-panel{border:3px solid #d7a640;border-radius:18px;background:linear-gradient(135deg,#fff,#f9fbff);box-shadow:inset 0 2px 0 #fff,0 3px 0 #a87c2a35,0 6px 17px #13447f20}
+.gt-reference-metrics>div{border:2px solid #a6c2e9!important;border-bottom:4px solid #c38c27!important;border-radius:15px;background:linear-gradient(#fff,#eff5ff);box-shadow:0 4px 10px #163d761c}
+.gt-reference-metrics strong{color:#082d77!important;text-shadow:0 1px 0 #fff}
+.gt-reference-day .gt-reference-panel button,.gt-reference-day .gt-reference-board-section button{border-width:2px}
+.gt-reference-day .gt-reference-panel button[aria-pressed=true],.gt-reference-day .gt-reference-panel button:hover{border-color:#cc941d}
+.gt-reference-day .gt-reference-toolbar{gap:8px}
+.gt-reference-toolbar>button{flex:0 0 auto;min-height:46px;border-radius:12px;box-shadow:0 2px 2px #19477920}
+.gt-reference-day [aria-label="โต๊ะแข่งขัน"] article{border:3px solid #cf9a2c!important;border-radius:19px;background:#fff;box-shadow:0 3px 0 #b1802580,0 6px 15px #153e7930}
+.gt-reference-day [aria-label="โต๊ะแข่งขัน"] article>header{background:linear-gradient(#144d9d,#05245e)!important;color:white;border-bottom:3px solid #dbad4d!important}
+.gt-reference-day [aria-label="โต๊ะแข่งขัน"] article>header strong{color:white!important}
+.gt-reference-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+.gt-reference-actions button,.gt-reference-blue,.gt-reference-gold,.gt-reference-secondary{min-height:44px;padding:9px 12px;border-radius:11px;font-size:14px;font-weight:800;max-width:100%}
+.gt-reference-blue{border:2px solid #d8ac49;background:linear-gradient(#1463ba,#0a3d88 65%,#04265f);box-shadow:inset 0 1px #a5cff7,0 3px 0 #07224b;color:#fff}
+.gt-reference-gold{border:2px solid #ba7d18;background:linear-gradient(#fff2b6,#ffce49 50%,#dd9f19);box-shadow:inset 0 2px #fff9,0 3px 0 #b47c1c;color:#071c53}
+.gt-reference-secondary{border:2px solid #1b5094;background:linear-gradient(#fff,#e4f1ff);box-shadow:0 3px 0 #9ab5d4;color:#082d70}
+.gt-reference-table{border:3px solid #c59635;border-radius:16px;overflow:hidden;box-shadow:0 4px 13px #0b367c25}
+.gt-reference-desktop-table table{width:100%;border-collapse:collapse}
+.gt-reference-desktop-table th{background:linear-gradient(#0a4eac,#041d65);color:white;font-size:14px;padding:12px;border:1px solid #9bbbe4}
+.gt-reference-desktop-table td{padding:12px;border:1px solid #b8cceb;vertical-align:middle}
+.gt-reference-mobile-table{display:none}
+.gt-reference-day .gt-report-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gt-reference-day .gt-report-buttons button{min-width:0;border:2px solid #cb9628!important;border-radius:13px;background:linear-gradient(#155cac,#05286b)!important;color:white!important;box-shadow:inset 0 2px #8ab4ef,0 4px 0 #b78020!important;min-height:53px;font-weight:800}
+.gt-reference-modal{position:fixed;z-index:250;inset:0;display:flex;align-items:center;justify-content:center;padding:10px;background:#04102bbd}
+.gt-reference-modal-card{width:min(100%,640px);max-height:calc(100dvh - 20px);display:flex;flex-direction:column;overflow:hidden;border:3px solid #c59635;border-radius:18px;background:#fff;box-shadow:0 16px 48px #020e2f9c}
+.gt-reference-modal-card>header{display:flex;gap:8px;align-items:center;justify-content:space-between;background:linear-gradient(115deg,#0a54a9,#061e5b);color:white;padding:12px 15px;border-bottom:3px solid #d7a640}
+.gt-reference-modal-card>header button{min-height:44px;border:2px solid #d7a640;border-radius:10px;padding:7px 12px;font-weight:800;color:white}
+.gt-reference-modal-content{overflow-y:auto;overscroll-behavior:contain;padding:15px;display:grid;gap:12px}
+.gt-reference-players{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border:2px solid #a4c3ea;border-radius:12px;font-weight:800;color:#112d69}
+.gt-reference-players span{color:#687e9e;font-weight:400}
+.gt-reference-modal legend{font-size:15px;font-weight:800;color:#0b3777;margin-bottom:8px}
+.gt-reference-winners{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gt-reference-winners legend{grid-column:1/-1}
+.gt-reference-winners button,.gt-reference-methods button{border:2px solid #a9c4e8;border-radius:12px;background:#f7fbff;color:#113a7a;min-height:50px;padding:10px;font-weight:700;text-align:left}
+.gt-reference-methods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gt-reference-methods legend{grid-column:1/-1}
+.gt-reference-margin{display:block;width:100%;min-height:48px;margin-top:6px;border:2px solid #89b3e6;border-radius:12px;padding:10px;color:#112b60}
+.gt-reference-summary{border:2px solid #d2a13b;border-radius:12px;padding:12px;background:#fff7da;color:#173767;font-weight:700}
+.gt-reference-modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gt-reference-modal-actions button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:760px){
+ .gt-reference-desktop-table{display:none}
+ .gt-reference-mobile-table{display:block}
+ .gt-reference-mobile-record{background:white;border-bottom:2px solid #aec9ec}
+ .gt-reference-mobile-row{display:grid;grid-template-columns:56px minmax(0,1fr);width:100%;gap:8px;align-items:start;padding:11px;text-align:left;background:white;color:#0b2c6b;border:0!important}
+ .gt-reference-mobile-row>strong{grid-row:1/3;padding:9px 3px;background:linear-gradient(#1253a5,#04225e);color:white;border:2px solid #d4a43a;border-radius:10px;text-align:center}
+ .gt-reference-mobile-row>span{min-width:0;overflow-wrap:anywhere;font-size:13px;font-weight:700}
+ .gt-reference-mobile-row small{display:block;font-size:12px;font-weight:500;color:#55718e;margin-top:4px}
+ .gt-reference-mobile-row>span:last-child{color:#895e0b}
+ .gt-reference-day .gt-reference-fullscreen-boards{grid-template-columns:1fr!important}
+ .gt-reference-day .gt-reference-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .gt-reference-toolbar>label{grid-column:1/-1}
+ .gt-reference-toolbar>button{min-width:0;width:100%;font-size:13px;white-space:normal}
+ .gt-reference-day .gt-report-buttons{grid-template-columns:1fr}
+}
+@media(max-width:390px){
+ .gt-reference-day main{padding-left:10px;padding-right:10px}
+ .gt-reference-day .gt-reference-panel{padding:10px}
+ .gt-reference-methods{grid-template-columns:1fr}
+ .gt-reference-modal-content{padding:10px}
+ .gt-reference-modal-card>header{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){.gt-reference-day button,.gt-reference-modal button{transition:none}}
