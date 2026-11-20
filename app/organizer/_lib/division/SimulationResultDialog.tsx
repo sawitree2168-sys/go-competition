@@ -13,8 +13,8 @@ export default function SimulationResultDialog({board,black,white,onClose,onConf
     <p className="gt-reference-players">⚫ {black}<span>พบกับ</span>⚪ {white}</p>
     <p className="text-sm">เลือก “ชนะ” เพียงแบบเดียว หากทราบผลต่างแต้มค่อยกรอกเพิ่มได้ (จำลอง)</p>
     <fieldset className="gt-reference-winners"><legend>ผู้ชนะ</legend>
-     <button type="button" aria-pressed={winner==="black"} onClick={()=>{setWinner("black");if(["draw","double_loss","double_forfeit"].includes(method))setMethod("normal")}}>● ดำชนะ</button>
-     <button type="button" aria-pressed={winner==="white"} onClick={()=>{setWinner("white");if(["draw","double_loss","double_forfeit"].includes(method))setMethod("R")}}>○ ขาวชนะ</button>
+     <button type="button" aria-pressed={winner==="black"} onClick={()=>{setWinner("black");if(["double_loss","double_forfeit"].includes(method))setMethod("normal")}}>● ดำชนะ</button>
+     <button type="button" aria-pressed={winner==="white"} onClick={()=>{setWinner("white");if(["draw","double_loss","double_forfeit"].includes(method))setMethod("normal")}}>○ ขาวชนะ</button>
     </fieldset>
     <fieldset className="gt-reference-methods"><legend>วิธีจบเกม</legend>{METHODS.map((m:{v:string;label:string;winner:boolean;margin?:boolean})=><button type="button" key={m.v} aria-pressed={method===m.v} onClick={()=>{setMethod(m.v);if(!m.winner)setWinner(null);else if(!winner)setWinner("black")}}>{m.label}</button>)}</fieldset>
     {method==="normal"&&<label className="block font-semibold">ชนะกี่แต้ม (ถ้ามี · เว้นว่างได้)<input type="text" inputMode="decimal" value={margin} onChange={e=>setMargin(e.target.value)} className="gt-reference-margin" placeholder="เช่น 6.5 หรือเว้นว่าง"/></label>}
