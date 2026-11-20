@@ -11,7 +11,7 @@ export function LogoDisplay({branding,name,className=""}:{branding:Branding|null
  const logoUrl=branding?.logo_path?db?.storage.from("gt-institution-logos").getPublicUrl(branding.logo_path).data.publicUrl:null;
  return <div className={`relative grid shrink-0 place-items-center overflow-hidden border-[4px] border-[#eac166] bg-[#061f49] text-center text-[#f9d88b] shadow-lg ${branding?.shape==="square"?"rounded-[20px]":"rounded-full"} ${className}`}>
    {logoUrl?<img src={logoUrl} alt={`โลโก้ ${name}`} className="h-full w-full object-cover" style={{objectPosition:`${branding?.x??50}% ${branding?.y??50}%`,transform:`scale(${(branding?.zoom??100)/100})`}}/>:
-   <span className="flex flex-col items-center text-sm font-black leading-tight"><span className="text-2xl">⚫⚪</span>GO<br/>MASTER</span>}
+   <span className="flex flex-col items-center text-sm font-black leading-tight"><span className="text-2xl">⚫⚪</span>{name.length>18?name.slice(0,18)+"…":name}</span>}
  </div>;
 }
 
@@ -63,7 +63,7 @@ export default function LogoEditor({academyId,branding,onSaved}:{academyId:strin
    <button type="button" aria-pressed={shape==="square"} onClick={()=>setShape("square")} className={`rounded-xl border-2 px-4 py-2 font-bold ${shape==="square"?"border-[#e4b64e] bg-[#0a59b9] text-white":"border-[#bacfeb]"}`}>▢ สี่เหลี่ยม</button>
   </div>
   <div className="grid gap-3 sm:grid-cols-3">
-   {[["ซูม",zoom,setZoom,60,220],["เลื่อนซ้าย–ขวา",x,setX,0,100],["เลื่อนขึ้น–ลง",y,setY,0,100]].map(([label,value,set,min,max])=>
+   {([["ซูม",zoom,setZoom,60,220],["เลื่อนซ้าย–ขวา",x,setX,0,100],["เลื่อนขึ้น–ลง",y,setY,0,100]] as [string,number,(v:number)=>void,number,number][]).map(([label,value,set,min,max])=>
     <label key={String(label)} className="text-xs font-semibold">{String(label)} ({value})<input type="range" min={Number(min)} max={Number(max)} value={Number(value)} onChange={e=>(set as (v:number)=>void)(Number(e.target.value))} className="mt-2 block w-full accent-[#0a60c8]"/></label>
    )}
   </div>
