@@ -463,10 +463,10 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
       ) : (
         <div className="mt-5 space-y-4">
           <ResultPicker winner={winner} method={method} disabled={busy} onChange={(w,m)=>{setWinner(w);setMethod(m);setMargin("");setErr("");}}/>
-          {method === "count" && (
+          {method === "normal" && (
             <label className="grid items-center gap-1.5 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
-              <span className="font-medium">ชนะกี่แต้ม</span>
-              <input value={margin} onChange={(e) => { setMargin(e.target.value.replace(/[^\d.]/g, "").slice(0, 5)); setErr(""); }} inputMode="decimal" placeholder="เช่น 6.5"
+              <span className="font-medium">ชนะกี่แต้ม (ถ้ามี)</span>
+              <input value={margin} onChange={(e) => { setMargin(e.target.value.replace(/[^\d.]/g, "").slice(0, 5)); setErr(""); }} inputMode="decimal" placeholder="เช่น 6.5 หรือเว้นว่างได้"
                 className="min-h-12 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 text-base" />
             </label>
           )}
