@@ -16,7 +16,7 @@ import LogoEditor,{LogoDisplay,type Branding} from "./LogoEditor";
 
 type Mine = { id: string; name: string; role: "manager" | "teacher"; status: "active" | "pending" };
 type State = { mode:"loading" | "out" | "none" | "ready"; mine:Mine[]; email:string; admin:boolean };
-const VIEWS:View[] = ["home","tracking","students","awards","stats","reports","apply"];
+const VIEWS:View[] = ["home","tracking","students","teachers","awards","stats","reports","apply","settings"];
 const initialView=():View=>{
   if(typeof window==="undefined") return "home";
   const value=new URLSearchParams(location.search).get("v") as View;
@@ -113,7 +113,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       <label className="mr-3 text-sm font-semibold" htmlFor="academy-select">สถาบันของฉัน</label>
       <select id="academy-select" className={selectCls} value={academyId} onChange={e=>location.assign(`/institution?academy=${encodeURIComponent(e.target.value)}`)}>{mine.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
     </div>}
-    <nav aria-label="เมนูสถาบัน" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+    <nav aria-label="เมนูสถาบัน" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       <button type="button" onClick={()=>go("home")} aria-current={view==="home"?"page":undefined} className={navClass(view==="home")}>
         <span className="text-2xl" aria-hidden="true">⌂</span><span>ภาพรวม</span>
       </button>
@@ -125,15 +125,19 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     {!ov?<div className="rounded-xl border border-[#bfd1eb] bg-white p-8 text-center" role={error?"alert":"status"}>{error||"กำลังโหลดข้อมูลสถาบัน…"}</div>:<div className="space-y-5">
       {view==="home"&&<Home ov={ov} records={filtered} track={tracking} apps={apps} filters={filters} go={go}/>}
       {view==="tracking"&&<Tracking ov={ov} track={tracking} filters={filters}/>}
+      {view==="teachers"&&<AcademyStaff academyId={academyId}/>}
       {view==="students"&&<Students ov={ov} canEdit={access} reload={load} workspaceType={workspaceType}/>}
       {view==="awards"&&<Awards ov={ov} records={filtered} filters={filters}/>}
       {view==="stats"&&<Stats ov={ov} records={filtered} filters={filters}/>}
       {view==="reports"&&<Reports ov={ov} records={filtered} filters={filters}/>}
       {view==="apply"&&<Apply ov={ov} apps={apps} canEdit={access} reload={load}/>}
-      {view==="home"&&access&&<details className="rounded-2xl border border-[#c8d7ec] bg-white p-4">
-        <summary className="cursor-pointer text-base font-bold text-[#164986]">ตั้งค่าบัญชีและจัดการครู (สำหรับผู้ดูแล)</summary>
-        <div className="mt-4 space-y-4">{selected.role==="manager"&&<LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/>}<StaffUsername role={selected.role} academyName={selected.name}/><ChangeInstitutionPassword/><AcademyStaff academyId={academyId}/></div>
-      </details>}
+      {view==="settings"&&access&&<section className="space-y-4 rounded-[24px] border-[3px] border-[#bcd1eb] bg-white p-4 sm:p-6">
+        <h2 className="border-b-[3px] border-[#e5b753] pb-3 text-2xl font-black text-[#0e3974]">ตั้งค่าสถาบันและบัญชี</h2>
+        {selected.role==="manager"&&<LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/>}
+        <StaffUsername role={selected.role} academyName={selected.name}/>
+        <ChangeInstitutionPassword/>
+        {selected.role==="manager"&&<p className="rounded-xl border border-[#efcf79] bg-[#fff7e5] p-3 text-sm">เพิ่มและอนุมัติครูได้ในเมนู “ครูในสถาบัน”</p>}
+      </section>}
     </div>}
     <footer className="border-t border-[#c8d7ec] py-6 text-center text-xs text-[#49617d]">GO TOURNAMENT · ข้อมูลการแข่งขันมาจากระบบจริง</footer>
   </div>;
