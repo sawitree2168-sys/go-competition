@@ -50,6 +50,27 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   const [full,setFull]=useState(false);
   const [editing,setEditing]=useState<string|null>(null);
   const [attendance,setAttendance]=useState<Record<string,"present"|"absent">>({});
+  const [restored,setRestored]=useState(false);
+  const [feedback,setFeedback]=useState("");
+  const storageKey=`gt-competition-day-demo:v2:${eventId}:${divisionId}`;
+  useEffect(()=>{
+    try{
+      const saved=window.localStorage.getItem(storageKey);
+      if(saved){
+        const parsed=JSON.parse(saved) as {attendance?:Record<string,"present"|"absent">;games?:Game[];round?:number;history?:string[]};
+        if(parsed.attendance&&typeof parsed.attendance==="object")setAttendance(parsed.attendance);
+        if(Array.isArray(parsed.games)&&parsed.games.length)setGames(parsed.games);
+        if(typeof parsed.round==="number"&&parsed.round>=1&&parsed.round<=5)setRound(parsed.round);
+        if(Array.isArray(parsed.history))setHistory(parsed.history.slice(0,12));
+      }
+    }catch(e){console.warn("Cannot restore sandbox attendance",e);setFeedback("อ่านข้อมูลจำลองเดิมไม่ได้ ข้อมูลใหม่อาจไม่ถูกเก็บหลังรีเฟรช");}
+    setRestored(true);
+  },[storageKey]);
+  useEffect(()=>{
+    if(!restored)return;
+    try{window.localStorage.setItem(storageKey,JSON.stringify({attendance,games,round,history}));}
+    catch(e){console.warn("Cannot save sandbox attendance",e);setFeedback("บันทึกในเครื่องไม่สำเร็จ กรุณาตรวจพื้นที่เก็บข้อมูลหรือโหมดส่วนตัวของเบราว์เซอร์");}
+  },[storageKey,restored,attendance,games,round,history]);
   const [history,setHistory]=useState<string[]>(["ระบบจำลองพร้อมใช้งาน · รอบ 1 ประกาศคู่แล้ว"]);
   const append=(message:string)=>setHistory(old=>[message,...old].slice(0,12));
   const attendanceKey=(g:Game,side:"black"|"white")=>`${g.id}:${side}`;
@@ -59,6 +80,8 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
     const key=attendanceKey(g,side);
     const next={...attendance,[key]:value};
     setAttendance(next);
+    const bothAbsent=next[attendanceKey(g,"black")]==="absent"&&next[attendanceKey(g,"white")]==="absent";
+    setFeedback(`✓ บันทึกการเช็กชื่อแล้ว · โต๊ะ ${g.board_number} · ${side==="black"?"ฝ่ายดำ":"ฝ่ายขาว"} ${value==="present"?"มาแล้ว":"ไม่มา"}${bothAbsent?" · ไม่มาทั้งคู่":""} (โหมดจำลอง)`);
     setGames(old=>old.map(m=>m.id!==g.id?m:{...m,table_status:next[attendanceKey(g,"black")]==="present"&&next[attendanceKey(g,"white")]==="present"?"checked":"waiting"}));
     append(`โต๊ะ ${g.board_number} · ${side==="black"?"ฝ่ายดำ":"ฝ่ายขาว"} ${value==="present"?"มาแล้ว":"ไม่มา"} (จำลอง)`);
   };
@@ -90,7 +113,7 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
     const waiting=pending.find(m=>m.table_status==="waiting");
     const checked=pending.find(m=>m.table_status==="checked");
     const playing=pending.find(m=>m.state!=="verified"&&m.table_status==="playing");
-    if(waiting){const side=statusOf(waiting,"black")==="unchecked"?"black":statusOf(waiting,"white")==="unchecked"?"white":null;if(side)setAthleteAttendance(waiting,side,"present");else {setAthleteAttendance(waiting,"black","present");setAthleteAttendance(waiting,"white","present");}}
+    if(waiting){const side=statusOf(waiting,"black")==="unchecked"?"black":statusOf(waiting,"white")==="unchecked"?"white":null;if(side)setAthleteAttendance(waiting,side,"present");else {setAuto(false);setFeedback("มีโต๊ะที่นักกีฬาไม่มา กรุณาตรวจผลการขาดแข่งก่อนเดินรอบต่อไป");}}
     else if(checked)update(checked.id,"play");
     else if(playing){update(playing.id,step%2?"white":"black");setStep(v=>v+1);}
     else if(round<5){const next=round+1;setGames(old=>[...old,...makeRound(next,old)]);setRound(next);append(`ประกาศจับคู่รอบที่ ${next} (ข้อมูลจำลอง)`);}
@@ -98,7 +121,7 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
   };
   useEffect(()=>{if(!auto)return;const timer=window.setInterval(()=>{const rows=games.filter(m=>m.round_number===round);if(rows.every(m=>m.state==="verified")&&round===5){setAuto(false);return;} // simulation steps run only while enabled
     const w=rows.find(m=>m.table_status==="waiting"),c=rows.find(m=>m.table_status==="checked"),p=rows.find(m=>m.state!=="verified"&&m.table_status==="playing");
-    if(w){const side=statusOf(w,"black")==="unchecked"?"black":statusOf(w,"white")==="unchecked"?"white":null;if(side)setAthleteAttendance(w,side,"present");else {setAthleteAttendance(w,"black","present");setAthleteAttendance(w,"white","present");}}else if(c)update(c.id,"play");else if(p)update(p.id,"black");else if(round<5){let nr=round+1;setGames(old=>[...old,...makeRound(nr,old)]);setRound(nr);append(`ประกาศรอบที่ ${nr} (จำลอง)`);}
+    if(w){const side=statusOf(w,"black")==="unchecked"?"black":statusOf(w,"white")==="unchecked"?"white":null;if(side)setAthleteAttendance(w,side,"present");else {setAuto(false);setFeedback("มีโต๊ะที่นักกีฬาไม่มา กรุณาตรวจผลการขาดแข่งก่อนเดินรอบต่อไป");}}else if(c)update(c.id,"play");else if(p)update(p.id,"black");else if(round<5){let nr=round+1;setGames(old=>[...old,...makeRound(nr,old)]);setRound(nr);append(`ประกาศรอบที่ ${nr} (จำลอง)`);}
   },3500);return()=>window.clearInterval(timer); // intentional state-driven interval for demo only
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[auto,games,round]);
@@ -119,6 +142,7 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
       {athleteCheck(g,"black")}{athleteCheck(g,"white")}
     </div>}
     {g.table_status==="checked"&&<button type="button" onClick={()=>update(g.id,"play")} className="gt-reference-blue">▶ เริ่มแข่งขัน (มาแล้วทั้งคู่)</button>}
+    {g.table_status==="waiting"&&statusOf(g,"black")==="absent"&&statusOf(g,"white")==="absent"&&<p className="gt-reference-both-absent">✕ ไม่มาทั้งคู่ · บันทึกการเช็กชื่อแล้ว (ยังไม่ตัดสินผลการแข่งขัน)</p>}
     {g.table_status==="playing"&&g.state!=="verified"&&<button type="button" onClick={()=>setEditing(g.id)} className="gt-reference-gold">✎ ลงผลทุกประเภท</button>}
     {g.state==="verified"&&<><strong className="text-green-800">✓ บันทึกผลแล้ว (จำลอง)</strong><button type="button" onClick={()=>setEditing(g.id)} className="gt-reference-secondary">แก้ไขผล</button></>}
   </div>;
@@ -144,6 +168,9 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
       <p className="mt-2 text-sm text-[#e2efff]">โหมดฝึกใช้งานเท่านั้น — ไม่เขียนผลลงฐานข้อมูล ไม่ใช่รายชื่อหรือผลแข่งขันจริง</p></div>
     </header>
     <main className="gt-reference-main mx-auto max-w-6xl space-y-4 px-3 py-4 sm:px-6">
+      {feedback&&<div className="gt-reference-save-feedback" role="status" aria-live="polite">
+        <span>{feedback}</span><button type="button" onClick={()=>setFeedback("")} aria-label="ปิดข้อความยืนยัน">✕</button>
+      </div>}
       <nav className="gt-reference-main-nav" aria-label="เมนูจำลองการแข่งขัน"><button type="button" aria-pressed={view==="admin"} onClick={()=>setView("admin")}>♛ แอดมินจับคู่</button><button type="button" aria-pressed={view==="referee"} onClick={()=>setView("referee")}>▣ ลงผลกรรมการ</button><button type="button" aria-pressed={view==="public"} onClick={()=>setView("public")}>◉ หน้าสาธารณะ</button></nav>
       <section className="gt-reference-panel p-3">
         <div className="flex flex-wrap items-center justify-between gap-2"><strong>เลือกมุมมอง</strong><span className="text-xs text-[#647c9f]">ทั้ง 3 มุมมองใช้ข้อมูลจำลองชุดเดียวกัน</span></div>
@@ -186,7 +213,7 @@ export default function CompetitionDaySimulation({eventId,divisionId,publicDemo=
       <section className="rounded-2xl border-2 border-[#89b6e9] bg-white p-4">
         <div className="flex flex-wrap justify-between gap-2"><h2 className="text-lg font-bold">กิจกรรมล่าสุด (จำลอง)</h2>{allDone&&round<5&&<button onClick={applyNext} className="rounded-lg border-2 border-[#d6a43a] bg-[#095fc2] px-3 py-2 text-white">จับคู่รอบต่อไป ›</button>}</div>
         <ol className="mt-3 space-y-2">{history.map((h,i)=><li key={i} className="rounded-lg border border-[#bdd6f3] bg-[#f4f9ff] p-3 text-sm">{h}</li>)}</ol>
-        <button type="button" onClick={()=>{setGames(INITIAL);setRound(1);setAuto(false);setHistory(["เริ่มจำลองใหม่ · รอบที่ 1"]);setAttendance({});}} className="mt-3 min-h-11 rounded-xl border-2 border-[#d6a43a] bg-white px-4 font-semibold">↻ เริ่มจำลองใหม่</button>
+        <button type="button" onClick={()=>{setGames(INITIAL);setRound(1);setAuto(false);setHistory(["เริ่มจำลองใหม่ · รอบที่ 1"]);setAttendance({});setFeedback("✓ เริ่มจำลองใหม่และล้างสถานะเช็กชื่อที่บันทึกไว้แล้ว");}} className="mt-3 min-h-11 rounded-xl border-2 border-[#d6a43a] bg-white px-4 font-semibold">↻ เริ่มจำลองใหม่</button>
       </section>
     </main>
   </div>;
