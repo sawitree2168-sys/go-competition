@@ -4,28 +4,108 @@ import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import AthleteAvatar from '@/components/AthleteAvatar';
 import CompetitionPanel from '@/components/CompetitionPanel';
-import type {DirectoryAthlete} from '@/components/AthleteDirectory';
+import {thaiDate} from '@/lib/division-display';
 import type {HistoryProfile} from '@/lib/central-history';
-import {meetingGames,meetingStats,meetingPercent as pct,pairGoGames,type PairGoGame} from '@/lib/head-to-head';
+import {meetingGames,meetingStats,meetingPercent as pct,pairGoGames,isMeetingLevel,meetingLevels,type MeetingAthlete,type MeetingLevel,type PairGoGame} from '@/lib/head-to-head';
 import PairGoHistory from './PairGoHistory';
-function Picker({side,selected,other,onPick}:{side:number;selected:DirectoryAthlete|null;other:string;onPick:(id:string)=>void}){
- const [q,setQ]=useState(''),[rows,setRows]=useState<DirectoryAthlete[]>([]),[note,setNote]=useState('');
- useEffect(()=>{const controller=new AbortController();const timer=setTimeout(async()=>{if(q.trim().length<2){setRows([]);setNote('');return;}setNote('กำลังค้นหา…');try{const r=await fetch(`/api/athletes/search?q=${encodeURIComponent(q.trim())}`,{signal:controller.signal});if(!r.ok)throw Error();const data=await r.json();setRows(data.rows);setNote(data.rows.length?`พบ ${data.total} คน · แสดงไม่เกิน 30 คน กรุณาพิมพ์เพิ่มเพื่อเจาะจง`:'ไม่พบรายชื่อ');}catch{if(!controller.signal.aborted)setNote('ค้นหาไม่สำเร็จ กรุณาลองใหม่');}},250);return()=>{clearTimeout(timer);controller.abort();};},[q]);
- return <div className="meeting-picker"><label htmlFor={`player-${side}`}>นักกีฬาคนที่ {side}</label><input id={`player-${side}`} type="search" value={q} onChange={e=>setQ(e.target.value)} placeholder={selected?selected.full_name:'ค้นหาชื่อ นามสกุล หรือรหัส GO'} autoComplete="off"/><p className="meeting-picker-current">{selected?`เลือกแล้ว: ${selected.full_name} · ${selected.go_id}`:'ยังไม่ได้เลือกนักกีฬา'}</p><span role="status" className="meeting-search-note">{note}</span>{rows.length>0&&<ul className="meeting-options" aria-label={`ผลค้นหานักกีฬาคนที่ ${side}`}>{rows.map(a=><li key={a.go_id}><button disabled={a.go_id===other} onClick={()=>onPick(a.go_id)}><span>{a.full_name}</span><small>{a.rank??'ยังไม่ระบุระดับ'} · {a.go_id}{a.go_id===other?' · เลือกไว้แล้วอีกฝั่ง':''}</small></button></li>)}</ul>}</div>;
+function rankOrigin(athlete: MeetingAthlete) {
+ if (athlete.rank_source === 'competition') {
+  const date = thaiDate(athlete.rank_event_date, 'short');
+  return `จากรุ่นคิวล่าสุดที่มีข้อมูล · ${athlete.rank_event}${date ? ` · ${date}` : ''}`;
+ }
+ if (athlete.rank_source === 'association') return 'ทำเนียบดั้งสมาคม';
+ if (athlete.rank_source === 'registry') return 'ข้อมูลระดับที่ระบุในทะเบียนนักกีฬา';
+ return '';
 }
-function Card({athlete,wins,losses,draws,total}:{athlete:DirectoryAthlete|null;wins:number;losses:number;draws:number;total:number}){
- return <article className="meeting-player">{athlete?<><div className="meeting-portrait"><AthleteAvatar src={athlete.photo} name={athlete.full_name} zoom variant="portrait"/></div><div className="meeting-player-info"><Link href={`/athletes/history/${athlete.go_id}`} className="meeting-name">{athlete.full_name}</Link><p className="meeting-level">{athlete.rank??'ยังไม่ระบุระดับ'}</p><small>{athlete.go_id}</small>{athlete.institution&&<p className="meeting-school">{athlete.institution}</p>}<div className="meeting-counts">{[['ชนะ',wins,'win'],['แพ้',losses,'loss'],['เสมอ',draws,'draw']].map(([label,n,cls])=><div key={label} className={String(cls)}><span>{label}</span><strong>{total?n:'—'}</strong><small>{pct(Number(n),total)}</small></div>)}</div><p className="meeting-rate">อัตราชนะ <strong>{pct(wins,total)}</strong></p></div></>:<div className="meeting-unselected">เลือกนักกีฬาจากช่องค้นหาด้านบน</div>}</article>;
+
+function Picker({side,selected,other,level,onLevel,onPick}:{
+ side:1|2;
+ selected:MeetingAthlete|null;
+ other:string;
+ level:MeetingLevel;
+ onLevel:(level:MeetingLevel)=>void;
+ onPick:(id:string)=>void;
+}) {
+ const [query,setQuery]=useState('');
+ const [result,setResult]=useState<{key:string;rows:MeetingAthlete[];total:number}|null>(null);
+ const [failedKey,setFailedKey]=useState<string|null>(null);
+ const [showResults,setShowResults]=useState(!selected);
+ const term=query.trim().slice(0,80);
+ const canSearch=showResults&&(term.length>=2||(!term&&level!=='all'));
+ const searchKey=JSON.stringify([level,term]);
+ const currentResult=result?.key===searchKey?result:null;
+ const rows=canSearch?currentResult?.rows??[]:[];
+ const message=!canSearch?'':failedKey===searchKey?'ค้นหาไม่สำเร็จ กรุณาลองใหม่':
+  !currentResult?'กำลังค้นหา…':currentResult.total===0?'ไม่พบรายชื่อในระดับที่เลือก':
+  currentResult.total>rows.length?`พบ ${currentResult.total.toLocaleString('th-TH')} คน · แสดง ${rows.length} คน พิมพ์ชื่อเพื่อค้นหาเพิ่มเติม`:
+  `พบ ${rows.length} คน`;
+
+ useEffect(()=>{
+  if (!canSearch) return;
+  const controller=new AbortController();
+  const timer=setTimeout(async()=>{
+   try {
+    const params=new URLSearchParams({q:term,level});
+    const response=await fetch(`/api/athletes/search?${params}`,{signal:controller.signal});
+    if(!response.ok) throw new Error('Athlete search failed');
+    const data=await response.json() as {rows:MeetingAthlete[];total:number};
+    if (!controller.signal.aborted) {
+     setFailedKey(null);
+     setResult({key:searchKey,rows:data.rows,total:data.total});
+    }
+   } catch {
+    if (!controller.signal.aborted) setFailedKey(searchKey);
+   }
+  },250);
+  return()=>{clearTimeout(timer);controller.abort();};
+ },[canSearch,level,searchKey,term]);
+
+ return <div className="meeting-picker">
+  <div className="meeting-picker-fields">
+   <div className="meeting-picker-name">
+    <label htmlFor={`player-${side}`}>นักกีฬาคนที่ {side}</label>
+    <input id={`player-${side}`} type="search" value={query}
+     onFocus={()=>setShowResults(true)} onChange={e=>{setQuery(e.target.value);setShowResults(true);}}
+     placeholder={selected?.full_name??'ค้นหาชื่อ นามสกุล หรือรหัส GO'} autoComplete="off"/>
+   </div>
+   <div className="meeting-picker-level">
+    <label htmlFor={`player-level-${side}`}>ระดับฝีมือ</label>
+    <select id={`player-level-${side}`} value={level} aria-label={`ระดับฝีมือนักกีฬาคนที่ ${side}`} onChange={e=>{
+     const value=e.target.value;
+     if(isMeetingLevel(value)){onLevel(value);setShowResults(true);}
+    }}>
+     {meetingLevels.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
+    </select>
+   </div>
+  </div>
+  <p className="meeting-picker-current">{selected?`เลือกแล้ว ${selected.full_name} · ${selected.go_id}`:'ยังไม่ได้เลือกนักกีฬา'}</p>
+  <span role="status" className="meeting-search-note">{message}</span>
+  {rows.length>0&&<ul className="meeting-options" aria-label={`ผลค้นหานักกีฬาคนที่ ${side}`}>
+   {rows.map(athlete=><li key={athlete.go_id}>
+    <button type="button" disabled={athlete.go_id===other} onClick={()=>onPick(athlete.go_id)}>
+     <span>{athlete.full_name}</span>
+     <small>{athlete.rank??'ยังไม่ระบุระดับ'} · {athlete.go_id}{athlete.go_id===other?' · เลือกไว้แล้วอีกฝั่ง':''}</small>
+     {rankOrigin(athlete)&&<small className="meeting-rank-source">{rankOrigin(athlete)}</small>}
+    </button>
+   </li>)}
+  </ul>}
+ </div>;
 }
-export default function Meeting({left,right,history,error,pairHistory,pairError,initialYear}:{
- left:DirectoryAthlete|null;
- right:DirectoryAthlete|null;
+function Card({athlete,wins,losses,draws,total}:{athlete:MeetingAthlete|null;wins:number;losses:number;draws:number;total:number}){
+ return <article className="meeting-player">{athlete?<><div className="meeting-portrait"><AthleteAvatar src={athlete.photo} name={athlete.full_name} zoom variant="portrait"/></div><div className="meeting-player-info"><Link href={`/athletes/history/${athlete.go_id}`} className="meeting-name">{athlete.full_name}</Link><p className="meeting-level">{athlete.rank??'ยังไม่ระบุระดับ'}</p>{rankOrigin(athlete)&&<p className="meeting-rank-source">{rankOrigin(athlete)}</p>}<small>{athlete.go_id}</small>{athlete.institution&&<p className="meeting-school">{athlete.institution}</p>}<div className="meeting-counts">{[['ชนะ',wins,'win'],['แพ้',losses,'loss'],['เสมอ',draws,'draw']].map(([label,n,cls])=><div key={label} className={String(cls)}><span>{label}</span><strong>{total?n:'—'}</strong><small>{pct(Number(n),total)}</small></div>)}</div><p className="meeting-rate">อัตราชนะ <strong>{pct(wins,total)}</strong></p></div></>:<div className="meeting-unselected">เลือกนักกีฬาจากช่องค้นหาด้านบน</div>}</article>;
+}
+export default function Meeting({left,right,history,error,pairHistory,pairError,initialYear,initialLevels}:{
+ left:MeetingAthlete|null;
+ right:MeetingAthlete|null;
  history:HistoryProfile|null;
  error:string;
  pairHistory:PairGoGame[];
  pairError:boolean;
  initialYear:string;
+ initialLevels:Record<1|2,MeetingLevel>;
 }){
  const router=useRouter(),[pending,start]=useTransition(),[year,setYear]=useState(initialYear),[shareNote,setShareNote]=useState('');
+ const [levels,setLevels]=useState(initialLevels);
  const same=!!left&&left.go_id===right?.go_id,ready=!!left&&!!right&&!same;
  const games=ready?meetingGames(history?.games??[],right.go_id,year):[];const stats=meetingStats(games);
  const pairPlayer=left??right;
@@ -34,10 +114,21 @@ export default function Meeting({left,right,history,error,pairHistory,pairError,
   ...pairHistory.map(g=>g.event_year),
   ...(year==='all'?[]:[Number(year)]),
  ])].sort((a,b)=>b-a);
- function choose(side:number,id:string){const p=new URLSearchParams();const a=side===1?id:left?.go_id,b=side===2?id:right?.go_id;if(a)p.set('a',a);if(b)p.set('b',b);start(()=>router.push(`/head-to-head?${p}`));}
+ function setLevel(side:1|2,level:MeetingLevel) {
+  setLevels(previous=>({...previous,[side]:level}));
+  const params=new URLSearchParams(window.location.search);
+  if(level==='all') params.delete(`level${side}`); else params.set(`level${side}`,level);
+  const next=params.toString();
+  window.history.replaceState(null,'',next?`/head-to-head?${next}`:'/head-to-head');
+ }
+ function choose(side:1|2,id:string) {
+  const params=new URLSearchParams(window.location.search);
+  params.set(side===1?'a':'b',id);
+  start(()=>router.push(`/head-to-head?${params}`));
+ }
  function filter(v:string){setYear(v);const q=new URLSearchParams(window.location.search);if(v==='all')q.delete('year');else q.set('year',v);window.history.replaceState(null,'',`/head-to-head?${q}`);}
  async function share(){try{await navigator.clipboard.writeText(window.location.href);setShareNote('คัดลอกลิงก์แล้ว');}catch{setShareNote('คัดลอก URL จากแถบที่อยู่เพื่อแชร์ได้เลย');}}
- return <div className="meeting-page" aria-busy={pending}><div className="meeting-searches"><Picker side={1} selected={left} other={right?.go_id??''} onPick={id=>choose(1,id)}/><Picker side={2} selected={right} other={left?.go_id??''} onPick={id=>choose(2,id)}/></div>{pending&&<p role="status">กำลังโหลดสถิติ…</p>}{error&&<p role="alert">{error}</p>}{same&&<p role="alert">กรุณาเลือกนักกีฬาคนละคน</p>}
+ return <div className="meeting-page" aria-busy={pending}><div className="meeting-searches"><Picker side={1} selected={left} other={right?.go_id??''} level={levels[1]} onLevel={level=>setLevel(1,level)} onPick={id=>choose(1,id)}/><Picker side={2} selected={right} other={left?.go_id??''} level={levels[2]} onLevel={level=>setLevel(2,level)} onPick={id=>choose(2,id)}/><p className="meeting-level-note">ระดับคิวจากการแข่งขันอ้างอิงรุ่นคิวล่าสุดที่มีข้อมูล การรับรองระดับฝีมือให้ยึดผลสอบวัดระดับค่ะ</p></div>{pending&&<p role="status">กำลังโหลดสถิติ…</p>}{error&&<p role="alert">{error}</p>}{same&&<p role="alert">กรุณาเลือกนักกีฬาคนละคน</p>}
  {left&&!right&&history?.opponents.some(o=>o.opponent_go_id)&&<div className="meeting-recent"><p>เลือกจากคู่แข่งที่เคยพบกัน</p><div>{history.opponents.filter(o=>o.opponent_go_id&&o.opponent_go_id!==left.go_id).slice(0,12).map(o=><button key={o.opponent_key} onClick={()=>choose(2,o.opponent_go_id!)}>{o.opponent_name}</button>)}</div></div>}
  <CompetitionPanel title="สถิติการพบกัน" context={`${left?.full_name??'นักกีฬาคนที่ 1'} พบ ${right?.full_name??'นักกีฬาคนที่ 2'} · ${year==='all'?'ทุกปีในระบบ':Number(year)+543}`}>
  <div className="meeting-pair"><Card athlete={left} wins={stats.wins} losses={stats.losses} draws={stats.draws} total={stats.played}/><span className="meeting-vs" aria-label="พบกับ">VS</span><Card athlete={right} wins={stats.losses} losses={stats.wins} draws={stats.draws} total={stats.played}/></div>

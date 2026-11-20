@@ -29,3 +29,31 @@ export function meetingStats(games:HistoryGame[]){
  return {played:played.length,wins,losses,draws,excluded:games.length-played.length};
 }
 export const meetingPercent=(n:number,total:number)=>total?`${(100*n/total).toLocaleString('th-TH',{maximumFractionDigits:2})}%`:'—';
+
+export const meetingLevels = [
+ {value:'all', label:'ทุกระดับ'},
+ {value:'dan5plus', label:'5 ดั้งขึ้นไป'},
+ {value:'dan4', label:'4 ดั้ง'},
+ {value:'dan3', label:'3 ดั้ง'},
+ {value:'dan2', label:'2 ดั้ง'},
+ {value:'dan1', label:'1 ดั้ง'},
+ {value:'kyu', label:'คิว'},
+] as const;
+
+export type MeetingLevel = typeof meetingLevels[number]['value'];
+
+export function isMeetingLevel(value: unknown): value is MeetingLevel {
+ return meetingLevels.some(level => level.value === value);
+}
+
+export type MeetingAthlete = {
+ go_id: string;
+ full_name: string;
+ photo: string | null;
+ institution: string | null;
+ rank: string | null;
+ rank_source: 'association' | 'competition' | 'registry' | null;
+ rank_event: string | null;
+ rank_event_date: string | null;
+ rank_division: string | null;
+};
