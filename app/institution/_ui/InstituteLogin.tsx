@@ -67,6 +67,7 @@ export default function InstituteLogin({onSuccess}:{onSuccess:()=>Promise<void>}
       {error&&<p role="alert" className="rounded-lg border border-[#f0a8a8] bg-[#fff0f0] p-3 text-sm text-[#a32121]">{error}</p>}
       <button type="submit" disabled={busy} className="min-h-14 w-full rounded-xl border-b-4 border-[#e6b651] bg-[#0a62cf] px-5 text-lg font-bold text-white disabled:opacity-60">{busy?"กำลังตรวจสอบ…":"เข้าสู่ระบบ"}</button>
       <p className="text-center text-sm text-[#4e6282]">ใช้ชื่อสถาบัน ชื่อผู้ใช้ หรืออีเมลของบัญชีได้</p>
+      <Link href="/institution/preview" className="flex min-h-12 w-full items-center justify-center rounded-xl border-2 border-[#dfb04d] bg-[#fff6dc] px-3 text-center font-bold text-[#69450d]">👁 ดูตัวอย่างหน้าสถาบันทันที (ไม่ต้องใช้รหัสผ่าน)</Link>
       <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-[#d9e5f4] pt-4 text-sm">
         <Link href="/login/forgot" className="font-semibold text-[#145db5] underline">ลืมรหัสผ่าน?</Link>
         <Link href="/signup?type=institution" className="font-semibold text-[#145db5] underline">ยังไม่มีบัญชี</Link>
