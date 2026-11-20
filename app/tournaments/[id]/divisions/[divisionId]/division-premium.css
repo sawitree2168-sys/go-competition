@@ -93,3 +93,86 @@
  .gt:not([data-gt-theme="light"]) .gt-division-athletes .gt-athlete-card > div:nth-child(2) > button {color:white;background:#0d3c87;border-color:#77b8ff;}
 }
 @media(prefers-reduced-motion:no-preference){.gt-division-athletes .gt-athlete-card:hover {transform:translateY(-2px);border-color:#ffd071;}}
+
+
+/* Approved 21 Nov 2026: responsive blue / gold competition division layout.
+   Visual-only changes. Keep real athlete names, ranks, results and registration logic intact. */
+.gt-division-hero { border-bottom: 3px solid #eeb84c; background:#052b72; }
+.gt-division-hero-image { background-position: center center; }
+.gt-division-hero-shade { background:linear-gradient(90deg,rgba(0,23,76,.82),rgba(0,49,127,.4) 65%,rgba(0,41,112,.08)); }
+.gt-division-hero > div.relative { max-width:1320px; padding-top:24px; padding-bottom:30px; }
+.gt-division-hero .gt-division-title { font-size:clamp(29px,3.6vw,48px); letter-spacing:-.02em; line-height:1.25; }
+.gt-division-hero .gt-division-subtitle { font-size:clamp(15px,1.7vw,21px); font-weight:700; line-height:1.6; }
+.gt-division-hero .gt-division-date { margin-top:10px; }
+.gt-division-eyebrow { color:#ffe39d; border:1px solid #e8bb56; }
+.gt-division-hero .gt-division-stat {
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  gap:6px; min-width:130px; min-height:108px; padding:14px 18px;
+  border-radius:18px; border:1px solid rgba(255,225,153,.8);
+  background:linear-gradient(150deg,rgba(13,83,181,.83),rgba(2,29,98,.88));
+  box-shadow:0 7px 20px rgba(0,17,65,.3),inset 0 1px rgba(255,255,255,.18);
+  font-size:15px; font-weight:700; text-align:center; white-space:normal;
+}
+.gt-division-hero .gt-division-stat svg { width:25px; height:25px; color:#ffd66e; }
+.gt-division-stat-list { justify-content:center; align-items:center; gap:12px; }
+.gt-division-main { max-width:1180px; margin-inline:auto; padding-bottom:90px; }
+.gt-division-main > .mt-3.grid { gap:12px; }
+.gt-division-main > .mt-3.grid > a { min-height:55px; font-size:15px; border:1px solid #a1c5f7; border-radius:15px; }
+.gt-division-main [role="tablist"] { margin-top:15px; padding:6px; border-radius:16px; }
+.gt-division-main [role="tablist"] button { min-height:44px; font-weight:700; }
+.gt-division-main [role="tabpanel"]:not([hidden]) { padding-top:12px; }
+.gt-division-main [role="tabpanel"] > .mt-3.flex {
+  border:1px solid #b9d2f9; border-radius:18px; background:linear-gradient(115deg,#f9fcff,#e9f3ff);
+  box-shadow:0 5px 18px rgba(21,76,155,.1); padding:18px 20px;
+}
+.gt-division-athletes { overflow:visible; }
+.gt-division-athletes-heading { gap:12px; }
+.gt-division-athletes-heading h2 { line-height:1.35; }
+.gt-division-view-toggle { flex-shrink:0; }
+.gt-division-athletes .gt-athlete-card { border-radius:14px; }
+@media (min-width:1000px) {
+  .gt-division-athletes > ul.grid { grid-template-columns:repeat(4,minmax(0,1fr))!important; }
+}
+@media (max-width:767px) {
+  .gt-division-hero-image { background-position:58% center; }
+  .gt-division-hero-shade { background:linear-gradient(180deg,rgba(1,26,89,.65),rgba(3,58,144,.42) 72%,rgba(3,35,96,.67)); }
+  .gt-division-hero > div.relative { padding:12px 15px 22px; }
+  .gt-division-hero .gt-division-title { font-size:clamp(23px,6.2vw,33px); margin:11px 0 7px; text-wrap:balance; }
+  .gt-division-hero .gt-division-subtitle { font-size:clamp(12px,3.25vw,16px); line-height:1.6; text-wrap:balance; }
+  .gt-division-hero .gt-division-date { margin-top:10px; }
+  .gt-division-stat-list { grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px!important; padding-top:16px; }
+  .gt-division-hero .gt-division-stat { min-width:0; min-height:92px; padding:9px 5px!important; border-radius:15px; flex-direction:column; gap:7px!important; font-size:clamp(10px,2.9vw,13px)!important; white-space:normal; line-height:1.4; }
+  .gt-division-hero .gt-division-stat svg { width:22px; height:22px; }
+  .gt-division-main { padding-left:12px; padding-right:12px; }
+  .gt-division-main > .mt-3.grid { gap:8px; }
+  .gt-division-main > .mt-3.grid > a { min-height:48px; padding:8px 5px; font-size:clamp(11px,3vw,13px); }
+  .gt-division-main [role="tablist"] { display:flex; gap:3px; overflow-x:auto; scrollbar-width:thin; overscroll-behavior-x:contain; }
+  .gt-division-main [role="tablist"] button { flex:1 0 auto; min-width:62px; padding:9px 10px; font-size:12px; }
+  .gt-division-main [role="tabpanel"] > .mt-3.flex { padding:13px; }
+  .gt-division-main .gt-division-athletes { padding:12px; border-radius:18px; }
+  .gt-division-athletes-heading { align-items:flex-start; gap:10px; padding:4px 2px 12px; }
+  .gt-division-athletes-heading h2 { font-size:18px; }
+  .gt-division-athletes-heading p { font-size:12px; }
+  .gt-division-view-toggle { margin-left:0; }
+  .gt-division-view-toggle button { min-height:36px; padding:0 9px; font-size:11px; }
+  .gt-division-athletes > ul.grid { grid-template-columns:minmax(0,1fr)!important; gap:9px; }
+  .gt-division-athletes .gt-athlete-card { display:flex; flex-direction:row; align-items:stretch; min-height:92px; border-radius:13px; gap:0; }
+  .gt-division-athletes .gt-athlete-card::after { height:9px; opacity:.25; }
+  .gt-division-athletes .gt-athlete-card > div:first-child { flex:0 0 76px; padding:9px 4px!important; align-self:center; }
+  .gt-division-athletes .gt-athlete-card > div:first-child img { width:55px; height:55px; object-fit:cover; }
+  .gt-division-athletes .gt-athlete-card > div:nth-child(2) { align-items:flex-start; justify-content:center; padding:9px 10px 10px 2px; gap:4px; text-align:left; }
+  .gt-division-athletes .gt-athlete-card > div:nth-child(2) > a,
+  .gt-division-athletes .gt-athlete-card > div:nth-child(2) > p:first-child { min-height:0; text-align:left; font-size:13px; line-height:1.4; }
+  .gt-division-athletes .gt-athlete-card > div:nth-child(2) > p:nth-child(2) { min-height:0; text-align:left; font-size:11px; }
+  .gt-division-athletes .gt-athlete-card > div:nth-child(2) > p:nth-child(3) { justify-content:flex-start; }
+  .gt-division-athletes .gt-athlete-card > div:nth-child(2) > button { align-self:stretch; min-height:31px; margin-top:3px; margin-bottom:0; font-size:10px; }
+}
+@media (min-width:540px) and (max-width:767px) {
+  .gt-division-athletes > ul.grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+  .gt-division-athletes .gt-athlete-card > div:first-child { flex-basis:60px; }
+  .gt-division-athletes .gt-athlete-card > div:first-child img { width:45px; height:45px; }
+}
+@media (prefers-reduced-motion:reduce) {
+ .gt-division-athletes .gt-athlete-card { transition:none; }
+ .gt-division-athletes .gt-athlete-card:hover { transform:none; }
+}
