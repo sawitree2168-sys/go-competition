@@ -63,7 +63,7 @@ export default function CompetitionPanel({ children, className = "", title, cont
         style: { height: `${height}px`, maxHeight: "none", overflow: "visible" },
         filter: node => !(node instanceof HTMLElement && (node.dataset.exportIgnore === "true" || (!includePhotos && node.dataset.athletePhoto === "true"))),
       });
-      const filename = `${context}-${title}`.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").slice(0, 160);
+      const filename = (context.includes(title) ? context : `${context}-${title}`).replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").slice(0, 160);
       if (format === "png") {
         const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("PNG failed")), "image/png"));
         const url = URL.createObjectURL(blob);

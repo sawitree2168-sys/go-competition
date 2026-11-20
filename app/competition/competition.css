@@ -101,3 +101,5 @@
 .gt-report-win{color:#198042;font-weight:700}.gt-report-won strong{color:#0b3d82}.gt-round-report .cd-match-table{font-size:14px}.gt-round-report .cd-player strong{font-size:15px}.gt-round-report .cd-player small{font-size:12px}.gt-round-report .cd-player .cd-avatar{width:44px;height:44px}
 .cd-expanded .overflow-x-auto{overflow:visible}
 .cd-report-row{margin:0 0 14px}
+/* A full-screen panel must not be trapped by a widened (translated) wrapper */
+body.cd-has-fullscreen *:has(.cd-expanded){translate:none!important;transform:none!important;filter:none!important;contain:none!important}
