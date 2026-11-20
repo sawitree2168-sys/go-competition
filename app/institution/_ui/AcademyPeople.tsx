@@ -39,7 +39,7 @@ export function AcademyStaff({academyId}:{academyId:string}){
    <div className="flex justify-end"><DisplayModeToggle mode={mode} onChange={setMode}/></div>
    {mode==="table" ? <div className="overflow-x-auto rounded-xl border border-[#b5d0f0]"><table className="w-full text-left text-sm"><thead className="bg-[#e8f2ff]"><tr><th className="px-4 py-3">ชื่อครู / ผู้ดูแล</th><th className="px-4 py-3">สิทธิ์</th></tr></thead><tbody className="divide-y divide-[#d9e6f6]">{data?.staff?.map((person,i)=><tr key={i}><td className="px-4 py-3 font-semibold">{person.name}</td><td className="px-4 py-3">{person.role==="manager"?"เจ้าของ / ผู้ดูแล":"ครูผู้สอน"}</td></tr>)}</tbody></table></div> : <div className="grid gap-2 sm:grid-cols-2">{data?.staff?.map((teacher,i)=><div className="rounded-xl border border-[#b5d0f0] bg-[#f1f7ff] p-3" key={i}>
     <p className="font-semibold">{teacher.name}</p><p className="text-xs text-[#4e6382]">{teacher.role==="manager"?"เจ้าของ / ผู้ดูแล":"ครูผู้สอน"}</p>
-   </div>)}</div>
+   </div>)}</div>}
    {data?.can_add&&<form className="flex flex-wrap gap-2" onSubmit={async e=>{
      e.preventDefault();if(busy)return;const db=staffDb();if(!db)return;
      setBusy(true);setMsg("");
