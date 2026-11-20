@@ -59,3 +59,21 @@
 .gt-monitor-mobile-item.is-done{background:#f1fbf4}
 .gt-monitor-mobile-item>.gt-mon-band{border-radius:10px 10px 0 0;margin:-1px -1px 4px}
 .gt-monitor-mobile-item .gt-mon-full{color:#557198}
+/* โต๊ะกรรมการ · ทุกรุ่น (event page) */
+.gt-board-alert{margin:0;padding:12px 14px;border:2px solid #1f8a4c;border-radius:14px;background:#e3f6ea;color:#0f5a2f;font-weight:600}
+.gt-board-chips{display:flex;flex-wrap:wrap;gap:6px}
+.gt-board-chips button{min-height:40px;padding:4px 12px;border:1.5px solid #9ebfe7;border-radius:999px;background:white;color:#173861;font-weight:600;font-size:14px}
+.gt-board-chips button b{display:inline-block;min-width:22px;margin-left:4px;padding:0 6px;border-radius:999px;background:#e6efff}
+.gt-board-chips button[aria-pressed=true]{background:#0b4fae;border-color:#0b4fae;color:white}
+.gt-board-chips button[aria-pressed=true] b{background:#ffffff33}
+.gt-board-chips .kind-ready b{background:#1f8a4c;color:white}
+.gt-board-card{overflow:hidden;border:2px solid #9ebfe7;border-radius:16px;background:white;box-shadow:0 3px 8px #0b316514}
+.gt-board-band{padding:7px 12px;font-size:14px;font-weight:700}
+.gt-board-card.kind-ready{border-color:#1f8a4c;box-shadow:0 0 0 3px #b8e6c8}
+.gt-board-card.kind-ready .gt-board-band{background:#1f8a4c;color:white}
+.gt-board-card.kind-playing .gt-board-band{background:#fff4d6;color:#8a5a00}
+.gt-board-card.kind-notStarted .gt-board-band{background:#eef2f7;color:#5b6b82}
+.gt-board-card.kind-done .gt-board-band{background:#0b4fae;color:white}
+.gt-board-card.kind-done{opacity:.85}
+.gt-board-progress{display:block;height:8px;margin-top:6px;border-radius:999px;background:#e6edf6;overflow:hidden}
+.gt-board-progress>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#f2b92c,#1f8a4c)}

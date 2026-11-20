@@ -12,6 +12,7 @@ import PaymentSettings from "./PaymentSettings";
 import { ChangePolicy, ChangeRequests } from "./ChangeRequests";
 import IdentityMatches from "./IdentityMatches";
 import ByeRuleSetting from "./ByeRuleSetting";
+import DivisionBoard from "./DivisionBoard";
 
 type Division = { id: string; name: string };
 type Entrant = { source_row: number; full_name: string; institution: string; division_name: string };
@@ -309,36 +310,10 @@ function EventConsole({ id }: { id: string }) {
         </div>}
       </section>
       <section id="event-divisions" className="space-y-2">
-        <h2 className="font-bold">เลือกรุ่นเพื่อมอนิเตอร์ จับคู่ และลงผล</h2>
+        <h2 className="text-lg font-bold">โต๊ะกรรมการ · ทุกรุ่น</h2>
+        <p className="text-sm text-[var(--gt-muted)]">รุ่นที่ลงผลครบแล้วขึ้นก่อน ระบบไม่จับคู่เอง แอดมินตรวจผลแล้วกดจับคู่ทีละรุ่น</p>
         {settingsOpen && <ByeRuleSetting key={event.bye_sos_mode ?? "none"} id={id} mode={event.bye_sos_mode} onSaved={load} />}
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {divisions.map((d) => {
-            const inDb = regCount.get(d.id) ?? 0, inSheet = sheetCount.get(d.id) ?? 0;
-            return (
-              <li key={d.id}>
-                <Link href={`/organizer/${id}/${d.id}`} className="gt-card gt-row flex min-h-16 items-center justify-between gap-3 px-4 py-3">
-                  <span className="min-w-0">
-                    <span className="block font-semibold">{divisionLabel(d.name)}</span>
-                    {(() => {
-                      const x = status.get(d.id);
-                      if (!x) return <span className="text-xs text-[var(--gt-muted)]">ยังไม่ออกคู่</span>;
-                      return (
-                        <span className="text-xs">
-                          รอบ {x.last} · {x.pending ? <span className="text-[var(--gt-warn)]">รอผล {x.pending} โต๊ะ</span> : <span className="text-[var(--gt-ok)]">ผลครบ</span>}
-                          {x.pending > 0 && <span className="text-[var(--gt-muted)]"> · เช็คอิน {x.checked}/{x.seats}</span>}
-                        </span>
-                      );
-                    })()}
-                  </span>
-                  <span className="text-right text-sm">
-                    <span className="gt-num block">{inDb} คนในระบบ</span>
-                    {inSheet !== inDb && <span className="block text-xs text-[var(--gt-warn)]">ใบสมัคร {inSheet} รายการ</span>}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <DivisionBoard eventId={id} players={regCount} sheet={sheetCount} />
       </section>
 
       {settingsOpen && <>

@@ -116,7 +116,7 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
       {state.nextRound && undecided.length === 0 && !pairingOpen && (
         <section className="gt-card space-y-3 border-[var(--gt-ok)] p-4">
           <h3 className="font-bold text-[var(--gt-ok)]">ลงผลรอบที่ {state.lastRound} ครบแล้ว ({lastRoundGames} โต๊ะ)</h3>
-          <p className="text-sm">ระบบยังไม่จับคู่จนกว่ากรรมการจะกดปุ่มด้านล่าง ถ้ามีการโต้แย้งผล ให้ตรวจและกด “แก้ผล” ที่โต๊ะนั้นในรอบที่ {state.lastRound} ให้เรียบร้อยก่อน</p>
+          <p className="text-sm">ระบบยังไม่จับคู่จนกว่ากรรมการจะกดปุ่มด้านล่าง ถ้ามีการโต้แย้งผล ให้ตรวจและกด “แก้ผล” ที่โต๊ะนั้นในรอบที่ {state.lastRound} ให้เรียบร้อยก่อน · <Link href={`/organizer/${eventId}`} className="underline">ดูสถานะรุ่นอื่นที่โต๊ะกรรมการ</Link></p>
           <button type="button" onClick={() => { setOpenRound(null); setPairingFor(resultsKey); }} className="gt-gold-btn min-h-12 w-full">
             ผลถูกต้องแล้ว — จับคู่รอบที่ {state.nextRound}
           </button>
