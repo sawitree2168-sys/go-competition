@@ -12,6 +12,7 @@ import StaffUsername from "./StaffUsername";
 import ChangeInstitutionPassword from "./ChangeInstitutionPassword";
 import InstituteLogin from "./InstituteLogin";
 import { AcademyStaff } from "./AcademyPeople";
+import LogoEditor,{LogoDisplay,type Branding} from "./LogoEditor";
 
 type Mine = { id: string; name: string; role: "manager" | "teacher"; status: "active" | "pending" };
 type State = { mode:"loading" | "out" | "none" | "ready"; mine:Mine[]; email:string; admin:boolean };
@@ -64,13 +65,15 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   const [apps,setApps]=useState<Application[]>([]);
   const [error,setError]=useState("");
   const [workspaceType,setWorkspaceType]=useState<"academy"|"independent_coach">("academy");
+  const [branding,setBranding]=useState<Branding|null>(null);
   const [view,setView]=useState<View>("home");
   const [year,setYear]=useState<number|null>(new Date().getFullYear()+543);
   const [event,setEvent]=useState("");
   const load=useCallback(async()=>{
     const db=staffDb();
     if(!db)return;
-    const [o,a,w]=await Promise.all([db.rpc("gt_academy_overview_v1",{p_academy:academyId}),db.rpc("gt_academy_applications_v1",{p_academy:academyId}),db.rpc("gt_workspace_kind_v1",{p_academy:academyId})]);
+    const [o,a,w,b]=await Promise.all([db.rpc("gt_academy_overview_v1",{p_academy:academyId}),db.rpc("gt_academy_applications_v1",{p_academy:academyId}),db.rpc("gt_workspace_kind_v1",{p_academy:academyId}),db.rpc("gt_academy_branding_v1",{p_academy:academyId})]);
+    if(b.data?.ok)setBranding({logo_path:b.data.logo_path??null,shape:b.data.shape==="square"?"square":"circle",zoom:b.data.zoom??100,x:b.data.x??50,y:b.data.y??50});
     setWorkspaceType(w.data==="independent_coach"?"independent_coach":"academy");
     if(o.error||!o.data?.ok){setError("ยังไม่สามารถเปิดข้อมูลสถาบันได้ กรุณาตรวจสอบสิทธิ์บัญชี");return;}
     setError("");setOv(o.data as Overview);setApps((a.data?.items??[]) as Application[]);
@@ -94,9 +97,9 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     </select>
   </div>;
   return <div className="space-y-5">
-    <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[#e9bd55] bg-[linear-gradient(120deg,#07336c,#095dc6)] px-5 py-7 text-white shadow-[0_14px_30px_rgba(8,48,104,.18)] sm:px-9">
+    <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[#e9bd55] bg-[#093878] bg-[url(/institution-banner.svg)] bg-cover bg-right px-5 py-7 text-white shadow-[0_14px_30px_rgba(8,48,104,.18)] sm:px-9">
       <div className="relative z-10 flex flex-wrap items-center gap-5">
-        <div aria-hidden="true" className="grid h-24 w-24 shrink-0 place-items-center rounded-full border-[4px] border-[#f3c86a] bg-[#061d43] text-center text-lg font-black leading-tight text-[#f3c86a] shadow-xl">⚫ ⚪<span className="block">GO</span></div>
+        <LogoDisplay branding={branding} name={selected.name} className="h-24 w-24 sm:h-32 sm:w-32"/>
         <div className="min-w-0 flex-1">
         <p className="text-xs font-bold tracking-[.18em] text-[#f9d67d]">GO TOURNAMENT · {workspaceType==="independent_coach"?"ครูอิสระ":"สถาบัน"}</p>
         <h1 className="mt-2 text-3xl font-bold sm:text-5xl">{ov?.academy.name??selected.name}</h1>
@@ -105,6 +108,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       </div></div>
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 right-3 h-48 w-48 rounded-full border-[20px] border-[#f0bd58]/20 sm:h-72 sm:w-72"/>
     </section>
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-[#bdd2eb] bg-white p-3"><span className="text-sm font-semibold text-[#164476]">{workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันและครูสามารถใช้คนละบัญชีได้"}</span><button type="button" onClick={onJoin} className="min-h-11 rounded-xl border-2 border-[#e4b64f] bg-[#fff7df] px-4 text-sm font-black text-[#76510b]">+ เพิ่มสถาบัน / เปิดพื้นที่ครูอิสระ</button></div>
     {mine.length>1&&<div className="rounded-xl border border-[#bdcfe8] bg-white p-3">
       <label className="mr-3 text-sm font-semibold" htmlFor="academy-select">สถาบันของฉัน</label>
       <select id="academy-select" className={selectCls} value={academyId} onChange={e=>location.assign(`/institution?academy=${encodeURIComponent(e.target.value)}`)}>{mine.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
@@ -128,7 +132,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       {view==="apply"&&<Apply ov={ov} apps={apps} canEdit={access} reload={load}/>}
       {view==="home"&&access&&<details className="rounded-2xl border border-[#c8d7ec] bg-white p-4">
         <summary className="cursor-pointer text-base font-bold text-[#164986]">ตั้งค่าบัญชีและจัดการครู (สำหรับผู้ดูแล)</summary>
-        <div className="mt-4 space-y-4"><StaffUsername role={selected.role} academyName={selected.name}/><ChangeInstitutionPassword/><AcademyStaff academyId={academyId}/></div>
+        <div className="mt-4 space-y-4">{selected.role==="manager"&&<LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/>}<StaffUsername role={selected.role} academyName={selected.name}/><ChangeInstitutionPassword/><AcademyStaff academyId={academyId}/></div>
       </details>}
     </div>}
     <footer className="border-t border-[#c8d7ec] py-6 text-center text-xs text-[#49617d]">GO TOURNAMENT · ข้อมูลการแข่งขันมาจากระบบจริง</footer>
