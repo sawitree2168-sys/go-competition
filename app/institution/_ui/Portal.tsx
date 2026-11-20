@@ -38,7 +38,7 @@ export default function Portal(){
   },[]);
   useEffect(()=>{void loadMine();},[loadMine]);
   const selected=state.mine.find(a=>a.id===academyId);
-  return <div className="min-h-screen bg-[#f5f8fd] text-[#102b5b]">
+  return <div className="min-h-screen bg-[#f0f6ff] text-[#102b5b]">
     <header className="border-b-[3px] border-[#e9bd55] bg-[#082957] text-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-3 font-bold sm:text-xl"><BoardLogo className="h-11 w-11" /><span>GO TOURNAMENT</span></Link>
@@ -63,13 +63,15 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   const [ov,setOv]=useState<Overview|null>(null);
   const [apps,setApps]=useState<Application[]>([]);
   const [error,setError]=useState("");
+  const [workspaceType,setWorkspaceType]=useState<"academy"|"independent_coach">("academy");
   const [view,setView]=useState<View>("home");
   const [year,setYear]=useState<number|null>(new Date().getFullYear()+543);
   const [event,setEvent]=useState("");
   const load=useCallback(async()=>{
     const db=staffDb();
     if(!db)return;
-    const [o,a]=await Promise.all([db.rpc("gt_academy_overview_v1",{p_academy:academyId}),db.rpc("gt_academy_applications_v1",{p_academy:academyId})]);
+    const [o,a,w]=await Promise.all([db.rpc("gt_academy_overview_v1",{p_academy:academyId}),db.rpc("gt_academy_applications_v1",{p_academy:academyId}),db.rpc("gt_workspace_kind_v1",{p_academy:academyId})]);
+    setWorkspaceType(w.data==="independent_coach"?"independent_coach":"academy");
     if(o.error||!o.data?.ok){setError("ยังไม่สามารถเปิดข้อมูลสถาบันได้ กรุณาตรวจสอบสิทธิ์บัญชี");return;}
     setError("");setOv(o.data as Overview);setApps((a.data?.items??[]) as Application[]);
   },[academyId]);
@@ -92,20 +94,22 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     </select>
   </div>;
   return <div className="space-y-5">
-    <section className="relative overflow-hidden rounded-2xl border-b-4 border-[#e9bd55] bg-[linear-gradient(120deg,#0759bf,#0a316b)] px-5 py-7 text-white shadow-md sm:px-9">
-      <div className="relative z-10">
-        <p className="text-xs font-bold tracking-[.18em] text-[#f9d67d]">GO TOURNAMENT · สถาบัน</p>
+    <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[#e9bd55] bg-[linear-gradient(120deg,#07336c,#095dc6)] px-5 py-7 text-white shadow-[0_14px_30px_rgba(8,48,104,.18)] sm:px-9">
+      <div className="relative z-10 flex flex-wrap items-center gap-5">
+        <div aria-hidden="true" className="grid h-24 w-24 shrink-0 place-items-center rounded-full border-[4px] border-[#f3c86a] bg-[#061d43] text-center text-lg font-black leading-tight text-[#f3c86a] shadow-xl">⚫ ⚪<span className="block">GO</span></div>
+        <div className="min-w-0 flex-1">
+        <p className="text-xs font-bold tracking-[.18em] text-[#f9d67d]">GO TOURNAMENT · {workspaceType==="independent_coach"?"ครูอิสระ":"สถาบัน"}</p>
         <h1 className="mt-2 text-3xl font-bold sm:text-5xl">{ov?.academy.name??selected.name}</h1>
-        <p className="mt-2 text-base text-white/90">ติดตามนักกีฬาและผลงานของสถาบันในหน้าจอเดียว</p>
+        <p className="mt-2 text-base text-white/90">{workspaceType==="independent_coach"?"พื้นที่ส่วนตัวสำหรับติดตามนักเรียนที่สอน แม้จะลงแข่งขันในนามโรงเรียนอื่น":"ระบบติดตามนักกีฬาและการแข่งขันของสถาบัน"}</p>
         <p className="mt-3 inline-flex rounded-full border border-[#f5d784] bg-[#f5d784] px-3 py-1 text-xs font-bold text-[#12335c]">{selected.status==="active"?"บัญชีสถาบันเปิดใช้งาน":"รออนุมัติสิทธิ์"}</p>
-      </div>
-      <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 right-3 h-48 w-48 rounded-full border-[20px] border-white/10 sm:h-72 sm:w-72"/>
+      </div></div>
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 right-3 h-48 w-48 rounded-full border-[20px] border-[#f0bd58]/20 sm:h-72 sm:w-72"/>
     </section>
     {mine.length>1&&<div className="rounded-xl border border-[#bdcfe8] bg-white p-3">
       <label className="mr-3 text-sm font-semibold" htmlFor="academy-select">สถาบันของฉัน</label>
       <select id="academy-select" className={selectCls} value={academyId} onChange={e=>location.assign(`/institution?academy=${encodeURIComponent(e.target.value)}`)}>{mine.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
     </div>}
-    <nav aria-label="เมนูสถาบัน" className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+    <nav aria-label="เมนูสถาบัน" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
       <button type="button" onClick={()=>go("home")} aria-current={view==="home"?"page":undefined} className={navClass(view==="home")}>
         <span className="text-2xl" aria-hidden="true">⌂</span><span>ภาพรวม</span>
       </button>
@@ -117,7 +121,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     {!ov?<div className="rounded-xl border border-[#bfd1eb] bg-white p-8 text-center" role={error?"alert":"status"}>{error||"กำลังโหลดข้อมูลสถาบัน…"}</div>:<div className="space-y-5">
       {view==="home"&&<Home ov={ov} records={filtered} track={tracking} apps={apps} filters={filters} go={go}/>}
       {view==="tracking"&&<Tracking ov={ov} track={tracking} filters={filters}/>}
-      {view==="students"&&<Students ov={ov} canEdit={access} reload={load}/>}
+      {view==="students"&&<Students ov={ov} canEdit={access} reload={load} workspaceType={workspaceType}/>}
       {view==="awards"&&<Awards ov={ov} records={filtered} filters={filters}/>}
       {view==="stats"&&<Stats ov={ov} records={filtered} filters={filters}/>}
       {view==="reports"&&<Reports ov={ov} records={filtered} filters={filters}/>}
@@ -131,5 +135,5 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   </div>;
 }
 function navClass(active:boolean){
- return `flex min-h-[88px] flex-col items-center justify-center gap-1.5 rounded-xl border-2 px-2 py-3 text-center text-[13px] font-bold shadow-sm transition active:scale-[.98] sm:text-sm ${active?"border-[#e0b44e] bg-[#095fc4] text-white shadow-md":"border-[#b8cde8] bg-white text-[#123969] hover:border-[#e0b44e] hover:bg-[#fffaf0]"}`;
+ return `flex min-h-[95px] flex-col items-center justify-center gap-1.5 rounded-[18px] border-[3px] px-2 py-3 text-center text-[13px] font-black shadow-[0_4px_10px_rgba(9,48,100,.08)] transition active:scale-[.98] sm:text-sm ${active?"border-[#e9bd55] bg-[#0b55b5] text-white shadow-md":"border-[#b8cde8] bg-white text-[#123969] hover:border-[#e0b44e] hover:bg-[#fffaf0]"}`;
 }
