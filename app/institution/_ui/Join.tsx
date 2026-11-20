@@ -13,6 +13,16 @@ export default function Join({ onJoined, onCancel }: { admin: boolean; onJoined:
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState("");
   const [error,setError]=useState("");
+  const createCoach=async()=>{
+    if(busy)return;
+    setBusy(true);setError("");setMessage("");
+    const db=staffDb();
+    if(!db){setBusy(false);setError("ระบบยังไม่พร้อมใช้งาน");return;}
+    const {data,error:err}=await db.rpc("gt_my_coach_workspace_v1");
+    setBusy(false);
+    if(err||!data?.ok){setError(data?.error==="EMAIL_UNVERIFIED"?"กรุณายืนยันบัญชีอีเมลก่อนเปิดพื้นที่ครูอิสระ":"เปิดพื้นที่ครูอิสระไม่สำเร็จ กรุณาลองใหม่");return;}
+    onJoined(data.academy_id);
+  };
   useEffect(()=>{
     let active=true;
     const t=setTimeout(async()=>{
@@ -52,6 +62,12 @@ export default function Join({ onJoined, onCancel }: { admin: boolean; onJoined:
         <p className="text-xs font-semibold text-[#ffdf8a]">GO TOURNAMENT</p>
         <h1 className="mt-1 text-2xl font-bold">เลือกสถาบันของคุณ</h1>
         <p className="mt-2 text-sm">เลือกชื่อเดิมหรือเพิ่มสถาบันใหม่ เพียงครั้งเดียว</p>
+      </div>
+      <div className="rounded-xl border-[3px] border-[#e3b454] bg-[#fff9ea] p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0 flex-1"><h2 className="text-lg font-bold text-[#82590d]">เป็นครูอิสระ ไม่ได้มีสถาบัน?</h2><p className="mt-1 text-sm text-[#715a2d]">เปิดพื้นที่ส่วนตัวเพื่อติดตามนักเรียนได้เอง นักเรียนหนึ่งคนมีได้หลายครู โดยไม่เปลี่ยนชื่อสังกัดในการแข่งขัน</p></div>
+          <button type="button" disabled={busy} onClick={()=>void createCoach()} className="min-h-12 rounded-xl border-2 border-[#e2b454] bg-[#0c5bb8] px-5 font-bold text-white disabled:opacity-60">เปิดพื้นที่ครูอิสระ</button>
+        </div>
       </div>
       <section aria-label="คำแนะนำสำหรับผู้สมัครใหม่" className="space-y-3 rounded-xl border-2 border-[#bed5ef] bg-[#f3f8ff] p-4">
         <h2 className="text-lg font-bold text-[#0e478f]">เริ่มใช้งานอย่างไร?</h2>
