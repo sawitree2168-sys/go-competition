@@ -15,3 +15,21 @@
 .gt-referee-reference input,.gt-referee-reference select{border-width:2px}
 @media(max-width:420px){.gt-referee-reference [aria-label="โต๊ะแข่งขัน"] ul li button{min-width:0}.gt-referee-reference>main{max-width:100%;overflow-x:clip}.gt-referee-reference [role=tablist] button{min-width:0;font-size:13px}}
 @media(prefers-reduced-motion:reduce){.gt-referee-reference button{transition:none}}
+
+
+/* Narrow referee table becomes tappable per-board grid; no horizontal clipping. */
+@media(max-width:760px){
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"]>div:has(table){overflow-x:visible!important;padding:10px!important}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table{width:100%!important;min-width:0!important;table-layout:fixed}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table thead{display:none}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table tbody{display:grid;gap:9px}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table tbody tr{display:grid;grid-template-columns:58px minmax(0,1fr);gap:4px 10px;border:2px solid #c49634;border-radius:12px;padding:10px;background:var(--gt-surface);box-shadow:0 3px 7px #0a327421;cursor:pointer}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table tbody td{display:block;min-width:0;padding:3px!important;overflow-wrap:anywhere;white-space:normal}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table tbody td:first-child{grid-row:1/4;align-self:start;border:2px solid #c49634;border-radius:10px;background:linear-gradient(#124fa3,#052967);text-align:center}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table tbody td:first-child button{color:#fff;font-size:18px;font-weight:800}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table tbody td:nth-child(2):before{content:"⚫ ดำ";display:block;font-size:11px;font-weight:700;color:var(--gt-muted)}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table tbody td:nth-child(3):before{content:"⚪ ขาว";display:block;font-size:11px;font-weight:700;color:var(--gt-muted)}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table tbody td:nth-child(4){font-weight:800;color:var(--gt-cta)}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table tbody td:nth-child(4):after{content:" · แตะเปิดรายละเอียด";font-weight:400;font-size:11px;color:var(--gt-muted)}
+ .gt-referee-reference [aria-label="โต๊ะแข่งขัน"] table tbody td img{width:36px;height:40px}
+}
