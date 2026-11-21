@@ -57,16 +57,24 @@ export async function TournamentList({ current }: { current: string }) {
       <Shell wide>
         <div className="gt-dash gt-directory relative left-1/2 -mb-10 min-h-screen w-screen -translate-x-1/2 overflow-hidden pb-12">
           <SiteBar current={current} />
-          <section className="gt-directory-hero" aria-labelledby="directory-title">
-            {/* eslint-disable @next/next/no-img-element -- reuse the approved, unified Go artwork */}
+          <section className={`gt-directory-hero ${current === "/" ? "gt-directory-hero-home" : ""}`} aria-label={current === "/" ? "GO TOURNAMENT — สมัครแข่งขันและติดตามผล" : "รายการแข่งขัน"}>
+            {/* eslint-disable @next/next/no-img-element -- curated website artwork */}
             <picture aria-hidden="true" className="gt-directory-art">
-              <img src="/design/site-banner.webp" alt="" width="2000" height="667" fetchPriority="high" />
+              <img
+                src={current === "/" ? "/banners/go-tournament-home.png" : "/design/site-banner.webp"}
+                alt=""
+                width={current === "/" ? 2048 : 2000}
+                height={current === "/" ? 684 : 667}
+                fetchPriority="high"
+              />
             </picture>
-            <div className="gt-directory-hero-inner">
-              <h1 id="directory-title">{current === "/" ? "GO TOURNAMENT" : "รายการแข่งขัน"}</h1>
-              <p>สมัครแข่งขัน ติดตามผล และย้อนดูทุกความสำเร็จ</p>
-              <span className="gt-directory-gold" aria-hidden="true" />
-            </div>
+            {current !== "/" && (
+              <div className="gt-directory-hero-inner">
+                <h1 id="directory-title">รายการแข่งขัน</h1>
+                <p>สมัครแข่งขัน ติดตามผล และย้อนดูทุกความสำเร็จ</p>
+                <span className="gt-directory-gold" aria-hidden="true" />
+              </div>
+            )}
           </section>
           <div className="gt-directory-content relative mx-auto max-w-6xl px-4 sm:px-8">{current === "/" && <SiteShortcuts/>}<EventBrowser events={events} serverToday={new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date())} /></div>
           {current === "/" && <section className="site-main"><h2 className="site-section-title">ข่าวสารและประกาศ</h2><div className="site-shortcuts"><Link href="/news">ข่าวสารและผลล่าสุด →</Link><Link href="/results/submit">ส่งภาพผลการแข่งขัน →</Link></div></section>}
