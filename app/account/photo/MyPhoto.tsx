@@ -50,7 +50,7 @@ export default function MyPhoto() {
           onSaved={(url) => setMe({ ...me, photo: url })} />
       </section>
       <MyKyuLevel />
-      <p className="text-sm text-[var(--gt-muted)]">รูปหลักจะปรากฏในโปรไฟล์และทำเนียบนักกีฬา หากต้องการใช้รูปที่เก็บไว้ ให้กด “ตั้งเป็นรูปหลัก” ที่รูปนั้น</p>
+      <p className="text-sm text-[var(--gt-muted)]">รูปหลักจะปรากฏในโปรไฟล์และทำเนียบนักกีฬา หากต้องการใช้รูปที่เก็บไว้ ให้กด “ตั้งเป็นรูปหลัก” ที่รูปนั้น · <Link href="/account/photo/guide" className="font-semibold text-[var(--gt-brand)] underline">ดูวิธีเปลี่ยนรูปทีละขั้น</Link></p>
     </div>
   );
 }
