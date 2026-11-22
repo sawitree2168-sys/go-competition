@@ -87,7 +87,7 @@ export async function TournamentList({ current }: { current: string }) {
           </section>
           <div className="gt-directory-content relative mx-auto max-w-6xl px-4 sm:px-8">
             {current === "/" && <SiteShortcuts />}
-            {current === "/" && <PosterArchive events={archive} home />}
+            {current === "/" && <PosterArchive events={archive} home compactOnMobile />}
             <div className={current === "/" && archive.length ? "mt-10" : undefined}>
               <EventBrowser events={events} serverToday={new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date())} />
             </div>

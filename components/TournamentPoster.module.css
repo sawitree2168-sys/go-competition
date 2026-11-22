@@ -53,3 +53,8 @@
 }
 
 .poster.thumbnail { width: 100%; height: 100%; aspect-ratio: auto; }
+
+@media (max-width: 767px) {
+  .poster.compact { aspect-ratio: 4 / 5; }
+  .compact .title { display: none; }
+}
