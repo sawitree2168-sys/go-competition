@@ -17,7 +17,7 @@ export default async function HistoryEventsPage({ searchParams }: { searchParams
     <PublicPage icon="results" title="คลังการแข่งขันย้อนหลัง" sub={`วอลล์ลิสต์ ${events.length} รายการ`} current="/results">
       <div className="space-y-4">
         <Link className="inline-flex min-h-11 items-center underline underline-offset-4" href="/results">← ผลการแข่งขัน</Link>
-        <PosterArchive events={events} archivePage={current} />
+        <PosterArchive events={events} archivePage={current} compactOnMobile />
         {!events.length && <p>ยังไม่มีรายการย้อนหลังให้แสดง</p>}
       </div>
     </PublicPage>
