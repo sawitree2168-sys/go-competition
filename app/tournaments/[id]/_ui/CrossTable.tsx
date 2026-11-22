@@ -121,8 +121,8 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
                   <div className="flex min-w-[12rem] items-center gap-2.5">
                     <Face r={r} size={large ? "h-12 w-12" : "h-10 w-10"} />
                     <span className="min-w-0 flex-1">
-                      <span className={`block truncate font-bold ${large ? "text-lg" : ""}`}>{r.display_name ?? "—"}</span>
-                      {r.institution && <span className={`block truncate text-[var(--gt-muted)] ${large ? "text-sm" : "text-xs"}`}>{r.institution}</span>}
+                      <span className={`block whitespace-nowrap font-bold ${large ? "text-lg" : ""}`}>{r.display_name ?? "—"}</span>
+                      {r.institution && <span className={`block whitespace-nowrap text-[var(--gt-muted)] ${large ? "text-sm" : "text-xs"}`}>{r.institution}</span>}
                     </span>
                     <RankChip r={r} />
                   </div>

@@ -32,7 +32,7 @@ export default function HistoryWallTable({ wall }: { wall: HistoryWall }) {
     .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
 
   return (
-    <div className={styles.scroll} tabIndex={0} role="region" aria-label={`วอลล์ลิสต์ ${wall.division ?? ''} เลื่อนแนวนอนเพื่อดูทุกคอลัมน์`}>
+    <div className={styles.scroll} tabIndex={0} role="region" aria-label={`วอลล์ลิสต์ ${wall.division ?? ''}`}>
       <table className={styles.table}>
         <thead>
           <tr>
@@ -58,7 +58,7 @@ export default function HistoryWallTable({ wall }: { wall: HistoryWall }) {
                 </td>
                 <th scope="row" className={styles.name}>
                   <span className={styles.identity}>
-                    <span className={styles.avatar}><AthleteAvatar name={row.full_name} src={row.photo} variant="portrait" className="h-full w-full" zoom /></span>
+                    <span className={styles.avatar} data-athlete-photo="true"><AthleteAvatar name={row.full_name} src={row.photo} variant="portrait" className="h-full w-full" zoom /></span>
                     {row.go_id
                       ? <Link href={`/athletes/history/${row.go_id}`}>{row.full_name}</Link>
                       : <span>{row.full_name}</span>}

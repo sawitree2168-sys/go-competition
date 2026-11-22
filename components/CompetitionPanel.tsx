@@ -63,21 +63,31 @@ export default function CompetitionPanel({ children, className = "", title, cont
   async function download(format: "png" | "pdf") {
     if (!content.current || busy) return;
     setBusy(format); setError("");
+    const root = content.current;
+    const restoreWidth = root.style.width;
     try {
       await document.fonts.ready;
-      const root = content.current;
-      // Shrunk-to-fit tables (FitZoom) are exported at their real size.
+      // Exports are the whole sheet at real size: shrunk tables (FitZoom) and inner scroll boxes are opened up.
       root.classList.add("cd-exporting");
       await new Promise((r) => requestAnimationFrame(() => r(null)));
-      await Promise.all(Array.from(root.querySelectorAll("img")).map(img => img.decode().catch(() => undefined)));
+      root.style.width = `${Math.max(root.clientWidth, root.scrollWidth)}px`;
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      // Photos further down load lazily and may never start on their own: load them now, but never wait forever.
+      const imgs = Array.from(root.querySelectorAll("img"));
+      imgs.forEach((img) => { img.loading = "eager"; });
+      await Promise.all(imgs.map((img) => Promise.race([img.decode().catch(() => undefined), new Promise((r) => setTimeout(r, 4000))])));
       const { toCanvas } = await import("html-to-image");
       const width = Math.max(root.clientWidth, root.scrollWidth);
       const height = root.scrollHeight;
-      const canvas = await toCanvas(root, {
-        width, height, backgroundColor: "#ffffff", pixelRatio: Math.min(2, 16000 / Math.max(width, height)),
-        style: { height: `${height}px`, maxHeight: "none", overflow: "visible" },
-        filter: node => !(node instanceof HTMLElement && (node.dataset.exportIgnore === "true" || (!includePhotos && node.dataset.athletePhoto === "true"))),
-      });
+      const canvas = await Promise.race([
+        toCanvas(root, {
+          width, height, backgroundColor: "#ffffff", pixelRatio: Math.min(2, 16000 / Math.max(width, height)),
+          style: { width: `${width}px`, height: `${height}px`, maxHeight: "none", overflow: "visible" },
+          imagePlaceholder: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==",
+          filter: node => !(node instanceof HTMLElement && (node.dataset.exportIgnore === "true" || (!includePhotos && node.dataset.athletePhoto === "true"))),
+        }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 45000)),
+      ]);
       const filename = (context.includes(title) ? context : `${context}-${title}`).replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").slice(0, 160);
       if (format === "png") {
         const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("PNG failed")), "image/png"));
@@ -86,29 +96,46 @@ export default function CompetitionPanel({ children, className = "", title, cont
         window.setTimeout(() => URL.revokeObjectURL(url), 60000);
       } else {
         const { jsPDF } = await import("jspdf");
-        const pdf = new jsPDF({ orientation: width > 850 ? "landscape" : "portrait", unit: "mm", format: "a4" });
-        const pageWidth = pdf.internal.pageSize.getWidth() - 16;
-        const pageHeight = pdf.internal.pageSize.getHeight() - 16;
-        const capacity = Math.floor(pageHeight * canvas.width / pageWidth);
-        const top = root.getBoundingClientRect().top;
-        const ratio = canvas.height / height;
-        const boundaries = Array.from(root.querySelectorAll("tbody tr, .cd-rank-key")).map(el => Math.round((el.getBoundingClientRect().bottom - top) * ratio));
-        for (let y = 0, page = 0; y < canvas.height; page++) {
-          const limit = Math.min(canvas.height, y + capacity);
-          const candidates = boundaries.filter(n => n > y && n <= limit);
-          const end = limit === canvas.height ? limit : candidates.at(-1) ?? limit;
-          const slice = document.createElement("canvas"); slice.width = canvas.width; slice.height = end - y;
-          const ctx = slice.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
-          ctx.drawImage(canvas, 0, y, canvas.width, slice.height, 0, 0, canvas.width, slice.height);
-          if (page) pdf.addPage();
-          pdf.addImage(slice.toDataURL("image/png"), "PNG", 8, 8, pageWidth, slice.height * pageWidth / canvas.width);
-          y = end;
+        const margin = 8;
+        // Whole sheet on one A4 page when it stays readable (fills the page width or height); else pages split between rows.
+        const fits = (o: "portrait" | "landscape") => {
+          const [pw, ph] = o === "landscape" ? [297 - 2 * margin, 210 - 2 * margin] : [210 - 2 * margin, 297 - 2 * margin];
+          const s = Math.min(pw / canvas.width, ph / canvas.height);
+          return { o, pw, ph, s, readable: s >= 0.62 * (pw / canvas.width) };
+        };
+        const options = [fits(canvas.width > canvas.height ? "landscape" : "portrait"), fits(canvas.width > canvas.height ? "portrait" : "landscape")];
+        const single = options.filter(x => x.readable).sort((a, b) => b.s - a.s)[0];
+        if (single) {
+          const pdf = new jsPDF({ orientation: single.o, unit: "mm", format: "a4" });
+          const w = canvas.width * single.s, h = canvas.height * single.s;
+          pdf.addImage(canvas.toDataURL("image/png"), "PNG", margin + (single.pw - w) / 2, margin, w, h);
+          pdf.save(`${filename}.pdf`);
+        } else {
+          const orientation = canvas.width > canvas.height * 0.9 || width > 850 ? "landscape" : "portrait";
+          const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
+          const pageWidth = pdf.internal.pageSize.getWidth() - 2 * margin;
+          const pageHeight = pdf.internal.pageSize.getHeight() - 2 * margin;
+          const capacity = Math.floor(pageHeight * canvas.width / pageWidth);
+          const top = root.getBoundingClientRect().top;
+          const ratio = canvas.height / height;
+          const boundaries = Array.from(root.querySelectorAll("tbody tr, .cd-rank-key")).map(el => Math.round((el.getBoundingClientRect().bottom - top) * ratio));
+          for (let y = 0, page = 0; y < canvas.height; page++) {
+            const limit = Math.min(canvas.height, y + capacity);
+            const candidates = boundaries.filter(n => n > y && n <= limit);
+            const end = limit === canvas.height ? limit : candidates.at(-1) ?? limit;
+            const slice = document.createElement("canvas"); slice.width = canvas.width; slice.height = end - y;
+            const ctx = slice.getContext("2d"); if (!ctx) throw new Error("Canvas unavailable");
+            ctx.drawImage(canvas, 0, y, canvas.width, slice.height, 0, 0, canvas.width, slice.height);
+            if (page) pdf.addPage();
+            pdf.addImage(slice.toDataURL("image/png"), "PNG", margin, margin, pageWidth, slice.height * pageWidth / canvas.width);
+            y = end;
+          }
+          pdf.save(`${filename}.pdf`);
         }
-        pdf.save(`${filename}.pdf`);
       }
     } catch {
-      setError("ดาวน์โหลดไม่สำเร็จ กรุณาลองอีกครั้งเมื่อเชื่อมต่ออินเทอร์เน็ต ภาพนักกีฬาอาจยังโหลดไม่ครบ");
-    } finally { content.current?.classList.remove("cd-exporting"); setBusy(null); }
+      setError("ดาวน์โหลดไม่สำเร็จ กรุณาลองอีกครั้งเมื่อเชื่อมต่ออินเทอร์เน็ต ภาพนักกีฬาอาจยังโหลดไม่ครบ (หรือกด “ซ่อนรูป” แล้วดาวน์โหลดใหม่)");
+    } finally { root.classList.remove("cd-exporting"); root.style.width = restoreWidth; setBusy(null); }
   }
 
   return <section ref={panel} className={`cd-panel cd-download-panel ${className} ${expanded ? "cd-expanded" : ""} ${includePhotos ? "" : "gt-hide-photos"}`}
