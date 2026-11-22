@@ -26,7 +26,7 @@ export default async function HistoryWallPage({ params, searchParams }: {
   const wall = await loadHistoryWall(id, division);
   if (!wall) notFound();
 
-  const date = wall.event.event_date ? thaiDate(wall.event.event_date) : 'ยังไม่ระบุวันแข่งขัน';
+  const date = thaiDate(wall.event.event_date) ?? 'ยังไม่ระบุวันแข่งขัน';
   const count = wall.divisions.find(item => item.name === wall.division);
   const organizerStandings = wall.organizer_standings || Boolean(wall.source);
   const sources = wall.source ? [
@@ -71,7 +71,7 @@ export default async function HistoryWallPage({ params, searchParams }: {
           <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">อันดับต้นทางกับคะแนนที่คำนวณจากผลรายเกมต่างกัน ตารางนี้คงอันดับต้นทางไว้ค่ะ</p>
         )}
         <p className="text-sm text-[var(--gt-muted)]">เลขคืออันดับของคู่แข่ง · + ชนะ · − แพ้ · = เสมอ · * ชนะหรือแพ้ผ่าน</p>
-        {wall.rows.length ? <HistoryWallSearch key={wall.event.id} wall={wall} /> : <p>ยังไม่มีผลที่ตรวจสอบแล้วในรุ่นนี้</p>}
+        {wall.rows.length ? <HistoryWallSearch key={wall.event.id} wall={wall} date={date} /> : <p>ยังไม่มีผลที่ตรวจสอบแล้วในรุ่นนี้</p>}
         {wall.division && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--gt-line)] p-3">
             <p className="text-sm">มีรายชื่อหรือผลที่ยังตกหล่นในรุ่นนี้ไหมคะ?</p>

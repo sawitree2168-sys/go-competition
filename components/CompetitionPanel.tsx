@@ -8,8 +8,9 @@ import { PanelContext } from "./FitZoom";
  * `onClose`: the panel opens straight in full screen (e.g. from a "ดูเต็มจอ" button) and closing calls it.
  * The photo switch hides athlete pictures on screen and in the PNG / PDF at the same time.
  */
-export default function CompetitionPanel({ children, className = "", title, context, onClose }: {
+export default function CompetitionPanel({ children, className = "", title, context, onClose, actionsAtTop = false, exportWidth, exportHeader, disableDownload = false }: {
   children: ReactNode; className?: string; title: string; context: string; onClose?: () => void;
+  actionsAtTop?: boolean; exportWidth?: number; exportHeader?: ReactNode; disableDownload?: boolean;
 }) {
   const [includePhotos, setIncludePhotos] = useState(true);
   const [open, setOpen] = useState(false);
@@ -61,15 +62,30 @@ export default function CompetitionPanel({ children, className = "", title, cont
   }, [expanded]);
 
   async function download(format: "png" | "pdf") {
-    if (!content.current || busy) return;
+    if (!content.current || busy || disableDownload) return;
     setBusy(format); setError("");
+    const report = content.current;
+    let captureHost: HTMLDivElement | undefined;
     try {
       await document.fonts.ready;
-      const root = content.current;
+      let root = report;
+      if (exportWidth && report.parentElement) {
+        captureHost = document.createElement("div");
+        captureHost.setAttribute("aria-hidden", "true");
+        captureHost.inert = true;
+        Object.assign(captureHost.style, { position: "fixed", left: `-${exportWidth + 32}px`, top: "0", width: `${exportWidth}px` });
+        root = report.cloneNode(true) as HTMLDivElement;
+        Object.assign(root.style, { width: `${exportWidth}px`, maxWidth: "none" });
+        captureHost.append(root);
+        report.parentElement.append(captureHost);
+      }
       // Shrunk-to-fit tables (FitZoom) are exported at their real size.
       root.classList.add("cd-exporting");
-      await new Promise((r) => requestAnimationFrame(() => r(null)));
-      await Promise.all(Array.from(root.querySelectorAll("img")).map(img => img.decode().catch(() => undefined)));
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      await Promise.all(Array.from(root.querySelectorAll("img")).map(img => {
+        if (captureHost) img.loading = "eager";
+        return img.decode().catch(() => undefined);
+      }));
       const { toCanvas } = await import("html-to-image");
       const width = Math.max(root.clientWidth, root.scrollWidth);
       const height = root.scrollHeight;
@@ -92,7 +108,7 @@ export default function CompetitionPanel({ children, className = "", title, cont
         const capacity = Math.floor(pageHeight * canvas.width / pageWidth);
         const top = root.getBoundingClientRect().top;
         const ratio = canvas.height / height;
-        const boundaries = Array.from(root.querySelectorAll("tbody tr, .cd-rank-key")).map(el => Math.round((el.getBoundingClientRect().bottom - top) * ratio));
+        const boundaries = Array.from(root.querySelectorAll('tbody tr, .cd-rank-key, [data-export-break="true"]')).map(el => Math.round((el.getBoundingClientRect().bottom - top) * ratio));
         for (let y = 0, page = 0; y < canvas.height; page++) {
           const limit = Math.min(canvas.height, y + capacity);
           const candidates = boundaries.filter(n => n > y && n <= limit);
@@ -108,27 +124,36 @@ export default function CompetitionPanel({ children, className = "", title, cont
       }
     } catch {
       setError("ดาวน์โหลดไม่สำเร็จ กรุณาลองอีกครั้งเมื่อเชื่อมต่ออินเทอร์เน็ต ภาพนักกีฬาอาจยังโหลดไม่ครบ");
-    } finally { content.current?.classList.remove("cd-exporting"); setBusy(null); }
+    } finally {
+      captureHost?.remove();
+      report.classList.remove("cd-exporting");
+      setBusy(null);
+    }
   }
+
+  const downloadActions = (
+    <div className="cd-download-actions" data-export-ignore="true">
+      <label className="cd-export-photo-option"><input type="checkbox" checked={includePhotos} disabled={!!busy} onChange={e => setIncludePhotos(e.target.checked)} /> แสดงรูปนักกีฬา (บนจอและในไฟล์)</label>
+      <button type="button" disabled={!!busy || disableDownload} onClick={() => void download("png")}>{busy === "png" ? "กำลังสร้างรูป…" : "↓ ดาวน์โหลดรูป PNG"}</button>
+      <button type="button" disabled={!!busy || disableDownload} onClick={() => void download("pdf")}>{busy === "pdf" ? "กำลังสร้าง PDF…" : "↓ ดาวน์โหลด PDF"}</button>
+      {error && <p role="alert">{error}</p>}
+    </div>
+  );
 
   return <section ref={panel} className={`cd-panel cd-download-panel ${className} ${expanded ? "cd-expanded" : ""} ${includePhotos ? "" : "gt-hide-photos"}`}
     role={expanded ? "dialog" : undefined} aria-modal={expanded || undefined} aria-label={title}>
     <div className="cd-panel-controls" data-export-ignore="true">
       <span>{title}</span>
       <span className="cd-panel-buttons">
-        <button type="button" aria-pressed={includePhotos} onClick={() => setIncludePhotos(v => !v)}>{includePhotos ? "ซ่อนรูป" : "แสดงรูป"}</button>
+        {!actionsAtTop && <button type="button" aria-pressed={includePhotos} disabled={!!busy} onClick={() => setIncludePhotos(v => !v)}>{includePhotos ? "ซ่อนรูป" : "แสดงรูป"}</button>}
         <button ref={toggle} type="button" aria-expanded={expanded} onClick={() => setExpanded(v => !v)}>{expanded ? (onClose ? "✕ ปิด" : "✕ กลับมุมมองเดิม") : "⛶ ดูเต็มหน้า"}</button>
       </span>
     </div>
+    {actionsAtTop && downloadActions}
     <div className="cd-panel-reader"><div ref={content} className="cd-export-content">
-      <p className="cd-export-context">{context}</p>
+      {exportHeader ?? <p className="cd-export-context">{context}</p>}
       <PanelContext.Provider value={{ expanded, expand: () => setExpanded(true) }}>{children}</PanelContext.Provider>
     </div></div>
-    <div className="cd-download-actions" data-export-ignore="true">
-      <label className="cd-export-photo-option"><input type="checkbox" checked={includePhotos} disabled={!!busy} onChange={e => setIncludePhotos(e.target.checked)} /> แสดงรูปนักกีฬา (บนจอและในไฟล์)</label>
-      <button type="button" disabled={!!busy} onClick={() => void download("png")}>{busy === "png" ? "กำลังสร้างรูป…" : "↓ ดาวน์โหลดรูป PNG"}</button>
-      <button type="button" disabled={!!busy} onClick={() => void download("pdf")}>{busy === "pdf" ? "กำลังสร้าง PDF…" : "↓ ดาวน์โหลด PDF"}</button>
-      {error && <p role="alert">{error}</p>}
-    </div>
+    {!actionsAtTop && downloadActions}
   </section>;
 }

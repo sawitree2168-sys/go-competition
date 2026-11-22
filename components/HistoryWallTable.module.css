@@ -128,59 +128,54 @@
 
 .opponentResult small { color: var(--gt-muted, #516681); }
 
-/* The overview keeps one side-by-side row per athlete on narrow screens. */
-.overviewStats { display: none; }
-.table[data-view="overview"] .round {
-  gap: .08rem;
-  padding: .2rem .12rem;
+.wallPanel {
+  position: relative;
+  border: 1px solid var(--gt-line, #b7cdeb);
+  border-radius: .85rem;
 }
-.table[data-view="overview"] .rounds { --wall-round-width: 2.65rem; }
+.wallPanel :global(.cd-export-content) {
+  color: var(--gt-ink, #102947);
+  background: var(--gt-surface, #fff);
+  padding: .55rem;
+}
+.exportHeading { display: none; }
+.wallPanel :global(.cd-exporting) .exportHeading {
+  display: grid;
+  gap: .45rem;
+  margin: .5rem .25rem 1rem;
+  padding: .8rem 1rem;
+  border-inline-start: 4px solid var(--gt-gold, #c48d29);
+  color: var(--gt-ink, #102947);
+  overflow-wrap: anywhere;
+}
+.exportHeading h3 { font-size: 1.45rem; font-weight: 800; }
+.exportHeading p:first-child { color: var(--gt-muted, #516681); font-weight: 700; }
+.wallPanel :global(.cd-panel-controls) {
+  border-start-start-radius: .8rem;
+  border-start-end-radius: .8rem;
+}
+.table[data-view="overview"] .roundColumn { font-weight: 700; }
 
 @container wall-results (max-width: 46rem) {
-  :global(.gt) .table[data-view="overview"] { font-size: .82rem; }
-  :global(.gt) .table[data-view="overview"] :is(th, td) { padding: .4rem .25rem; }
-  .table[data-view="overview"] .place { width: 1.75rem; }
-  .table[data-view="overview"] .name { width: 35%; }
-  .table[data-view="overview"] .pointsCell { width: 3rem; }
-  .table[data-view="overview"] :is(.avatar, .wins, .sos, .sosos) { display: none; }
+  :global(.gt) .table[data-view="overview"] { font-size: clamp(.63rem, 2.7cqi, .83rem); }
+  :global(.gt) .table[data-view="overview"] :is(th, td) { padding: .35rem .06rem; }
+  .table[data-view="overview"] .place { width: 6%; }
+  .table[data-view="overview"] .name { width: clamp(22%, calc(40% - var(--wall-round-count) * 1.8%), 34%); }
+  .table[data-view="overview"] .pointsCell { width: 9%; }
+  .table[data-view="overview"] .wins { width: 7%; }
+  .table[data-view="overview"] .sos { width: 7%; }
+  .table[data-view="overview"] .sosos { width: 9%; }
 
-  .table[data-view="overview"] :is(.medal, .points) {
-    min-width: 1.35rem;
-    min-height: 1.35rem;
-    padding-inline: .16rem;
-  }
-
-  .table[data-view="overview"] .rounds {
-    --wall-round-width: 1.4rem;
-    gap: .14rem;
-  }
-  .table[data-view="overview"] .round {
-    padding: .1rem 0;
-    border-radius: .28rem;
-    font-size: .69rem;
-    line-height: 1.25;
-  }
-  .table[data-view="overview"] .roundLabel { font-size: .62rem; }
-  .table[data-view="overview"] .roundPrefix {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
-
-  .overviewStats {
-    display: flex;
+  .table[data-view="overview"] .identity {
     flex-wrap: wrap;
-    gap: .1rem .38rem;
-    margin-top: .3rem;
-    color: var(--gt-muted, #516681);
-    font-size: .64rem;
-    font-weight: 500;
-    line-height: 1.2;
+    gap: .14rem .22rem;
   }
-  .overviewStats div { display: inline-flex; gap: .15rem; }
-  .overviewStats dd { color: var(--gt-ink, #102947); font-weight: 700; }
+  .table[data-view="overview"] .avatar { width: 1.18rem; height: 1.4rem; }
+  .table[data-view="overview"] :is(.medal, .points) {
+    min-width: 0;
+    min-height: 1.25rem;
+    padding-inline: .13rem;
+  }
 }
 
 .cards {
