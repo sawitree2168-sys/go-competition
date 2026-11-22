@@ -163,6 +163,8 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
         </>
       )}
 
+      <Link href="/login/guide" className="mt-5 flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 border-[#d7aa42] bg-[#fff4cc] px-4 py-3 text-center text-base font-bold text-[#153d83] shadow-sm transition hover:bg-[#ffe49b] active:scale-[.99]">📖 ใหม่ที่นี่? ดูวิธีเข้าสู่ระบบสำหรับทุกตำแหน่ง →</Link>
+
       <div className="mt-5 rounded-xl bg-[var(--gt-cta-soft)] px-3 py-3 text-sm text-[var(--gt-muted)]">
         <p className="font-semibold text-[var(--gt-ink)]">ใช้ชื่ออะไรเข้าระบบ</p>
         <ul className="mt-1 list-disc space-y-0.5 pl-5">
