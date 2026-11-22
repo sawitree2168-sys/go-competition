@@ -159,6 +159,11 @@
 
   .gt-directory-home nav.site-shortcuts span { font-size: clamp(10px, 2.6vw, 18px); }
 
+  .gt-directory-home #poster-archive .gt-card {
+    border-width: 1px;
+    border-radius: clamp(6px, 2vw, 14px);
+  }
+
   .gt-directory-home .poster-archive-header .site-section-title {
     margin-bottom: 0;
     padding: 5px clamp(5px, 1.7vw, 12px);
