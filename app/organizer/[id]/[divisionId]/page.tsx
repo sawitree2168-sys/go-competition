@@ -14,8 +14,10 @@ import StandingsPanel from "../../_lib/division/StandingsPanel";
 import { divisionLabel } from "@/lib/division-display";
 import { clock } from "../../../tournaments/[id]/_ui/live";
 
-type Tab = "monitor" | "entrants" | "pools" | "rounds" | "standings";
-const TABS: [Tab, string][] = [["monitor", "มอนิเตอร์"], ["entrants", "รายชื่อ"], ["pools", "จัดสาย"], ["rounds", "ออกคู่ / กรอกผล"], ["standings", "ตารางคะแนน"]];
+// 4 แท็บ แถวเดียวบนมือถือ (รายชื่อรวมอยู่ในแท็บสาย) · old links ?tab=entrants still open "pools"
+type Tab = "monitor" | "rounds" | "pools" | "standings";
+const TABS: [Tab, string][] = [["monitor", "มอนิเตอร์"], ["rounds", "จับคู่ / ลงผล"], ["pools", "รายชื่อ / สาย"], ["standings", "คะแนน"]];
+const asTab = (t: string | null): Tab | null => (t === "entrants" ? "pools" : TABS.some(([k]) => k === t) ? (t as Tab) : null);
 
 export default function OrganizerDivision({ params }: { params: Promise<{ id: string; divisionId: string }> }) {
   const { id, divisionId } = use(params);
@@ -25,6 +27,9 @@ export default function OrganizerDivision({ params }: { params: Promise<{ id: st
 function Console({ eventId, divisionId }: { eventId: string; divisionId: string }) {
   const { data, missing, reload, live } = useDivision(divisionId);
   const [tab, setTab] = useState<Tab | null>("monitor");
+  // the table tapped on the monitor (ลงผล ›): the rounds tab opens at that table
+  const [focus, setFocus] = useState<string | null>(null);
+  const openTab = (t: Tab) => { setFocus(null); setTab(t); };
   // เสียง: เช็คอิน / ลงผลมีคนชนะ (whoever entered it: admin or a line referee). Uses the 🔔 switch in the alert bar.
   const prevMatches = useRef<typeof data extends null ? never : NonNullable<typeof data>["matches"] | null>(null);
   useEffect(() => {
@@ -35,10 +40,10 @@ function Console({ eventId, divisionId }: { eventId: string; divisionId: string 
   }, [data]);
   // โต๊ะกรรมการ (all divisions) links here with ?tab=rounds etc.
   useEffect(() => {
-    const want = new URLSearchParams(window.location.search).get("tab");
-    if (want && TABS.some(([k]) => k === want)) queueMicrotask(() => setTab(want as Tab));
+    const want = asTab(new URLSearchParams(window.location.search).get("tab"));
+    if (want) queueMicrotask(() => setTab(want));
     // the alert bar asks for a tab while we are already on this page
-    const onTab = (e: Event) => { const t = (e as CustomEvent<string>).detail; if (TABS.some(([k]) => k === t)) setTab(t as Tab); };
+    const onTab = (e: Event) => { const t = asTab((e as CustomEvent<string>).detail); if (t) { setFocus(null); setTab(t); } };
     window.addEventListener("gt-open-tab", onTab);
     return () => window.removeEventListener("gt-open-tab", onTab);
   }, []);
@@ -61,16 +66,15 @@ function Console({ eventId, divisionId }: { eventId: string; divisionId: string 
           <a href={`/tournaments/${eventId}/divisions/${divisionId}?tab=pairs`} target="_blank" rel="noopener" className="text-sm text-[var(--gt-cta)] underline">ดูหน้าสาธารณะ ↗</a>
         </div>
       </div>
-      <div role="tablist" aria-label="ขั้นตอน" className="gt-tabs grid grid-cols-2 gap-2 rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-2 shadow-sm sm:grid-cols-5">
+      <div role="tablist" aria-label="ขั้นตอน" className="gt-tabs grid grid-cols-4 gap-1 rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-1.5 shadow-sm sm:gap-2 sm:p-2">
         {TABS.map(([k, label]) => (
-          <button key={k} role="tab" type="button" aria-selected={current === k} onClick={() => setTab(k)} className="min-h-11 rounded-xl px-2 text-sm font-semibold">{label}</button>
+          <button key={k} role="tab" type="button" aria-selected={current === k} onClick={() => openTab(k)} className="min-h-12 rounded-xl px-1 text-[13px] font-semibold leading-tight sm:text-sm">{label}</button>
         ))}
       </div>
       {data.regs.length === 0 && <PreparedRoster eventId={eventId} divisionId={divisionId} divisionName={data.division.name} />}
-      {current === "monitor" && data.regs.length > 0 && <Monitor data={data} onResults={()=>setTab("rounds")}/>}
-      {current === "entrants" && <section className="gt-card overflow-x-auto"><table><thead><tr><th>#</th><th>นักกีฬา</th><th>สถาบัน</th><th>ระดับ</th></tr></thead><tbody>{data.regs.map((r,i)=><tr key={r.athlete_id}><td>{i+1}</td><td>{r.gt_athletes?.full_name}</td><td>{r.display_institution||r.gt_athletes?.school_name}</td><td>{r.competition_rank_reference||r.gt_athletes?.current_rank}</td></tr>)}</tbody></table></section>}
+      {current === "monitor" && data.regs.length > 0 && <Monitor data={data} onResults={(id)=>{ setFocus(id); setTab("rounds"); }}/>}
       {current === "pools" && <PoolsPanel data={data} reload={reload} />}
-      {current === "rounds" && data.regs.length > 0 && <RoundsPanel data={data} reload={reload} eventId={eventId} />}
+      {current === "rounds" && data.regs.length > 0 && <RoundsPanel key={focus ?? "rounds"} data={data} reload={reload} eventId={eventId} focus={focus} />}
       {current === "standings" && data.regs.length > 0 && <StandingsPanel data={data} eventId={eventId} />}
     </div>
   );

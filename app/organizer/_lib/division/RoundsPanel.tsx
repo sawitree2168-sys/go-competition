@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { floatedAthletes, institutionKeys, proposeSwissRound, surnameKey } from "@/lib/swiss-round.mjs";
 import { noShowResult, pairingPlayers, waitingList, recommendedRounds, resultLabel, roundState, roundsOf, roundsWarning, scoresFrom } from "@/lib/competition-day.mjs";
 import { ErrorNote, staffDb, useAction } from "../staff";
 import MatchCard, { type Seat } from "../../../tournaments/[id]/_ui/MatchCard";
 import ResultControls from "../../../tournaments/[id]/_ui/ResultControls";
-import RoundReportButtons, { RoundTable, type ReportPerson } from "@/components/RoundReport";
+import RoundReportButtons, { type ReportPerson } from "@/components/RoundReport";
 import { divisionLabel } from "@/lib/division-display";
 import { play } from "@/lib/sounds";
 import { isWithdrawn, nameOf, poolArg, poolKey, poolName, pts, schoolOf, type DivisionData, type Match, type Reg } from "./types";
@@ -24,10 +24,12 @@ const sameSurname = (a?: Reg, b?: Reg) => {
   return Boolean(x) && x === y;
 };
 
-export default function RoundsPanel({ data, reload, eventId }: { data: DivisionData; reload: () => Promise<void>; eventId: string }) {
+/** `focus`: a match tapped on the monitor (ลงผล ›) — open its pool and round and scroll to that table. */
+export default function RoundsPanel({ data, reload, eventId, focus = null }: { data: DivisionData; reload: () => Promise<void>; eventId: string; focus?: string | null }) {
   const active = data.regs.filter((r) => !isWithdrawn(r));
   const pools = useMemo(() => [...new Set(data.regs.map((r) => poolKey(r.pool_label)))].sort(), [data.regs]);
-  const [pool, setPool] = useState(pools[0] ?? "");
+  const focused = focus ? data.matches.find((m) => m.id === focus) : undefined;
+  const [pool, setPool] = useState(focused ? poolKey(focused.pool_label) : pools[0] ?? "");
   const current = pools.includes(pool) ? pool : pools[0] ?? "";
   const mixed = pools.length > 1 && active.some((r) => !r.pool_label);
 
@@ -44,12 +46,12 @@ export default function RoundsPanel({ data, reload, eventId }: { data: DivisionD
           ))}
         </div>
       )}
-      <PoolRounds key={current} pool={current} data={data} reload={reload} eventId={eventId} />
+      <PoolRounds key={current} pool={current} data={data} reload={reload} eventId={eventId} focus={focused && poolKey(focused.pool_label) === current ? focused : undefined} />
     </div>
   );
 }
 
-function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: DivisionData; reload: () => Promise<void>; eventId: string }) {
+function PoolRounds({ pool, data, reload, eventId, focus }: { pool: string; data: DivisionData; reload: () => Promise<void>; eventId: string; focus?: Match }) {
   const everyone = useMemo(() => data.regs.filter((r) => poolKey(r.pool_label) === pool), [data.regs, pool]);
   const regs = useMemo(() => everyone.filter((r) => !isWithdrawn(r)), [everyone]);
   const withdrawn = everyone.filter(isWithdrawn);
@@ -59,9 +61,13 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
   const totalRounds = roundsOf(data.division);
   const state = roundState(matches, byes, totalRounds);
   const { score } = scoresFrom(everyone.map((r) => r.athlete_id), matches, byes);
-  const [openRound, setOpenRound] = useState<number | null>(null);
-  const [view, setView] = useState<"cards" | "table">("cards");
+  const [openRound, setOpenRound] = useState<number | null>(focus ? focus.round_number : null);
   const [showPhotos, setShowPhotos] = useState(true);
+  useEffect(() => {
+    if (!focus) return;
+    const t = setTimeout(() => document.getElementById(`gt-match-${focus.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    return () => clearTimeout(t);
+  }, [focus]);
   const people = useMemo(() => Object.fromEntries(everyone.map((r): [string, ReportPerson] => [r.athlete_id,
     { name: nameOf(r), institution: schoolOf(r), rank: r.gt_athletes?.current_rank ?? null, photo: r.gt_athletes?.avatar_url ?? null }])), [everyone]);
   const shown = openRound ?? state.lastRound;
@@ -103,9 +109,8 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
         <span>ออกคู่แล้ว <strong className="gt-num">{state.lastRound}</strong> / {totalRounds} รอบ</span>
         {state.pending > 0 && <span className="text-[var(--gt-warn)]">รอผล {state.pending} โต๊ะ</span>}
         {state.complete && <span className="font-semibold text-[var(--gt-ok)]">แข่งครบทุกรอบแล้ว</span>}
+        <RoundsSetting divisionId={data.division.id} saved={data.division.total_rounds} rounds={totalRounds} players={regs.length} played={state.lastRound} reload={reload} />
       </div>
-
-      <RoundsSetting divisionId={data.division.id} saved={data.division.total_rounds} rounds={totalRounds} players={regs.length} played={state.lastRound} reload={reload} />
 
       <WaitingList entries={waiting} lastRound={state.lastRound} byId={byId} divisionId={data.division.id} reload={reload} />
 
@@ -129,32 +134,30 @@ function PoolRounds({ pool, data, reload, eventId }: { pool: string; data: Divis
         <section className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="mr-auto font-bold">รอบที่ {shown}</h3>
-            <div className="flex gap-1" role="group" aria-label="เลือกรอบ">
+            <div className="flex flex-wrap gap-1" role="group" aria-label="เลือกรอบ">
               {Array.from({ length: state.lastRound }, (_, i) => i + 1).map((r) => (
                 <button key={r} type="button" onClick={() => setOpenRound(r)} aria-pressed={r === shown}
                   className={`gt-num min-h-11 min-w-11 rounded-xl border ${r === shown ? "border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] font-bold" : "border-[var(--gt-line)]"}`}>{r}</button>
               ))}
             </div>
-            <Link href={printHref} target="_blank" className="gt-outline-btn inline-flex min-h-11 items-center px-3 text-sm">พิมพ์</Link>
-            <Link href={`/organizer/${eventId}/${data.division.id}/print?round=latest${pool ? `&pool=${pool}` : ""}`} target="_blank" className="gt-outline-btn inline-flex min-h-11 items-center px-3 text-sm" title="อัปเดตผลและรอบใหม่เองอัตโนมัติ">ฉายจอสด</Link>
           </div>
-          {latest && seats > 0 && (
-            <p className="flex flex-wrap gap-x-4 text-sm">
-              <span>เช็คอินแล้ว <strong className="gt-num text-[var(--gt-ok)]">{checkedIn}</strong></span>
-              <span>ยังไม่เช็คอิน <strong className={`gt-num ${checkedIn < seats ? "text-[var(--gt-warn)]" : ""}`}>{seats - checkedIn}</strong></span>
-              <span className="text-[var(--gt-muted)]">ยังไม่มาเกิน 15 นาที กด “คู่ชนะบาย” ในรายชื่อพักรอ (ไม่ต้องจับคู่ใหม่)</span>
-            </p>
+          {/* ปุ่มหลักปุ่มเดียว + เมนู "เพิ่มเติม" (ซ่อนรูป / พิมพ์ / ฉายจอสด) */}
+          <div className="gt-round-tools">
+            <RoundReportButtons single eventTitle="GO TOURNAMENT" divisionName={`${divisionLabel(data.division.name)}${pool ? ` · สาย ${pool}` : ""}`} round={shown} matches={matches} byes={byes} people={people} />
+            <details>
+              <summary>⋯ เพิ่มเติม</summary>
+              <div className="gt-round-menu" onClick={(e) => { const d = e.currentTarget.closest("details"); if (d) d.open = false; }}>
+                <button type="button" onClick={() => setShowPhotos((v) => !v)}>{showPhotos ? "ซ่อนรูปนักกีฬา" : "แสดงรูปนักกีฬา"}</button>
+                <Link href={printHref} target="_blank">พิมพ์ใบจับคู่</Link>
+                <Link href={`/organizer/${eventId}/${data.division.id}/print?round=latest${pool ? `&pool=${pool}` : ""}`} target="_blank" title="อัปเดตผลและรอบใหม่เองอัตโนมัติ">ฉายจอสด (จอใหญ่)</Link>
+              </div>
+            </details>
+          </div>
+          {latest && seats > 0 && checkedIn < seats && (
+            <p className="text-sm">ยังไม่เช็คอิน <strong className="gt-num text-[var(--gt-warn)]">{seats - checkedIn}</strong> คน · เช็คอินแล้ว <strong className="gt-num text-[var(--gt-ok)]">{checkedIn}</strong></p>
           )}
-          <div className="flex flex-wrap items-center gap-2 rounded-xl border-2 border-[var(--gt-cta)]/50 bg-[var(--gt-surface)] p-2 text-sm font-semibold">
-            <span className="mr-auto">มุมมอง</span>
-            <button type="button" aria-pressed={view === "cards"} onClick={() => setView("cards")} className={`min-h-11 rounded-lg border px-4 ${view === "cards" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>▦ การ์ด (ลงผล)</button>
-            <button type="button" aria-pressed={view === "table"} onClick={() => setView("table")} className={`min-h-11 rounded-lg border px-4 ${view === "table" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>☷ ตาราง</button>
-            <button type="button" aria-pressed={showPhotos} onClick={() => setShowPhotos((v) => !v)} className="min-h-11 rounded-lg border border-[var(--gt-line)] px-4">{showPhotos ? "ซ่อนรูป" : "แสดงรูป"}</button>
-          </div>
-          <RoundReportButtons eventTitle="GO TOURNAMENT" divisionName={`${divisionLabel(data.division.name)}${pool ? ` · สาย ${pool}` : ""}`} round={shown} matches={matches} byes={byes} people={people} />
           {!latest && <p className="text-sm text-[var(--gt-muted)]">รอบเก่า: ดูได้อย่างเดียว (แก้ผลได้เฉพาะรอบล่าสุดก่อนออกคู่รอบถัดไป)</p>}
-          {view === "table" && <div className={`cd-panel ${showPhotos ? "" : "gt-hide-photos"}`}><RoundTable kind="results" round={shown} matches={matches} byes={byes} people={people} /></div>}
-          <ul className={`space-y-2 ${view === "table" ? "hidden" : ""} ${showPhotos ? "" : "gt-hide-photos"}`}>
+          <ul className={`space-y-2 ${showPhotos ? "" : "gt-hide-photos"}`}>
             {roundMatches.map((m) => <TableCard key={m.id} m={m} byId={byId} score={scoreBefore} editable={latest} reload={reload} />)}
             {roundBye && (
               <li className="gt-card flex items-center gap-3 px-4 py-3 text-sm">
@@ -236,7 +239,7 @@ function TableCard({ m, byId, score, editable, reload }: { m: Match; byId: Map<s
 
   return (
     <>
-      <MatchCard board={m.board_number} status={done ? resultLabel(m) : "รอผล"} statusTone={done ? "done" : "wait"} highlight={!done}
+      <MatchCard id={`gt-match-${m.id}`} board={m.board_number} status={done ? resultLabel(m) : "รอผล"} statusTone={done ? "done" : "wait"} highlight={!done}
         black={seat(m.black_athlete_id)} white={seat(m.white_athlete_id)} blackExtra={checkButton("black")} whiteExtra={checkButton("white")}
         actions={actions && <>{actions}<ErrorNote text={action.error} /></>} />
     </>
@@ -399,7 +402,8 @@ function RoundsSetting({ divisionId, saved, rounds, players, played, reload }: {
     await reload();
   };
   return (
-    <section className={`gt-card space-y-2 p-4 text-sm ${warn ? "border-[var(--gt-warn)]" : ""}`}>
+    <details className="w-full space-y-2" open={Boolean(warn) || undefined}>
+      <summary className={`min-h-11 cursor-pointer py-2 font-semibold ${warn ? "text-[var(--gt-warn)]" : "text-[var(--gt-cta)]"}`}>{warn ? "⚠ " : ""}ตั้งจำนวนรอบ ({rounds} รอบ{need > 0 && need !== rounds ? ` · แนะนำ ${need}` : ""})</summary>
       <div className="flex flex-wrap items-center gap-2">
         <label htmlFor={`rounds-${divisionId}`} className="font-semibold">จำนวนรอบของรุ่นนี้</label>
         <select id={`rounds-${divisionId}`} value={value} onChange={(e) => setValue(e.target.value)} disabled={action.busy}
@@ -415,7 +419,7 @@ function RoundsSetting({ divisionId, saved, rounds, players, played, reload }: {
       {need > 0 && <p className="text-[var(--gt-muted)]">ผู้เล่น {players} คน แนะนำ {need} รอบ (ให้เหลือผู้ชนะรวดคนเดียว)</p>}
       {warn && <p role="alert" className="font-semibold text-[var(--gt-warn)]">⚠ {warn.text}</p>}
       {action.error && <p role="alert" className="text-[var(--gt-bad)]">{action.error}</p>}
-    </section>
+    </details>
   );
 }
 

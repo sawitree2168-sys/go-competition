@@ -77,7 +77,7 @@ export default function PoolsPanel({ data, reload }: { data: DivisionData; reloa
             <ol className="space-y-1 text-sm">
               {list.map((r, i) => (
                 <li key={r.athlete_id} className="flex gap-2"><span className="gt-num w-6 shrink-0 text-right text-[var(--gt-muted)]">{i + 1}.</span>
-                  <span className="min-w-0"><span className="font-medium">{nameOf(r)}</span> <span className="text-[var(--gt-muted)]">{schoolOf(r)}</span></span>
+                  <span className="min-w-0"><span className="font-medium">{nameOf(r)}</span> <span className="text-[var(--gt-muted)]">{[schoolOf(r), r.competition_rank_reference || r.gt_athletes?.current_rank].filter(Boolean).join(" · ")}</span></span>
                 </li>
               ))}
             </ol>

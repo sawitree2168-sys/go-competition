@@ -70,22 +70,33 @@ export function RoundTable({ kind, round, pool, matches, byes, people }: {
  * Two buttons: "ใบจับคู่รอบ N" and "ผลการแข่งขันรอบ N". Each opens the round in full screen with
  * show/hide photos and download as PNG or PDF.
  */
-export default function RoundReportButtons({ eventTitle, divisionName, round, pool, matches, byes, people, className = "" }: {
+export default function RoundReportButtons({ eventTitle, divisionName, round, pool, matches, byes, people, className = "", single = false }: {
   eventTitle: string; divisionName: string; round: number; pool?: string | null;
   matches: ReportMatch[]; byes: ReportBye[]; people: Record<string, ReportPerson>; className?: string;
+  /** one button "เต็มจอ / ดาวน์โหลด" with ใบจับคู่ / ผล switch inside (admin pages on a phone) */
+  single?: boolean;
 }) {
   const [open, setOpen] = useState<Kind | null>(null);
   if (!round) return null;
   const poolText = pool && pool !== "*" ? ` · สาย ${pool}` : "";
   const title = open === "results" ? `ผลการแข่งขัน รอบที่ ${round}` : `ใบจับคู่ รอบที่ ${round}`;
+  const anyResult = matches.some((m) => m.round_number === round && m.state === "verified");
   return (
     <>
-      <div className={`gt-report-buttons ${className}`} role="group" aria-label="ดูเต็มจอและดาวน์โหลด">
-        <button type="button" onClick={() => setOpen("pairings")}>⛶ ใบจับคู่รอบ {round}</button>
-        <button type="button" onClick={() => setOpen("results")}>⛶ ผลการแข่งขันรอบ {round}</button>
-      </div>
+      {single
+        ? <button type="button" className={`gt-fullscreen-btn ${className}`} onClick={() => setOpen(anyResult ? "results" : "pairings")}>⛶ เต็มจอ / ดาวน์โหลด</button>
+        : <div className={`gt-report-buttons ${className}`} role="group" aria-label="ดูเต็มจอและดาวน์โหลด">
+            <button type="button" onClick={() => setOpen("pairings")}>⛶ ใบจับคู่รอบ {round}</button>
+            <button type="button" onClick={() => setOpen("results")}>⛶ ผลการแข่งขันรอบ {round}</button>
+          </div>}
       {open && (
         <CompetitionPanel title={title} context={`${eventTitle} · ${divisionName}${poolText} · ${title}`} onClose={() => setOpen(null)} className="gt-round-report">
+          {single && (
+            <div className="gt-report-kind" role="group" aria-label="เลือกใบที่จะดู" data-export-ignore="true">
+              <button type="button" aria-pressed={open === "pairings"} onClick={() => setOpen("pairings")}>ใบจับคู่</button>
+              <button type="button" aria-pressed={open === "results"} onClick={() => setOpen("results")}>ผลการแข่งขัน</button>
+            </div>
+          )}
           <div className="cd-panel-heading"><h2><span className="cd-heading-stones" aria-hidden="true">●○</span>{divisionName}{poolText} · {title}</h2></div>
           <RoundTable kind={open} round={round} pool={pool} matches={matches} byes={byes} people={people} />
         </CompetitionPanel>
