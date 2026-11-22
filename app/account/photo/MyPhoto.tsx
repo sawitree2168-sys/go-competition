@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
 import PhotoEditor from "@/components/PhotoEditor";
+import MyKyuLevel from "./MyKyuLevel";
 
 type Mine = { athlete_id: string; go_id: string; full_name: string; rank: string | null; photo: string | null };
 
@@ -25,7 +26,7 @@ export default function MyPhoto() {
   if (me === "out") {
     return (
       <div className="gt-card space-y-4 p-6 text-center">
-        <h1 className="text-2xl font-bold">เข้าสู่ระบบเพื่อเปลี่ยนรูป</h1>
+        <h1 className="text-2xl font-bold">เข้าสู่ระบบเพื่อแก้รูปและระดับฝีมือ</h1>
         <p className="text-[var(--gt-muted)]">ใช้รหัส GO เลขดั้ง หรือชื่อ-นามสกุล พร้อมรหัสผ่าน</p>
         <Link href="/login?next=/account/photo" className="gt-cta-btn flex min-h-12 items-center justify-center">เข้าสู่ระบบ</Link>
       </div>
@@ -48,6 +49,7 @@ export default function MyPhoto() {
         <PhotoEditor mode="self" goId={me.go_id} athleteId={me.athlete_id} name={me.full_name} photo={me.photo}
           onSaved={(url) => setMe({ ...me, photo: url })} />
       </section>
+      <MyKyuLevel />
       <p className="text-sm text-[var(--gt-muted)]">รูปหลักจะปรากฏในโปรไฟล์และทำเนียบนักกีฬา หากต้องการใช้รูปที่เก็บไว้ ให้กด “ตั้งเป็นรูปหลัก” ที่รูปนั้น</p>
     </div>
   );

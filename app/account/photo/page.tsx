@@ -3,7 +3,7 @@ import { Shell } from "@/app/tournaments/[id]/_ui/chrome";
 import SiteBar from "@/app/tournaments/[id]/_ui/SiteBar";
 import MyPhoto from "./MyPhoto";
 
-export const metadata: Metadata = { title: "เปลี่ยนรูปโปรไฟล์ · GO TOURNAMENT" };
+export const metadata: Metadata = { title: "รูปและระดับฝีมือ · GO TOURNAMENT" };
 
 export default function AccountPhotoPage() {
   return (

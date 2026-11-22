@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import CompetitionPanel from "@/components/CompetitionPanel";
 import AthleteAvatar from "@/components/AthleteAvatar";
 import RankTable, { RankCards, type Ranking, type RankRow } from "./RankTable";
+import KyuBoard from "./KyuBoard";
 
 export type Person = { dan: number | null; name: string; level: string | null; diamond: boolean; go_id: string | null; photo: string | null; profile_id: string | null };
 export type Examiner = Person & { role: string };
@@ -13,12 +14,13 @@ export type DirEntry = { dan: number; name: string; level: string | null; diamon
 /** reserved: dan numbers sold at the association auction whose buyer has not passed the exam yet (numbers only). */
 export type Board = { synced_at: string | null; source_url: string; announcements: Announcement[]; directory: DirEntry[]; reserved?: number[] };
 
-type Tab = "new" | "rank" | "diamond" | "all";
+type Tab = "new" | "rank" | "diamond" | "all" | "kyu";
 const TABS: { id: Tab; label: string }[] = [
   { id: "rank", label: "อันดับคะแนน" },
   { id: "new", label: "ดั้งใหม่" },
   { id: "diamond", label: "ดั้งเพชร" },
   { id: "all", label: "ทำเนียบดั้งทั้งหมด" },
+  { id: "kyu", label: "ทำเนียบคิว" },
 ];
 
 
@@ -226,6 +228,29 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
   const newAsRows: DirEntry[] = news.map((a) => ({ dan: a.dan ?? 0, name: a.name, level: a.level, diamond: a.diamond, year: beYear(a.announced_on), go_id: a.go_id, photo: a.photo }));
   const select = "block min-h-12 w-full appearance-none rounded-full border border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)] pl-5 pr-10 text-base font-semibold outline-none focus:border-[var(--gt-cta)]";
 
+  const tabButtons = (
+          <div role="group" aria-label="ประเภทรายชื่อ" className="gt-directory-filters">
+            {TABS.filter((t) => t.id !== "rank" || ranking).map((t) => (
+              <button key={t.id} type="button" aria-pressed={tab === t.id} onClick={() => { setTab(t.id); setYear("all"); setPage(1); }}
+                className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm font-semibold ${tab === t.id ? "border-transparent bg-[var(--gt-cta)] text-white" : "border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)]"}`}>
+                {t.id === "diamond" && <Diamond />}{t.label}
+                {t.id !== "kyu" && <span className={`gt-num rounded-full px-2 text-xs ${tab === t.id ? "bg-white/20" : "bg-[var(--gt-surface-2)]"}`}>
+                  {num(t.id === "new" ? board.announcements.length : t.id === "rank" ? activeCount : t.id === "diamond" ? diamondCount : board.directory.length)}
+                </span>}
+              </button>
+            ))}
+          </div>
+  );
+
+  if (tab === "kyu") return (
+    <div className="dan-board">
+      <div className="gt-directory-tools gt-dan-tools">
+        {tabButtons}
+      </div>
+      <KyuBoard />
+    </div>
+  );
+
   return (
     <div className="dan-board">
 
@@ -290,17 +315,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
           </select>
           <Chevron />
         </label>
-        <div role="group" aria-label="ประเภทรายชื่อ" className="gt-directory-filters">
-          {TABS.filter((t) => t.id !== "rank" || ranking).map((t) => (
-            <button key={t.id} type="button" aria-pressed={tab === t.id} onClick={() => { setTab(t.id); setYear("all"); setPage(1); }}
-              className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm font-semibold ${tab === t.id ? "border-transparent bg-[var(--gt-cta)] text-white" : "border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)]"}`}>
-              {t.id === "diamond" && <Diamond />}{t.label}
-              <span className={`gt-num rounded-full px-2 text-xs ${tab === t.id ? "bg-white/20" : "bg-[var(--gt-surface-2)]"}`}>
-                {num(t.id === "new" ? board.announcements.length : t.id === "rank" ? activeCount : t.id === "diamond" ? diamondCount : board.directory.length)}
-              </span>
-            </button>
-          ))}
-        </div>
+        {tabButtons}
       </div>
 
       <CompetitionPanel title={TABS.find(t => t.id === tab)?.label ?? "ทำเนียบนักกีฬา"} context={`GO TOURNAMENT · ทำเนียบนักกีฬาหมากล้อมไทย · ${level === "all" ? "ทุกระดับ" : `${level} ดั้ง`} · หน้าที่ ${cur}`}><div id="dan-results" className="dan-results">
