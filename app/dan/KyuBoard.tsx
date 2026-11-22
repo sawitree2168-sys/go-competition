@@ -71,11 +71,15 @@ export function KyuCards({ rows }: { rows: KyuRow[] }) {
   return (
     <ul className="dan-directory-cards">
       {rows.map((r) => (
-        <li className="gt-card p-3" key={r.go_id}>
-          <div className="aspect-[4/5]"><AthleteAvatar src={r.photo} name={r.name} zoom variant="portrait" /></div>
-          <Link href={`/athletes/history/${r.go_id}`} className="mt-3 block font-bold hover:underline">{r.name}</Link>
-          <p className="mt-1"><Pill kyu={r.kyu} /></p>
-          <p className="mt-1 text-xs text-[var(--gt-muted)]"><KyuSource r={r} /></p>
+        <li className="gt-card dan-player-card" key={r.go_id}>
+          <div className="dan-card-picture">
+            <AthleteAvatar src={r.photo} name={r.name} zoom variant="portrait" />
+          </div>
+          <div className="dan-card-body">
+            <Link href={`/athletes/history/${r.go_id}`} className="dan-card-name block font-bold hover:underline">{r.name}</Link>
+            <p className="mt-1"><Pill kyu={r.kyu} /></p>
+            <p className="mt-1 text-xs text-[var(--gt-muted)]"><KyuSource r={r} /></p>
+          </div>
         </li>
       ))}
     </ul>
