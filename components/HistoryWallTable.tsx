@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { CSSProperties } from 'react';
 import AthleteAvatar from './AthleteAvatar';
 import type { HistoryWall, WallRow, WallToken } from '@/lib/history-walllist';
 import styles from './HistoryWallTable.module.css';
@@ -30,7 +31,7 @@ function ResultRounds({ rounds, label, row }: { rounds: string[]; label: string;
     <ul className={styles.rounds} role="list">
       {rounds.map(round => (
         <li key={round} className={styles.round}>
-          <span className={styles.roundLabel}><span className={styles.roundPrefix}>{label} </span>{round}</span>
+          <span className={styles.roundLabel}>{label} {round}</span>
           <RoundResult result={results.get(round)} />
         </li>
       ))}
@@ -51,7 +52,7 @@ function Placing({ row, label }: { row: WallRow; label?: string }) {
 function AthleteIdentity({ row }: { row: WallRow }) {
   return (
     <span className={styles.identity}>
-      <span className={styles.avatar}>
+      <span className={styles.avatar} data-athlete-photo="true">
         <AthleteAvatar name={row.full_name} src={row.photo} variant="portrait" className="h-full w-full" zoom />
       </span>
       {row.go_id ? <Link href={`/athletes/history/${row.go_id}`}>{row.full_name}</Link> : <span>{row.full_name}</span>}
@@ -78,7 +79,7 @@ export default function HistoryWallTable({ wall, rows, view }: { wall: HistoryWa
     return (
       <ul className={styles.cards} role="list" aria-label={`การ์ดรายคน ${wall.division ?? ''}`}>
         {rows.map(row => (
-          <li key={`${row.place}-${row.full_name}`} className={styles.card}>
+          <li key={`${row.place}-${row.full_name}`} className={styles.card} data-export-break="true">
             <header className={styles.cardHeader}>
               <Placing row={row} label="อันดับ" />
               <AthleteIdentity row={row} />
@@ -97,35 +98,37 @@ export default function HistoryWallTable({ wall, rows, view }: { wall: HistoryWa
 
   return (
     <div className={styles.layout}>
-      <table className={styles.table} data-view="overview" aria-label={`ตารางรวมวอลล์ลิสต์ ${wall.division ?? ''}`}>
+      <table className={styles.table} data-view="overview" style={{ "--wall-round-count": rounds.length } as CSSProperties} aria-label={`ตารางรวมวอลล์ลิสต์ ${wall.division ?? ''}`}>
         <thead>
           <tr>
             <th scope="col" className={styles.place}>ที่</th>
             <th scope="col" className={styles.name}>นักกีฬา</th>
             <th scope="col" className={styles.pointsCell}>คะแนน</th>
-            {rounds.length > 0 && <th scope="col">ผลราย{roundLabel}</th>}
+            {rounds.map(round => <th key={round} scope="col" className={styles.roundColumn} aria-label={`${roundLabel} ${round}`}>{round}</th>)}
             <th scope="col" className={styles.wins}>ชนะ</th>
             <th scope="col" className={styles.sos}>SOS</th>
             <th scope="col" className={styles.sosos}>SOSOS</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map(row => (
-            <tr key={`${row.place}-${row.full_name}`}>
-              <td className={styles.place}><Placing row={row} /></td>
-              <th scope="row" className={styles.name}>
-                <AthleteIdentity row={row} />
-                <ResultStats row={row} className={styles.overviewStats} />
-              </th>
-              <td className={styles.pointsCell}><span className={styles.points}>{formatNumber.format(row.points)}</span></td>
-              {rounds.length > 0 && (
-                <td className={styles.roundsCell}><ResultRounds rounds={rounds} label={roundLabel} row={row} /></td>
-              )}
-              <td className={styles.wins}>{row.wins}</td>
-              <td className={styles.sos}>{score(row.sos)}</td>
-              <td className={styles.sosos}>{score(row.sosos)}</td>
-            </tr>
-          ))}
+          {rows.map(row => {
+            const results = new Map(row.rounds?.map(result => [result.round, result]));
+            return (
+              <tr key={`${row.place}-${row.full_name}`}>
+                <td className={styles.place}><Placing row={row} /></td>
+                <th scope="row" className={styles.name}>
+                  <AthleteIdentity row={row} />
+                </th>
+                <td className={styles.pointsCell}><span className={styles.points}>{formatNumber.format(row.points)}</span></td>
+                {rounds.map(round => (
+                  <td key={round} className={styles.roundColumn}><RoundResult result={results.get(round)} /></td>
+                ))}
+                <td className={styles.wins}>{row.wins}</td>
+                <td className={styles.sos}>{score(row.sos)}</td>
+                <td className={styles.sosos}>{score(row.sosos)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
