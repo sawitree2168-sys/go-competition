@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { staffDb } from "@/app/organizer/_lib/staff";
 import CompetitionPanel from "@/components/CompetitionPanel";
 import AthleteAvatar from "@/components/AthleteAvatar";
 import RankTable, { RankCards, type Ranking, type RankRow } from "./RankTable";
+import { KYUS, KyuCards, KyuTable, type KyuData } from "./KyuBoard";
 
 export type Person = { dan: number | null; name: string; level: string | null; diamond: boolean; go_id: string | null; photo: string | null; profile_id: string | null };
 export type Examiner = Person & { role: string };
@@ -13,12 +15,13 @@ export type DirEntry = { dan: number; name: string; level: string | null; diamon
 /** reserved: dan numbers sold at the association auction whose buyer has not passed the exam yet (numbers only). */
 export type Board = { synced_at: string | null; source_url: string; announcements: Announcement[]; directory: DirEntry[]; reserved?: number[] };
 
-type Tab = "new" | "rank" | "diamond" | "all";
+type Tab = "new" | "rank" | "diamond" | "all" | "kyu";
 const TABS: { id: Tab; label: string }[] = [
   { id: "rank", label: "อันดับคะแนน" },
   { id: "new", label: "ดั้งใหม่" },
   { id: "diamond", label: "ดั้งเพชร" },
   { id: "all", label: "ทำเนียบดั้งทั้งหมด" },
+  { id: "kyu", label: "ทำเนียบคิว" },
 ];
 
 
@@ -156,6 +159,28 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
   const [sort, setSort] = useState<"score" | "dan">("score");
   const [scope, setScope] = useState<"active" | "inactive" | "all">("active");
   const [per, setPer] = useState(30);
+  // ทำเนียบคิว: paged in the database (2,000+ players). Off the kyu tab we still load the head-counts for the level menu.
+  const [kyuLevel, setKyuLevel] = useState("all"); // "all" | "0" = ยังไม่ทราบระดับ | "1".."15"
+  const [kyuScope, setKyuScope] = useState<"all" | "active">("all");
+  const [kyuQ, setKyuQ] = useState("");
+  const [kyuRes, setKyuRes] = useState<{ key: string; data: KyuData | null; error: boolean } | null>(null);
+  useEffect(() => { const t = setTimeout(() => setKyuQ(q.trim()), 350); return () => clearTimeout(t); }, [q]);
+  const kyuParams = tab === "kyu"
+    ? { p_kyu: kyuLevel === "all" ? null : Number(kyuLevel), p_query: kyuQ, p_scope: kyuScope, p_page: page, p_size: per }
+    : { p_kyu: null, p_query: "", p_scope: "all", p_page: 1, p_size: 1 };
+  const kyuKey = JSON.stringify(kyuParams);
+  useEffect(() => {
+    const db = staffDb();
+    if (!db) return;
+    let live = true;
+    db.rpc("gt_kyu_board_v1", JSON.parse(kyuKey)).then(({ data, error }) => {
+      if (live) setKyuRes((prev) => ({ key: kyuKey, data: (data as KyuData | null) ?? prev?.data ?? null, error: Boolean(error) || !data }));
+    });
+    return () => { live = false; };
+  }, [kyuKey]);
+  const kyu = kyuRes?.data ?? null;
+  const kyuReady = kyuRes?.key === kyuKey && !kyuRes.error;
+  const kyuLabel = kyuLevel === "all" ? "ทุกระดับคิว" : kyuLevel === "0" ? "ยังไม่ทราบระดับ" : `${kyuLevel} คิว`;
 
   const latest = board.announcements[0]?.announced_on ?? null;
   const diamondCount = board.directory.filter((d) => d.diamond).length;
@@ -216,7 +241,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
     .filter((r) => r.score !== null && (scope === "all" || r.active === (scope === "active")) && matches(q, r.name, r.dan) && (level === "all" || r.level === level))
     .sort((a, b) => sort === "dan" ? a.dan - b.dan : (b.score! - a.score!) || (Number(b.active) - Number(a.active)) || a.dan - b.dan), [ranking, scope, q, level, sort]);
 
-  const total = tab === "new" ? news.length : tab === "rank" ? ranked.length : dir.length;
+  const total = tab === "kyu" ? (kyuReady ? kyu!.total : 0) : tab === "new" ? news.length : tab === "rank" ? ranked.length : dir.length;
   const pages = Math.max(1, Math.ceil(total / per));
   const cur = Math.min(page, pages);
   const isRanking = tab === "rank";
@@ -225,6 +250,36 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
 
   const newAsRows: DirEntry[] = news.map((a) => ({ dan: a.dan ?? 0, name: a.name, level: a.level, diamond: a.diamond, year: beYear(a.announced_on), go_id: a.go_id, photo: a.photo }));
   const select = "block min-h-12 w-full appearance-none rounded-full border border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)] pl-5 pr-10 text-base font-semibold outline-none focus:border-[var(--gt-cta)]";
+
+  const tabButtons = (
+          <div role="group" aria-label="ประเภทรายชื่อ" className="gt-directory-filters">
+            {TABS.filter((t) => t.id !== "rank" || ranking).map((t) => (
+              <button key={t.id} type="button" aria-pressed={tab === t.id} onClick={() => { setTab(t.id); setYear("all"); setPage(1); }}
+                className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm font-semibold ${tab === t.id ? "border-transparent bg-[var(--gt-cta)] text-white" : "border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)]"}`}>
+                {t.id === "diamond" && <Diamond />}{t.label}
+                <span className={`gt-num rounded-full px-2 text-xs ${tab === t.id ? "bg-white/20" : "bg-[var(--gt-surface-2)]"}`}>
+                  {t.id === "kyu" ? (kyu ? num(kyu.all) : "…") : num(t.id === "new" ? board.announcements.length : t.id === "rank" ? activeCount : t.id === "diamond" ? diamondCount : board.directory.length)}
+                </span>
+              </button>
+            ))}
+          </div>
+  );
+
+  /** One level menu for both: dan classes and 1–15 kyu. Picking the other kind switches tab. */
+  const pickLevel = (v: string) => {
+    if (v.startsWith("kyu:")) { setKyuLevel(v.slice(4)); if (tab !== "kyu") { setTab("kyu"); setYear("all"); } }
+    else { setLevel(v); if (tab === "kyu") setTab(ranking ? "rank" : "all"); }
+    setPage(1);
+  };
+  const kyuOptions = (
+    <>
+      {KYUS.map((k) => <option key={k} value={`kyu:${k}`} className="text-black">{k} คิว{kyu ? ` (${num(kyu.counts[String(k)] ?? 0)} คน)` : ""}</option>)}
+      <option value="kyu:0" className="text-black">ยังไม่ทราบระดับ{kyu ? ` (${num(kyu.unknown)} คน)` : ""}</option>
+    </>
+  );
+  const danOptions = isRanking ? classes.map(([l, c]) => (
+    <option key={l} value={l} className="text-black">{l} Dan ({num(scope === "active" ? c.active : scope === "inactive" ? c.total - c.active : c.total)} คน)</option>
+  )) : levels.map((l) => <option key={l} value={l} className="text-black">{l} Dan</option>);
 
   return (
     <div className="dan-board">
@@ -254,14 +309,24 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
       )}
 
       {isRanking && <aside className="dan-help"><strong>จำนวนนี้นับเฉพาะผู้มีคะแนนที่ตรงกับตัวกรอง</strong><p>Active: มีผลแข่งขันใน {ranking?.inactive_months} เดือนล่าสุด หรือผู้ดูแลกำหนดสถานะ · Inactive: ไม่เข้าเงื่อนไขดังกล่าว ไม่ได้หมายถึงเลิกเล่น</p><p>ป้าย “อันดับคะแนน {num(activeCount)}” นับ Active ทุกระดับ ส่วน “ทำเนียบดั้งทั้งหมด” นับผู้ได้รับการรับรองในทะเบียน คนละกลุ่มกับรายชื่อนักกีฬาทั้งเว็บไซต์ · ถึงเกณฑ์เลื่อนดั้งไม่ได้หมายถึงเลื่อนดั้งแล้ว</p></aside>}
+      {tab === "kyu" && <aside className="dan-help"><strong>ระดับคิวมาจากไหน</strong><p>สมาคมมีเพียงทำเนียบคิว จึงดูจาก<b>รุ่นคิวที่ลงแข่งล่าสุด</b>ด้วย โดยใช้ระดับที่เก่งที่สุดของรุ่น (ลงรุ่น 3-4 คิว = 3 คิว · เฟรนชิพ 9×9 = 15 คิว · 13×13 = 13 คิว) ถ้าทำเนียบคิวสมาคมสูงกว่า ใช้ตามทำเนียบ</p><p>ยังไม่ทราบระดับจะเว้นว่างไว้ · นักกีฬา/ผู้ปกครอง <Link href="/account/photo" className="font-semibold text-[var(--gt-cta)] hover:underline">เข้าสู่ระบบแล้วแก้ระดับคิวเองได้</Link> ถ้าลงแข่งรุ่นที่สูงกว่าหลังจากนั้น ระบบเลื่อนให้อัตโนมัติ</p></aside>}
       <div className="gt-directory-tools gt-dan-tools">
         <label className="gt-directory-search relative block">
           <span className="sr-only">ค้นหาชื่อหรือเลขดั้ง</span>
           <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--gt-muted)]" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" strokeLinecap="round" /></svg>
-          <input type="search" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="ค้นหาชื่อ หรือเลขดั้ง…"
+          <input type="search" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder={tab === "kyu" ? "ค้นหาชื่อ หรือรหัส GO…" : "ค้นหาชื่อ หรือเลขดั้ง…"}
             className="block min-h-12 w-full rounded-full border border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)] pl-12 pr-4 text-base outline-none focus:border-[var(--gt-cta)] focus:ring-2 focus:ring-[var(--gt-cta)]/25" />
         </label>
-        {tab === "rank" ? (
+        {tab === "kyu" ? (
+          <label className="gt-directory-year relative block">
+            <span className="sr-only">ช่วงเวลาแข่งขัน</span>
+            <select value={kyuScope} onChange={(e) => { setKyuScope(e.target.value as "all" | "active"); setPage(1); }} className={select}>
+              <option value="all" className="text-black">ทุกคน</option>
+              <option value="active" className="text-black">แข่งใน 6 เดือนล่าสุด</option>
+            </select>
+            <Chevron />
+          </label>
+        ) : tab === "rank" ? (
           <label className="gt-directory-year relative block">
             <span className="sr-only">เรียงตาม</span>
             <select value={sort} onChange={(e) => { setSort(e.target.value as "score" | "dan"); setPage(1); }} className={select}>
@@ -281,35 +346,30 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
           </label>
         )}
         <label className="gt-directory-year relative block">
-          <span className="sr-only">ระดับดั้ง</span>
-          <select value={level} onChange={(e) => { setLevel(e.target.value); setPage(1); }} className={select}>
-            <option value="all" className="text-black">ทุกระดับ</option>
-            {isRanking ? classes.map(([l, c]) => (
-              <option key={l} value={l} className="text-black">{l} Dan ({num(scope === "active" ? c.active : scope === "inactive" ? c.total - c.active : c.total)} คน)</option>
-            )) : levels.map((l) => <option key={l} value={l} className="text-black">{l} Dan</option>)}
+          <span className="sr-only">ระดับ (ดั้ง / คิว)</span>
+          <select value={tab === "kyu" ? `kyu:${kyuLevel}` : level} onChange={(e) => pickLevel(e.target.value)} className={select}>
+            {tab === "kyu" ? <>
+              <option value="kyu:all" className="text-black">ทุกระดับคิว{kyu ? ` (${num(kyu.all)} คน)` : ""}</option>
+              <optgroup label="ระดับคิว">{kyuOptions}</optgroup>
+              <optgroup label="ระดับดั้ง">{danOptions}</optgroup>
+            </> : <>
+              <option value="all" className="text-black">ทุกระดับ</option>
+              <optgroup label="ระดับดั้ง">{danOptions}</optgroup>
+              <optgroup label="ระดับคิว">{kyuOptions}</optgroup>
+            </>}
           </select>
           <Chevron />
         </label>
-        <div role="group" aria-label="ประเภทรายชื่อ" className="gt-directory-filters">
-          {TABS.filter((t) => t.id !== "rank" || ranking).map((t) => (
-            <button key={t.id} type="button" aria-pressed={tab === t.id} onClick={() => { setTab(t.id); setYear("all"); setPage(1); }}
-              className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm font-semibold ${tab === t.id ? "border-transparent bg-[var(--gt-cta)] text-white" : "border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)]"}`}>
-              {t.id === "diamond" && <Diamond />}{t.label}
-              <span className={`gt-num rounded-full px-2 text-xs ${tab === t.id ? "bg-white/20" : "bg-[var(--gt-surface-2)]"}`}>
-                {num(t.id === "new" ? board.announcements.length : t.id === "rank" ? activeCount : t.id === "diamond" ? diamondCount : board.directory.length)}
-              </span>
-            </button>
-          ))}
-        </div>
+        {tabButtons}
       </div>
 
-      <CompetitionPanel title={TABS.find(t => t.id === tab)?.label ?? "ทำเนียบนักกีฬา"} context={`GO TOURNAMENT · ทำเนียบนักกีฬาหมากล้อมไทย · ${level === "all" ? "ทุกระดับ" : `${level} ดั้ง`} · หน้าที่ ${cur}`}><div id="dan-results" className="dan-results">
+      <CompetitionPanel title={TABS.find(t => t.id === tab)?.label ?? "ทำเนียบนักกีฬา"} context={`GO TOURNAMENT · ทำเนียบนักกีฬาหมากล้อมไทย · ${tab === "kyu" ? kyuLabel : level === "all" ? "ทุกระดับ" : `${level} ดั้ง`} · หน้าที่ ${cur}`}><div id="dan-results" className="dan-results">
         <div className="dan-display-tools" data-export-ignore="true"><div role="group" aria-label="มุมมอง"><button aria-pressed={view==="list"} onClick={()=>setView("list")}>☷ ตาราง</button><button aria-pressed={view==="cards"} onClick={()=>setView("cards")}>▦ การ์ด</button></div><label>แสดงต่อหน้า <select value={per} onChange={e=>{setPer(Number(e.target.value));setPage(1);}}>{[30,50,100].map(n=><option key={n} value={n}>{n} คน</option>)}</select></label><span aria-live="polite">{total ? num((cur-1)*per+1) : 0}–{num(Math.min(cur*per,total))} จาก {num(total)} รายการ</span></div>
         {!isRanking && (
           <>
             <div className="gt-directory-results">
               <div className="gt-directory-results-heading">
-                <h2>{tab === "new" ? "รายชื่อผู้ได้รับการรับรองดั้งใหม่" : tab === "diamond" ? "ดั้งเพชร" : "ทำเนียบดั้งทั้งหมด"}</h2>
+                <h2>{tab === "kyu" ? `ทำเนียบคิว · ${kyuLabel}` : tab === "new" ? "รายชื่อผู้ได้รับการรับรองดั้งใหม่" : tab === "diamond" ? "ดั้งเพชร" : "ทำเนียบดั้งทั้งหมด"}</h2>
                 <p aria-live="polite">{num(tab === "all" ? dir.filter((d) => !d.reserved).length : total)} คน</p>
               </div>
 
@@ -318,7 +378,7 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
               {tab === "new" && latest && <>ประกาศล่าสุด {thaiDate(latest, "long")} · </>}
               {tab === "diamond" && <>ผู้ที่มีเครื่องหมายเพชรในทำเนียบดั้ง · </>}
               {tab === "all" && (board.reserved?.length ?? 0) > 0 && <>มีเลขดั้งที่ประมูลแล้วรอสอบ {num(board.reserved!.length)} เลข · </>}
-              ข้อมูลจาก <a href={board.source_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--gt-cta)] hover:underline">สมาคมกีฬาหมากล้อมแห่งประเทศไทย</a>
+              {tab === "kyu" ? <>ระดับจากรุ่นคิวที่แข่งล่าสุด ทำเนียบคิวสมาคม หรือนักกีฬาระบุเอง · ข้อมูลจาก </> : <>ข้อมูลจาก </>}<a href={board.source_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--gt-cta)] hover:underline">สมาคมกีฬาหมากล้อมแห่งประเทศไทย</a>
               {board.synced_at && <> · อัปเดต {thaiDate(board.synced_at)}</>}
             </p>
           </>
@@ -340,11 +400,17 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
           </dl>
         )}
 
-        {total === 0 ? (
+        {tab === "kyu" && !kyuReady ? (
+          kyuRes?.key === kyuKey && kyuRes.error
+            ? <p role="alert" className="gt-card mt-2 p-6 text-center">โหลดทำเนียบคิวไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</p>
+            : <p role="status" className="py-10 text-center text-[var(--gt-muted)]">กำลังโหลด…</p>
+        ) : total === 0 ? (
           <div className="gt-card mt-2 px-5 py-8 text-center">
             <p className="font-semibold">ไม่พบรายชื่อที่ตรงกับเงื่อนไข</p>
-            <button type="button" onClick={() => { setQ(""); setYear("all"); setLevel("all"); setScope("active"); setPage(1); }} className="gt-outline-btn mt-3 min-h-11 px-5 text-sm font-semibold">ล้างตัวกรอง</button>
+            <button type="button" onClick={() => { setQ(""); setYear("all"); setLevel("all"); setScope("active"); setKyuLevel("all"); setKyuScope("all"); setPage(1); }} className="gt-outline-btn mt-3 min-h-11 px-5 text-sm font-semibold">ล้างตัวกรอง</button>
           </div>
+        ) : tab === "kyu" ? (
+          view === "cards" ? <KyuCards rows={kyu!.rows} /> : <KyuTable rows={kyu!.rows} />
         ) : tab === "new" && view === "cards" ? (
           <ul className="grid grid-cols-2 items-start gap-2.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
             {news.slice((cur - 1) * per, cur * per).map((a) => <NewDanCard key={a.dan ?? a.name} a={a} />)}
