@@ -5,6 +5,7 @@ import AthleteDirectory, { type DirectoryAthlete } from '@/components/AthleteDir
 import { publicDb } from '@/app/tournaments/[id]/_ui/data';
 import AthletePaging, { AthletePageSize } from '@/components/AthletePaging';
 import { loadHistoryStats } from '@/lib/central-history';
+import { ATHLETE_GRADES, athleteGradeLabel } from '@/lib/athlete-directory-ranks';
 
 export const metadata: Metadata = { title: 'นักกีฬา' };
 
@@ -22,11 +23,18 @@ export default async function AthletesPage({ searchParams }: {
   const requested = Number(params.page);
   const page = Number.isSafeInteger(requested) && requested > 0 ? Math.min(requested, 2147483647) : 1;
   const size = [30, 50, 100].includes(Number(params.size)) ? Number(params.size) : 30;
-  const level = LEVELS.find(filter => filter.value === params.level) ?? LEVELS[0];
+  const levelParam = typeof params.level === 'string' ? params.level : '';
+  const level = LEVELS.find(filter => levelParam.startsWith(filter.value)) ?? LEVELS[0];
+  const family = level.value === 'all' ? null : level.value;
+  const grade = family
+    ? ATHLETE_GRADES[family].find(value => levelParam === `${family}${value}`) ?? null
+    : null;
+  const skillFilter = grade === null ? level.value : levelParam;
+  const grouped = family !== null && grade === null;
   const view = params.view === 'table' ? 'table' : 'cards';
   const db = publicDb();
   const result = await db?.rpc('gt_public_athlete_directory_v2', {
-    p_query: q, p_page: page, p_size: size, p_level: level.value,
+    p_query: q, p_page: page, p_size: size, p_level: grouped ? `${family}-overview` : skillFilter,
   });
   const data = result?.data as { total: number; page: number; page_size: number; rows: DirectoryAthlete[] } | null;
   const stats = await loadHistoryStats((data?.rows ?? []).map(athlete => athlete.go_id));
@@ -37,7 +45,8 @@ export default async function AthletesPage({ searchParams }: {
     losses: stats?.[athlete.go_id]?.losses ?? 0,
   }));
   const pages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1;
-  const heading = q ? 'ผลการค้นหา' : level.value === 'all' ? 'นักกีฬาทั้งหมด' : `นักกีฬาระดับ${level.label}`;
+  const levelLabel = family && grade !== null ? athleteGradeLabel(family, grade) : level.label;
+  const heading = q ? 'ผลการค้นหา' : family ? `นักกีฬาระดับ${levelLabel}` : 'นักกีฬาทั้งหมด';
 
   return (
     <PublicPage icon="athlete" title="นักกีฬา" sub="รายชื่อนักกีฬาทั้งหมดจากทะเบียน พร้อมผลงานการแข่งขันที่เผยแพร่แล้ว" current="/athletes">
@@ -51,7 +60,7 @@ export default async function AthletesPage({ searchParams }: {
             <input type="search" name="q" defaultValue={q} maxLength={80} placeholder="ค้นหาชื่อ นามสกุล หรือรหัส GO"
               className="min-w-0 flex-1 bg-transparent text-base outline-none" />
           </label>
-          <button type="submit" name="level" value={level.value} className="gt-cta-btn min-h-12 shrink-0 px-5">ค้นหา</button>
+          <button type="submit" name="level" value={skillFilter} className="gt-cta-btn min-h-12 shrink-0 px-5">ค้นหา</button>
         </div>
         <div role="group" aria-label="ระดับฝีมือนักกีฬา" className="flex flex-wrap gap-2">
           {LEVELS.map(filter => (
@@ -61,6 +70,20 @@ export default async function AthletesPage({ searchParams }: {
             </button>
           ))}
         </div>
+        {family && (
+          <div role="group" aria-label={`เลือกระดับ${level.label}`} className="flex flex-wrap gap-2">
+            <button type="submit" name="level" value={family} aria-pressed={grade === null}
+              className={`${grade === null ? 'gt-cta-btn' : 'gt-outline-btn'} min-h-11 px-3 text-sm`}>
+              ทุก{level.label}
+            </button>
+            {ATHLETE_GRADES[family].map(value => (
+              <button key={value} type="submit" name="level" value={`${family}${value}`} aria-pressed={grade === value}
+                className={`${grade === value ? 'gt-cta-btn' : 'gt-outline-btn'} min-h-11 px-3 text-sm`}>
+                {athleteGradeLabel(family, value)}
+              </button>
+            ))}
+          </div>
+        )}
       </form>
       {data && !result?.error ? (
         <>
@@ -69,9 +92,9 @@ export default async function AthletesPage({ searchParams }: {
             {q && <Link href="/athletes" className="text-[var(--gt-brand)] underline">ดูนักกีฬาทั้งหมด</Link>}
           </div>
           <p className="mt-2 text-sm text-[var(--gt-muted)]">สถิติปี 2569 จากแมตช์ที่ตรวจสอบแล้วในประวัติกลาง • อยู่ระหว่างนำเข้าข้อมูลเพิ่มเติม ยังไม่ใช่ประวัติทั้งหมด</p>
-          <AthletePageSize size={data.page_size} total={data.total} start={(data.page - 1) * data.page_size + 1} end={Math.min(data.page * data.page_size, data.total)} />
-          {rows.length ? <AthleteDirectory rows={rows} initialView={view} /> : <p className="gt-card mt-4 p-6">ไม่พบรายชื่อที่ตรงกับคำค้นหรือระดับที่เลือก</p>}
-          <AthletePaging page={data.page} pages={pages} />
+          {!grouped && <AthletePageSize size={data.page_size} total={data.total} start={(data.page - 1) * data.page_size + 1} end={Math.min(data.page * data.page_size, data.total)} />}
+          {rows.length ? <AthleteDirectory rows={rows} initialView={view} rankFamily={family} grouped={grouped} /> : <p className="gt-card mt-4 p-6">ไม่พบรายชื่อที่ตรงกับคำค้นหรือระดับที่เลือก</p>}
+          {!grouped && <AthletePaging page={data.page} pages={pages} />}
         </>
       ) : (
         <p role="alert" className="gt-card mt-4 p-6">โหลดรายชื่อนักกีฬาไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</p>
