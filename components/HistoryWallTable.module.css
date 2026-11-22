@@ -105,14 +105,12 @@
   background: var(--gt-surface, #fff);
 }
 
-.roundLabel, .compactLabel {
+.roundLabel {
   color: var(--gt-muted, #516681);
   font-size: .75rem;
   font-weight: 600;
   line-height: 1.25;
 }
-
-.compactLabel { display: none; }
 
 .result { color: var(--gt-ink, #102947); font-weight: 700; }
 .result[data-outcome="win"] { color: var(--gt-win-ink, #087858); }
@@ -130,14 +128,40 @@
 
 .opponentResult small { color: var(--gt-muted, #516681); }
 
+/* The overview keeps one side-by-side row per athlete on narrow screens. */
+.overviewStats { display: none; }
+.table[data-view="overview"] .round {
+  gap: .08rem;
+  padding: .2rem .12rem;
+}
+.table[data-view="overview"] .rounds { --wall-round-width: 2.65rem; }
+
 @container wall-results (max-width: 46rem) {
-  :global(.gt) .table {
-    display: block;
-    border: 0;
-    font-size: .875rem;
+  :global(.gt) .table[data-view="overview"] { font-size: .82rem; }
+  :global(.gt) .table[data-view="overview"] :is(th, td) { padding: .4rem .25rem; }
+  .table[data-view="overview"] .place { width: 1.75rem; }
+  .table[data-view="overview"] .name { width: 35%; }
+  .table[data-view="overview"] .pointsCell { width: 3rem; }
+  .table[data-view="overview"] :is(.avatar, .wins, .sos, .sosos) { display: none; }
+
+  .table[data-view="overview"] :is(.medal, .points) {
+    min-width: 1.35rem;
+    min-height: 1.35rem;
+    padding-inline: .16rem;
   }
 
-  .table thead {
+  .table[data-view="overview"] .rounds {
+    --wall-round-width: 1.4rem;
+    gap: .14rem;
+  }
+  .table[data-view="overview"] .round {
+    padding: .1rem 0;
+    border-radius: .28rem;
+    font-size: .69rem;
+    line-height: 1.25;
+  }
+  .table[data-view="overview"] .roundLabel { font-size: .62rem; }
+  .table[data-view="overview"] .roundPrefix {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -145,12 +169,89 @@
     clip-path: inset(50%);
   }
 
-  .table tbody {
+  .overviewStats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .1rem .38rem;
+    margin-top: .3rem;
+    color: var(--gt-muted, #516681);
+    font-size: .64rem;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+  .overviewStats div { display: inline-flex; gap: .15rem; }
+  .overviewStats dd { color: var(--gt-ink, #102947); font-weight: 700; }
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  gap: .65rem;
+  list-style: none;
+}
+.card {
+  display: grid;
+  align-content: start;
+  gap: .75rem;
+  min-width: 0;
+  padding: .65rem;
+  border: 1px solid var(--gt-line, #b7cdeb);
+  border-inline-start: 3px solid var(--gt-gold, #c48d29);
+  border-radius: .75rem;
+  background: var(--gt-surface, #fff);
+  font-variant-numeric: tabular-nums;
+}
+.card:nth-child(even) { background: var(--gt-surface-2, #f0f6ff); }
+.cardHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .55rem;
+}
+.cardHeader .identity { min-width: 0; overflow-wrap: anywhere; }
+.cardHeader .avatar { width: 1.9rem; height: 2.25rem; }
+.cardScore { text-align: center; }
+.cardScore > span, .cardStats dt {
+  display: block;
+  margin-bottom: .15rem;
+  color: var(--gt-muted, #516681);
+  font-size: .75rem;
+  font-weight: 600;
+}
+.cardStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .35rem;
+  text-align: center;
+}
+.cardStats > div {
+  padding: .2rem;
+  border-radius: .45rem;
+  background: var(--gt-surface, #fff);
+}
+.card .rounds { --wall-round-width: 3.25rem; text-align: center; }
+
+@container wall-results (max-width: 46rem) {
+  :global(.gt) .table:where([data-rounds="opponents"]) {
+    display: block;
+    border: 0;
+    font-size: .875rem;
+  }
+
+  .table:where([data-rounds="opponents"]) thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .table:where([data-rounds="opponents"]) tbody {
     display: grid;
     gap: .65rem;
   }
 
-  .table tbody tr {
+  .table:where([data-rounds="opponents"]) tbody tr {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     align-items: center;
@@ -163,7 +264,7 @@
     background: var(--wall-row);
   }
 
-  :global(.gt) .table tbody :is(th, td) {
+  :global(.gt) .table:where([data-rounds="opponents"]) tbody :is(th, td) {
     width: auto;
     min-width: 0;
     padding: .2rem 0;
@@ -171,25 +272,20 @@
     background: transparent;
   }
 
-  :global(.gt) .table tbody .name { text-align: start; }
-  .table .name { grid-column: span 4; }
-  .table[data-ranked="false"] .name,
-  .table .roundsCell { grid-column: 1 / -1; }
-  .table[data-rounds="opponents"][data-ranked="true"] .name { grid-column: span 5; }
-  .table .place, .table .pointsCell { justify-self: center; }
+  :global(.gt) .table:where([data-rounds="opponents"]) tbody .name { text-align: start; }
+  .table:where([data-rounds="opponents"]) .name { grid-column: span 4; }
+  .table:where([data-rounds="opponents"])[data-ranked="false"] .name,
+  .table:where([data-rounds="opponents"]) .roundsCell { grid-column: 1 / -1; }
+  .table:where([data-rounds="opponents"])[data-rounds="opponents"][data-ranked="true"] .name { grid-column: span 5; }
+  .table:where([data-rounds="opponents"]) .place, .table:where([data-rounds="opponents"]) .pointsCell { justify-self: center; }
 
-  :global(.gt) .table tbody :is(.wins, .sos, .sosos) {
+  :global(.gt) .table:where([data-rounds="opponents"]) tbody :is(.wins, .sos, .sosos) {
     grid-column: span 2;
     border-radius: .45rem;
     background: var(--gt-surface, #fff);
   }
 
-  .compactLabel {
-    display: block;
-    margin-bottom: .15rem;
-  }
-
-  .table .avatar { width: 1.9rem; height: 2.25rem; }
-  .table .rounds { --wall-round-width: 3.25rem; }
-  .table[data-rounds="opponents"] .rounds { --wall-round-width: 7rem; }
+  .table:where([data-rounds="opponents"]) .avatar { width: 1.9rem; height: 2.25rem; }
+  .table:where([data-rounds="opponents"]) .rounds { --wall-round-width: 3.25rem; }
+  .table:where([data-rounds="opponents"])[data-rounds="opponents"] .rounds { --wall-round-width: 7rem; }
 }
