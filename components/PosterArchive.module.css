@@ -1,0 +1,13 @@
+.card::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  content: "";
+}
+
+.card:is(:active, :has([data-poster-pending]))::after {
+  box-shadow: inset 0 0 0 3px #e8ae2e;
+  background-color: #ffda591c;
+}
