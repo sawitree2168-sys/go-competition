@@ -85,8 +85,13 @@ export async function TournamentList({ current }: { current: string }) {
               </div>
             )}
           </section>
-          <div className="gt-directory-content relative mx-auto max-w-6xl px-4 sm:px-8">{current === "/" && <SiteShortcuts/>}<EventBrowser events={events} serverToday={new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date())} />
-            <div className="mt-10"><PosterArchive events={archive} home /></div>
+          <div className="gt-directory-content relative mx-auto max-w-6xl px-4 sm:px-8">
+            {current === "/" && <SiteShortcuts />}
+            {current === "/" && <PosterArchive events={archive} home />}
+            <div className={current === "/" && archive.length ? "mt-10" : undefined}>
+              <EventBrowser events={events} serverToday={new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date())} />
+            </div>
+            {current !== "/" && <div className="mt-10"><PosterArchive events={archive} home /></div>}
           </div>
           {current === "/" && <section className="site-main"><h2 className="site-section-title">ข่าวสารและประกาศ</h2><div className="site-shortcuts"><Link href="/news">ข่าวสารและผลล่าสุด →</Link><Link href="/results/submit">ส่งภาพผลการแข่งขัน →</Link></div></section>}
           <SiteFooter/>
