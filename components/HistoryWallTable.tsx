@@ -105,7 +105,6 @@ export default function HistoryWallTable({ wall, rows, view }: { wall: HistoryWa
             <th scope="col" className={styles.name}>นักกีฬา</th>
             <th scope="col" className={styles.pointsCell}>คะแนน</th>
             {rounds.map(round => <th key={round} scope="col" className={styles.roundColumn} aria-label={`${roundLabel} ${round}`}>{round}</th>)}
-            <th scope="col" className={styles.wins}>ชนะ</th>
             <th scope="col" className={styles.sos}>SOS</th>
             <th scope="col" className={styles.sosos}>SOSOS</th>
           </tr>
@@ -123,7 +122,6 @@ export default function HistoryWallTable({ wall, rows, view }: { wall: HistoryWa
                 {rounds.map(round => (
                   <td key={round} className={styles.roundColumn}><RoundResult result={results.get(round)} /></td>
                 ))}
-                <td className={styles.wins}>{row.wins}</td>
                 <td className={styles.sos}>{score(row.sos)}</td>
                 <td className={styles.sosos}>{score(row.sosos)}</td>
               </tr>

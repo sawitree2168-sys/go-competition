@@ -43,7 +43,7 @@
   text-align: start;
 }
 .table .pointsCell { width: 4.45rem; }
-.table .wins, .table .sos, .table .sosos { width: 3.75rem; }
+.table .sos, .table .sosos { width: 3.75rem; }
 .table[data-rounds="opponents"] .place { width: 5.25rem; }
 
 :global(.gt) .table tbody .name { color: var(--gt-ink, #102947) !important; }
@@ -161,10 +161,10 @@
   :global(.gt) .table[data-view="overview"] :is(th, td) { padding: .35rem .06rem; }
   .table[data-view="overview"] .place { width: 6%; }
   .table[data-view="overview"] .name { width: clamp(22%, calc(40% - var(--wall-round-count) * 1.8%), 34%); }
-  .table[data-view="overview"] .pointsCell { width: 9%; }
-  .table[data-view="overview"] .wins { width: 7%; }
-  .table[data-view="overview"] .sos { width: 7%; }
-  .table[data-view="overview"] .sosos { width: 9%; }
+  .table[data-view="overview"] .pointsCell { width: 11%; }
+  .table[data-view="overview"] .sos { width: 8%; }
+  .table[data-view="overview"] .sosos { width: 12%; }
+  .table[data-view="overview"] thead :is(.pointsCell, .sos, .sosos) { white-space: nowrap; }
 
   .table[data-view="overview"] .identity {
     flex-wrap: wrap;
@@ -274,7 +274,7 @@
   .table:where([data-rounds="opponents"])[data-rounds="opponents"][data-ranked="true"] .name { grid-column: span 5; }
   .table:where([data-rounds="opponents"]) .place, .table:where([data-rounds="opponents"]) .pointsCell { justify-self: center; }
 
-  :global(.gt) .table:where([data-rounds="opponents"]) tbody :is(.wins, .sos, .sosos) {
+  :global(.gt) .table:where([data-rounds="opponents"]) tbody :is(.sos, .sosos) {
     grid-column: span 2;
     border-radius: .45rem;
     background: var(--gt-surface, #fff);
