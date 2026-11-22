@@ -603,10 +603,3 @@
 @media(min-width:1600px){.dan-directory-cards{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:800px){.dan-directory-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.site-sponsor-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.site-sponsor{padding:18px 12px 12px}.site-sponsor img{height:95px}.presentation-banner{min-height:230px;padding:26px 22px}.presentation-banner:after{background:linear-gradient(90deg,#061a38ed,#061a3888)}.presentation-banner h1{max-width:90%}.dan-display-tools{gap:12px;justify-content:flex-start}.dan-help{padding:12px;font-size:13px}.dan-pagination{gap:5px}.dan-pagination label{width:100%;justify-content:center;margin-top:8px}.dan-player-card h2{font-size:15px}.dan-card-picture{padding:8px}.dan-card-position{top:12px;left:12px;font-size:12px}}
 
-/* ทำเนียบคิว: ปุ่มเลือก 1–15 คิว (มือถือ 4 คอลัมน์ ให้เห็นครบในจอเดียว) */
-@media (max-width: 800px) {
-  .dan-board .gt-directory-filters.kyu-chips { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-  .dan-board .kyu-chips button { min-height: 52px; flex-direction: column; gap: 1px; padding-inline: 2px; line-height: 1.15; }
-  .dan-board .kyu-chips button span { font-size: 0.72rem; }
-  .dan-board .kyu-chips .kyu-chip-wide { grid-column: span 2; flex-direction: row; gap: 6px; }
-}
