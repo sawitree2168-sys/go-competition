@@ -2,7 +2,8 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import PublicPage from '@/components/PublicPage';
-import HistoryWallTable from '@/components/HistoryWallTable';
+import HistoryWallSearch from '@/components/HistoryWallSearch';
+import { historySubmitHref } from '@/lib/history-submit';
 import { loadHistoryWall, historyWallHref } from '@/lib/history-walllist';
 import { thaiDate } from '@/lib/division-display';
 
@@ -70,7 +71,15 @@ export default async function HistoryWallPage({ params, searchParams }: {
           <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">อันดับต้นทางกับคะแนนที่คำนวณจากผลรายเกมต่างกัน ตารางนี้คงอันดับต้นทางไว้ค่ะ</p>
         )}
         <p className="text-sm text-[var(--gt-muted)]">เลขคืออันดับของคู่แข่ง · + ชนะ · − แพ้ · = เสมอ · * ชนะหรือแพ้ผ่าน <span className="sm:hidden">· เลื่อนตารางเพื่อดูรอบถัดไป</span></p>
-        {wall.rows.length ? <HistoryWallTable wall={wall} /> : <p>ยังไม่มีผลที่ตรวจสอบแล้วในรุ่นนี้</p>}
+        {wall.rows.length ? <HistoryWallSearch key={wall.division} wall={wall} /> : <p>ยังไม่มีผลที่ตรวจสอบแล้วในรุ่นนี้</p>}
+        {wall.division && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--gt-line)] p-3">
+            <p className="text-sm">มีรายชื่อหรือผลที่ยังตกหล่นในรุ่นนี้ไหมคะ?</p>
+            <Link href={historySubmitHref(wall.event.id, wall.division)} className="gt-cta-btn inline-flex min-h-11 items-center px-4">
+              ส่งข้อมูลการแข่งขันเพิ่มเติม
+            </Link>
+          </div>
+        )}
         {sources.length > 0 && (
           <footer className="flex flex-wrap items-baseline gap-x-4 gap-y-2 border-t border-[var(--gt-line,#b7cdeb)] pt-3 text-sm">
             <strong>อ้างอิงต้นทาง</strong>

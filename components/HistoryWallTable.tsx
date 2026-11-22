@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import AthleteAvatar from './AthleteAvatar';
-import type { HistoryWall, WallToken } from '@/lib/history-walllist';
+import type { HistoryWall, WallRow, WallToken } from '@/lib/history-walllist';
 import styles from './HistoryWallTable.module.css';
 
 const formatNumber = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 1 });
@@ -27,7 +27,7 @@ function RoundResult({ result }: { result?: WallToken }) {
   );
 }
 
-export default function HistoryWallTable({ wall }: { wall: HistoryWall }) {
+export default function HistoryWallTable({ wall, rows = wall.rows }: { wall: HistoryWall; rows?: WallRow[] }) {
   const rounds = [...new Set(wall.rows.flatMap(row => (row.rounds ?? []).map(result => result.round)))]
     .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
 
@@ -46,7 +46,7 @@ export default function HistoryWallTable({ wall }: { wall: HistoryWall }) {
           </tr>
         </thead>
         <tbody>
-          {wall.rows.map(row => {
+          {rows.map(row => {
             const place = row.place_label === undefined ? row.place : row.place_label;
             const medal = place !== null && row.place <= 3 ? row.place : undefined;
             return (
