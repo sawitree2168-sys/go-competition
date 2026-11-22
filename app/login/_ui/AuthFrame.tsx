@@ -15,14 +15,19 @@ export function LogoMark({ className = "h-11 w-11" }: { className?: string }) {
 }
 
 /** Login / sign-up / password pages: white top bar, blue photo panel on computers, form card. */
-export default function AuthFrame({ children, heroTitle = "ทุกการแข่งขัน\nเริ่มต้นที่นี่" }: { children: React.ReactNode; heroTitle?: string }) {
+export default function AuthFrame({ children, heroTitle = "ทุกการแข่งขัน\nเริ่มต้นที่นี่", loginBanner = false }: { children: React.ReactNode; heroTitle?: string; loginBanner?: boolean }) {
   return (
     <div className="gt-auth min-h-screen bg-[linear-gradient(160deg,var(--gt-cta-soft),transparent_60%)]">
       <Shell wide>
         <div className="px-3 py-4 sm:px-6 sm:py-8">
           <div className="overflow-hidden rounded-3xl border border-[var(--gt-line)] bg-[var(--gt-surface)] shadow-xl">
             <SiteBar current="/login"/>
-            <PageHero title="ยินดีต้อนรับสู่ GO TOURNAMENT" sub="เข้าสู่ระบบเพื่อจัดการข้อมูลของคุณ"/>
+            {loginBanner ? (
+              <picture className="block overflow-hidden border-b-2 border-[#d7aa42]">
+                <source media="(max-width: 639px)" srcSet="/login-banner-mobile.svg" />
+                <img src="/login-banner-desktop.svg" alt="ยินดีต้อนรับสู่ GO TOURNAMENT เข้าสู่ระบบเพื่อจัดการข้อมูลของคุณ" className="block h-auto w-full" />
+              </picture>
+            ) : <PageHero title="ยินดีต้อนรับสู่ GO TOURNAMENT" sub="เข้าสู่ระบบเพื่อจัดการข้อมูลของคุณ"/>}
             <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className="relative hidden min-h-[36rem] overflow-hidden bg-[#0a2fa0] lg:m-4 lg:block lg:rounded-2xl">
                 <picture>
