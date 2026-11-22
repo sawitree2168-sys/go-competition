@@ -64,7 +64,7 @@ export default function PosterArchive({
               <span className="sr-only">ค้นหาชื่อรายการย้อนหลัง</span>
               <input type="search" value={query} placeholder="ค้นหาชื่อรายการย้อนหลัง…"
                 onChange={event => { setQuery(event.target.value); setPage(1); }}
-                className="block min-h-11 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 text-base focus-visible:outline-2 focus-visible:outline-blue-700 sm:text-sm" />
+                className="block min-h-11 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 text-base placeholder:text-[var(--gt-muted)] placeholder:opacity-100 focus-visible:outline-2 focus-visible:outline-blue-700 sm:text-sm" />
             </label>
             <label>
               <span className="sr-only">ปีการแข่งขันย้อนหลัง</span>
@@ -107,7 +107,7 @@ export default function PosterArchive({
                       <span className={compactCards ? "hidden md:inline" : undefined}>{thaiDate(event.event_date) ?? fallbackDate}</span>
                       <span> · {event.divisions} รุ่น</span>
                     </p>
-                    <PosterArchiveLinkLabel className={`mt-auto pt-2 text-sm font-semibold text-[var(--gt-cta)] ${compactCards ? "max-md:pt-1 max-md:text-[clamp(0.42rem,1.95vw,0.8rem)]" : ""}`} />
+                    <PosterArchiveLinkLabel className={`mt-auto pt-2 text-sm font-semibold text-[var(--gt-brand)] ${compactCards ? "max-md:pt-1 max-md:text-[clamp(0.42rem,1.95vw,0.8rem)]" : ""}`} />
                   </div>
                 </Link>
               </li>
