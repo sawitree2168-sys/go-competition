@@ -6,6 +6,7 @@ import { publicDb } from '@/app/tournaments/[id]/_ui/data';
 import AthletePaging, { AthletePageSize } from '@/components/AthletePaging';
 import { loadHistoryStats } from '@/lib/central-history';
 import { ATHLETE_GRADES, athleteGradeLabel } from '@/lib/athlete-directory-ranks';
+import AthleteLevelFilter from '@/components/AthleteLevelFilter';
 
 export const metadata: Metadata = { title: 'นักกีฬา' };
 
@@ -62,29 +63,8 @@ export default async function AthletesPage({ searchParams }: {
           </label>
           <button type="submit" name="level" value={skillFilter} className="gt-cta-btn min-h-12 shrink-0 px-5">ค้นหา</button>
         </div>
-        <div role="group" aria-label="ระดับฝีมือนักกีฬา" className="flex flex-wrap gap-2">
-          {LEVELS.map(filter => (
-            <button key={filter.value} type="submit" name="level" value={filter.value} aria-pressed={level.value === filter.value}
-              className={`${level.value === filter.value ? 'gt-cta-btn' : 'gt-outline-btn'} min-h-11 px-4 text-sm`}>
-              {filter.label}
-            </button>
-          ))}
-        </div>
-        {family && (
-          <div role="group" aria-label={`เลือกระดับ${level.label}`} className="flex flex-wrap gap-2">
-            <button type="submit" name="level" value={family} aria-pressed={grade === null}
-              className={`${grade === null ? 'gt-cta-btn' : 'gt-outline-btn'} min-h-11 px-3 text-sm`}>
-              ทุก{level.label}
-            </button>
-            {ATHLETE_GRADES[family].map(value => (
-              <button key={value} type="submit" name="level" value={`${family}${value}`} aria-pressed={grade === value}
-                className={`${grade === value ? 'gt-cta-btn' : 'gt-outline-btn'} min-h-11 px-3 text-sm`}>
-                {athleteGradeLabel(family, value)}
-              </button>
-            ))}
-          </div>
-        )}
       </form>
+      <div className="mt-3"><AthleteLevelFilter selected={skillFilter} q={q} size={size} view={view} /></div>
       {data && !result?.error ? (
         <>
           <div className="mt-5 flex flex-wrap justify-between gap-3">
