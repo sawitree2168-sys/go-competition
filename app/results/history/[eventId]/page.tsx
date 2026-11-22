@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import PublicPage from '@/components/PublicPage';
 import HistoryWallSearch from '@/components/HistoryWallSearch';
+import TournamentPoster from '@/components/TournamentPoster';
+import { loadPosterArchive } from '@/lib/poster-archive';
 import { historySubmitHref } from '@/lib/history-submit';
 import { loadHistoryWall, historyWallHref } from '@/lib/history-walllist';
 import { thaiDate } from '@/lib/division-display';
@@ -23,10 +25,12 @@ export default async function HistoryWallPage({ params, searchParams }: {
 }) {
   const id = decodeEventId((await params).eventId);
   const { division } = await searchParams;
-  const wall = await loadHistoryWall(id, division);
+  const [wall, archive] = await Promise.all([loadHistoryWall(id, division), loadPosterArchive()]);
   if (!wall) notFound();
 
+  const event = archive.find(event => event.id === wall.event.id);
   const date = thaiDate(wall.event.event_date) ?? 'ยังไม่ระบุวันแข่งขัน';
+  const subtitle = `${date} · วอลล์ลิสต์ผลรายรอบ`;
   const count = wall.divisions.find(item => item.name === wall.division);
   const organizerStandings = wall.organizer_standings || Boolean(wall.source);
   const sources = wall.source ? [
@@ -35,8 +39,22 @@ export default async function HistoryWallPage({ params, searchParams }: {
     { url: wall.source.review, label: wall.source.review_label },
   ] : [];
 
+  const hero = event && (
+    <header className="border-b border-[var(--gt-line)] bg-[var(--gt-surface)]">
+      <div className="mx-auto grid max-w-6xl items-center gap-4 px-4 py-4 sm:grid-cols-2 sm:gap-6 sm:px-8">
+        <div className="overflow-hidden rounded-xl border border-[var(--gt-line)]">
+          <TournamentPoster choice={event.poster} title={event.title} year={event.event_year + 543} landscape />
+        </div>
+        <div>
+          <h1 className="break-words text-xl font-bold leading-snug sm:text-3xl">{wall.event.title}</h1>
+          <p className="mt-2 text-sm text-[var(--gt-muted)]">{subtitle}</p>
+        </div>
+      </div>
+    </header>
+  );
+
   return (
-    <PublicPage icon="results" title={wall.event.title} sub={`${date} · วอลล์ลิสต์ผลรายรอบ`} current="/results">
+    <PublicPage icon="results" title={wall.event.title} sub={subtitle} current="/results" hero={hero}>
       <Link href="/results/history" className="inline-flex min-h-11 items-center underline underline-offset-4">วอลล์ลิสต์รายการอื่น</Link>
       <nav aria-label="เลือกรุ่น" className="my-3 flex flex-wrap gap-2">
         {wall.divisions.map(item => {

@@ -5,12 +5,12 @@ import { PageHero, SiteFooter } from "./SiteDesign";
 import MenuIcon, { type MenuIconName } from "./MenuIcon";
 
 /** Frame of the simple public pages (athletes, results, stats, news, FAQ…): site bar, title, content. */
-export default function PublicPage({ icon, title, sub, children, current }: { icon: MenuIconName; title: string; sub?: string; children: React.ReactNode; current?: string }) {
+export default function PublicPage({ icon, title, sub, children, current, hero }: { icon: MenuIconName; title: string; sub?: string; children: React.ReactNode; current?: string; hero?: React.ReactNode }) {
   return (
     <Shell wide>
       <div className="site-public relative left-1/2 w-screen -translate-x-1/2">
         <SiteBar current={current} />
-        <PageHero title={title} sub={sub}/>
+        {hero ?? <PageHero title={title} sub={sub}/>}
         <main className="site-public-content">{children}</main>
         <SiteFooter/>
       </div>
