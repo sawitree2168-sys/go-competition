@@ -24,12 +24,12 @@ export default function AuthFrame({ children, heroTitle = "ทุกการแ
             <SiteBar current="/login"/>
             {loginBanner ? (
               <picture className="block overflow-hidden border-b-2 border-[#d7aa42]">
-                <source media="(max-width: 639px)" srcSet="/login-banner-mobile.svg" />
-                <img src="/login-banner-desktop.svg" alt="ยินดีต้อนรับสู่ GO TOURNAMENT เข้าสู่ระบบเพื่อจัดการข้อมูลของคุณ" className="block h-auto w-full" />
+                <source media="(max-width: 639px)" srcSet="/login-banner-mobile.png" />
+                <img src="/login-banner-desktop.png" alt="ยินดีต้อนรับสู่ GO TOURNAMENT เข้าสู่ระบบเพื่อจัดการข้อมูลของคุณ" className="block h-auto w-full" />
               </picture>
             ) : <PageHero title="ยินดีต้อนรับสู่ GO TOURNAMENT" sub="เข้าสู่ระบบเพื่อจัดการข้อมูลของคุณ"/>}
-            <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <div className="relative hidden min-h-[36rem] overflow-hidden bg-[#0a2fa0] lg:m-4 lg:block lg:rounded-2xl">
+            <div className={loginBanner ? "grid" : "grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"}>
+              {!loginBanner && <div className="relative hidden min-h-[36rem] overflow-hidden bg-[#0a2fa0] lg:m-4 lg:block lg:rounded-2xl">
                 <picture>
                   <source srcSet="/login-hero.webp" type="image/webp" />
                   <img src="/login-hero.jpg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-bottom" />
@@ -39,7 +39,7 @@ export default function AuthFrame({ children, heroTitle = "ทุกการแ
                   <p className="gt-auth-hero whitespace-pre-line text-5xl font-bold leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,.35)]">{heroTitle}</p>
                   <span aria-hidden="true" className="mt-6 block h-1 w-28 rounded-full bg-[#4fb3ff]" />
                 </div>
-              </div>
+              </div>}
               <div className="relative px-4 pb-20 pt-6 sm:px-10 lg:py-12">
                 <div className="mx-auto w-full max-w-md">{children}</div>
                 <span aria-hidden="true" className="pointer-events-none absolute bottom-3 right-4 flex lg:hidden">
