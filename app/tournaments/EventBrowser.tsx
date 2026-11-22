@@ -1,6 +1,7 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- posters come from storage URLs of any size */
 
+import TournamentPoster from "@/components/TournamentPoster";
+import type { PosterChoice } from "@/lib/tournament-posters";
 import EventOrganizer from "@/components/EventOrganizer";
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
@@ -8,8 +9,8 @@ import { STATUS_LABEL, eventStatus, thaiYear } from "@/lib/event-list.mjs";
 import { thaiDate } from "@/lib/division-display";
 
 export type EventCard = {
-  id: string; title: string; event_date: string | null; poster_url: string | null; venue: string | null;
-  registration_open_date: string | null; registration_close_date: string | null; registration_mode: string | null; kinds: string; href?: string; archived?: boolean;
+  id: string; title: string; event_date: string | null; poster: PosterChoice; venue: string | null;
+  registration_open_date: string | null; registration_close_date: string | null; registration_mode: string | null; kinds: string; href?: string; archived?: boolean; inArchive?: boolean;
 };
 type Filter = "all" | "open" | "live" | "finished";
 type Status = ReturnType<typeof eventStatus>;
@@ -29,27 +30,6 @@ const urlStatus = () => new URLSearchParams(window.location.search).get("status"
 
 const CalIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3.5" y="5" width="17" height="15" rx="2" /><path d="M3.5 10h17M8 3v4M16 3v4" strokeLinecap="round" /></svg>;
 const PinIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.5" /></svg>;
-
-const FALLBACKS = ["/posters/fallback-1.webp", "/posters/fallback-2.webp", "/posters/fallback-3.webp", "/posters/fallback-4.webp"];
-const pick = (id: string) => FALLBACKS[[...id].reduce((n, c) => (n * 31 + c.charCodeAt(0)) >>> 0, 7) % FALLBACKS.length];
-
-function Banner({ e }: { e: EventCard }) {
-  if (e.poster_url) {
-    return (
-      <div className="gt-event-poster">
-        <img src={e.poster_url} alt={`โปสเตอร์ ${e.title}`} loading="lazy" decoding="async" />
-      </div>
-    );
-  }
-  // No poster yet: a Go illustration with the event name on it.
-  return (
-    <div className="gt-event-poster gt-event-poster-fallback relative overflow-hidden bg-[#0b1a3a]">
-      <img src={pick(e.id)} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-      <span aria-hidden="true" className="gt-poster-veil absolute inset-0" />
-      <p className="relative px-5 pt-6 text-right gt-poster-ink text-lg font-bold uppercase leading-snug">{e.title}</p>
-    </div>
-  );
-}
 
 export default function EventBrowser({ events, serverToday }: { events: EventCard[]; serverToday: string }) {
   // Server date first (no flash), then the visitor's clock in case the cached page is from yesterday.
@@ -71,7 +51,8 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
     const needle = q.trim().toLowerCase();
     const order: Record<Status, number> = { live: 0, open: 1, upcoming: 2, closed: 3, tba: 4, finished: 5 };
     return withStatus
-      .filter((e) => (filter === "all" || e.status === filter)
+      .filter((e) => (!e.inArchive || filter === "finished" || Boolean(needle) || year !== "all")
+        && (filter === "all" || e.status === filter)
         && (year === "all" || String(thaiYear(e.event_date)) === year)
         && (!needle || e.title.toLowerCase().includes(needle) || (e.venue ?? "").toLowerCase().includes(needle)))
       .sort((a, b) => order[a.status] - order[b.status]
@@ -85,7 +66,7 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
 
   const action = (e: (typeof withStatus)[number]) =>
     e.status === "live" ? { label: "ติดตามการแข่งขัน", primary: true }
-    : e.status === "finished" ? { label: "ดูผลการแข่งขัน", primary: false }
+    : e.status === "finished" ? { label: e.inArchive ? "ดูวอลล์ลิสต์" : "ดูผลการแข่งขัน", primary: false }
     : e.status === "open" ? { label: "ดูรายละเอียดและสมัคร", primary: true }
     : { label: "ดูรายละเอียด", primary: true };
 
@@ -138,7 +119,7 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
                 return (
                   <li key={e.id} className="grid grid-cols-[76px_minmax(0,1fr)] items-start gap-3 p-3 sm:grid-cols-[90px_minmax(0,1fr)_auto] lg:grid-cols-[80px_minmax(0,1.5fr)_minmax(0,1fr)_110px_140px] lg:items-center lg:gap-4 lg:px-4">
                     <Link href={href} className="block h-[88px] w-[76px] overflow-hidden rounded-lg sm:w-[90px] lg:h-[68px] lg:w-[80px]" aria-label={e.title}>
-                      <img src={e.poster_url ?? pick(e.id)} alt={"โปสเตอร์ " + e.title} loading="lazy" className="h-full w-full object-cover" />
+                      <TournamentPoster choice={e.poster} title={e.title} year={thaiYear(e.event_date)} thumbnail />
                     </Link>
                     <div className="min-w-0 space-y-1">
                       <Link href={href} className="block break-words text-sm font-semibold leading-relaxed hover:underline">{e.title}</Link>
@@ -166,7 +147,7 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
             const mobileLabel = e.status === "open" ? "ดูรายละเอียดและสมัคร" : a.label;
             return (
               <li key={e.id} className="gt-event-card">
-                <Link href={e.href ?? `/tournaments/${e.id}`} aria-label={e.title} className="gt-event-poster-link"><Banner e={e} /></Link>
+                <Link href={e.href ?? `/tournaments/${e.id}`} aria-label={e.title} className="gt-event-poster-link"><TournamentPoster choice={e.poster} title={e.title} year={thaiYear(e.event_date)} /></Link>
                 <div className="gt-event-info">
                   <span className={`self-start rounded-md px-2.5 py-0.5 text-xs font-bold ${CHIP[e.status]}`}>{STATUS_LABEL[e.status]}</span>
                   <h2 className="gt-event-title">{e.title}</h2>

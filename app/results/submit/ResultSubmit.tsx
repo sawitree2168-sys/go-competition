@@ -1,19 +1,253 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- local previews and approved illustration */
-import {createClient} from "@supabase/supabase-js";
-import {useEffect,useRef,useState} from "react";
-import {SectionHeading} from "@/components/SiteDesign";
-type Pick={id:string;file:File;url:string};
-const statuses:Record<string,string>={uploading:"ยังส่งภาพไม่ครบ",pending:"รับภาพแล้ว • รอผู้ดูแลตรวจสอบ",draft:"กำลังตรวจข้อมูลฉบับร่าง",approved:"อนุมัติผลแล้ว",rejected:"ผู้ดูแลไม่อนุมัติ"};
-function db(token?:string){return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:token?{'x-gt-upload-token':token}:{}}});}
-export default function ResultSubmit(){
- const [files,setFiles]=useState<Pick[]>([]),[athlete,setAthlete]=useState(""),[event,setEvent]=useState(""),[note,setNote]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState(""),[progress,setProgress]=useState("");
- const [receipt,setReceipt]=useState<{id:string;token:string;status:string}|null>(null),[statusNote,setStatusNote]=useState("");
- const camera=useRef<HTMLInputElement>(null),picker=useRef<HTMLInputElement>(null),pending=useRef<{id:string;token:string;uploaded:{path:string;name:string}[];fileIds:string[]}|null>(null);
- const urls=useRef<string[]>([]);useEffect(()=>()=>urls.current.forEach(URL.revokeObjectURL),[]);
- useEffect(()=>{setAthlete(new URLSearchParams(location.search).get("athlete")||"");const h=new URLSearchParams(location.hash.slice(1));const id=h.get("receipt"),token=h.get("key");if(id&&token&&/^[a-f0-9-]{36}$/.test(id)&&/^[a-f0-9-]{36}$/.test(token)){void db().rpc("gt_photo_receipt_v1",{p_id:id,p_token:token}).then(r=>{if(r.data){setReceipt({id,token,status:r.data.status});setStatusNote(r.data.admin_note||"");}else setError("ไม่พบข้อมูลรับเรื่อง หรือลิงก์ไม่ถูกต้อง");});}},[]);
- function add(list:FileList|null){if(!list)return;setError("");const next:Pick[]=[];for(const file of Array.from(list)){if(!['image/jpeg','image/png','image/webp'].includes(file.type)){setError("รองรับภาพ JPG PNG และ WebP กรุณาแปลงภาพ HEIC ก่อนส่ง");continue;}if(file.size>10*1024*1024){setError("แต่ละภาพต้องไม่เกิน 10 MB กรุณาเลือกภาพที่เล็กลง");continue;}if(files.length+next.length>=12){setError("แนบได้ครั้งละไม่เกิน 12 ภาพ");break;}const url=URL.createObjectURL(file);urls.current.push(url);next.push({id:crypto.randomUUID(),file,url});}if(next.length){pending.current=null;setFiles([...files,...next]);}}
- async function send(e:React.FormEvent){e.preventDefault();if(!files.length){setError("กรุณาแนบภาพอย่างน้อย 1 ภาพ");return;}setBusy(true);setError("");try{let p=pending.current;if(!p){const token=crypto.randomUUID();const r=await db().rpc("gt_photo_intake_start_v1",{p_token:token,p_athlete:athlete,p_event:event,p_note:note});if(r.error||!r.data)throw Error(r.error?.message||"ส่งข้อมูลไม่ได้");p={id:r.data,token,uploaded:[],fileIds:[]};pending.current=p;}const client=db(p.token);for(let i=0;i<files.length;i++){const f=files[i];if(p.fileIds.includes(f.id))continue;setProgress(`กำลังส่งภาพ ${i+1}/${files.length}…`);const ext=f.file.type==='image/png'?'png':f.file.type==='image/webp'?'webp':'jpg';const path=`${p.id}/${f.id}.${ext}`;const r=await client.storage.from('gt-result-intake').upload(path,f.file,{contentType:f.file.type,upsert:false});if(r.error)throw Error(r.error.message);p.uploaded.push({path,name:f.file.name.slice(0,200)});p.fileIds.push(f.id);}const r=await client.rpc("gt_photo_intake_finish_v1",{p_id:p.id,p_token:p.token,p_files:p.uploaded});if(r.error)throw Error(r.error.message);setReceipt({id:p.id,token:p.token,status:'pending'});history.replaceState(null,'',`#receipt=${p.id}&key=${p.token}`);try{localStorage.setItem(`gt-photo-receipt:${p.id}`,p.token);}catch{}pending.current=null;}catch(e){setError(`ส่งยังไม่สำเร็จ กรุณาลองอีกครั้ง ภาพที่เลือกยังอยู่ • ${(e as Error).message.includes('TOO_MANY')?'มีการส่งจำนวนมาก กรุณารอสักครู่':'ตรวจการเชื่อมต่ออินเทอร์เน็ต'}`);}finally{setBusy(false);setProgress("");}}
- if(receipt)return <section className="gt-card mx-auto max-w-2xl space-y-5 p-6 text-center"><img src="/design/thank-you.webp" width="240" height="220" alt="เด็กชายและเด็กหญิงชิบิไหว้ขอบคุณ" className="mx-auto h-auto w-52"/><h2 className="text-2xl font-bold">ขอบคุณสำหรับข้อมูล<br/>เพื่อร่วมพัฒนาฐานข้อมูลนักกีฬาหมากล้อม</h2><p role="status" className="rounded-xl bg-blue-50 p-4">{statuses[receipt.status]||"รอตรวจสอบ"}</p><p>ข้อมูลจะได้รับการตรวจสอบและอนุมัติก่อนนำไปเพิ่มในสถิติ</p><p className="text-sm">รหัสรับข้อมูล: {receipt.id}</p>{statusNote&&<p>{statusNote}</p>}<p className="text-sm text-slate-600">เก็บลิงก์หน้านี้ไว้เพื่อตรวจสถานะ ลิงก์มีรหัสส่วนตัวสำหรับใบรับเรื่องนี้</p><div className="flex flex-wrap justify-center gap-3"><button className="gt-outline-btn min-h-12 px-5" onClick={async()=>{const r=await db().rpc("gt_photo_receipt_v1",{p_id:receipt.id,p_token:receipt.token});if(r.data){setReceipt({...receipt,status:r.data.status});setStatusNote(r.data.admin_note||"");}}}>ตรวจสถานะ</button><button className="gt-cta-btn min-h-12 px-5" onClick={()=>{setReceipt(null);setFiles([]);setNote(`ส่งภาพเพิ่มเติมจากรหัส ${receipt.id}`);history.replaceState(null,'',location.pathname);}}>ส่งภาพเพิ่มเติม</button></div></section>;
- return <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]"><form onSubmit={send} className="gt-card space-y-5 p-5"><SectionHeading icon="upload">แนบภาพผลการแข่งขัน</SectionHeading><div className="rounded-xl border-2 border-dashed border-blue-400 bg-blue-50 p-7 text-center"><p className="mb-5 text-xl font-semibold">ถ่ายรูปหรือแคปหน้าจอ แล้วส่งได้เลย</p><div className="flex flex-wrap justify-center gap-3"><button disabled={busy} type="button" onClick={()=>camera.current?.click()} className="gt-cta-btn min-h-12 px-6">ถ่ายรูป</button><button disabled={busy} type="button" onClick={()=>picker.current?.click()} className="gt-outline-btn min-h-12 px-6">เลือกรูปจากเครื่อง</button></div><p className="mt-4 text-sm text-slate-600">ไม่ต้องล็อกอิน • ส่งเฉพาะภาพที่มีก็ได้ ไม่ต้องครบทั้งรายการ</p><p className="mt-2 text-xs text-slate-600">สูงสุด 12 ภาพ ภาพละ 10 MB • JPG / PNG / WebP</p></div><input ref={camera} className="sr-only" aria-label="ถ่ายรูปผลการแข่งขัน" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" disabled={busy} onChange={e=>{add(e.target.files);e.target.value='';}}/><input ref={picker} className="sr-only" aria-label="แนบภาพผลการแข่งขัน" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy} onChange={e=>{add(e.target.files);e.target.value='';}}/><div className="grid grid-cols-3 gap-3">{files.map(f=><div className="relative" key={f.id}><img src={f.url} alt={f.file.name} className="h-28 w-full rounded-xl border object-contain"/><button disabled={busy} type="button" aria-label={`ลบภาพ ${f.file.name}`} className="absolute right-0 top-0 rounded-full bg-red-600 px-2 text-white" onClick={()=>{setFiles(files.filter(x=>x.id!==f.id));pending.current=null;}}>×</button></div>)}</div>{([['athlete','ชื่อนักกีฬา (ไม่บังคับ)',athlete,setAthlete],['event','รายการ / รุ่นแข่งขัน (ถ้าทราบ)',event,setEvent]] as const).map(([k,label,value,set])=><label className="block text-sm font-semibold" key={k}>{label}<input disabled={busy} maxLength={k==='athlete'?160:200} value={value} onChange={e=>set(e.target.value)} className="mt-1 block min-h-12 w-full border px-3"/></label>)}<label className="block text-sm font-semibold">ข้อความเพิ่มเติม (ไม่บังคับ)<textarea disabled={busy} maxLength={1500} rows={3} value={note} onChange={e=>setNote(e.target.value)} className="mt-1 w-full border p-3"/></label>{error&&<p role="alert" className="text-red-700">{error}</p>}<button disabled={busy||!files.length} className="gt-cta-btn min-h-14 w-full text-xl disabled:opacity-50">{busy?progress||"กำลังส่ง…":"ส่งข้อมูล"}</button><p className="text-center text-sm text-slate-600">ภาพจะเก็บเป็นส่วนตัว รอครูเล็กตรวจสอบและอนุมัติก่อนนำผลไปใช้</p></form><aside className="space-y-5"><section className="gt-card p-5"><SectionHeading icon="documents">วิธีส่งข้อมูล</SectionHeading><ol className="list-inside list-decimal space-y-4"><li>ถ่ายรูปหรือเลือกภาพที่มี</li><li>เพิ่มรายละเอียดได้ถ้าทราบ</li><li>กดส่ง แล้วเก็บลิงก์รับเรื่อง</li></ol></section><section className="gt-card p-5"><SectionHeading icon="register">หลังส่งแล้ว</SectionHeading><p>รับภาพแล้ว → ผู้ดูแลตรวจสอบ → อนุมัติแล้วจึงเพิ่มสถิติ</p><p className="mt-4 text-sm text-slate-600">ส่งได้ทั้งผลรายรอบ ตารางจับคู่ และอันดับจากสนามอื่น ข้อมูลที่ไม่ชัดจะรอตรวจสอบ ไม่เผยแพร่อัตโนมัติ</p></section></aside></div>;
+
+import { createClient } from "@supabase/supabase-js";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { SectionHeading } from "@/components/SiteDesign";
+import { historyWallHref } from "@/lib/history-wall-href";
+
+type Evidence = { id: string; file: File; url: string };
+type Receipt = { id: string; token: string; status: string };
+type Pending = { id: string; token: string; files: { id: string; path: string; name: string }[] };
+type Context = { id: string; title: string; division: string; divisions: string[]; athletes: string[] };
+const FORMATS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+const statusLabels: Record<string, string> = {
+  uploading: "ยังส่งภาพไม่ครบ",
+  pending: "รับภาพแล้ว • รอผู้ดูแลตรวจสอบ",
+  draft: "กำลังตรวจข้อมูลฉบับร่าง",
+  approved: "อนุมัติผลแล้ว",
+  rejected: "ผู้ดูแลไม่อนุมัติ",
+};
+const control = "mt-1 block min-h-12 w-full rounded-lg border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3";
+const UUID = /^[a-f0-9-]{36}$/;
+
+function db(token?: string) {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: token ? { "x-gt-upload-token": token } : {} },
+  });
+}
+
+export default function ResultSubmit({ context, initialAthlete }: { context: Context | null; initialAthlete: string }) {
+  const [files, setFiles] = useState<Evidence[]>([]);
+  const [athlete, setAthlete] = useState(initialAthlete);
+  const [event, setEvent] = useState("");
+  const [division, setDivision] = useState(context?.division ?? "");
+  const [scope, setScope] = useState<"athlete" | "division">("athlete");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [progress, setProgress] = useState("");
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
+  const [statusNote, setStatusNote] = useState("");
+  const camera = useRef<HTMLInputElement>(null);
+  const picker = useRef<HTMLInputElement>(null);
+  const pending = useRef<Pending | null>(null);
+  const urls = useRef(new Set<string>());
+
+  useEffect(() => {
+    const activeUrls = urls.current;
+    return () => activeUrls.forEach(URL.revokeObjectURL);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.hash.slice(1));
+    const id = params.get("receipt");
+    const token = params.get("key");
+    if (!id || !token || !UUID.test(id) || !UUID.test(token)) return;
+    void db().rpc("gt_photo_receipt_v1", { p_id: id, p_token: token }).then(({ data }) => {
+      if (data) {
+        setReceipt({ id, token, status: data.status });
+        setStatusNote(data.admin_note ?? "");
+      } else setError("ไม่พบข้อมูลรับเรื่อง หรือลิงก์ไม่ถูกต้อง");
+    });
+  }, []);
+
+  function add(list: FileList | null) {
+    if (!list) return;
+    setError("");
+    const next: Evidence[] = [];
+    for (const file of Array.from(list)) {
+      if (!Object.hasOwn(FORMATS, file.type)) {
+        setError("รองรับภาพ JPG PNG และ WebP กรุณาแปลงภาพ HEIC ก่อนส่ง");
+        continue;
+      }
+      if (!file.size || file.size > 10 * 1024 * 1024) {
+        setError("แต่ละภาพต้องมีขนาดไม่เกิน 10 MB");
+        continue;
+      }
+      if (files.length + next.length >= 12) {
+        setError("แนบได้ครั้งละไม่เกิน 12 ภาพ");
+        break;
+      }
+      const url = URL.createObjectURL(file);
+      urls.current.add(url);
+      next.push({ id: crypto.randomUUID(), file, url });
+    }
+    setFiles([...files, ...next]);
+  }
+
+  function remove(file: Evidence) {
+    URL.revokeObjectURL(file.url);
+    urls.current.delete(file.url);
+    setFiles(files.filter(row => row.id !== file.id));
+    if (pending.current?.files.some(row => row.id === file.id)) pending.current = null;
+  }
+
+  async function send(form: React.FormEvent) {
+    form.preventDefault();
+    if (!files.length || (context && scope === "athlete" && !athlete.trim())) {
+      setError(files.length ? "กรุณากรอกชื่อนักกีฬา" : "กรุณาแนบภาพอย่างน้อย 1 ภาพ");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      let submission = pending.current;
+      if (!submission) {
+        const token = crypto.randomUUID();
+        const result = context
+          ? await db().rpc("gt_photo_intake_history_v1", {
+              p_token: token, p_event_id: context.id, p_division: division, p_scope: scope, p_athlete: scope === "athlete" ? athlete : "", p_note: note,
+            })
+          : await db().rpc("gt_photo_intake_start_v1", { p_token: token, p_athlete: athlete, p_event: event, p_note: note });
+        if (result.error || !result.data) throw new Error(result.error?.message);
+        submission = { id: result.data, token, files: [] };
+        pending.current = submission;
+      }
+      const client = db(submission.token);
+      for (const [index, file] of files.entries()) {
+        if (submission.files.some(saved => saved.id === file.id)) continue;
+        setProgress(`กำลังส่งภาพ ${index + 1}/${files.length}…`);
+        const extension = FORMATS[file.file.type as keyof typeof FORMATS];
+        const path = `${submission.id}/${file.id}.${extension}`;
+        const { error } = await client.storage.from("gt-result-intake").upload(path, file.file, { contentType: file.file.type, upsert: false });
+        if (error && !["409", "Duplicate"].includes(error.statusCode ?? "")) throw error;
+        submission.files.push({ id: file.id, path, name: file.file.name.slice(0, 200) });
+      }
+      const { id, token } = submission;
+      const result = await client.rpc("gt_photo_intake_finish_v1", {
+        p_id: id, p_token: token, p_files: submission.files.map(({ path, name }) => ({ path, name })),
+      });
+      if (result.error) {
+        const check = await db().rpc("gt_photo_receipt_v1", { p_id: id, p_token: token });
+        if (!check.data || check.data.status === "uploading") throw result.error;
+      }
+      setReceipt({ id, token, status: "pending" });
+      history.replaceState(null, "", `#receipt=${id}&key=${token}`);
+      try { localStorage.setItem(`gt-photo-receipt:${id}`, token); } catch {}
+      pending.current = null;
+    } catch (cause) {
+      const message = (cause as { message?: string }).message ?? "";
+      setError(message.includes("TOO_MANY")
+        ? "มีการส่งจำนวนมาก กรุณารอสักครู่แล้วลองอีกครั้ง"
+        : "ส่งยังไม่สำเร็จ ภาพที่เลือกยังอยู่ กรุณาลองอีกครั้ง");
+    } finally {
+      setBusy(false);
+      setProgress("");
+    }
+  }
+
+  if (receipt) return (
+    <section className="gt-card mx-auto max-w-2xl space-y-5 p-6 text-center">
+      <img src="/design/thank-you.webp" width="240" height="220" alt="เด็กชายและเด็กหญิงชิบิไหว้ขอบคุณ" className="mx-auto h-auto w-52" />
+      <h2 className="text-2xl font-bold">ขอบคุณสำหรับข้อมูลการแข่งขัน</h2>
+      <p role="status" className="rounded-xl bg-blue-50 p-4">{statusLabels[receipt.status] ?? "รอตรวจสอบ"}</p>
+      <p>ผู้ดูแลจะตรวจสอบหลักฐานก่อนนำข้อมูลไปเพิ่มในสถิติ</p>
+      <p className="text-sm">รหัสรับข้อมูล {receipt.id}</p>
+      {statusNote && <p>{statusNote}</p>}
+      <p className="text-sm text-[var(--gt-muted)]">เก็บลิงก์หน้านี้ไว้เพื่อตรวจสถานะ ลิงก์มีรหัสส่วนตัวสำหรับใบรับเรื่องนี้</p>
+      <div className="flex flex-wrap justify-center gap-3">
+        <button className="gt-outline-btn min-h-12 px-5" onClick={async () => {
+          const result = await db().rpc("gt_photo_receipt_v1", { p_id: receipt.id, p_token: receipt.token });
+          if (result.data) {
+            setReceipt({ ...receipt, status: result.data.status });
+            setStatusNote(result.data.admin_note ?? "");
+          }
+        }}>ตรวจสถานะ</button>
+        <button className="gt-cta-btn min-h-12 px-5" onClick={() => {
+          urls.current.forEach(URL.revokeObjectURL);
+          urls.current.clear();
+          setReceipt(null);
+          setFiles([]);
+          setStatusNote("");
+          setNote(`ส่งภาพเพิ่มเติมจากรหัส ${receipt.id}`);
+          history.replaceState(null, "", location.pathname + location.search);
+        }}>ส่งภาพเพิ่มเติม</button>
+      </div>
+    </section>
+  );
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
+      <form onSubmit={send} className="gt-card space-y-5 p-5">
+        <SectionHeading icon="upload">แนบภาพผลการแข่งขัน</SectionHeading>
+        <fieldset disabled={busy} className="min-w-0 space-y-4">
+          {context && (
+            <div className="space-y-3 rounded-xl border border-[var(--gt-line)] p-3">
+              <p className="break-words font-semibold">{context.title}</p>
+              <label className="block text-sm font-semibold">รุ่นแข่งขัน
+                <select className={control} value={division} onChange={e => {
+                  pending.current = null;
+                  setDivision(e.target.value);
+                  setAthlete("");
+                }}>{context.divisions.map(name => <option key={name}>{name}</option>)}</select>
+              </label>
+              <fieldset className="space-y-1">
+                <legend className="font-semibold">ข้อมูลที่ต้องการส่ง</legend>
+                {([["athlete", "ข้อมูลนักกีฬารายบุคคล"], ["division", "ผลของทั้งรุ่น"]] as const).map(([value, label]) => (
+                  <label key={value} className="flex min-h-10 items-center gap-2">
+                    <input type="radio" name="scope" checked={scope === value} onChange={() => { pending.current = null; setScope(value); }} />
+                    {label}
+                  </label>
+                ))}
+              </fieldset>
+            </div>
+          )}
+          {(!context || scope === "athlete") && (
+            <label className="block text-sm font-semibold">
+              {context ? "ชื่อนักกีฬา" : "ชื่อนักกีฬา (ไม่บังคับ)"}
+              <input className={control} maxLength={160} value={athlete} required={Boolean(context)}
+                list={context?.division === division ? "known-athletes" : undefined}
+                onChange={e => { pending.current = null; setAthlete(e.target.value); }} />
+              {context?.division === division && <datalist id="known-athletes">{[...new Set(context.athletes)].map(name => <option key={name} value={name} />)}</datalist>}
+              {context && <span className="mt-1 block font-normal text-[var(--gt-muted)]">พิมพ์ชื่อเต็มได้หากชื่อตกหล่นในวอลล์ลิสต์</span>}
+            </label>
+          )}
+          {!context && <label className="block text-sm font-semibold">รายการ / รุ่นแข่งขัน (ถ้าทราบ)
+            <input className={control} maxLength={200} value={event} onChange={e => { pending.current = null; setEvent(e.target.value); }} />
+          </label>}
+          <div className="space-y-3 rounded-xl border-2 border-dashed border-blue-400 bg-[var(--gt-surface-2)] p-4 text-center">
+            <p>ถ่ายรูปหรือแคปหน้าจอตารางผล อันดับ หรือใบประกาศ</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              <button type="button" onClick={() => camera.current?.click()} className="gt-cta-btn min-h-12 px-4">ถ่ายรูป</button>
+              <button type="button" onClick={() => picker.current?.click()} className="gt-outline-btn min-h-12 px-4">เลือกรูปจากเครื่อง</button>
+            </div>
+            <p className="text-xs text-[var(--gt-muted)]">สูงสุด 12 ภาพ ภาพละ 10 MB • JPG / PNG / WebP</p>
+          </div>
+          <input ref={camera} className="hidden" type="file" accept={Object.keys(FORMATS).join(",")} capture="environment" onChange={e => { add(e.target.files); e.target.value = ""; }} />
+          <input ref={picker} className="hidden" type="file" accept={Object.keys(FORMATS).join(",")} multiple onChange={e => { add(e.target.files); e.target.value = ""; }} />
+          {files.length > 0 && <div className="grid grid-cols-3 gap-3">{files.map(file => (
+            <div className="relative" key={file.id}>
+              <img src={file.url} alt={file.file.name} className="h-28 w-full rounded-xl border object-contain" />
+              <button type="button" aria-label={`ลบภาพ ${file.file.name}`} className="absolute right-0 top-0 min-h-9 min-w-9 rounded-full bg-red-700 text-white" onClick={() => remove(file)}>×</button>
+            </div>
+          ))}</div>}
+          <label className="block text-sm font-semibold">ข้อความเพิ่มเติม (ไม่บังคับ)
+            <textarea className={`${control} py-2`} maxLength={1400} rows={3} value={note} onChange={e => { pending.current = null; setNote(e.target.value); }} />
+          </label>
+        </fieldset>
+        {error && <p role="alert" className="text-red-700">{error}</p>}
+        <button disabled={busy || !files.length} className="gt-cta-btn min-h-14 w-full text-xl disabled:opacity-50">{busy ? progress || "กำลังส่ง…" : "ส่งข้อมูล"}</button>
+      </form>
+      <aside className="space-y-4">
+        <section className="gt-card p-5">
+          <SectionHeading icon="documents">หลังส่งข้อมูล</SectionHeading>
+          <p>เก็บลิงก์ใบรับเรื่องไว้ตรวจสถานะ ภาพจะเก็บเป็นส่วนตัว ผู้ดูแลจะตรวจสอบและอนุมัติก่อนเพิ่มเข้าสถิติค่ะ</p>
+        </section>
+        {context && <Link href={historyWallHref(context.id, division)} className="inline-flex min-h-11 items-center underline underline-offset-4">← กลับไปดูวอลล์ลิสต์</Link>}
+      </aside>
+    </div>
+  );
 }
