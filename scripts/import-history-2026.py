@@ -112,7 +112,9 @@ def prepare():
    reviews.append({'key':event,'reason':'event_adapter_pending','details':{'title':title,'rows':len(rows)}})
  # 1go provides explicit team/tie/board context. Cross-source duplicate matches are
  # attached as evidence, not added to stats twice. Unknown identity stays separate.
- onego=read('data/onego-2026-source.json')['values'];sources.append({'key':'onego:2026','hash':sha(onego),'url':'https://docs.google.com/spreadsheets/d/1jDFQJkG-FD2265ZnTjXjXesTe_cu6P6p2hnep_MpmnI/edit','payload':{'rows':onego}})
+ onego_source = read('data/onego-2026-source.json')
+ onego = onego_source['values']
+ sources.append({'key':'onego:2026','hash':sha(onego),'url':onego_source.get('sourceUrl') or 'onego:2026','payload':{'rows':onego}})
  for i,r in enumerate(onego[1:],2):
   if len(r)<17 or r[1]!='2569':continue
   event='association:081169' if 'J-Park' in r[3] else 'association:071169' if 'Thailand Go League' in r[3] else None

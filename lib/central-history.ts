@@ -6,7 +6,11 @@ export type Placing={event_id:string;division:string;place:number;players:number
 export type LevelHistoryItem={placings?:Placing[]|null;kind:'event'|'dan';event_id:string|null;title:string;event_year:number;event_date:string|null;date_status:string;divisions:string[]|null;level:string|null;level_at_time:string|null;dan_number:number|null;level_changed:boolean};
 export type LevelHistory={current:{label:string|null;dan_number:number;diamond:boolean;source:string}|null;items:LevelHistoryItem[];note:string};
 export type HistoryProfile={go_id:string;full_name:string;photo?:string|null;stats:HistoryStats;games:HistoryGame[];opponents:HistoryOpponent[];level_history?:LevelHistory;placings?:Placing[];coverage:{year:number;status:string;note:string}};
-export async function loadHistoryProfile(goId:string){
+export type AthleteHistoryProfile = Omit<HistoryProfile, 'games'> & {
+ games: Omit<HistoryGame, 'source_url'>[];
+};
+
+export async function loadHistoryProfile(goId:string): Promise<AthleteHistoryProfile | null> {
  if(!/^GO\d{6,20}$/.test(goId))return null;
  const db=publicDb();if(!db)return null;
  const [result, photo] = await Promise.all([
@@ -14,7 +18,17 @@ export async function loadHistoryProfile(goId:string){
   loadHistoryPhotos([goId]),
  ]);
  if(result.error)throw new Error('โหลดประวัติการแข่งขันไม่สำเร็จ กรุณาลองใหม่');
- return result.data ? {...result.data as HistoryProfile, photo:photo[goId] ?? null} : null;
+ if (!result.data) return null;
+ const profile = result.data as HistoryProfile;
+ // Pass only public match fields to the athlete history page.
+ const games = profile.games.map(({
+  id, event_id, title, event_year, event_date, date_status, division, round_label,
+  board_label, kind, outcome, opponent_key, opponent_go_id, opponent_name,
+ }) => ({
+  id, event_id, title, event_year, event_date, date_status, division, round_label,
+  board_label, kind, outcome, opponent_key, opponent_go_id, opponent_name,
+ }));
+ return { ...profile, games, photo: photo[goId] ?? null };
 }
 export async function loadHistoryPhotos(goIds: string[]): Promise<Record<string, string>> {
  const db = publicDb();
