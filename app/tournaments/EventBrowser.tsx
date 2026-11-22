@@ -75,7 +75,7 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
       <div className="gt-directory-tools">
         <label className="gt-directory-search relative block">
           <span className="sr-only">ค้นหารายการแข่งขัน</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--gt-muted)]" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" strokeLinecap="round" /></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#506987]" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" strokeLinecap="round" /></svg>
           <input type="search" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="ค้นหารายการแข่งขัน…"
             className="block min-h-12 w-full rounded-full border border-[var(--gt-dash-panel-line)] bg-[var(--gt-dash-panel)] pl-12 pr-4 text-base outline-none focus:border-[var(--gt-cta)] focus:ring-2 focus:ring-[var(--gt-cta)]/25" />
         </label>
@@ -99,7 +99,7 @@ export default function EventBrowser({ events, serverToday }: { events: EventCar
       <div className="gt-directory-results" id="event-results">
         <div className="gt-directory-results-heading">
           <h2>รายการแข่งขัน</h2>
-          <p className="text-sm text-[var(--gt-muted)]" aria-live="polite">{shown.length} รายการ</p>
+          <p className="text-sm text-white" aria-live="polite">{shown.length} รายการ</p>
         </div>
         <div role="group" aria-label="รูปแบบการแสดงรายการแข่งขัน" className="gt-directory-view-toggle">
           <button type="button" aria-pressed={view === "cards"} onClick={() => setView("cards")} className={view === "cards" ? "is-active" : ""}>▦ การ์ด</button>
