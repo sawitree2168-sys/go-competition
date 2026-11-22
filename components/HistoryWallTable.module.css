@@ -1,92 +1,62 @@
-.scroll {
-  border: 1px solid var(--gt-line, #b7cdeb);
-  border-radius: 1rem;
-  overflow: auto;
-  max-width: 100%;
-  scrollbar-color: #7499c9 var(--gt-surface-2, #eff5ff);
+.layout {
+  container: wall-results / inline-size;
+  min-width: 0;
 }
 
-.table {
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
-  table-layout: auto;
+:global(.gt) .table {
+  border: 1px solid var(--gt-line, #b7cdeb);
+  border-radius: .9rem;
+  table-layout: fixed;
   color: var(--gt-ink, #102947);
   font-size: .875rem;
   font-variant-numeric: tabular-nums;
 }
 
-.table :is(th, td) {
-  padding: .55rem .65rem;
-  text-align: center;
-  vertical-align: middle;
+:global(.gt) .table :is(th, td) {
+  padding: .55rem .45rem;
+  border: 0;
+  overflow-wrap: anywhere;
 }
 
-.table thead th {
-  background: var(--gt-table-head, #104b91);
-  color: white;
-  white-space: nowrap;
+:global(.gt) .table thead th {
+  background: var(--gt-table-head, #1f4ea3);
+  color: #fff;
   font-weight: 700;
 }
 
-.table tbody tr {
-  --wall-row: var(--gt-surface, #fff);
-}
+:global(.gt) .table thead th:first-child { border-start-start-radius: .8rem; }
+:global(.gt) .table thead th:last-child { border-start-end-radius: .8rem; }
 
-.table tbody tr:nth-child(even) {
-  --wall-row: var(--gt-surface-2, #f0f6ff);
-}
-
-.table tbody :is(td, th) {
+:global(.gt) .table tbody :is(td, th) {
   background: var(--wall-row);
   border-top: 1px solid var(--gt-line, #d8e4f5);
+  border-radius: 0;
 }
 
-.table .place {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  box-sizing: border-box;
-  min-width: 3rem;
-  width: 3rem;
-  max-width: 3rem;
-  padding-inline: .25rem;
-}
+.table tbody tr { --wall-row: var(--gt-surface, #fff); }
+.table tbody tr:nth-child(even) { --wall-row: var(--gt-surface-2, #f0f6ff); }
 
+.table .place { width: 3.4rem; }
 .table .name {
-  position: sticky;
-  left: 3rem;
-  z-index: 2;
-  min-width: 10rem;
-  width: 16rem;
-  text-align: left;
-  border-right: 1px solid var(--gt-line, #d8e4f5);
+  width: 25%;
+  min-width: 0;
+  text-align: start;
 }
+.table .pointsCell { width: 4.45rem; }
+.table .wins, .table .sos, .table .sosos { width: 3.75rem; }
+.table[data-rounds="opponents"] .place { width: 5.25rem; }
 
-.table tbody .name {
-  color: var(--gt-ink, #102947) !important;
-}
-
-.table .round {
-  min-width: 4.5rem;
-  width: 6rem;
-}
+:global(.gt) .table tbody .name { color: var(--gt-ink, #102947) !important; }
 
 .identity {
   display: flex;
   gap: .55rem;
   align-items: center;
-  line-height: 1.3;
+  line-height: 1.4;
   font-weight: 700;
-  overflow-wrap: anywhere;
 }
 
-.identity a {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: #5685bb;
-  text-underline-offset: .2em;
-}
+.identity a { color: inherit; text-underline-offset: .2em; text-decoration: underline; }
 
 .avatar {
   flex: none;
@@ -94,10 +64,7 @@
   height: 2.6rem;
 }
 
-.avatar > * {
-  width: 100%;
-  height: 100%;
-}
+.avatar > *, .avatar button { width: 100%; height: 100%; }
 
 .medal, .points {
   display: inline-grid;
@@ -114,40 +81,115 @@
 .medal[data-medal="3"] { background: #f3c29d; color: #673113; }
 
 .points {
-  background: #e5f7ee;
-  color: #07553c;
+  background: var(--gt-win-bg, #e5f7ee);
+  color: var(--gt-win-ink, #07553c);
 }
 
-.result {
-  white-space: nowrap;
+.rounds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--wall-round-width, 3.4rem)), 1fr));
+  gap: .35rem;
+  padding: 0;
+  list-style: none;
+}
+
+.table[data-rounds="opponents"] { --wall-round-width: 7.5rem; }
+.round {
+  display: grid;
+  gap: .15rem;
+  align-content: start;
+  min-width: 0;
+  padding: .38rem .24rem;
+  border: 1px solid var(--gt-line, #d8e4f5);
+  border-radius: .5rem;
+  background: var(--gt-surface, #fff);
+}
+
+.roundLabel, .compactLabel {
   color: var(--gt-muted, #516681);
+  font-size: .75rem;
   font-weight: 600;
+  line-height: 1.25;
 }
 
-.result[data-outcome="win"] { color: #087858; }
-.result[data-outcome="loss"] { color: #bf2455; }
-.result[data-outcome="bye"] { color: #805400; }
+.compactLabel { display: none; }
 
-:global(.gt[data-gt-theme='dark']) .result[data-outcome="win"] { color: #7cddae; }
-:global(.gt[data-gt-theme='dark']) .result[data-outcome="loss"] { color: #ff91b2; }
-:global(.gt[data-gt-theme='dark']) .result[data-outcome="bye"] { color: #f6cb75; }
-
+.result { color: var(--gt-ink, #102947); font-weight: 700; }
+.result[data-outcome="win"] { color: var(--gt-win-ink, #087858); }
+.result[data-outcome="loss"] { color: var(--gt-loss-ink, #bf2455); }
+.result[data-outcome="bye"] { color: var(--gt-gold-ink, #805400); }
 .empty { color: var(--gt-muted, #516681); }
 
-@media (max-width: 640px) {
-  .table :is(th, td) { padding: .45rem .5rem; }
-  .table .place {
-    min-width: 2.4rem;
-    width: 2.4rem;
-    max-width: 2.4rem;
-    padding-inline: .16rem;
+.opponentResult {
+  display: grid;
+  gap: .15rem;
+  min-width: 0;
+  font-size: .8rem;
+  line-height: 1.4;
+}
+
+.opponentResult small { color: var(--gt-muted, #516681); }
+
+@container wall-results (max-width: 46rem) {
+  :global(.gt) .table {
+    display: block;
+    border: 0;
+    font-size: .875rem;
   }
-  .table .name {
-    left: 2.4rem;
-    width: 9.25rem;
-    min-width: 9.25rem;
-    max-width: 9.25rem;
+
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
-  .table .round { min-width: 4.25rem; }
-  .avatar { display: none; }
+
+  .table tbody {
+    display: grid;
+    gap: .65rem;
+  }
+
+  .table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: center;
+    gap: .5rem .35rem;
+    min-width: 0;
+    padding: .65rem;
+    border: 1px solid var(--gt-line, #b7cdeb);
+    border-inline-start: 3px solid var(--gt-gold, #c48d29);
+    border-radius: .75rem;
+    background: var(--wall-row);
+  }
+
+  :global(.gt) .table tbody :is(th, td) {
+    width: auto;
+    min-width: 0;
+    padding: .2rem 0;
+    border: 0;
+    background: transparent;
+  }
+
+  :global(.gt) .table tbody .name { text-align: start; }
+  .table .name { grid-column: span 4; }
+  .table[data-ranked="false"] .name,
+  .table .roundsCell { grid-column: 1 / -1; }
+  .table[data-rounds="opponents"][data-ranked="true"] .name { grid-column: span 5; }
+  .table .place, .table .pointsCell { justify-self: center; }
+
+  :global(.gt) .table tbody :is(.wins, .sos, .sosos) {
+    grid-column: span 2;
+    border-radius: .45rem;
+    background: var(--gt-surface, #fff);
+  }
+
+  .compactLabel {
+    display: block;
+    margin-bottom: .15rem;
+  }
+
+  .table .avatar { width: 1.9rem; height: 2.25rem; }
+  .table .rounds { --wall-round-width: 3.25rem; }
+  .table[data-rounds="opponents"] .rounds { --wall-round-width: 7rem; }
 }
