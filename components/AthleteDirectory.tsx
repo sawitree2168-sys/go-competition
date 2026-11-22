@@ -72,7 +72,10 @@ function AthleteTable({ rows }: { rows: DirectoryAthlete[] }) {
               <td>
                 <div className="portrait-table-person">
                   <AthleteAvatar src={athlete.photo} name={athlete.full_name} variant="portrait" zoom />
-                  <div><strong>{athlete.full_name}</strong><small>{athlete.institution || athlete.go_id}</small></div>
+                  <div>
+                    <strong>{athlete.full_name}</strong>
+                    <small className={athlete.institution ? undefined : "portrait-go-id"}>{athlete.institution || athlete.go_id}</small>
+                  </div>
                 </div>
               </td>
               <td>{athlete.rank || "–"}</td>
