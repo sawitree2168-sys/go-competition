@@ -128,3 +128,18 @@
 .gt-medal-group li b{display:block;font-size:16px}
 .gt-medal-group li small{color:#536b8b}
 .gt-medal-none{margin:0;padding:8px 12px;color:#8494aa}
+/* Admin division page, kept to a few buttons (มือถือ 22 Nov 2026) */
+.gt-mon-actions{display:flex;flex-wrap:wrap;gap:8px}
+.gt-mon-actions>button,.gt-mon-actions .gt-fullscreen-btn,.gt-mon-view button,.gt-round-tools>*{min-height:46px;padding:8px 14px;border:2px solid #92b6e5;border-radius:11px;background:var(--gt-surface);font-weight:700;font-size:14px;color:#0a2f6e}
+.gt-mon-actions .gt-fullscreen-btn,.gt-round-tools .gt-fullscreen-btn{flex:1 1 auto;border-color:#c38d27;background:linear-gradient(#0c55a5,#082e77);color:#fff;box-shadow:0 3px 0 #bc882b}
+.gt-mon-view{display:none;gap:8px}
+@media(min-width:640px){.gt-mon-view{display:flex}}
+.gt-mon-go{min-height:36px;padding:2px 12px;border:2px solid #e2b54d;border-radius:999px;background:#ffffff1f;color:#fff;font-size:13px;font-weight:700}
+.gt-report-kind{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px}
+.gt-report-kind button{min-height:44px;border:2px solid #92b6e5;border-radius:11px;background:var(--gt-surface);font-weight:700}
+.gt-round-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gt-round-tools details{position:relative;padding:0;border:0;background:none;min-height:0}
+.gt-round-tools summary{list-style:none;cursor:pointer;min-height:46px;display:flex;align-items:center;padding:8px 14px;border:2px solid #92b6e5;border-radius:11px;background:var(--gt-surface)}
+.gt-round-tools summary::-webkit-details-marker{display:none}
+.gt-round-menu{position:absolute;right:0;z-index:20;display:grid;gap:6px;min-width:12rem;margin-top:6px;padding:8px;border:2px solid #c59634;border-radius:14px;background:var(--gt-surface);box-shadow:0 8px 20px #0b316533}
+.gt-round-menu>*{display:flex;align-items:center;min-height:44px;padding:6px 12px;border:1.5px solid #b8cce8;border-radius:10px;background:var(--gt-surface);font-weight:600;font-size:14px;text-align:left}

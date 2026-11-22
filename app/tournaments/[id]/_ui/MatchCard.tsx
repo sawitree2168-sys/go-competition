@@ -45,12 +45,12 @@ function Side({ seat, colour, extra }: { seat: Seat; colour: "black" | "white"; 
   );
 }
 
-export default function MatchCard({ board, status, statusTone = "wait", black, white, blackExtra, whiteExtra, actions, highlight = false }: {
-  board: number | null; status: string; statusTone?: "wait" | "done";
+export default function MatchCard({ id, board, status, statusTone = "wait", black, white, blackExtra, whiteExtra, actions, highlight = false }: {
+  id?: string; board: number | null; status: string; statusTone?: "wait" | "done";
   black: Seat; white: Seat; blackExtra?: React.ReactNode; whiteExtra?: React.ReactNode; actions?: React.ReactNode; highlight?: boolean;
 }) {
   return (
-    <li className={`gt-card overflow-hidden ${highlight ? "border-2 border-[var(--gt-warn)]" : "border-2 border-[var(--gt-brand)]/40"}`}>
+    <li id={id} className={`gt-card scroll-mt-20 overflow-hidden ${highlight ? "border-2 border-[var(--gt-warn)]" : "border-2 border-[var(--gt-brand)]/40"}`}>
       <div className={`flex items-center justify-between gap-2 px-3 py-2 ${statusTone === "done" ? "bg-[#dff5e6]" : "bg-[var(--gt-surface-2)]"}`}>
         <span className="gt-num rounded-lg bg-[var(--gt-brand)] px-3 py-1 text-base font-bold text-white">โต๊ะ {board ?? "–"}</span>
         <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusTone === "done" ? "bg-[var(--gt-ok)] text-white" : "bg-[var(--gt-surface)] text-[var(--gt-muted)]"}`}>{statusTone === "done" ? `✓ จบแล้ว · ${status}` : status}</span>
