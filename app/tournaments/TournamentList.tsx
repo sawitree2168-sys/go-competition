@@ -65,7 +65,7 @@ export async function TournamentList({ current }: { current: string }) {
   return (
     <div className="min-h-screen">
       <Shell wide>
-        <div className="gt-dash gt-directory relative left-1/2 -mb-10 min-h-screen w-screen -translate-x-1/2 overflow-hidden pb-12">
+        <div className={`gt-dash gt-directory relative left-1/2 -mb-10 min-h-screen w-screen -translate-x-1/2 overflow-hidden pb-12 ${current === "/" ? "gt-directory-home" : ""}`}>
           <SiteBar current={current} />
           <section className={`gt-directory-hero ${current === "/" ? "gt-directory-hero-home" : ""}`} aria-label={current === "/" ? "GO TOURNAMENT — สมัครแข่งขันและติดตามผล" : "รายการแข่งขัน"}>
             <picture className="gt-directory-art">
