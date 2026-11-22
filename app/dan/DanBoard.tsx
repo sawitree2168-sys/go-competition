@@ -67,28 +67,30 @@ function NewDanCard({ a }: { a: Announcement }) {
   const [open, setOpen] = useState(false);
   return (
     <li className="gt-card gt-athlete-card flex min-w-0 flex-col gap-0 overflow-hidden p-0">
-      <div className="relative shrink-0 bg-[linear-gradient(180deg,var(--gt-avatar-top),var(--gt-surface-2))] px-2 pb-2 pt-4 sm:py-4">
-        <span className="absolute left-2 top-2 rounded-md bg-[var(--gt-gold-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--gt-gold-ink)] sm:text-xs">ดั้งใหม่</span>
-        {a.diamond && <span className="absolute right-2 top-2" title="ดั้งเพชร"><Diamond className="h-5 w-5" /></span>}
-        <div className="mx-auto aspect-[4/5] w-full max-w-48"><AthleteAvatar src={a.photo} name={a.name} zoom variant="portrait" /></div>
+      <div className="dan-card-picture">
+        <AthleteAvatar src={a.photo} name={a.name} zoom variant="portrait" />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2.5 py-3 text-center sm:px-3">
-        <Name p={a} className="block min-h-10 break-words text-sm font-semibold leading-snug sm:text-lg" />
+      <div className="dan-card-body flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+        <div className="flex flex-wrap items-center justify-center gap-1">
+          <span className="dan-card-position bg-[var(--gt-gold-soft)] text-[var(--gt-gold-ink)]">ดั้งใหม่</span>
+          {a.diamond && <span title="ดั้งเพชร"><Diamond /></span>}
+        </div>
+        <Name p={a} className="dan-card-name block font-semibold leading-snug" />
         <p className="flex flex-wrap items-center justify-center gap-1.5">
           <span className="rounded-full bg-[var(--gt-surface-2)] px-2.5 py-0.5 text-sm font-bold text-[var(--gt-brand)]">{danLabel(a.level)}</span>
           <span className="gt-num text-sm font-semibold">เลขดั้ง {a.dan ? num(a.dan) : "-"}</span>
         </p>
         <p className="text-xs text-[var(--gt-muted)] sm:text-sm">ประกาศเมื่อ {thaiDate(a.announced_on)}</p>
         <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}
-          className="mt-auto flex min-h-10 w-full items-center justify-center gap-1 rounded-lg border border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-2 text-xs font-semibold text-[var(--gt-brand)] sm:text-sm">
+          className="mt-auto flex min-h-10 w-full items-center justify-center gap-1 rounded-lg border border-[var(--gt-line)] bg-[var(--gt-surface-2)] px-1 text-xs font-semibold text-[var(--gt-brand)] sm:px-2 sm:text-sm">
           <PeopleIcon /><span>{open ? "ซ่อนผู้สอบ" : "ดูผู้สอบ"}</span>
         </button>
         {open && (
           <ul className="w-full space-y-2 pt-1 text-left">
             {a.examiners.map((e) => (
-              <li key={e.role} className="flex items-center gap-2">
+              <li key={e.role} className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
                 <AthleteAvatar src={e.photo} name={e.name} zoom className="h-9 w-9" />
-                <span className="min-w-0 flex-1">
+                <span className="w-full min-w-0 flex-1">
                   <span className="block text-[11px] text-[var(--gt-muted)] sm:text-xs">{e.role}</span>
                   <span className="block break-words text-xs font-semibold leading-snug sm:text-sm">
                     <Name p={e} />{e.diamond && <span className="ml-1 inline-flex translate-y-0.5"><Diamond className="h-3.5 w-3.5" /></span>}
@@ -412,12 +414,29 @@ export default function DanBoard({ board, ranking }: { board: Board; ranking: Ra
         ) : tab === "kyu" ? (
           view === "cards" ? <KyuCards rows={kyu!.rows} /> : <KyuTable rows={kyu!.rows} />
         ) : tab === "new" && view === "cards" ? (
-          <ul className="grid grid-cols-2 items-start gap-2.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+          <ul className="dan-directory-cards items-start">
             {news.slice((cur - 1) * per, cur * per).map((a) => <NewDanCard key={a.dan ?? a.name} a={a} />)}
           </ul>
         ) : tab === "rank" ? (
           view === "cards" ? <RankCards rows={ranked.slice((cur - 1) * per, cur * per)} classRank={level === "all" ? null : classRank} /> : <RankTable rows={ranked.slice((cur - 1) * per, cur * per)} classRank={level === "all" ? null : classRank} mobilePreview={mobilePreview} />
-        ) : view === "cards" ? <ul className="dan-directory-cards">{(tab === "new" ? newAsRows : dir).slice((cur-1)*per,cur*per).map(d=><li className="gt-card p-3" key={d.dan}>{!d.reserved && <div className="aspect-[4/5]"><AthleteAvatar src={d.photo} name={d.name} zoom variant="portrait" /></div>}<h3 className="mt-3 font-bold">{d.reserved ? "เลขดั้งนี้ประมูลแล้ว รอสอบผ่าน" : d.name}</h3><p>เลขดั้ง {d.dan} · {d.reserved ? "รอรับรอง" : danLabel(d.level)}</p>{d.diamond && <p>💎 ดั้งเพชร</p>}</li>)}</ul> : (
+        ) : view === "cards" ? (
+          <ul className="dan-directory-cards">
+            {dir.slice((cur - 1) * per, cur * per).map((d) => (
+              <li className="gt-card dan-player-card" key={d.dan}>
+                {!d.reserved && (
+                  <div className="dan-card-picture">
+                    <AthleteAvatar src={d.photo} name={d.name} zoom variant="portrait" />
+                  </div>
+                )}
+                <div className="dan-card-body">
+                  <h3 className="dan-card-name font-bold">{d.reserved ? "เลขดั้งนี้ประมูลแล้ว รอสอบผ่าน" : d.name}</h3>
+                  <p>เลขดั้ง {d.dan} · {d.reserved ? "รอรับรอง" : danLabel(d.level)}</p>
+                  {d.diamond && <p>💎 ดั้งเพชร</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
           <DanTable rows={(tab === "new" ? newAsRows : dir).slice((cur - 1) * per, cur * per)} />
         )}
         <div className={mobilePreview ? "dan-preview-pager" : undefined}>
