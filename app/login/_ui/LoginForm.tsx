@@ -163,7 +163,21 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
         </>
       )}
 
-      <Link href="/login/guide" className="mt-5 flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 border-[#d7aa42] bg-[#fff4cc] px-4 py-3 text-center text-base font-bold text-[#153d83] shadow-sm transition hover:bg-[#ffe49b] active:scale-[.99]">📖 ใหม่ที่นี่? ดูวิธีเข้าสู่ระบบสำหรับทุกตำแหน่ง →</Link>
+      <nav aria-label="คู่มือการใช้งาน" className="mt-5">
+        <p className="mb-2 text-center text-sm font-bold text-[#153d83]">📖 คู่มือการใช้งาน · กดดูวิธีทำทีละขั้น</p>
+        <div className="grid gap-3">
+          {[
+            { href: "/login/guide", icon: "🔑", title: "วิธีเข้าสู่ระบบ", sub: "ใช้ชื่ออะไร รหัสครั้งแรก ลืมรหัส" },
+            { href: "/account/photo/guide", icon: "📷", title: "วิธีเปลี่ยนรูปโปรไฟล์", sub: "สำหรับนักกีฬาและผู้ปกครอง" },
+          ].map(g => (
+            <Link key={g.href} href={g.href} className="flex min-h-16 items-center gap-3 rounded-xl border-2 border-[#d7aa42] bg-[#fff4cc] px-4 py-3 text-[#153d83] shadow-sm transition hover:bg-[#ffe49b] active:scale-[.99]">
+              <span aria-hidden="true" className="text-2xl">{g.icon}</span>
+              <span className="min-w-0 flex-1"><span className="block text-base font-bold">{g.title}</span><span className="block text-sm font-normal">{g.sub}</span></span>
+              <span aria-hidden="true" className="text-lg font-bold">→</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
 
       <div className="mt-5 rounded-xl bg-[var(--gt-cta-soft)] px-3 py-3 text-sm text-[var(--gt-muted)]">
         <p className="font-semibold text-[var(--gt-ink)]">ใช้ชื่ออะไรเข้าระบบ</p>
