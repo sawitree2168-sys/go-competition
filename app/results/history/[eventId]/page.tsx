@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import PublicPage from '@/components/PublicPage';
 import HistoryWallTable from '@/components/HistoryWallTable';
+import CompetitionPanel from '@/components/CompetitionPanel';
+import FitZoom from '@/components/FitZoom';
 import { loadHistoryWall, historyWallHref } from '@/lib/history-walllist';
 import { thaiDate } from '@/lib/division-display';
 
@@ -69,8 +71,13 @@ export default async function HistoryWallPage({ params, searchParams }: {
         {!organizerStandings && wall.ranking_mode === 'source' && wall.rows.some((row, i) => i > 0 && row.points > wall.rows[i - 1].points) && (
           <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">อันดับต้นทางกับคะแนนที่คำนวณจากผลรายเกมต่างกัน ตารางนี้คงอันดับต้นทางไว้ค่ะ</p>
         )}
-        <p className="text-sm text-[var(--gt-muted)]">เลขคืออันดับของคู่แข่ง · + ชนะ · − แพ้ · = เสมอ · * ชนะหรือแพ้ผ่าน <span className="sm:hidden">· เลื่อนตารางเพื่อดูรอบถัดไป</span></p>
-        {wall.rows.length ? <HistoryWallTable wall={wall} /> : <p>ยังไม่มีผลที่ตรวจสอบแล้วในรุ่นนี้</p>}
+        <p className="text-sm text-[var(--gt-muted)]">เลขคืออันดับของคู่แข่ง · + ชนะ · − แพ้ · = เสมอ · * ชนะหรือแพ้ผ่าน</p>
+        {wall.rows.length ? (
+          <CompetitionPanel title={`วอลล์ลิสต์ ${wall.division ?? ''}`} context={`${wall.event.title} · ${wall.division ?? ''} · ${date}`}>
+            <FitZoom><HistoryWallTable wall={wall} /></FitZoom>
+            <p className="cd-rank-key px-3 py-2 text-sm text-[var(--gt-muted)]">เลขคืออันดับของคู่แข่ง · + ชนะ · − แพ้ · = เสมอ · * ชนะหรือแพ้ผ่าน · SOS = ผลรวมคะแนนของคู่แข่ง · SOSOS = ผลรวม SOS ของคู่แข่ง</p>
+          </CompetitionPanel>
+        ) : <p>ยังไม่มีผลที่ตรวจสอบแล้วในรุ่นนี้</p>}
         {sources.length > 0 && (
           <footer className="flex flex-wrap items-baseline gap-x-4 gap-y-2 border-t border-[var(--gt-line,#b7cdeb)] pt-3 text-sm">
             <strong>อ้างอิงต้นทาง</strong>

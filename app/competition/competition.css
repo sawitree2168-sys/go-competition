@@ -132,3 +132,11 @@
 .cd-banner-band-inner p span{opacity:.6;margin:0 6px}
 .cd-banner-band-inner a{margin-left:auto;color:#ffe39a;font-weight:700;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:640px){.cd-banner-band-inner p{font-size:15px;width:100%}.cd-banner-band-inner a{margin-left:0}}
+
+/* Wall lists like a picture (22 พ.ย. 69): inner scroll boxes never clip the sheet when shrunk or exported */
+.gt-fitzoom-sizer[style] [role=region],.cd-exporting [role=region],.cd-exporting .overflow-x-auto,.cd-exporting .cd-table-scroll{overflow:visible!important;max-width:none!important}
+.gt-fitzoom-sizer[style] [role=region] :is(th,td),.cd-exporting [role=region] :is(th,td){position:static!important}
+.gt-fitzoom-sizer[style]{cursor:zoom-in}
+.gt-fitzoom[data-zoomed] .gt-fitzoom-sizer[style]{cursor:zoom-out}
+.gt-fitzoom-tip{flex:1 1 12rem;font-size:13px;color:#425f86}
+.gt-fitzoom-hint{font-size:13px}
