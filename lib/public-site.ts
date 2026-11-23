@@ -32,6 +32,18 @@ export async function loadRankings(db: SupabaseClient | null, limit = 5, year?: 
   return error || !data ? null : (data as Rankings);
 }
 
+/** gt_public_rankings_v2: ดั้ง by national score; คิว by wins this year inside each class of division played. */
+export type DanRankRow = { pos: number; go_id: string | null; full_name: string; level: string | null; diamond: boolean; dan: number | null;
+  athlete_id: string | null; photo: string | null; score: number; delta: number | null };
+export type KyuClassRow = { pos: number; go_id: string; full_name: string; athlete_id: string | null; photo: string | null; wins: number; losses: number; events: number };
+export type Rankings2 = { year: number; dan: DanRankRow[]; dan_total: number; dan_as_of: string | null; kyu: { kyu: number; total: number; rows: KyuClassRow[] }[] };
+
+export async function loadRankings2(db: SupabaseClient | null, limit = 50, year?: number): Promise<Rankings2 | null> {
+  if (!db) return null;
+  const { data, error } = await db.rpc("gt_public_rankings_v2", { p_year: year ?? null, p_limit: limit });
+  return error || !data ? null : (data as Rankings2);
+}
+
 export async function loadResults(db: SupabaseClient | null): Promise<ResultEvent[]> {
   if (!db) return [];
   const { data, error } = await db.rpc("gt_public_results_v1");
