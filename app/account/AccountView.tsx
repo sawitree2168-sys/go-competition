@@ -2,6 +2,7 @@
 
 import ChooseAcademy from "@/components/ChooseAcademy";
 import AthleteAvatar from "@/components/AthleteAvatar";
+import AthleteProfileHelp from "@/components/AthleteProfileHelp";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
@@ -19,7 +20,7 @@ type DisplayLevel = { dan: boolean; dan_rank: string | null; kyu: number | null 
 
 /** Signed-in member's page: role, GO ID for athletes, and where to go next. */
 export default function AccountView() {
-  const [me, setMe] = useState<Me | null | "out">(null);
+  const [me, setMe] = useState<Me | null | "out" | "error">(null);
   const [details, setDetails] = useState<AthleteDetails | null>(null);
 
   useEffect(() => {
@@ -30,8 +31,9 @@ export default function AccountView() {
       if (!active) return;
       const u = data.session?.user;
       if (!u) { setMe("out"); return; }
-      const { data: access } = await db.rpc("gt_my_access_v1");
+      const { data: access, error } = await db.rpc("gt_my_access_v1");
       if (!active) return;
+      if (error) { setMe("error"); return; }
       const meta = (u.user_metadata ?? {}) as Record<string, string | null>;
       const athlete: Athlete | null = access?.athlete ?? null;
       setMe({
@@ -60,6 +62,11 @@ export default function AccountView() {
   }, []);
 
   if (me === null) return <p className="py-16 text-center text-[var(--gt-muted)]" role="status">กำลังโหลด…</p>;
+  if (me === "error") return <div className="gt-card space-y-3 p-4" role="alert">
+    <h1 className="text-xl font-bold">โหลดข้อมูลบัญชีไม่สำเร็จ</h1>
+    <p>กรุณาลองโหลดหน้าใหม่อีกครั้งค่ะ</p>
+    <button type="button" onClick={() => window.location.reload()} className="gt-outline-btn min-h-11 px-4">โหลดหน้าใหม่</button>
+  </div>;
   if (me === "out") {
     return (
       <div className="gt-card space-y-4 p-6 text-center">
@@ -71,11 +78,11 @@ export default function AccountView() {
 
   const roleLabel = (me.easy && (KIND_LABEL as Record<string, string>)[me.easy.kind]) || MEMBER_ROLES.find((r) => r.id === me.role)?.label || "สมาชิก";
   const canResetOthers = me.staff || me.academies > 0;
+  const needsAthleteHelp = !me.athlete && [me.role, me.easy?.kind].some(role => role === "athlete" || role === "parent");
   const signOut = async () => { await staffDb()?.auth.signOut(); window.location.assign("/"); };
   const next: { title: string; body: string; href?: string; cta?: string }[] = [];
   if (me.staff) next.push({ title: "หน้าผู้จัดการแข่งขัน", body: "จัดการรายการแข่งขัน จับคู่ ลงผล กรรมการ และใบสมัคร", href: "/organizer", cta: "ไปหน้าผู้จัด →" });
   else if (me.role === "organizer") next.push({ title: "รอเปิดสิทธิ์ผู้จัด", body: "แจ้งเจ้าของระบบ GO TOURNAMENT ให้เพิ่มอีเมลนี้เป็นผู้จัด แล้วเข้าสู่ระบบใหม่" });
-  if (!me.athlete && (me.role === "athlete" || me.role === "parent")) next.push({ title: "ผูกบัญชีกับรหัสนักกีฬา", body: "เร็ว ๆ นี้: ดูประวัติ สถิติ และใบประกาศของนักกีฬาจากบัญชีนี้ และเข้าสู่ระบบด้วยรหัสนักกีฬาได้" });
   if (me.academies || me.role === "teacher") next.push({ title: "หน้าสถาบัน", body: "ดูแลนักเรียน ติดตามผล สถิติ และสมัครแข่งแบบกลุ่ม", href: "/institution", cta: me.academies ? "ไปหน้าสถาบัน →" : "เลือกสถาบันของคุณ →" });
   if (!me.athlete) {
     next.push({ title: "ส่งผลการแข่งขันรายการอื่น", body: "แนบใบจับคู่ทุกรอบและผลอันดับของทุกรุ่น ผลจะขึ้นในสถิติของนักกีฬาหลังแอดมินตรวจ", href: "/results/submit", cta: "ส่งผลการแข่งขัน →" });
@@ -104,6 +111,8 @@ export default function AccountView() {
         </p>
         {displayEmail && <p className="mt-2 text-sm text-[var(--gt-muted)]">{displayEmail}</p>}
       </section>}
+      {needsAthleteHelp && <AthleteProfileHelp signedIn />}
+      {!me.athlete && !needsAthleteHelp && <Link href="/login/guide#athlete-profile-help" className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-[var(--gt-brand)] underline">หาโปรไฟล์นักกีฬาไม่เจอ?</Link>}
       {me.referee.length > 0 && <RefereeEvents events={me.referee} />}
       {!me.athlete && me.easy?.using_default && (
         <p className="rounded-xl border border-[#e9c68a] bg-[#fff9eb] p-3 text-sm">ยังใช้รหัสเริ่มต้นอยู่ · เปลี่ยนรหัสได้ที่ “รหัสผ่านและการกู้บัญชี” ด้านล่าง (ไม่บังคับ)</p>
@@ -195,7 +204,7 @@ function MyAthleteProfile({ athlete, details, children }: { athlete: Athlete; de
         <Link href="/account/prizes" className="gt-outline-btn flex min-h-11 items-center justify-center px-2 text-center text-sm font-semibold">รางวัลของฉัน</Link>
         <Link href="/my-applications" className="gt-outline-btn flex min-h-11 items-center justify-center px-2 text-center text-sm font-semibold">สถานะการสมัคร</Link>
       </nav>
-      {details && !historyHref && <p className="px-1 text-sm text-[var(--gt-muted)]">ยังไม่มีประวัติการแข่งขันให้แสดง</p>}
+      {details && !historyHref && <p className="px-1 text-sm text-[var(--gt-muted)]">ยังไม่มีประวัติที่แสดงได้ ผลอาจอยู่ระหว่างตรวจสอบหรือยังไม่ได้เชื่อมกับรหัส GO นี้ · <Link href="/login/guide#athlete-profile-help" className="font-semibold text-[var(--gt-brand)] underline">ดูวิธีตรวจสอบ</Link></p>}
       <div className="flex flex-wrap gap-x-4 text-sm font-semibold text-[var(--gt-brand)]">
         {publicHistory && competitionProfile && <Link href={competitionProfile} className="inline-flex min-h-11 items-center underline">ผลแข่งและใบประกาศในระบบ</Link>}
         <Link href="/tournaments" className="inline-flex min-h-11 items-center underline">ดูการแข่งขัน</Link>

@@ -4,21 +4,22 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
 import PhotoEditor from "@/components/PhotoEditor";
+import AthleteProfileHelp from "@/components/AthleteProfileHelp";
 import MyKyuLevel from "./MyKyuLevel";
 
 type Mine = { athlete_id: string; go_id: string; full_name: string; rank: string | null; photo: string | null };
 
 /** Signed-in athlete (or parent) changes the photo of the athlete linked to this account. */
 export default function MyPhoto() {
-  const [me, setMe] = useState<Mine | null | "out" | "none">(null);
+  const [me, setMe] = useState<Mine | null | "out" | "none" | "error">(null);
 
   useEffect(() => {
     const db = staffDb();
     if (!db) { queueMicrotask(() => setMe("out")); return; }
     db.auth.getSession().then(async ({ data }) => {
       if (!data.session) { setMe("out"); return; }
-      const { data: mine } = await db.rpc("gt_my_photo_v1");
-      setMe(mine ? (mine as Mine) : "none");
+      const { data: mine, error } = await db.rpc("gt_my_photo_v1");
+      setMe(error ? "error" : mine ? (mine as Mine) : "none");
     });
   }, []);
 
@@ -33,14 +34,13 @@ export default function MyPhoto() {
     );
   }
   if (me === "none") {
-    return (
-      <div className="gt-card space-y-3 p-6">
-        <h1 className="text-xl font-bold">บัญชีนี้ยังไม่ได้ผูกกับนักกีฬา</h1>
-        <p className="text-[var(--gt-muted)]">สมัครบัญชีนักกีฬาด้วยชื่อ-นามสกุลให้ตรงทะเบียน (และเลขดั้งสำหรับผู้เล่นดั้ง) แล้วกลับมาเปลี่ยนรูปที่หน้านี้ ถ้ารูปบนเว็บผิดคน แจ้งแอดมินให้แก้ไขได้</p>
-        <Link href="/signup" className="gt-cta-btn inline-flex min-h-11 items-center px-5">สมัครบัญชีนักกีฬา</Link>
-      </div>
-    );
+    return <AthleteProfileHelp signedIn photo />;
   }
+  if (me === "error") return <div className="gt-card space-y-3 p-4" role="alert">
+    <h1 className="text-xl font-bold">โหลดข้อมูลนักกีฬาไม่สำเร็จ</h1>
+    <p>กรุณาลองโหลดหน้าใหม่อีกครั้งค่ะ</p>
+    <button type="button" onClick={() => window.location.reload()} className="gt-outline-btn min-h-11 px-4">โหลดหน้าใหม่</button>
+  </div>;
   return (
     <div className="space-y-3 sm:space-y-4">
       <Link href="/account" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--gt-brand)]">← โปรไฟล์ของฉัน</Link>

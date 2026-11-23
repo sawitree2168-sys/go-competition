@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AthleteProfileHelp from "@/components/AthleteProfileHelp";
 
 export const metadata = { title: "วิธีเข้าสู่ระบบ · GO TOURNAMENT" };
 const roles = [
@@ -14,7 +15,7 @@ const steps = [
   <>ช่องชื่อ: พิมพ์ชื่อตามตำแหน่งด้านล่างอย่างน้อย 2 ตัวอักษร แล้วเลือกจากรายชื่อ (เว้นวรรค ตัวพิมพ์เล็ก-ใหญ่ จุด หรือขีด ไม่ต้องตรงเป๊ะ)</>,
   <>ช่องรหัสผ่าน: ครั้งแรกใช้รหัสเริ่มต้นของตำแหน่งที่ครูแจ้ง ระบบจะเปิดบัญชีให้อัตโนมัติ</>,
   <>หน้า “ยินดีต้อนรับ”: ตั้งรหัสผ่านใหม่หรือกดข้ามก็ได้ แนะนำให้บันทึกเบอร์โทร + วันเกิดสำหรับกู้รหัสผ่าน</>,
-  <>เข้าสู่ระบบสำเร็จ ✓ ไปที่ <span className="inline-block rounded-lg border-2 border-[#d8a83f] bg-[#fff5d5] px-3 py-1 font-bold text-[#123a86]">บัญชีของฉัน</span> เพื่อดูเมนูของตำแหน่งตัวเอง</>,
+  <>เข้าสู่ระบบสำเร็จ ✓ นักกีฬาเปิด <strong>โปรไฟล์ของฉัน</strong> เพื่อดูประวัติหรือเปลี่ยนรูป ส่วนครูและผู้จัดใช้เมนูตามหน้าที่ของตัวเอง</>,
 ];
 const pictures = [
   { src: "/guide/login-0.webp", w: 1092, h: 1440, alt: "สรุปวิธีเข้าสู่ระบบ GO TOURNAMENT 5 ขั้นตอน และตารางว่าแต่ละตำแหน่งพิมพ์อะไรในช่องชื่อ" },
@@ -40,6 +41,7 @@ export default function LoginGuide() {
         <p className="mt-2 text-sm text-blue-100">นักกีฬา • ผู้ปกครอง • ครู • สถาบัน • ผู้จัดงาน • กรรมการ</p>
       </header>
       <div className="space-y-7 p-4 sm:p-8">
+        <AthleteProfileHelp />
         <section aria-labelledby="pictures">
           <h2 id="pictures" className="mb-1 text-2xl font-extrabold">ภาพวิธีเข้าสู่ระบบ</h2>
           <p className="mb-4 text-sm">แตะภาพเพื่อดูขนาดใหญ่ · กด “บันทึกภาพ” เพื่อส่งต่อใน LINE หรือ Facebook</p>
