@@ -142,8 +142,8 @@ export default function AccountView() {
           <Link href="/account/reset" className="gt-outline-btn mt-3 inline-flex min-h-11 items-center px-5 font-semibold">รีเซ็ตรหัสผ่าน →</Link>
         </section>
       )}
-      <button type="button" onClick={signOut} className="gt-outline-btn min-h-12 w-full font-semibold">ออกจากระบบ</button>
       <ChooseAcademy/>
+      <button type="button" onClick={signOut} className={me.athlete ? "gt-outline-btn min-h-11 px-4 text-sm font-semibold" : "gt-outline-btn min-h-12 w-full font-semibold"}>ออกจากระบบ</button>
     </div>
   );
 }
@@ -162,9 +162,9 @@ function MyAthleteProfile({ athlete, details, children }: { athlete: Athlete; de
   ];
 
   return (
-    <div className="space-y-4">
-      <section className="gt-card border-t-4 border-t-[var(--gt-cta)] p-4 sm:p-6" aria-labelledby="my-profile">
-        <h1 id="my-profile" className="mb-4 text-xl font-bold sm:text-2xl">โปรไฟล์ของฉัน</h1>
+    <div className="space-y-3 sm:space-y-4">
+      <section className="gt-card border-t-4 border-t-[var(--gt-cta)] p-3 sm:p-5" aria-labelledby="my-profile">
+        <h1 id="my-profile" className="mb-3 text-xl font-bold sm:text-2xl">โปรไฟล์ของฉัน</h1>
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
           <AthleteAvatar src={details?.photo} name={athlete.name} className="h-20 w-20 sm:h-28 sm:w-28" zoom />
           <div className="min-w-0">
@@ -173,11 +173,11 @@ function MyAthleteProfile({ athlete, details, children }: { athlete: Athlete; de
             <p className="mt-2 inline-block rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-950">{rank || "ยังไม่ระบุระดับฝีมือ"}</p>
           </div>
         </div>
-        <Link href="/account/photo" className="gt-cta-btn mt-4 inline-flex min-h-11 w-full items-center justify-center px-4 sm:w-auto">เปลี่ยนรูปโปรไฟล์</Link>
+        <Link href="/account/photo" className="gt-cta-btn mt-3 inline-flex min-h-11 items-center justify-center px-4 text-sm sm:text-base">เปลี่ยนรูปโปรไฟล์</Link>
         <div className="mt-3 flex flex-wrap gap-2 text-sm empty:hidden">{children}</div>
       </section>
       {history && metrics && history.games > 0 && (
-        <section className="gt-card space-y-3 p-4" aria-labelledby="my-competition-stats">
+        <section className="gt-card space-y-2 p-3 sm:p-4" aria-labelledby="my-competition-stats">
           <div>
             <h2 id="my-competition-stats" className="font-bold">สถิติการแข่งขัน</h2>
             <p className="text-sm text-[var(--gt-muted)]">ปี 2569 · จากผลที่ตรวจสอบแล้ว{history.draws > 0 ? ` · เสมอ ${history.draws} เกม` : ""}</p>
@@ -190,10 +190,10 @@ function MyAthleteProfile({ athlete, details, children }: { athlete: Athlete; de
           </dl>
         </section>
       )}
-      <nav aria-label="เมนูนักกีฬา" className="grid gap-2 sm:grid-cols-3">
-        {historyHref && <Link href={historyHref} className="gt-outline-btn flex min-h-12 items-center justify-center px-3 text-center font-semibold">ประวัติและสถิติ →</Link>}
-        <Link href="/account/prizes" className="gt-outline-btn flex min-h-12 items-center justify-center px-3 text-center font-semibold">รางวัลของฉัน →</Link>
-        <Link href="/my-applications" className="gt-outline-btn flex min-h-12 items-center justify-center px-3 text-center font-semibold">สถานะการสมัคร →</Link>
+      <nav aria-label="เมนูนักกีฬา" className={`grid grid-cols-2 gap-2 ${historyHref ? "sm:grid-cols-3" : ""}`}>
+        {historyHref && <Link href={historyHref} className="gt-outline-btn col-span-2 flex min-h-11 items-center justify-center px-2 text-center text-sm font-semibold sm:col-span-1">ประวัติและสถิติ →</Link>}
+        <Link href="/account/prizes" className="gt-outline-btn flex min-h-11 items-center justify-center px-2 text-center text-sm font-semibold">รางวัลของฉัน</Link>
+        <Link href="/my-applications" className="gt-outline-btn flex min-h-11 items-center justify-center px-2 text-center text-sm font-semibold">สถานะการสมัคร</Link>
       </nav>
       {details && !historyHref && <p className="px-1 text-sm text-[var(--gt-muted)]">ยังไม่มีประวัติการแข่งขันให้แสดง</p>}
       <div className="flex flex-wrap gap-x-4 text-sm font-semibold text-[var(--gt-brand)]">

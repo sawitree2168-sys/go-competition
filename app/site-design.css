@@ -41,6 +41,33 @@ body{background:#f2f8ff;color:#082557}b,strong{font-weight:700}
 
 .gt-sitebar-logo{flex-shrink:0}.gt-sitebar-actions{margin-left:auto!important}
 
+.athlete-history-panel .cd-export-content {
+  background: var(--gt-surface);
+}
+.athlete-history-panel .cd-export-context {
+  padding: 10px 12px 0;
+  color: var(--gt-muted);
+  overflow-wrap: anywhere;
+}
+.athlete-history-panel .cd-panel-controls,
+.athlete-history-panel .cd-panel-buttons {
+  display: flex;
+  flex-wrap: wrap;
+}
+.athlete-history-panel .cd-panel-buttons {
+  gap: 6px;
+}
+.athlete-history-panel table :is(th, td) {
+  padding: 8px 6px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 360px) {
+  .gt-fluid .gt-sitebar-logo { gap: 8px; }
+  .gt-fluid .gt-sitebar-name { font-size: 17px !important; }
+  .gt-fluid .gt-sitebar-stones > span { width: 28px; height: 28px; }
+  .athlete-history-panel table :is(th, td) { padding-inline: 4px; }
+}
+
 /* Keep the portrait in its own square, including the no-photo fallback. */
 .site-athlete-portrait{width:112px;height:112px;flex:0 0 112px;aspect-ratio:1;overflow:hidden;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #b4cfee,0 3px 10px #124d9220;background:#eaf3ff}
 .site-athlete-portrait>button{display:block;width:100%;height:100%}.site-athlete-card .site-athlete-portrait img{display:block;width:100%;height:100%;max-height:100%;aspect-ratio:1;object-fit:contain}

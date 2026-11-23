@@ -126,19 +126,21 @@ export default function PhotoEditor({ mode, goId, athleteId, name, photo, onSave
       <p className="text-sm text-[var(--gt-muted)]">รูปหลักใช้แสดงบนเว็บ ช่องรูปเพิ่มเติมเก็บได้ 2 รูป หากช่องเต็มให้นำรูปเดิมออกก่อนเพิ่มรูปใหม่</p>
       <input ref={input} type="file" accept="image/*" className="sr-only" aria-label="เลือกรูปนักกีฬา"
         onChange={(e) => { choose(e.target.files?.[0]); e.target.value = ""; }} />
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-3 sm:gap-3">
         {SLOTS.map(slot => {
           const title = slot === 0 ? "รูปหลัก" : `รูปเพิ่มเติม ${slot}`;
           const url = slot === 0 ? displayedPrimary : photos?.extras[slot];
           const filled = slot === 0 ? primaryIsPhoto : Boolean(url);
           return (
-            <section key={slot} aria-label={title} className="flex min-w-0 flex-col items-center gap-3 rounded-xl border border-[var(--gt-line)] p-3 text-center">
+            <section key={slot} aria-label={title} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-1 rounded-xl border border-[var(--gt-line)] p-2.5 sm:flex sm:flex-col sm:gap-2 sm:p-3 sm:text-center">
               <h3 className="text-sm font-bold">{title}</h3>
-              {slot === 0 || filled ? (
-                <AthleteAvatar src={url ?? DEFAULT_ATHLETE_PHOTO} name={name} className="h-20 w-20" />
-              ) : <div className="grid h-20 w-20 place-items-center rounded-lg bg-[var(--gt-surface-2)] text-sm text-[var(--gt-muted)]">ว่าง</div>}
-              {slot === 0 && !filled && <p className="text-xs text-[var(--gt-muted)]">ใช้อวตาร</p>}
-              <div className="mt-auto flex flex-wrap justify-center gap-2">
+              <div className="col-start-1 row-start-1 row-span-3">
+                {slot === 0 || filled ? (
+                  <AthleteAvatar src={url ?? DEFAULT_ATHLETE_PHOTO} name={name} className="h-16 w-16 sm:h-20 sm:w-20" />
+                ) : <div className="grid h-16 w-16 place-items-center rounded-lg bg-[var(--gt-surface-2)] text-sm text-[var(--gt-muted)] sm:h-20 sm:w-20">ว่าง</div>}
+              </div>
+              {slot === 0 && !filled && <p className="col-start-2 text-xs text-[var(--gt-muted)]">ใช้อวตาร</p>}
+              <div className="col-start-2 flex flex-wrap gap-1.5 sm:mt-auto sm:justify-center">
                 {!filled ? (
                   <button type="button" disabled={disabled} className="gt-cta-btn min-h-11 px-3 text-sm disabled:opacity-50"
                     onClick={() => { pickedSlot.current = slot; input.current?.click(); }}>เพิ่ม{title}</button>
