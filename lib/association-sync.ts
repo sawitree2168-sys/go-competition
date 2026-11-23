@@ -60,7 +60,10 @@ export function parseDirectory(rows: string[][]) {
     // (ชีทเขียนระดับว่า "กิตติมศักดิ์" แต่ไม่มีดั้งกิตติมศักดิ์ จึงไม่เก็บค่านี้)
     const auctioned = /^\(.*\)$/.test(name);
     const yearRaw = cYear >= 0 ? String(r[cYear] ?? "").trim() : "";
-    const y = /(\d{4})\s*$/.exec(yearRaw);
+    // ปีที่ได้ดั้ง (พ.ศ.): keep only plausible years; typos such as 2652 or a ค.ศ. 1962 are left out, not guessed.
+    const yMatch = /(\d{4})\s*$/.exec(yearRaw);
+    const thisYearBE = new Date().getUTCFullYear() + 543;
+    const y = yMatch && +yMatch[1] >= 2400 && +yMatch[1] <= thisYearBE ? yMatch : null;
     directory.push({
       dan: String(dan), name, rank: auctioned ? "" : String(r[cRank] ?? "").trim().replace(/^กิตติมศักดิ์$/, ""),
       diamond: cDiamond >= 0 && String(r[cDiamond] ?? "").trim() !== "",
