@@ -8,7 +8,7 @@ const Btn = ({ children }: { children: React.ReactNode }) =>
 const steps: { title: string; body: React.ReactNode }[] = [
   { title: "เข้าเว็บ", body: <>เปิด <Link className="break-all font-bold underline" href="/login">go-competition.vercel.app/login</Link> บนมือถือหรือคอมพิวเตอร์</> },
   { title: "เข้าสู่ระบบ", body: <>ช่องชื่อ พิมพ์ชื่อ-นามสกุลนักกีฬา รหัส GO หรือเลขดั้ง (พิมพ์ 2 ตัวขึ้นไปจะมีรายชื่อให้เลือก) แล้วใส่รหัสผ่าน · ครั้งแรกใช้รหัสเริ่มต้นที่ครูแจ้ง แล้วตั้งรหัสใหม่หรือกดข้ามได้ · แนะนำให้บันทึกเบอร์โทร + วันเกิดไว้ใช้ตอนลืมรหัส</> },
-  { title: "ไปที่หน้ารูป", body: <>ไปที่ <Btn>บัญชีของฉัน</Btn> แล้วกด <Btn>แก้รูปและระดับฝีมือ →</Btn> (หรือ <Link className="font-bold underline" href="/account/photo">กดตรงนี้เพื่อไปหน้ารูป</Link>)</> },
+  { title: "ไปที่หน้ารูป", body: <>เปิดหน้า <Btn>โปรไฟล์ของฉัน</Btn> แล้วกด <Btn>เปลี่ยนรูปโปรไฟล์</Btn> (หรือ <Link className="font-bold underline" href="/account/photo">กดตรงนี้เพื่อไปหน้ารูป</Link>)</> },
   { title: "ติ๊กยืนยันก่อน", body: <>ติ๊กช่อง “ฉันเป็นนักกีฬาคนนี้หรือผู้ปกครอง…” <strong>ถ้าไม่ติ๊ก ปุ่มจะเป็นสีเทา กดไม่ได้</strong></> },
   { title: "เพิ่มรูปและบันทึก", body: <>กด <Btn>เพิ่มรูปหลัก</Btn> → เลือกรูป → ลาก ซูม หรือหมุนให้หน้าอยู่กลางกรอบ → กดบันทึก → ขึ้นข้อความ “บันทึกรูปแล้ว” ✓</> },
 ];
