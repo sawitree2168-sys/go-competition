@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import ExcelJS from "exceljs";
-import { ASSOCIATION_SHEET_ID, DIRECTORY_TAB, parseCompetitionTabs, parseDirectory, tabDate, type RegistryPerson, type Tab } from "@/lib/association-sync";
+import { ASSOCIATION_SHEET_ID, DIRECTORY_TAB, newDanLinks, parseCompetitionTabs, parseDirectory, tabDate, type RegistryPerson, type Tab } from "@/lib/association-sync";
 
 // อัปเดตข้อมูลสมาคมอัตโนมัติ: Vercel cron เรียกทุกวัน (vercel.json) หรือเรียกเองด้วยรหัส.
 // อ่านชีท "ทำเนียบดั้งไทยปี69" (เปิดให้ทุกคนที่มีลิงก์ดู) → ทำเนียบดั้ง + คะแนน + แท็บรายการแข่งใหม่.
@@ -46,9 +46,11 @@ async function run() {
     const known = new Set<string>((reg.data?.events ?? []) as string[]);
     const fresh = tabs.filter((t) => tabDate(t.tab) && !known.has("association:" + t.tab.trim()));
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const history = parseCompetitionTabs(fresh, (reg.data?.people ?? []) as RegistryPerson[], `association-auto-${today}`);
+    const people = (reg.data?.people ?? []) as RegistryPerson[];
+    const history = parseCompetitionTabs(fresh, people, `association-auto-${today}`);
+    const dan_links = newDanLinks(directory, people);
 
-    const r = await db.rpc("gt_sync_association_v1", { p_token: token, p: { batch: history.batch, source_file: ASSOCIATION_SHEET_ID, directory, ratings, history, tabs: fresh.map((t) => t.tab) } });
+    const r = await db.rpc("gt_sync_association_v1", { p_token: token, p: { batch: history.batch, source_file: ASSOCIATION_SHEET_ID, directory, ratings, dan_links, history, tabs: fresh.map((t) => t.tab) } });
     if (r.error) throw new Error(r.error.message);
     return NextResponse.json({ ok: true, ...r.data, new_tabs: fresh.map((t) => t.tab) });
   } catch (e) {
