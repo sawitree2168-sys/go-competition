@@ -197,7 +197,7 @@ export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov:
         </ul>
       ) : <Empty>{q ? "ไม่พบนักเรียนที่ค้นหา" : "ยังไม่มีนักเรียน — เพิ่มนักเรียนใหม่ได้ด้านล่าง หรือรายชื่อจะขึ้นเองเมื่อนักเรียนลงแข่งในนามสถาบันนี้"}</Empty>}
       {canEdit&&<LinkStudents academyId={ov.academy.id} reload={reload} workspaceType={workspaceType}/>}
-      {workspaceType==="academy"&&<AddStudent academyId={ov.academy.id} canEdit={canEdit} reload={reload} />}
+      {workspaceType==="academy"&&<div className="rounded-xl border-2 border-[#e8bd58] bg-[#fff9ea] p-3 text-sm text-[#694d15]" role="note"><strong>เพิ่มนักเรียนด้วยโปรไฟล์เดิม</strong><p className="mt-1">ค้นหาชื่อหรือ GO ID ในส่วน “ค้นหาและเพิ่มนักเรียนที่มีประวัติอยู่แล้ว” ด้านบน เพื่อเชื่อมเข้าหลายสถาบันได้โดยไม่สร้าง GO ID ซ้ำ หากไม่พบชื่อ ให้ตรวจสอบก่อนสร้างโปรไฟล์นักกีฬาใหม่</p></div>}
       <p className="text-xs text-[var(--gt-muted)]">{workspaceType==="academy"?"รายชื่อรวมผู้ที่ลงแข่งในนามสถาบันนี้ และนักเรียนที่ครูเชื่อมเอง":"รายชื่อรวมเฉพาะนักเรียนที่ครูเชื่อมกับพื้นที่ส่วนตัว"} · นักเรียนหนึ่งคนมีได้หลายครูและหลายสถาบัน โดยไม่เปลี่ยนชื่อในรายการแข่งขันเดิม · ไม่แสดงข้อมูลส่วนตัวของผู้ปกครอง</p>
     </div>
   );
