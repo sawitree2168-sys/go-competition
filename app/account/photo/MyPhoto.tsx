@@ -42,10 +42,10 @@ export default function MyPhoto() {
     );
   }
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <Link href="/account" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--gt-brand)]">← โปรไฟล์ของฉัน</Link>
-      <section className="gt-card p-5">
-        <h1 className="mb-4 text-xl font-bold">รูปโปรไฟล์นักกีฬา</h1>
+      <section className="gt-card border-t-4 border-t-[var(--gt-cta)] p-3 sm:p-5">
+        <h1 className="mb-3 text-xl font-bold sm:text-2xl">รูปโปรไฟล์นักกีฬา</h1>
         <PhotoEditor mode="self" goId={me.go_id} athleteId={me.athlete_id} name={me.full_name} photo={me.photo}
           onSaved={(url) => setMe({ ...me, photo: url })} />
       </section>

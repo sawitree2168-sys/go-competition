@@ -37,11 +37,11 @@ export default function CentralHistory({
   const sp = useSearchParams();
   const viewParam = sp ? sp.get('view') : initialView,
     oppParam = (sp ? sp.get('vs') : initialOpponent) ?? '';
-  const view = viewParam === 'wall' ? 'wall' : 'summary';
+  const view = viewParam === 'wall' || viewParam === 'cards' ? viewParam : 'summary';
   const opponent = p.opponents.some((o) => o.opponent_key === oppParam) ? oppParam : '';
   const remember = (v: string, o: string) => {
     const q = new URLSearchParams(sp?.toString() ?? '');
-    if (v === 'wall') q.set('view', 'wall');
+    if (v !== 'summary') q.set('view', v);
     else q.delete('view');
     if (o) q.set('vs', o);
     else q.delete('vs');
@@ -86,7 +86,7 @@ export default function CentralHistory({
           <label className="flex min-w-0 flex-col gap-1.5 font-semibold">
             <span id="history-opponents">สถิติการพบกัน</span>
             <select
-              className="min-h-12 w-full rounded-lg border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 font-normal"
+              className="min-h-11 w-full min-w-0 rounded-lg border border-[var(--gt-line)] bg-[var(--gt-surface)] px-2 text-base font-normal"
               value={opponent}
               onChange={(e) => setOpponent(e.target.value)}
             >
@@ -124,19 +124,21 @@ export default function CentralHistory({
         )}
       </section>
       <CompetitionPanel
+        className="athlete-history-panel"
         title="ประวัติการแข่งขัน"
         context={`${p.full_name} · ปี 2569${selected ? ` · พบ ${selected.opponent_name}` : ''}`}
       >
         <div className="space-y-3 p-3 sm:p-4">
-          <div className="flex flex-wrap gap-2" role="group" aria-label="มุมมองผลการแข่งขัน">
+          <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-2" role="group" aria-label="มุมมองผลการแข่งขัน">
             {[
               ['summary', 'สรุปรายการ'],
-              ['wall', 'วอลล์ลิสต์ · ผลรายรอบ'],
+              ['cards', 'การ์ดรายรอบ'],
+              ['wall', 'ตารางรายรอบ'],
             ].map(([id, label]) => (
               <button
                 type="button"
                 key={id}
-                className={view === id ? 'gt-cta-btn px-4 py-3' : 'gt-outline-btn px-4 py-3'}
+                className={`${view === id ? 'gt-cta-btn' : 'gt-outline-btn'} min-h-11 px-1 text-sm leading-snug sm:px-4`}
                 aria-pressed={view === id}
                 onClick={() => setView(id)}
               >
@@ -205,59 +207,13 @@ export default function CentralHistory({
                         <button
                           type="button"
                           className="min-h-11 text-left font-semibold text-[var(--gt-brand)] underline"
-                          onClick={() => setView('wall')}
+                          onClick={() => setView('cards')}
                         >
                           ดูคู่แข่งและผลแต่ละรอบ →
                         </button>
                       </div>
                     ) : (
-                      <div className="overflow-x-auto px-4 py-3">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr>
-                              <th className="text-left">รุ่น / รอบ</th>
-                              <th className="text-left">คู่แข่ง</th>
-                              <th>ผล</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {event.games.map((g) => (
-                              <tr key={g.id}>
-                                <td className="text-left">
-                                  {g.division}
-                                  <small className="block">
-                                    รอบ {g.round_label || 'ยังไม่ระบุ'}
-                                    {g.board_label ? ` · กระดาน ${g.board_label}` : ''}
-                                  </small>
-                                </td>
-                                <td className="text-left">
-                                  {g.opponent_go_id ? (
-                                    <Link
-                                      className="font-bold text-[var(--gt-brand)] underline"
-                                      href={`/athletes/history/${g.opponent_go_id}`}
-                                      onClick={markInAppNav}
-                                    >
-                                      {g.opponent_name}
-                                    </Link>
-                                  ) : (
-                                    <>
-                                      <strong>{g.opponent_name}</strong>
-                                      <small className="block text-slate-500">ยังไม่เชื่อม GO ID</small>
-                                    </>
-                                  )}
-                                </td>
-                                <td>
-                                  <span
-                                    className={`inline-block rounded-full px-3 py-1 font-bold ${g.outcome === 'win' ? 'bg-emerald-100 text-emerald-800' : g.outcome === 'loss' ? 'bg-pink-100 text-pink-800' : 'bg-slate-100 text-slate-700'}`}
-                                  >
-                                    {outcome(g.outcome, g.kind)}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                      <RoundResults games={event.games} asCards={view === 'cards'} />
                     )}
                   </article>
                 );
@@ -269,6 +225,69 @@ export default function CentralHistory({
       {!opponent && <LevelTimeline history={p.level_history} />}
     </div>
   );
+}
+
+type HistoryGame = AthleteHistoryProfile['games'][number];
+
+function RoundResults({ games, asCards }: { games: HistoryGame[]; asCards: boolean }) {
+  return asCards ? (
+    <ul className="grid list-none gap-2 p-3 md:grid-cols-2">
+      {games.map((game) => (
+        <li key={game.id} data-export-break="true" className="rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-1.5">
+            <span className="font-semibold text-[var(--gt-muted)]"><RoundLabel game={game} /></span>
+            <ResultLabel game={game} />
+          </div>
+          <p className="mt-1 break-words text-base"><OpponentName game={game} /></p>
+          <p className="mt-1 break-words text-[var(--gt-muted)]">{game.division}</p>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <div className="min-w-0 px-2 py-3 sm:px-4">
+      <table className="w-full table-fixed text-sm">
+        <thead>
+          <tr>
+            <th scope="col" className="w-[30%] text-left">รุ่น / รอบ</th>
+            <th scope="col" className="text-left">คู่แข่ง</th>
+            <th scope="col" className="w-[24%] sm:w-[20%]">ผล</th>
+          </tr>
+        </thead>
+        <tbody>
+          {games.map((game) => (
+            <tr key={game.id}>
+              <td className="break-words text-left">{game.division}<small className="block"><RoundLabel game={game} /></small></td>
+              <td className="break-words text-left"><OpponentName game={game} /></td>
+              <td className="break-words text-center"><ResultLabel game={game} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function RoundLabel({ game }: { game: HistoryGame }) {
+  return <>รอบ {game.round_label || 'ยังไม่ระบุ'}{game.board_label && ` · กระดาน ${game.board_label}`}</>;
+}
+
+function OpponentName({ game }: { game: HistoryGame }) {
+  return game.opponent_go_id ? (
+    <Link className="font-semibold text-[var(--gt-brand)] underline" href={`/athletes/history/${game.opponent_go_id}`} onClick={markInAppNav}>
+      {game.opponent_name}
+    </Link>
+  ) : (
+    <>
+      <strong>{game.opponent_name}</strong>
+      <small className="block text-[var(--gt-muted)]">ยังไม่เชื่อม GO ID</small>
+    </>
+  );
+}
+
+function ResultLabel({ game }: { game: HistoryGame }) {
+  const color = game.outcome === 'win' ? 'bg-emerald-100 text-emerald-900'
+    : game.outcome === 'loss' ? 'bg-pink-100 text-pink-900' : 'bg-slate-100 text-slate-700';
+  return <span className={`inline-block max-w-full break-words rounded-lg px-1.5 py-1 text-xs font-semibold ${color}`}>{outcome(game.outcome, game.kind)}</span>;
 }
 
 function HistoryStats({

@@ -19,6 +19,8 @@ export default function PhotoCropper({ file, onCancel, onDone }: Props) {
   const [rot, setRot] = useState(0);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [saving, setSaving] = useState(false);
+  const [view, setView] = useState(VIEW);
+  const stageRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
@@ -34,12 +36,19 @@ export default function PhotoCropper({ file, onCancel, onDone }: Props) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onCancel]);
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const observer = new ResizeObserver(([entry]) => setView(entry.contentRect.width || VIEW));
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, []);
 
   const turned = rot % 180 !== 0;
   const ew = nat ? (turned ? nat.h : nat.w) : 1, eh = nat ? (turned ? nat.w : nat.h) : 1;
-  const scale = (VIEW / Math.min(ew, eh)) * zoom;
+  const scale = (view / Math.min(ew, eh)) * zoom;
   const clamp = (p: { x: number; y: number }, s = scale) => {
-    const mx = Math.max(0, (ew * s - VIEW) / 2), my = Math.max(0, (eh * s - VIEW) / 2);
+    const mx = Math.max(0, (ew * s - view) / 2), my = Math.max(0, (eh * s - view) / 2);
     return { x: Math.min(mx, Math.max(-mx, p.x)), y: Math.min(my, Math.max(-my, p.y)) };
   };
   const shown = clamp(pos);
@@ -78,7 +87,7 @@ export default function PhotoCropper({ file, onCancel, onDone }: Props) {
     canvas.width = OUT; canvas.height = OUT;
     const ctx = canvas.getContext("2d")!;
     ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, OUT, OUT);
-    const k = OUT / VIEW;
+    const k = OUT / view;
     ctx.translate(OUT / 2 + shown.x * k, OUT / 2 + shown.y * k);
     ctx.rotate((rot * Math.PI) / 180);
     ctx.scale(scale * k, scale * k);
@@ -96,8 +105,8 @@ export default function PhotoCropper({ file, onCancel, onDone }: Props) {
   const host = typeof document !== "undefined" ? ((document.querySelector(".gt") as HTMLElement | null) ?? document.body) : null;
   if (!host) return null;
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-labelledby="crop-title" className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-[var(--gt-surface)] p-4 text-[var(--gt-ink)] shadow-xl">
+    <div role="dialog" aria-modal="true" aria-labelledby="crop-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-4">
+      <div className="max-h-full w-full max-w-sm overflow-y-auto overscroll-contain rounded-2xl bg-[var(--gt-surface)] p-3 text-[var(--gt-ink)] shadow-xl sm:p-4">
         <h3 id="crop-title" className="text-lg font-bold">ครอปรูปนักกีฬา</h3>
         <p className="text-sm text-[var(--gt-muted)]">ลากเพื่อเลื่อน · ซูมด้วยแถบด้านล่าง (มือถือใช้สองนิ้วได้)</p>
         {failed ? (
@@ -105,8 +114,9 @@ export default function PhotoCropper({ file, onCancel, onDone }: Props) {
         ) : (
           <>
             <div
-              className="relative mx-auto mt-3 cursor-grab touch-none select-none overflow-hidden rounded-xl bg-[var(--gt-surface-2)] active:cursor-grabbing"
-              style={{ width: VIEW, height: VIEW }}
+              ref={stageRef}
+              className="relative mx-auto mt-3 aspect-square max-w-full cursor-grab touch-none select-none overflow-hidden rounded-xl bg-[var(--gt-surface-2)] active:cursor-grabbing"
+              style={{ width: VIEW }}
               onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
               onWheel={(e) => setZoomTo(zoom * (e.deltaY < 0 ? 1.08 : 1 / 1.08))}
             >

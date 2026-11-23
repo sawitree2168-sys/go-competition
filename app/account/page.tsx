@@ -8,9 +8,9 @@ export const metadata: Metadata = { title: "บัญชีของฉัน ·
 export default function Account() {
   return (
     <div className="min-h-screen">
-      <Shell wide>
-        <div className="relative left-1/2 w-screen -translate-x-1/2"><SiteBar /></div>
-        <div className="mx-auto max-w-2xl px-4 py-6"><AccountView /></div>
+      <Shell fullWidth>
+        <SiteBar />
+        <main className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6 sm:py-6"><AccountView /></main>
       </Shell>
     </div>
   );
