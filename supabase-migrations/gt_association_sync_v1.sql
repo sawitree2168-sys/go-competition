@@ -169,3 +169,17 @@ $$;
 revoke all on function public.gt_sync_association_registry_v1(text), public.gt_sync_association_v1(text, jsonb), public.gt_sync_association_fail_v1(text, text), public.gt_association_sync_status_v1(text) from public;
 grant execute on function public.gt_sync_association_registry_v1(text), public.gt_sync_association_v1(text, jsonb), public.gt_sync_association_fail_v1(text, text), public.gt_association_sync_status_v1(text) to anon, authenticated, service_role;
 -- The token itself is set once outside this file (insert into gt_private.sync_tokens_v1 ... its sha256).
+
+-- 23 Nov 2026: only successful runs count for the 30-minute gap; implausible ปีที่ได้ดั้ง (typos) are cleared.
+create or replace function public.gt_sync_association_registry_v1(p_token text) returns jsonb
+language sql stable security definer set search_path = public, gt_private as $$
+  select case when not gt_private.sync_token_ok_v1(p_token) then null else jsonb_build_object(
+    'last_run', (select max(ran_at) from gt_private.association_sync_log_v1 where ok),
+    'people', coalesce((select jsonb_agg(jsonb_build_object('go_id', r.go_id, 'name', r.full_name,
+                 'dan', (select min(case when c.dan_number::text ~ '^[0-9]+$' then c.dan_number::text::int end) from gt_private.history_dan_crosswalk_v1 c where c.go_id = r.go_id)))
+               from gt_private.history_identity_registry_v1 r where r.go_id <> 'GO106260826'), '[]'::jsonb),
+    'events', coalesce((select jsonb_agg(distinct k) from (select id k from public.gt_history_events
+                         union select source_key from gt_private.history_source_snapshots_v1) z), '[]'::jsonb)) end
+$$;
+update gt_private.legacy_dan_directory_v5 set awarded_year = null
+where awarded_year is not null and (awarded_year < 2400 or awarded_year > extract(year from now())::int + 543);
