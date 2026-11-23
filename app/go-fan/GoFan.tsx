@@ -119,6 +119,20 @@ export default function GoFan({initial}:{initial:FanData}) {
     try {if(navigator.share) await navigator.share({title:`GO FAN · ${p.name}`,text:`ติดตามผล ${p.name} · ${data.event?.title}`,url:url.toString()});else{await navigator.clipboard.writeText(url.toString());setNotice("คัดลอกลิงก์ผลการแข่งขันแล้ว");}}
     catch(e){if(!(e instanceof DOMException && e.name==="AbortError"))setNotice("แชร์ไม่สำเร็จ กรุณาลองใหม่");}
   }
+  // ทุกคนที่ติดตามในรายการนี้ ดูพร้อมกันได้: รอบล่าสุด (คู่ โต๊ะ สีหมาก ผล) + สถิติรวม
+  const overview=currentFollows.map(f=>{
+    const p=data.participants.find(x=>x.key===f.key);
+    const d=p?data.divisions.find(x=>x.division.id===p.divisionId):undefined;
+    const ms=p?.athleteId?(d?.matches??[]).filter(m=>m.state!=="void"&&(m.black_athlete_id===p.athleteId||m.white_athlete_id===p.athleteId)):[];
+    const bs=p?.athleteId?(d?.byes??[]).filter(b=>b.athlete_id===p.athleteId):[];
+    const lastRound=Math.max(0,...ms.map(m=>m.round_number),...bs.map(b=>b.round_number));
+    const m=ms.find(x=>x.round_number===lastRound)??null;
+    const bye=!m&&bs.some(b=>b.round_number===lastRound);
+    const opp=m&&p?.athleteId?new Map(d?.people??[]).get(m.black_athlete_id===p.athleteId?m.white_athlete_id:m.black_athlete_id):undefined;
+    const st=p?.athleteId?d?.standings.find(s=>s.athlete_id===p.athleteId):undefined;
+    return {f,p,lastRound,m,bye,opp,st,outcome:bye?{kind:"win",label:"ได้บาย",detail:""}:fanOutcome(m,p?.athleteId??null)};
+  });
+  const otherEventFollows=follows.length-currentFollows.length;
   const caption=view==="pairings"?"ผลจับคู่ (Pairing)":view==="ranking"?"ตารางอันดับ":view==="summary"?"สรุปผลการแข่งขัน":"ผลการแข่งขันของนักกีฬา";
   return <div className="gf-page competition-page cd-dashboard"><SiteBar current="/go-fan" />
     <header className="gf-hero"><svg className="gf-desktop-hero-art" viewBox="0 47 1672 153" aria-hidden="true" focusable="false"><image href="/go-fan/approved-desktop.webp" width="1672" height="941" /></svg><div><h1><span>GO</span> FAN <svg className="gf-megaphone" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m8 18 23-9 7 26-25-1Z"/><path d="m15 34 4 11 7-2-4-9M31 9c-1-6 1-7 3-5l10 30c1 4-3 5-6 1M5 20l-3 1 3 11 7 2M39 9l5-4M42 17l6-1"/></svg></h1><p>ติดตามผลการแข่งขันนักกีฬาที่คุณสนใจ</p><ul><li>ค้นหาชื่อ</li><li>กดติดตาม</li><li>ดูผลจับคู่</li><li>ผลการแข่งขัน</li><li>บันทึกรูปได้</li></ul></div></header>
@@ -137,7 +151,22 @@ export default function GoFan({initial}:{initial:FanData}) {
           {!follows.length && !showSearch && <div className="gf-suggestions"><h3>เลือกนักกีฬาจากรายชื่อจริง</h3>{data.participants.slice(0,3).map(p=><div key={p.key}><Portrait person={p} /><button className="gf-person-choice" type="button" onClick={()=>setSelectedKey(p.key)}><strong>{p.name}</strong><small>{divisionLabel(p.divisionName)}</small></button><button className="gf-star" type="button" aria-label={`ติดตาม ${p.name}`} onClick={()=>toggleFollow(p)}>☆</button></div>)}</div>}
         </section><Instructions />
       </aside>
-      <div className="gf-main">{selected ? <>
+      <div className="gf-main">
+        {tab==="follow"&&overview.length>0&&<section className="gf-overview" aria-label="นักกีฬาที่ติดตามทั้งหมด">
+          <h2>★ ดูทุกคนที่ติดตาม ({overview.length}) <small>แตะการ์ดเพื่อดูรายละเอียดทุกรอบ</small></h2>
+          <ul>{overview.map(({f,p,lastRound,m,bye,opp,st,outcome})=>{const person=p??f;return <li key={f.key} className={selected?.key===f.key?"selected":""}>
+            <Portrait person={person}/>
+            <button type="button" className="gf-overview-body" onClick={()=>{setSelectedKey(f.key);document.querySelector(".gf-selected")?.scrollIntoView({behavior:"smooth",block:"start"});}}>
+              <strong>{person.name}</strong>
+              <small>{divisionLabel(person.divisionName)}{st?` · ชนะ ${st.wins} แพ้ ${st.losses}${st.byes?` บาย ${st.byes}`:""} · คะแนน ${st.score}`:""}</small>
+              {!p?<small>ไม่พบชื่อในรายชื่อล่าสุดของรายการนี้</small>
+                :!lastRound?<small className="gf-overview-wait">รอประกาศคู่แข่งขัน</small>
+                :<span className="gf-overview-round"><b>รอบ {lastRound}</b>{bye?<span>ได้บาย</span>:<span>โต๊ะ {m?.board_number??"–"} · {m?.black_athlete_id===p.athleteId?"● ดำ":"○ ขาว"} · พบ {opp?.name??"รอชื่อคู่"}</span>}<span className={`gf-outcome ${outcome.kind}`}><b>{outcome.kind==="win"?"✓ ":outcome.kind==="loss"?"✕ ":""}{outcome.label}</b></span></span>}
+            </button>
+          </li>;})}</ul>
+          {otherEventFollows>0&&<p className="gf-overview-note">ติดตามในรายการอื่นอีก {otherEventFollows} คน · เลือกรายการแข่งขันด้านบน หรือแตะชื่อในรายการติดตาม</p>}
+        </section>}
+        {selected ? <>
         <section className={`gf-selected ${following?"gf-already-followed":""}`}><Portrait person={selected} /><div><h2>{selected.name}</h2><p>สังกัด : {selected.institution || "ไม่ระบุสถาบัน"}</p><span>{divisionLabel(selected.divisionName)}</span></div><div className="gf-selected-actions"><button className={`gf-follow-button ${following?"active":""}`} type="button" aria-pressed={following} onClick={()=>toggleFollow(selected)}>★ {following?"กำลังติดตาม":"ติดตามนักกีฬา"}</button>{following&&<button className="gf-bell" type="button" aria-pressed={followed?.notify} aria-label="แจ้งอัปเดตบนหน้านี้" onClick={()=>toggleNotice(selected.key)}><Bell /></button>}<button type="button" aria-label="แชร์ผลการแข่งขันของนักกีฬา" onClick={()=>void share(selected)}><ShareIcon /></button></div></section>
         {tab==="follow"&&<nav className="gf-subtabs" aria-label="ข้อมูลนักกีฬาที่เลือก">{([['results','ผลการแข่งขัน','trophy'],['pairings','ผลจับคู่ (Pairing)','register'],['ranking','อันดับ (Ranking)','stats']] as const).map(([id,label,icon])=><button key={id} type="button" aria-current={subtab===id?"page":undefined} onClick={()=>{setSubtab(id);setDetail(null);}}><MenuIcon name={icon} />{label}</button>)}</nav>}
         <CompetitionPanel className="gf-results-panel" title={caption} context={`${data.event?.title} · ${selected.name} · ${divisionLabel(selected.divisionName)}`}>
