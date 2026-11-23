@@ -107,7 +107,7 @@ export default function Certificates({ certs, name, athleteId }: { certs: Cert[]
           <article className="mt-5 grid gap-4 rounded-2xl border border-[var(--gt-line)] p-3 sm:p-5 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-center lg:gap-7">
             <button type="button" onClick={() => setPreview(featured)} aria-label={`ดูตัวอย่างใบประกาศ ${featured.title}`}
               className="overflow-hidden rounded-lg border border-[var(--gt-line)] bg-white shadow-sm">
-              {thumbs[keyOf(featured)] ? <img src={thumbs[keyOf(featured)]} alt="" className="block aspect-[2000/1414] w-full" />
+              {thumbs[keyOf(featured)] ? <img src={thumbs[keyOf(featured)]} alt="" className="block aspect-[2000/1414] w-full bg-white object-contain" />
                 : <span className="grid aspect-[2000/1414] w-full place-items-center text-sm text-[#5a6e8f]">กำลังสร้างตัวอย่าง…</span>}
             </button>
             <div className="min-w-0">
@@ -183,7 +183,7 @@ function Preview({ c, name, verify, onClose, onDownload, busy }: { c: Cert; name
           <button type="button" onClick={onClose} aria-label="ปิด" className="grid h-11 w-11 place-items-center rounded-full border border-[var(--gt-line)] text-xl">×</button>
         </div>
         <div className="overflow-hidden rounded-lg border border-[var(--gt-line)] bg-white">
-          {src ? <img src={src} alt={`ใบประกาศนียบัตรของ ${name}`} className="block aspect-[2000/1414] w-full" /> : <p className="grid aspect-[2000/1414] place-items-center text-[#5a6e8f]">กำลังสร้าง…</p>}
+          {src ? <img src={src} alt={`ใบประกาศนียบัตรของ ${name}`} className="block aspect-[2000/1414] w-full bg-white object-contain" /> : <p className="grid aspect-[2000/1414] place-items-center text-[#5a6e8f]">กำลังสร้าง…</p>}
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
           {(["pdf", "png"] as const).map((k) => (

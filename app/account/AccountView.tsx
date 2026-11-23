@@ -49,6 +49,7 @@ export default function AccountView() {
   const canResetOthers = me.staff || me.academies > 0;
   const signOut = async () => { await staffDb()?.auth.signOut(); window.location.assign("/"); };
   const next: { title: string; body: string; href?: string; cta?: string }[] = [];
+  if (me.athlete) next.push({ title: "🏆 รางวัลและบัญชีรับเงิน", body: "ดูรางวัลที่ได้ (ถ้วย ใบประกาศ เงินรางวัล) ส่งรูปยืนยัน และกรอกบัญชี/QR รับเงินครั้งเดียว ใช้ได้ทุกรายการ · ดูได้ว่าผู้จัดโอนแล้วหรือยัง", href: "/account/prizes", cta: "ดูรางวัลของฉัน →" });
   if (me.athlete) next.push({ title: "รูปโปรไฟล์และระดับฝีมือ", body: "เปลี่ยน/ครอปรูปของคุณเอง และระบุระดับคิวปัจจุบัน (1–15 คิว) จะแสดงในผังคู่ ผลแข่ง โปรไฟล์ และทำเนียบนักกีฬา", href: "/account/photo", cta: "แก้รูปและระดับฝีมือ →" });
   if (me.athlete) next.push({ title: `รหัส GO ของคุณ: ${me.athlete.go_id}`, body: `ใช้รหัส GO (หรือเลขดั้ง / ชื่อ-นามสกุล) + รหัสผ่าน เพื่อเข้าสู่ระบบครั้งต่อไป · ${me.athlete.has_profile ? "ดูประวัติ สถิติ และใบประกาศได้ที่โปรไฟล์" : "โปรไฟล์ (ประวัติ สถิติ ใบประกาศ) จะเปิดเมื่อลงแข่งรายการแรกในระบบนี้"}`, href: me.athlete.has_profile ? `/athletes/${me.athlete.id}` : undefined, cta: "ดูโปรไฟล์ของฉัน →" });
   if (me.staff) next.push({ title: "หน้าผู้จัดการแข่งขัน", body: "จัดการรายการแข่งขัน จับคู่ ลงผล กรรมการ และใบสมัคร", href: "/organizer", cta: "ไปหน้าผู้จัด →" });
