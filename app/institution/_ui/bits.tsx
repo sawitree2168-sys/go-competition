@@ -34,6 +34,7 @@ export const MENU: { id: Exclude<View, "home">; title: string; sub: string; tone
   { id: "students", title: "นักกีฬา", sub: "รายชื่อและระดับฝีมือ" },
   { id: "teachers", title: "ครูในสถาบัน", sub: "ผู้ดูแลและผู้สอน" },
   { id: "tracking", title: "ผลการแข่งขัน", sub: "รอบ โต๊ะ และคู่แข่ง" },
+  { id: "apply", title: "สมัครแข่งขัน", sub: "สมัครแบบกลุ่มและตรวจสถานะ" },
   { id: "stats", title: "สถิติพัฒนาการ", sub: "ชนะ–แพ้และการเติบโต" },
   { id: "settings", title: "ตั้งค่าสถาบัน", sub: "โลโก้ บัญชี และรหัสผ่าน" },
 ];
