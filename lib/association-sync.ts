@@ -54,16 +54,20 @@ export function parseDirectory(rows: string[][]) {
   const ratings: { dan: number; date: string; score: number; played: boolean }[] = [];
   for (const r of rows.slice(head + 1)) {
     const dan = integer(r[0]);
-    const name = String(r[cName] ?? "").trim();
+    const name = String(r[cName] ?? "").trim().replace(/\s+/g, " ");
     if (dan === null || !name) continue;
+    // (ชื่อในวงเล็บ) = เลขดั้งที่ประมูลไป ยังไม่ได้สอบผ่าน: เว็บแสดงแค่ว่าประมูลแล้ว ไม่มีระดับ ไม่มีคะแนน
+    // (ชีทเขียนระดับว่า "กิตติมศักดิ์" แต่ไม่มีดั้งกิตติมศักดิ์ จึงไม่เก็บค่านี้)
+    const auctioned = /^\(.*\)$/.test(name);
     const yearRaw = cYear >= 0 ? String(r[cYear] ?? "").trim() : "";
     const y = /(\d{4})\s*$/.exec(yearRaw);
     directory.push({
-      dan: String(dan), name, rank: String(r[cRank] ?? "").trim(),
+      dan: String(dan), name, rank: auctioned ? "" : String(r[cRank] ?? "").trim().replace(/^กิตติมศักดิ์$/, ""),
       diamond: cDiamond >= 0 && String(r[cDiamond] ?? "").trim() !== "",
       awarded_raw: yearRaw || null, awarded_year: y ? +y[1] : null,
-      max_score: cMax >= 0 ? num(r[cMax]) : null,
+      max_score: !auctioned && cMax >= 0 ? num(r[cMax]) : null,
     });
+    if (auctioned) continue;
     let prev: number | null = null;
     for (const { i, d } of dates) {
       const s = num(r[i]);
