@@ -153,6 +153,7 @@ export default function LoginForm({ stay, heading = "เข้าสู่ระ
           {busy ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
         </button>
       </form>
+      <Link href="/login/guide#athlete-profile-help" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-[var(--gt-cta)] underline">ค้นชื่อไม่เจอ หรือไม่เห็นโปรไฟล์นักกีฬา?</Link>
 
       {GOOGLE_ENABLED && (
         <>
