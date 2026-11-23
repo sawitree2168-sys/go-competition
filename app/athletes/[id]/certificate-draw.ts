@@ -6,7 +6,11 @@ export type Cert = {
   tournament_id: string; title: string; event_date: string | null; venue: string | null; organizer: string | null;
   division_id: string; division: string; open: boolean; kind: "placement" | "medal" | "participation" | null;
   pos: number | null; medal: "gold" | "silver" | "bronze" | null; number: string | null; signers: { name: string; title: string }[];
+  template?: Template | null;
 };
+/** The event's own certificate picture; the site only writes the name and award on it. y values are fractions of the page height. */
+export type Template = { bg: string; name_y: number; award_y: number; size: number; color: string; division: boolean; number: boolean };
+export const DEFAULT_TEMPLATE: Omit<Template, "bg"> = { name_y: 0.45, award_y: 0.56, size: 104, color: "#0b2a5b", division: true, number: false };
 
 export const W = 2000, H = 1414;
 const NAVY = "#0b2a5b", BLUE = "#1f4ea3", SOFT = "#cfe0fb", MUTED = "#5a6e8f";
@@ -66,8 +70,60 @@ function trophy(ctx: CanvasRenderingContext2D, cx: number, cy: number, [light, m
   ctx.restore();
 }
 
+const images = new Map<string, Promise<HTMLImageElement>>();
+function loadImage(src: string) {
+  let p = images.get(src);
+  if (!p) {
+    p = new Promise<HTMLImageElement>((ok, bad) => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => ok(im); im.onerror = () => bad(new Error("image")); im.src = src; });
+    p.catch(() => images.delete(src));
+    images.set(src, p);
+  }
+  return p;
+}
+
+/** Award text on an event's own design: winners get their place, everyone else "เข้าร่วมการแข่งขัน". */
+export function templateAward(c: Cert) {
+  const a = awardOf(c);
+  return a.award ? { lead: "ได้รับรางวัล ", award: a.award, tone: a.tone } : { lead: "", award: "เข้าร่วมการแข่งขัน", tone: "none" };
+}
+
+async function drawOnTemplate(canvas: HTMLCanvasElement, c: Cert, t: Template, personName: string, scale: number) {
+  const img = await loadImage(t.bg);
+  const portrait = img.naturalHeight > img.naturalWidth;
+  const PW = portrait ? H : W, PH = portrait ? W : H;
+  canvas.width = Math.round(PW * scale); canvas.height = Math.round(PH * scale);
+  const ctx = canvas.getContext("2d")!;
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, PW, PH);
+  // cover: fill the page, crop any overflow evenly
+  const k = Math.max(PW / img.naturalWidth, PH / img.naturalHeight), iw = img.naturalWidth * k, ih = img.naturalHeight * k;
+  ctx.drawImage(img, (PW - iw) / 2, (PH - ih) / 2, iw, ih);
+  ctx.textBaseline = "alphabetic"; ctx.textAlign = "center";
+  const max = PW * 0.8, cx = PW / 2, size = t.size;
+  const text = (s: string, y: number, weight: number, px: number, color: string) => { fit(ctx, s, weight, px, max); ctx.fillStyle = color; ctx.textAlign = "center"; ctx.fillText(s, cx, y); };
+
+  text(personName, t.name_y * PH, 600, size, t.color);
+  const aw = templateAward(c), ay = t.award_y * PH, asz = Math.round(size * 0.6);
+  if (aw.lead) {
+    fit(ctx, aw.lead + aw.award, 600, asz, max);
+    const px = parseInt(ctx.font.split(" ")[1]);
+    ctx.font = `500 ${px}px Prompt, sans-serif`; const w1 = ctx.measureText(aw.lead).width;
+    ctx.font = `600 ${px}px Prompt, sans-serif`; const w2 = ctx.measureText(aw.award).width;
+    const x0 = cx - (w1 + w2) / 2; ctx.textAlign = "left";
+    ctx.font = `500 ${px}px Prompt, sans-serif`; ctx.fillStyle = t.color; ctx.fillText(aw.lead, x0, ay);
+    ctx.font = `600 ${px}px Prompt, sans-serif`; ctx.fillStyle = TONE[aw.tone]?.[2] ?? t.color; ctx.fillText(aw.award, x0 + w1, ay);
+  } else {
+    text(aw.award, ay, 500, asz, t.color);
+  }
+  if (t.division) text(divisionLabel(c.division), ay + asz * 1.35, 500, Math.round(size * 0.48), t.color);
+  if (t.number && c.number) { ctx.font = `400 ${Math.round(PW * 0.013)}px Prompt, sans-serif`; ctx.fillStyle = t.color; ctx.textAlign = "left"; ctx.fillText(`เลขที่ ${c.number}`, PW * 0.055, PH * 0.955); }
+}
+
 export async function drawCertificate(canvas: HTMLCanvasElement, c: Cert, personName: string, verifyUrl: string, scale = 1) {
   await loadFonts();
+  if (c.template?.bg) {
+    try { return await drawOnTemplate(canvas, c, c.template, personName, scale); } catch { /* picture unavailable → built-in design */ }
+  }
   canvas.width = Math.round(W * scale); canvas.height = Math.round(H * scale);
   const ctx = canvas.getContext("2d")!;
   ctx.setTransform(scale, 0, 0, scale, 0, 0);

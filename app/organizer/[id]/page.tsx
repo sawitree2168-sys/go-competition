@@ -126,56 +126,6 @@ function RegistrationSettings({ id, mode, url, onSaved }: { id: string; mode: Mo
   );
 }
 
-type Signer = { name: string; title: string };
-
-function CertificateSettings({ id, open, signers, pending, onSaved }: { id: string; open: boolean; signers: Signer[]; pending: number; onSaved: () => void }) {
-  const [on, setOn] = useState(open);
-  const [list, setList] = useState<Signer[]>([0, 1].map((i) => signers[i] ?? { name: "", title: i === 0 ? "ประธานจัดการแข่งขัน" : "" }));
-  const [saved, setSaved] = useState(false);
-  const action = useAction();
-  const edit = (i: number, k: keyof Signer, v: string) => { setSaved(false); setList((l) => l.map((x, j) => (j === i ? { ...x, [k]: v } : x))); };
-  const save = async (next: boolean) => {
-    setSaved(false);
-    const res = await action.run(() => staffDb()!.rpc("gt_staff_set_certificates_v1", { p_tournament: id, p_open: next, p_signers: list }));
-    if (res) { setOn(next); setSaved(true); onSaved(); }
-  };
-  const field = "block min-h-11 w-full rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] px-3 font-normal";
-  return (
-    <div className="space-y-3">
-      <p className="flex flex-wrap items-center gap-2 text-sm">
-        สถานะ: {on ? <span className="rounded-full bg-[var(--gt-win-bg)] px-3 py-0.5 font-semibold text-[var(--gt-win-ink)]">เปิดให้ดาวน์โหลดแล้ว</span>
-          : <span className="rounded-full bg-[var(--gt-surface-2)] px-3 py-0.5 text-[var(--gt-muted)]">ยังไม่เปิด (นักกีฬาเห็น “รอออกใบประกาศ”)</span>}
-      </p>
-      <p className="text-sm text-[var(--gt-muted)]">ระบบสร้างใบประกาศจากผล: รุ่นจัดอันดับ อันดับ 1–3 = ชนะเลิศ / รองชนะเลิศอันดับ 1 / อันดับ 2 · รุ่นเฟรนชิพ = เหรียญตามจำนวนชนะ · คนอื่น = เข้าร่วมการแข่งขัน · นักกีฬาดาวน์โหลด PDF / PNG ได้ที่หน้าโปรไฟล์</p>
-      <fieldset className="grid gap-3 sm:grid-cols-2">
-        <legend className="mb-1 text-sm font-semibold">ผู้ลงนามบนใบประกาศ (ไม่บังคับ ไม่เกิน 2 คน)</legend>
-        {list.map((x, i) => (
-          <div key={i} className="space-y-1.5 rounded-xl border border-[var(--gt-line)] p-3">
-            <label className="block text-sm">ชื่อผู้ลงนาม {i + 1}<input value={x.name} onChange={(e) => edit(i, "name", e.target.value)} maxLength={80} placeholder="เช่น นายสมชาย ใจดี" className={`${field} mt-1`} /></label>
-            <label className="block text-sm">ตำแหน่ง<input value={x.title} onChange={(e) => edit(i, "title", e.target.value)} maxLength={80} placeholder="เช่น ผู้อำนวยการแข่งขัน" className={`${field} mt-1`} /></label>
-          </div>
-        ))}
-      </fieldset>
-      {!on && pending > 0 && <p className="rounded-xl bg-[var(--gt-warn-soft)] px-4 py-2 text-sm text-[var(--gt-warn)]">ยังมีโต๊ะรอผล {pending} โต๊ะ ควรเปิดเมื่อลงผลครบทุกรุ่นแล้ว (อันดับบนใบประกาศคิดจากผลขณะดาวน์โหลด)</p>}
-      <div className="flex flex-wrap items-center gap-2">
-        {on ? (
-          <>
-            <button type="button" onClick={() => save(true)} disabled={action.busy} className="gt-gold-btn min-h-11 px-5 disabled:opacity-60">บันทึกผู้ลงนาม</button>
-            <button type="button" onClick={() => save(false)} disabled={action.busy} className="min-h-11 rounded-xl border border-[var(--gt-bad)] px-4 text-[var(--gt-bad)] disabled:opacity-60">ปิดการดาวน์โหลด</button>
-          </>
-        ) : (
-          <>
-            <button type="button" onClick={() => save(true)} disabled={action.busy} className="gt-gold-btn min-h-11 px-5 disabled:opacity-60">เปิดให้ดาวน์โหลดใบประกาศ</button>
-            <button type="button" onClick={() => save(false)} disabled={action.busy} className="gt-outline-btn min-h-11 px-4 disabled:opacity-60">บันทึกผู้ลงนาม (ยังไม่เปิด)</button>
-          </>
-        )}
-        {saved && <span className="text-sm text-[var(--gt-ok)]">บันทึกแล้ว · หน้าโปรไฟล์อัปเดตภายใน 30 วินาที</span>}
-      </div>
-      <ErrorNote text={action.error} />
-    </div>
-  );
-}
-
 export default function OrganizerEvent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   return <Gate><EventConsole id={id} /></Gate>;
@@ -183,7 +133,7 @@ export default function OrganizerEvent({ params }: { params: Promise<{ id: strin
 
 function EventConsole({ id }: { id: string }) {
   const staff = useStaff();
-  const [event, setEvent] = useState<{ title: string; event_date: string | null; registration_mode: Mode | null; registration_url: string | null; venue: string | null; certificates_open: boolean; certificate_signers: Signer[] | null; bye_sos_mode: string | null } | null>(null);
+  const [event, setEvent] = useState<{ title: string; event_date: string | null; registration_mode: Mode | null; registration_url: string | null; venue: string | null; bye_sos_mode: string | null } | null>(null);
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [entrants, setEntrants] = useState<Entrant[]>([]);
   const [regCount, setRegCount] = useState<Map<string, number>>(new Map());
@@ -200,7 +150,7 @@ function EventConsole({ id }: { id: string }) {
     const access=await db.rpc("gt_can_manage_tournament_v1",{p_tournament:id});
     if(access.error||access.data!==true){setEvent(null);setLoaded(true);return;}
     const [ev, dv, en, rg, mt] = await Promise.all([
-      db.from("gt_tournaments").select("title,event_date,registration_mode,registration_url,venue,certificates_open,certificate_signers,bye_sos_mode").eq("id", id).maybeSingle(),
+      db.from("gt_tournaments").select("title,event_date,registration_mode,registration_url,venue,bye_sos_mode").eq("id", id).maybeSingle(),
       db.from("gt_divisions").select("id,name").eq("tournament_id", id),
       db.from("gt_public_entrants").select("source_row,full_name,institution,division_name").eq("tournament_id", id).order("source_row").limit(2000),
       db.from("gt_registrations").select("division_id").eq("tournament_id", id).eq("registration_status", "confirmed").limit(5000),
@@ -265,10 +215,11 @@ function EventConsole({ id }: { id: string }) {
         <p className="text-sm text-[var(--gt-muted)]">{thaiDate(event.event_date)}</p>
       </div>
 
-      <nav aria-label="ศูนย์ควบคุมรายการแข่งขัน" className="grid grid-cols-2 gap-2 rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-2 shadow-sm sm:grid-cols-5">
+      <nav aria-label="ศูนย์ควบคุมรายการแข่งขัน" className="grid grid-cols-2 gap-2 rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-2 shadow-sm sm:grid-cols-3 lg:grid-cols-6">
         <a href="#event-divisions" className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] bg-[var(--gt-cta)] px-2 text-center text-sm font-bold text-white">▦ จับคู่ / ลงผล</a>
         <Link href={`/organizer/${id}/referees`} className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] px-2 text-center text-sm font-bold">✓ จัดการกรรมการ</Link>
         <Link href={`/organizer/${id}/prizes`} className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-2 text-center text-sm font-bold">🏆 รางวัล / โอนเงิน</Link>
+        <Link href={`/organizer/${id}/certificates`} className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-2 text-center text-sm font-bold">📜 ใบประกาศ</Link>
         <Link href={`/tournaments/${id}`} className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] px-2 text-center text-sm font-bold">◉ หน้าสาธารณะ</Link>
         <button type="button" aria-pressed={settingsOpen} onClick={() => setSettingsOpen(!settingsOpen)} className="min-h-16 rounded-xl border-2 border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-2 text-sm font-bold">⚙ ตั้งค่างาน</button>
       </nav>
