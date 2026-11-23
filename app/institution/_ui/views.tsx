@@ -186,7 +186,7 @@ export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov:
     <div className="space-y-4">
       <SectionTitle>นักเรียน <span className="text-base font-normal text-[var(--gt-muted)]">{ov.students.length} คน</span></SectionTitle>
       <div className="flex flex-wrap items-center gap-3"><div className="min-w-[12rem] flex-1"><input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="ค้นหาชื่อ ชื่อเล่น หรือรหัสนักกีฬา" aria-label="ค้นหานักเรียน" className={inputCls} /></div><DisplayModeToggle mode={mode} onChange={setMode}/></div>
-      {list.length ? mode === "table" ? <div className="overflow-x-auto rounded-xl border-2 border-[#bcd1e9] bg-white"><table className="w-full min-w-[34rem] text-left text-sm"><thead className="bg-[#e8f2ff] text-[#123a76]"><tr><th className="px-4 py-3">นักกีฬา</th><th className="px-4 py-3">ชื่อเล่น</th><th className="px-4 py-3">รหัส GO</th><th className="px-4 py-3">ระดับฝีมือ</th></tr></thead><tbody className="divide-y divide-[#d9e6f6]">{list.map(s=><tr key={s.id} className="hover:bg-[#f2f7ff]"><td className="px-4 py-3"><StudentName s={s}/></td><td className="px-4 py-3">{s.nickname??"—"}</td><td className="px-4 py-3">{s.go_id??"—"}</td><td className="px-4 py-3">{s.rank??"—"}</td></tr>)}</tbody></table></div> : (
+      {list.length ? mode === "table" ? <div className="overflow-x-auto rounded-xl border-2 border-[#bcd1e9] bg-white"><table className="w-full table-fixed text-left text-xs sm:text-sm"><thead className="bg-[#e8f2ff] text-[#123a76]"><tr><th className="px-4 py-3">นักกีฬา</th><th className="px-4 py-3">ชื่อเล่น</th><th className="px-4 py-3">รหัส GO</th><th className="px-4 py-3">ระดับฝีมือ</th></tr></thead><tbody className="divide-y divide-[#d9e6f6]">{list.map(s=><tr key={s.id} className="hover:bg-[#f2f7ff]"><td className="px-4 py-3"><StudentName s={s}/></td><td className="px-4 py-3">{s.nickname??"—"}</td><td className="px-4 py-3">{s.go_id??"—"}</td><td className="px-4 py-3">{s.rank??"—"}</td></tr>)}</tbody></table></div> : (
         <ul className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((s) => (
             <li key={s.id} className="gt-card flex items-center gap-3 p-3">
@@ -289,16 +289,16 @@ export function Tracking({ ov, track, filters }: { ov: Overview; track: Track[] 
         <div className="flex flex-col gap-2 sm:flex-row">
           <input type="search" aria-label="ค้นหานักกีฬาในสถาบัน" className={inputCls} placeholder="ค้นหาชื่อนักกีฬา / รายการ / รุ่น" value={query} onChange={e => setQuery(e.target.value)} />
           <select aria-label="กรองผลแข่งขัน" className={selectCls} value={status} onChange={e => setStatus(e.target.value)}>
-            <option value="all">ทุกสถานะ</option><option value="pending">รอผล</option><option value="win">ชนะ</option><option value="loss">แพ้</option><option value="draw">เสมอ</option>
+            <option value="all">ทุกสถานะ</option><option value="pending">รอผล</option><option value="win">ชนะ</option><option value="loss">แพ้</option>
           </select>
         </div>
-        {rows.length ? mode === "table" ? <div className="overflow-x-auto rounded-xl border-2 border-[#bed2ed]"><table className="w-full min-w-[40rem] text-sm"><thead className="bg-[#e8f2ff] text-[#133c77]"><tr><th className="px-3 py-3 text-left">นักกีฬา</th><th className="px-3 py-3 text-left">รายการ / รุ่น</th><th className="px-3 py-3">รอบ</th><th className="px-3 py-3">โต๊ะ</th><th className="px-3 py-3">ผล</th></tr></thead><tbody className="divide-y divide-[#d8e6f7]">{rows.map(t=><tr key={`${t.athlete_id}:${t.tournament_id}:${t.division}`} onClick={()=>setSelected(`${t.athlete_id}:${t.tournament_id}`)} className={`cursor-pointer hover:bg-[#eef5ff] ${chosen===t?"bg-[#e6f0ff]":""}`}><td className="px-3 py-3 text-left font-semibold">{ov.students.find(x=>x.id===t.athlete_id)?.name??"นักกีฬา"}</td><td className="px-3 py-3 text-left">{t.title}<span className="block text-xs text-[#56708e]">{t.division}</span></td><td className="px-3 py-3 text-center">{t.round}</td><td className="px-3 py-3 text-center">{t.board??"รอประกาศ"}</td><td className="px-3 py-3 text-center"><Chip tone={OUTCOME[t.outcome].tone as "win"}>{OUTCOME[t.outcome].label}</Chip></td></tr>)}</tbody></table></div> : <div className="grid gap-2 sm:grid-cols-2">
+        {rows.length ? mode === "table" ? <div className="min-w-0 overflow-hidden rounded-xl border-2 border-[#bed2ed]"><table className="w-full table-fixed text-xs sm:text-sm"><thead className="bg-[#e8f2ff] text-[#133c77]"><tr><th className="px-3 py-3 text-left">นักกีฬา</th><th className="px-3 py-3 text-left">รายการ / รุ่น</th><th className="px-3 py-3">รอบ</th><th className="px-3 py-3">โต๊ะ</th><th className="px-3 py-3">ผล</th></tr></thead><tbody className="divide-y divide-[#d8e6f7]">{rows.map(t=><tr key={`${t.athlete_id}:${t.tournament_id}:${t.division}`} onClick={()=>setSelected(`${t.athlete_id}:${t.tournament_id}`)} className={`cursor-pointer hover:bg-[#eef5ff] ${chosen===t?"bg-[#e6f0ff]":""}`}><td className="break-words px-2 py-3 text-left font-semibold sm:px-3">{ov.students.find(x=>x.id===t.athlete_id)?.name??"นักกีฬา"}</td><td className="break-words px-2 py-3 text-left sm:px-3">{t.title}<span className="block text-xs text-[#56708e]">{t.division}</span></td><td className="px-3 py-3 text-center">{t.round || "รอจับคู่"}</td><td className="px-3 py-3 text-center">{t.board??"รอประกาศ"}</td><td className="px-3 py-3 text-center"><Chip tone={OUTCOME[t.outcome].tone as "win"}>{OUTCOME[t.outcome].label}</Chip></td></tr>)}</tbody></table></div> : <div className="grid gap-2 sm:grid-cols-2">
           {rows.map(t => {
             const s = ov.students.find(x => x.id === t.athlete_id);
             const active = chosen?.athlete_id === t.athlete_id && chosen?.tournament_id === t.tournament_id;
             return <button key={`${t.athlete_id}:${t.tournament_id}:${t.division}`} type="button" onClick={() => setSelected(`${t.athlete_id}:${t.tournament_id}`)}
               aria-pressed={active} className={`flex min-w-0 items-center justify-between gap-2 rounded-xl border-2 p-3 text-left transition active:scale-[.99] ${active ? "border-[var(--gt-cta)] bg-[var(--gt-cta-soft)]" : "border-[var(--gt-line)] hover:border-[var(--gt-cta)]"}`}>
-              <div className="min-w-0"><strong className="block truncate">{s?.name ?? "นักกีฬา"}</strong><span className="block truncate text-xs text-[var(--gt-muted)]">{t.title} · {t.division}</span><span className="text-xs">รอบ {t.round} · โต๊ะ {t.board ?? "รอประกาศ"}</span></div>
+              <div className="min-w-0"><strong className="block truncate">{s?.name ?? "นักกีฬา"}</strong><span className="block truncate text-xs text-[var(--gt-muted)]">{t.title} · {t.division}</span><span className="text-xs">{t.round ? `รอบ ${t.round}` : "รอจับคู่"} · โต๊ะ {t.board ?? "รอประกาศ"}</span></div>
               <Chip tone={OUTCOME[t.outcome].tone as "win"}>{OUTCOME[t.outcome].label}</Chip>
             </button>;
           })}
@@ -311,7 +311,7 @@ export function Tracking({ ov, track, filters }: { ov: Overview; track: Track[] 
         </div>
         <p className="text-sm text-[var(--gt-muted)]">{chosen.title} · {chosen.division}</p>
         <div className="grid grid-cols-2 gap-3 rounded-xl bg-[var(--gt-cta-soft)] p-4 text-center">
-          <div><b className="gt-num block text-2xl">รอบ {chosen.round}</b><span className="text-xs text-[var(--gt-muted)]">รอบล่าสุด</span></div>
+          <div><b className="gt-num block text-2xl">{chosen.round ? `รอบ ${chosen.round}` : "รอจับคู่"}</b><span className="text-xs text-[var(--gt-muted)]">รอบล่าสุด</span></div>
           <div><b className="gt-num block text-2xl">{chosen.board ? `โต๊ะ ${chosen.board}` : "รอประกาศ"}</b><span className="text-xs text-[var(--gt-muted)]">โต๊ะแข่งขัน</span></div>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -368,19 +368,19 @@ export function Stats({ ov, records, filters }: { ov: Overview; records: Rec[] }
         <p>อัตราชนะ <b className="gt-num text-2xl">{pct}%</b></p>
       </div>
       <div className="flex justify-end"><DisplayModeToggle mode={mode} onChange={setMode}/></div>
-      {mode === "cards" ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{rows.map(r=><article key={r.student.id} className="gt-card space-y-3 border-2 border-[#bcd1e9] p-4"><StudentName s={r.student} sub={r.student.rank}/><div className="grid grid-cols-3 gap-2 text-center"><div className="rounded-lg bg-[#edf5ff] p-2"><strong className="gt-num block text-xl">{r.games}</strong><span className="text-xs">เกม</span></div><div className="rounded-lg bg-[#e6f7ec] p-2"><strong className="gt-num block text-xl text-[#176738]">{r.wins}</strong><span className="text-xs">ชนะ</span></div><div className="rounded-lg bg-[#fff0f1] p-2"><strong className="gt-num block text-xl text-[#a42841]">{r.losses}</strong><span className="text-xs">แพ้</span></div></div><div className="flex justify-between text-sm"><span>{r.events} รายการ</span><b>อัตราชนะ {r.rate == null ? "—" : `${r.rate}%`}</b></div><div className="h-2 overflow-hidden rounded-full bg-[#e8edf6]"><div className="h-full rounded-full bg-[#1770d5]" style={{width:`${r.rate??0}%`}}/></div></article>)}{!rows.length&&<Empty>ยังไม่มีนักเรียน</Empty>}</div> : <div className="gt-card overflow-x-auto">
+      {mode === "cards" ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{rows.map(r=><article key={r.student.id} className="gt-card space-y-3 border-2 border-[#bcd1e9] p-4"><StudentName s={r.student} sub={r.student.rank}/><div className="grid grid-cols-3 gap-2 text-center"><div className="rounded-lg bg-[#edf5ff] p-2"><strong className="gt-num block text-xl">{r.games}</strong><span className="text-xs">เกม</span></div><div className="rounded-lg bg-[#e6f7ec] p-2"><strong className="gt-num block text-xl text-[#176738]">{r.wins}</strong><span className="text-xs">ชนะ</span></div><div className="rounded-lg bg-[#fff0f1] p-2"><strong className="gt-num block text-xl text-[#a42841]">{r.losses}</strong><span className="text-xs">แพ้</span></div></div><div className="flex justify-between text-sm"><span>{r.events} รายการ</span><b>อัตราชนะ {r.rate == null ? "—" : `${r.rate}%`}</b></div><div className="h-2 overflow-hidden rounded-full bg-[#e8edf6]"><div className="h-full rounded-full bg-[#1770d5]" style={{width:`${r.rate??0}%`}}/></div></article>)}{!rows.length&&<Empty>ยังไม่มีนักเรียน</Empty>}</div> : <div className="gt-card min-w-0 overflow-hidden">
         <table className="w-full min-w-[34rem] text-left text-sm">
           <thead className="bg-[var(--gt-cta-soft)]"><tr>
             <th className="px-4 py-2.5 font-medium">นักเรียน</th><th className="px-2 py-2.5 text-center font-medium">รายการ</th><th className="px-2 py-2.5 text-center font-medium">เกม</th>
-            <th className="px-2 py-2.5 text-center font-medium">ชนะ</th><th className="px-2 py-2.5 text-center font-medium">แพ้</th><th className="w-[30%] px-4 py-2.5 font-medium">อัตราชนะ</th>
+            <th className="px-2 py-2.5 text-center font-medium">ชนะ</th><th className="px-2 py-2.5 text-center font-medium">แพ้</th><th className="w-[23%] px-2 py-2.5 font-medium sm:px-4">อัตราชนะ</th>
           </tr></thead>
           <tbody className="divide-y divide-[var(--gt-line)]">
             {rows.map((r) => (
               <tr key={r.student.id}>
-                <td className="px-4 py-2"><StudentName s={r.student} sub={r.student.rank} /></td>
+                <td className="break-words px-2 py-2 sm:px-4"><StudentName s={r.student} sub={r.student.rank} /></td>
                 <td className="gt-num px-2 text-center">{r.events}</td><td className="gt-num px-2 text-center">{r.games}</td>
                 <td className="gt-num px-2 text-center text-[var(--gt-win-ink)]">{r.wins}</td><td className="gt-num px-2 text-center text-[var(--gt-loss-ink)]">{r.losses}{r.draws ? <span className="text-[var(--gt-muted)]"> (+{r.draws} เสมอ)</span> : ""}</td>
-                <td className="px-4">
+                <td className="px-2 sm:px-4">
                   {r.rate == null ? <span className="text-[var(--gt-muted)]">—</span> : (
                     <span className="flex items-center gap-2">
                       <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--gt-loss-bg)]" role="img" aria-label={`ชนะ ${r.rate}%`}>
