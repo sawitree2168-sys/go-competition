@@ -43,6 +43,29 @@ function boardCorner(ctx: CanvasRenderingContext2D, x: number, y: number, dx: nu
   stone(ctx, x + dx * 88, y + dy * 44, 15, true); stone(ctx, x + dx * 132, y + dy * 88, 15, false); stone(ctx, x + dx * 44, y + dy * 132, 15, true);
 }
 
+/** Trophy cup (gold / silver / bronze) with the place number on the cup. */
+function trophy(ctx: CanvasRenderingContext2D, cx: number, cy: number, [light, mid, ink]: [string, string, string], place: number) {
+  ctx.save();
+  const metal = ctx.createLinearGradient(cx - 90, 0, cx + 90, 0);
+  metal.addColorStop(0, mid); metal.addColorStop(0.45, light); metal.addColorStop(1, mid);
+  ctx.fillStyle = metal; ctx.strokeStyle = ink; ctx.lineWidth = 4;
+  // handles
+  ctx.lineWidth = 14; ctx.strokeStyle = mid;
+  ctx.beginPath(); ctx.arc(cx - 80, cy - 76, 32, Math.PI * 0.5, Math.PI * 1.5); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx + 80, cy - 76, 32, -Math.PI * 0.5, Math.PI * 0.5); ctx.stroke();
+  // cup
+  ctx.lineWidth = 4; ctx.strokeStyle = ink;
+  ctx.beginPath(); ctx.moveTo(cx - 84, cy - 118); ctx.lineTo(cx + 84, cy - 118);
+  ctx.bezierCurveTo(cx + 84, cy - 30, cx + 40, cy + 6, cx + 16, cy + 12); ctx.lineTo(cx - 16, cy + 12);
+  ctx.bezierCurveTo(cx - 40, cy + 6, cx - 84, cy - 30, cx - 84, cy - 118); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // stem + base
+  ctx.fillRect(cx - 14, cy + 12, 28, 40); ctx.strokeRect(cx - 14, cy + 12, 28, 40);
+  ctx.beginPath(); ctx.moveTo(cx - 62, cy + 52); ctx.lineTo(cx + 62, cy + 52); ctx.lineTo(cx + 74, cy + 86); ctx.lineTo(cx - 74, cy + 86); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // number on the cup
+  ctx.fillStyle = ink; ctx.textAlign = "center"; ctx.font = `700 76px Prompt, sans-serif`; ctx.fillText(String(place), cx, cy - 38);
+  ctx.restore();
+}
+
 export async function drawCertificate(canvas: HTMLCanvasElement, c: Cert, personName: string, verifyUrl: string, scale = 1) {
   await loadFonts();
   canvas.width = Math.round(W * scale); canvas.height = Math.round(H * scale);
@@ -84,8 +107,9 @@ export async function drawCertificate(canvas: HTMLCanvasElement, c: Cert, person
   const when = [c.event_date ? `เมื่อวันที่ ${thaiDate(c.event_date)}` : "", c.venue ? `ณ ${c.venue}` : ""].filter(Boolean).join(" ");
   if (when) center(ctx, when, 990, 400, 38, MUTED, 1500);
 
-  // seal for awards
-  if (TONE[a.tone]) {
+  // ถ้วยสำหรับอันดับ 1–3 (ทอง/เงิน/ทองแดง พร้อมเลขอันดับ) · เหรียญสำหรับรุ่นเฟรนชิพ · ใบเข้าร่วมไม่มีสัญลักษณ์
+  if (TONE[a.tone] && c.kind === "placement") trophy(ctx, W / 2, 1150, TONE[a.tone], c.pos ?? 1);
+  else if (TONE[a.tone]) {
     const [l, m, ink] = TONE[a.tone]; const sx = W / 2, sy = 1140, r = 78;
     ctx.save();
     ctx.fillStyle = m; for (const dx of [-34, 34]) { ctx.beginPath(); ctx.moveTo(sx + dx - 22, sy + 40); ctx.lineTo(sx + dx + 22, sy + 40); ctx.lineTo(sx + dx + 30, sy + 150); ctx.lineTo(sx + dx, sy + 128); ctx.lineTo(sx + dx - 30, sy + 150); ctx.closePath(); ctx.fill(); }
@@ -93,8 +117,7 @@ export async function drawCertificate(canvas: HTMLCanvasElement, c: Cert, person
     ctx.beginPath(); for (let i = 0; i < 48; i++) { const ang = (i / 48) * Math.PI * 2, rr = i % 2 ? r : r + 9; ctx.lineTo(sx + Math.cos(ang) * rr, sy + Math.sin(ang) * rr); } ctx.closePath(); ctx.fillStyle = g; ctx.fill();
     ctx.lineWidth = 3; ctx.strokeStyle = ink; ctx.beginPath(); ctx.arc(sx, sy, r - 14, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
-    const short = c.kind === "placement" ? (c.pos === 1 ? "ที่ 1" : c.pos === 2 ? "ที่ 2" : "ที่ 3") : a.award.replace("เหรียญ", "");
-    center(ctx, short, sy + 14, 600, 40, ink, 120);
+    center(ctx, a.award.replace("เหรียญ", ""), sy + 14, 600, 40, ink, 120);
   }
 
   // signers (typed by the organiser) — or the organiser's name
