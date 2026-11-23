@@ -57,7 +57,7 @@ export default function Apply({ ov, apps, canEdit, reload }: { ov: Overview; app
       <div id="apply-top"><SectionTitle>สมัครและชำระเงิน</SectionTitle></div>
       <div className="gt-card space-y-5 p-4 sm:p-6">
         <Steps at={step} />
-        {!canEdit && <p role="status" className="rounded-xl bg-[var(--gt-gold-soft)] px-4 py-3 text-sm text-[var(--gt-gold-ink)]">สมัครแบบกลุ่มได้เมื่อเจ้าของระบบอนุมัติสิทธิ์ครูแล้ว</p>}
+        {!canEdit && <div role="status" className="rounded-xl border-2 border-[#e6ba59] bg-[#fff8e9] p-4 text-sm text-[#725113]"><p className="font-bold">รออนุมัติสิทธิ์จากผู้จัดการสถาบัน</p><p className="mt-1">ดูรายการแข่งขันและข้อมูลเบื้องต้นได้ แต่ยังส่งใบสมัครหรือชำระเงินแทนสถาบันไม่ได้ จนกว่าผู้จัดการ GO MASTER จะอนุมัติบัญชีครูในเมนู “ครูในสถาบัน”</p><Link href="/institution?v=teachers" className="mt-2 inline-flex min-h-11 items-center font-bold underline">ไปหน้าจัดการสิทธิ์ครู →</Link></div>}
 
         {done ? (
           <div className="space-y-3 text-center" role="status">
@@ -121,7 +121,7 @@ export default function Apply({ ov, apps, canEdit, reload }: { ov: Overview; app
                       );
                     })}
                   </ul>
-                ) : <Empty>ยังไม่มีนักเรียน — เพิ่มได้ที่เมนู “นักเรียน”</Empty>}
+                ) : <div className="rounded-xl border-2 border-[#bcd1eb] bg-[#f3f8ff] p-4 text-sm"><p className="font-bold">ยังไม่มีรายชื่อนักเรียนสำหรับสมัคร</p><p className="mt-1">ค้นหาและเชื่อม GO ID เดิมจากเมนูนักเรียนก่อน โดยไม่ต้องสร้างไอดีใหม่</p><Link href="/institution?v=students" className="mt-2 inline-flex min-h-11 items-center font-bold text-[#0b5fbd] underline">ไปหน้าเพิ่มนักเรียน →</Link></div>}
               </fieldset>
             )}
 
