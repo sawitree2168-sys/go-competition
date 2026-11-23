@@ -1,6 +1,8 @@
 "use client";
 
 import EventSettings from "./EventSettings";
+import TestMode from "../_lib/TestMode";
+import OfflineDesk from "./OfflineDesk";
 import Link from "next/link";
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import Gate from "../_lib/Gate";
@@ -223,6 +225,8 @@ function EventConsole({ id }: { id: string }) {
         <Link href={`/tournaments/${id}`} className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] px-2 text-center text-sm font-bold">◉ หน้าสาธารณะ</Link>
         <button type="button" aria-pressed={settingsOpen} onClick={() => setSettingsOpen(!settingsOpen)} className="min-h-16 rounded-xl border-2 border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-2 text-sm font-bold">⚙ ตั้งค่างาน</button>
       </nav>
+      <TestMode eventId={id} />
+      <OfflineDesk id={id} title={event.title} />
       {settingsOpen && <EventSettings id={id} onSaved={load}/>}
       <section id="event-readiness" aria-label="ภาพรวมเตรียมแข่งขัน" className="rounded-2xl border-[3px] border-[#d4a63d] bg-[var(--gt-surface)] p-4 shadow-sm">
         <div className="mb-3 rounded-xl bg-[linear-gradient(110deg,#0d67c9,#073e8e)] p-4 text-white">
