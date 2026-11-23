@@ -47,3 +47,6 @@ next-env.d.ts
 
 /.portrait-*
 /data/portrait-source-private.json
+
+# offline pairing desk (built by scripts/build-offline-desk.mjs)
+/public/offline/
