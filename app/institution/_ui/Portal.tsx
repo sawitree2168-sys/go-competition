@@ -87,7 +87,15 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   const years=useMemo(()=>yearsOf(records),[records]);
   const events=useMemo(()=>eventsOf(records,year),[records,year]);
   const filtered=useMemo(()=>filterRecords(records,{year,event}),[records,year,event]);
-  const tracking=useMemo(()=>(ov?.tracking??[]).filter(t=>(!year||Number(String(t.date??"").slice(0,4))+543===year)&&(!event||t.tournament_id===event)),[ov,year,event]);
+  const tracking=useMemo(()=>{
+    if(!ov)return [];
+    // A confirmed registration must be visible before pairing, without inventing a board or result.
+    const paired=new Set(ov.tracking.map(t=>`${t.athlete_id}:${t.tournament_id}:${t.division}`));
+    const awaiting=ov.records.filter(r=>!paired.has(`${r.athlete_id}:${r.tournament_id}:${r.division}`))
+      .map(r=>({athlete_id:r.athlete_id,tournament_id:r.tournament_id,title:r.title,date:r.date,
+        division:r.division,round:0,board:null,outcome:"pending" as const}));
+    return [...ov.tracking,...awaiting].filter(t=>(!year||Number(String(t.date??"").slice(0,4))+543===year)&&(!event||t.tournament_id===event));
+  },[ov,year,event]);
   const access=ov?.access==="active"||ov?.access==="admin";
   const filters=<div className="flex flex-wrap gap-2">
     <select aria-label="เลือกปี" className={selectCls} value={year??""} onChange={e=>{setYear(e.target.value?Number(e.target.value):null);setEvent("");}}>
