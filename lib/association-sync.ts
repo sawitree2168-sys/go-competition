@@ -210,3 +210,18 @@ export function parseCompetitionTabs(tabs: Tab[], registry: RegistryPerson[], ba
     summary: { tabs: tabs.map((t) => t.tab), events: events.length, games: unique.length, reviews: reviews.size },
   };
 }
+
+/** New dan numbers that belong to an existing profile: same normalised name, exactly one profile, no dan yet. */
+export function newDanLinks(directory: { dan: string; name: string }[], registry: RegistryPerson[]) {
+  const knownDans = new Set(registry.filter((p) => p.dan !== null).map((p) => p.dan));
+  const byName = new Map<string, RegistryPerson[]>();
+  for (const p of registry) { const k = norm(p.name); byName.set(k, [...(byName.get(k) ?? []), p]); }
+  const out: { dan: number; go_id: string }[] = [];
+  for (const d of directory) {
+    const dan = Number(d.dan);
+    if (knownDans.has(dan) || /^\(.*\)$/.test(d.name)) continue;
+    const same = byName.get(norm(d.name)) ?? [];
+    if (same.length === 1 && same[0].dan === null) out.push({ dan, go_id: same[0].go_id });
+  }
+  return out;
+}

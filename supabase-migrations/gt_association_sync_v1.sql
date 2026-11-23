@@ -7,6 +7,8 @@
 --      Tabs already on the site are never touched, so manual corrections stay as they are.
 --      Names that do not match a dan number / known athlete are kept as unlinked players and listed
 --      in history_central_review_v1 (identity_unresolved) for the admin.
+--   3. A new dan number whose name matches exactly one existing profile (without a dan number) is linked to it,
+--      so a kyu player who passes the dan exam keeps one profile.
 
 create table if not exists gt_private.association_sync_log_v1 (
   id bigserial primary key,
@@ -46,7 +48,7 @@ create or replace function public.gt_sync_association_v1(p_token text, p jsonb) 
 language plpgsql security definer set search_path = public, gt_private as $$
 declare
   v_batch text := p->>'batch';
-  v_dir int := 0; v_rate int := 0; v_events int := 0; v_games int := 0; v_reviews int := 0;
+  v_dir int := 0; v_rate int := 0; v_events int := 0; v_games int := 0; v_reviews int := 0; v_links int := 0;
   v_new_events text[];
 begin
   if not gt_private.sync_token_ok_v1(p_token) then raise exception 'not allowed'; end if;
@@ -79,6 +81,16 @@ begin
     where h.score is distinct from excluded.score or (excluded.played and not h.played)
     returning 1
   ) select count(*) into v_rate from up;
+
+  -- 2b. new dan holders who already have a profile (e.g. played kyu before): link dan number → GO ID when
+  --     the site found exactly one profile with the same name and that profile has no dan number yet.
+  insert into gt_private.history_dan_crosswalk_v1(dan_number, go_id, basis)
+  select (x->>'dan')::int, x->>'go_id', 'auto_new_dan_name_match'
+  from jsonb_array_elements(coalesce(p->'dan_links', '[]'::jsonb)) x
+  where exists (select 1 from gt_private.history_identity_registry_v1 r where r.go_id = x->>'go_id')
+    and not exists (select 1 from gt_private.history_dan_crosswalk_v1 c where c.dan_number = (x->>'dan')::int or c.go_id = x->>'go_id')
+  on conflict do nothing;
+  get diagnostics v_links = row_count;
 
   -- 3. new competition tabs only
   select coalesce(array_agg(e->>'id'), '{}') into v_new_events
@@ -135,9 +147,9 @@ begin
   end if;
 
   insert into gt_private.association_sync_log_v1(ok, summary) values (true, jsonb_build_object(
-    'directory_changed', v_dir, 'scores_changed', v_rate, 'new_events', v_events, 'new_games', v_games,
+    'directory_changed', v_dir, 'scores_changed', v_rate, 'profiles_linked', v_links, 'new_events', v_events, 'new_games', v_games,
     'names_to_check', v_reviews, 'new_event_ids', to_jsonb(v_new_events), 'tabs', p->'tabs'));
-  return jsonb_build_object('directory_changed', v_dir, 'scores_changed', v_rate, 'new_events', v_events, 'new_games', v_games, 'names_to_check', v_reviews);
+  return jsonb_build_object('directory_changed', v_dir, 'scores_changed', v_rate, 'profiles_linked', v_links, 'new_events', v_events, 'new_games', v_games, 'names_to_check', v_reviews);
 end $$;
 
 create or replace function public.gt_sync_association_fail_v1(p_token text, p_error text) returns void
