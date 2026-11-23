@@ -32,16 +32,18 @@ export async function loadRankings(db: SupabaseClient | null, limit = 5, year?: 
   return error || !data ? null : (data as Rankings);
 }
 
-/** gt_public_rankings_v2: ดั้ง by national score; คิว by wins this year inside each class of division played. */
-export type DanRankRow = { pos: number; go_id: string | null; full_name: string; level: string | null; diamond: boolean; dan: number | null;
-  athlete_id: string | null; photo: string | null; score: number; delta: number | null };
-export type KyuClassRow = { pos: number; go_id: string; full_name: string; athlete_id: string | null; photo: string | null; wins: number; losses: number; events: number };
-export type Rankings2 = { year: number; dan: DanRankRow[]; dan_total: number; dan_as_of: string | null; kyu: { kyu: number; total: number; rows: KyuClassRow[] }[] };
+/** gt_public_rankings_v2: who won most, ดั้ง / คิว, from the central history. level -1 = all, 0 = unknown. */
+export type WinEvent = { id: string; title: string; date: string | null; year: number | null; division: string; wins: number; losses: number; byes: number; wo_wins: number; wo_losses: number };
+export type WinRow = { pos: number; go_id: string; full_name: string; athlete_id: string | null; photo: string | null; level: number | null; dan_number: number | null;
+  wins: number; losses: number; played: number; wo_wins: number; wo_losses: number; byes: number; events: number; list: WinEvent[] };
+export type WinRankings = { year: number | null; from: string | null; to: string | null; games: number;
+  events: { id: string; title: string; date: string | null; year: number | null }[];
+  groups: { grp: "dan" | "kyu"; level: number; total: number }[]; rows: WinRow[] };
 
-export async function loadRankings2(db: SupabaseClient | null, limit = 50, year?: number): Promise<Rankings2 | null> {
+export async function loadWinRankings(db: SupabaseClient | null, grp: "dan" | "kyu", level: number, limit = 30): Promise<WinRankings | null> {
   if (!db) return null;
-  const { data, error } = await db.rpc("gt_public_rankings_v2", { p_year: year ?? null, p_limit: limit });
-  return error || !data ? null : (data as Rankings2);
+  const { data, error } = await db.rpc("gt_public_rankings_v2", { p_grp: grp, p_level: level, p_year: null, p_limit: limit });
+  return error || !data ? null : (data as WinRankings);
 }
 
 export async function loadResults(db: SupabaseClient | null): Promise<ResultEvent[]> {
