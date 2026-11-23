@@ -265,9 +265,10 @@ function EventConsole({ id }: { id: string }) {
         <p className="text-sm text-[var(--gt-muted)]">{thaiDate(event.event_date)}</p>
       </div>
 
-      <nav aria-label="ศูนย์ควบคุมรายการแข่งขัน" className="grid grid-cols-2 gap-2 rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-2 shadow-sm sm:grid-cols-4">
+      <nav aria-label="ศูนย์ควบคุมรายการแข่งขัน" className="grid grid-cols-2 gap-2 rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-2 shadow-sm sm:grid-cols-5">
         <a href="#event-divisions" className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] bg-[var(--gt-cta)] px-2 text-center text-sm font-bold text-white">▦ จับคู่ / ลงผล</a>
         <Link href={`/organizer/${id}/referees`} className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] px-2 text-center text-sm font-bold">✓ จัดการกรรมการ</Link>
+        <Link href={`/organizer/${id}/prizes`} className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-2 text-center text-sm font-bold">🏆 รางวัล / โอนเงิน</Link>
         <Link href={`/tournaments/${id}`} className="flex min-h-16 items-center justify-center rounded-xl border-2 border-[var(--gt-cta)] px-2 text-center text-sm font-bold">◉ หน้าสาธารณะ</Link>
         <button type="button" aria-pressed={settingsOpen} onClick={() => setSettingsOpen(!settingsOpen)} className="min-h-16 rounded-xl border-2 border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-2 text-sm font-bold">⚙ ตั้งค่างาน</button>
       </nav>
