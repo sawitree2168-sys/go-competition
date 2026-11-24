@@ -11,7 +11,7 @@
 }
 .gt-inst * { min-width:0; }
 .gt-inst .inst-topbar {
-  background:linear-gradient(106deg,#0751b9 0%,#0875e9 58%,#d4e8ff 100%);
+  background:linear-gradient(106deg,#0751b9 0%,#0875e9 58%,#0752b0 100%);
   border-bottom:3px solid #e7b644;
   box-shadow:0 4px 13px rgba(13,73,160,.13);
 }
