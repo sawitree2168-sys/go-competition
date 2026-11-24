@@ -9,9 +9,20 @@ const DEFAULT:Branding={logo_path:null,shape:"circle",zoom:100,x:50,y:50};
 export function LogoDisplay({branding,name,className=""}:{branding:Branding|null;name:string;className?:string}) {
  const db=staffDb();
  const logoUrl=branding?.logo_path?db?.storage.from("gt-institution-logos").getPublicUrl(branding.logo_path).data.publicUrl:null;
- return <div className={`relative grid shrink-0 place-items-center overflow-hidden border-[4px] border-[#eac166] bg-[#061f49] text-center text-[#f9d88b] shadow-lg ${branding?.shape==="square"?"rounded-[20px]":"rounded-full"} ${className}`}>
+ const isMaster = name.trim().toUpperCase() === "GO MASTER";
+ const fallbackSquare = !logoUrl && isMaster;
+ return <div className={`relative grid shrink-0 place-items-center overflow-hidden border-[4px] border-[#eac166] bg-[#061f49] text-center text-[#f9d88b] shadow-lg ${branding?.shape==="square" || fallbackSquare?"rounded-[20px]":"rounded-full"} ${className}`}>
    {logoUrl?<img src={logoUrl} alt={`โลโก้ ${name}`} className="h-full w-full object-cover" style={{objectPosition:`${branding?.x??50}% ${branding?.y??50}%`,transform:`scale(${(branding?.zoom??100)/100})`}}/>:
-   <span className="flex flex-col items-center text-sm font-black leading-tight"><span className="text-2xl">⚫⚪</span>{name.length>18?name.slice(0,18)+"…":name}</span>}
+   <span className="flex w-full flex-col items-center justify-center gap-1 px-1 text-center font-semibold leading-tight" aria-label={`ป้ายชื่อ ${name} (ยังไม่ได้อัปโหลดโลโก้)`}>
+     {isMaster ?
+       <svg viewBox="0 0 64 42" aria-hidden="true" className="h-8 w-10 sm:h-10 sm:w-12" fill="none">
+         <path d="M6 11 20 21 31 4 44 21 58 11 52 32H12Z" fill="#f7c44e" stroke="#ffe8a2" strokeWidth="2"/>
+         <path d="M13 36H51" stroke="#ffe8a2" strokeWidth="4" strokeLinecap="round"/>
+         <circle cx="6" cy="9" r="4" fill="#ffdc76"/><circle cx="31" cy="4" r="4" fill="#ffdc76"/><circle cx="58" cy="9" r="4" fill="#ffdc76"/>
+       </svg> :
+       <span aria-hidden="true" className="text-xl">⚫⚪</span>}
+     <span className="block max-w-full break-words text-[11px] sm:text-sm">{name.length>22?name.slice(0,22)+"…":name}</span>
+   </span>}
  </div>;
 }
 
