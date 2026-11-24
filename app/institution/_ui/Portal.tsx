@@ -119,9 +119,9 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       <div className="relative z-10 flex flex-wrap items-center gap-5">
         <div className="inst-hero-logo"><LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/></div>
         <div className="min-w-0 flex-1">
-        <p className="text-xs font-bold tracking-[.18em] text-[#f9d67d]">GO TOURNAMENT · {workspaceType==="independent_coach"?"ครูอิสระ":"สถาบัน"}</p>
+        <p className="text-sm font-semibold tracking-[.04em] text-[#ffdb77]">GO TOURNAMENT · {workspaceType==="independent_coach"?"ครูอิสระ":"สถาบัน"}</p>
         <h1 className="mt-2 break-words text-2xl font-bold sm:text-4xl">{ov?.academy.name??selected.name}</h1>
-        <p className="mt-2 text-base text-white/90">{workspaceType==="independent_coach"?"พื้นที่ส่วนตัวสำหรับติดตามนักเรียนที่สอน แม้จะลงแข่งขันในนามโรงเรียนอื่น":"ระบบติดตามนักกีฬาและการแข่งขันของสถาบัน"}</p>
+        <p className="mt-2 text-base font-medium text-white sm:text-lg">{workspaceType==="independent_coach"?"พื้นที่ส่วนตัวสำหรับติดตามนักเรียนที่สอน แม้จะลงแข่งขันในนามโรงเรียนอื่น":"ระบบติดตามนักกีฬาและการแข่งขันของสถาบัน"}</p>
         <p className="inst-access-pill mt-3" data-active={selected.status==="active"}>{selected.status==="active"?"✓ บัญชีสถาบันเปิดใช้งาน":"รออนุมัติสิทธิ์"}</p>
       </div>
       <div className="relative z-10 hidden w-[470px] shrink-0 grid-cols-4 gap-2 xl:grid">
@@ -155,7 +155,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     </aside>
     <div className="inst-workspace-main space-y-5">
     {view!=="home"&&<div className="flex items-center gap-2 text-sm"><button type="button" onClick={()=>go("home")} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-[#bcd1eb] bg-white px-3 font-bold text-[#0b4f9e]">← ภาพรวมสถาบัน</button><span className="text-[#5b6f88]">› {MENU.find(m=>m.id===view)?.title??""}</span></div>}
-    {ov?.access==="pending"&&<p role="status" className="rounded-xl border-2 border-[#e6c16c] bg-[#fff8e8] p-4 text-sm">รับคำขอเข้าร่วมสถาบันแล้ว · รอผู้ดูแลอนุมัติสิทธิ์ก่อนจึงจะเพิ่มนักกีฬาและสมัครแข่งขันได้</p>}
+    {ov?.access==="pending"&&<p role="status" className="rounded-xl border-2 border-[#d6a331] bg-[#fff7df] p-4 text-base font-medium text-[#704d10]">รับคำขอเข้าร่วมสถาบันแล้ว · รอผู้จัดการ GO MASTER อนุมัติสิทธิ์ก่อนจึงจะเพิ่มนักกีฬา สมัครแข่งขัน หรือแก้ไขโลโก้ได้ กรุณาให้ผู้จัดการที่มีสิทธิ์เปิดเมนู “เจ้าของและครู” เพื่อตรวจคำขอ</p>}
     {!ov?<div className="rounded-xl border border-[#bfd1eb] bg-white p-8 text-center" role={error?"alert":"status"}>{error||"กำลังโหลดข้อมูลสถาบัน…"}</div>:<div className="space-y-5">
       {view==="home"&&<Home ov={ov} records={filtered} track={tracking} apps={apps} filters={filters} go={go}/>}
       {view==="tracking"&&<Tracking ov={ov} track={tracking} filters={filters}/>}
@@ -167,12 +167,23 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       {view==="stats"&&<Stats ov={ov} records={filtered} filters={filters}/>}
       {view==="reports"&&<Reports ov={ov} records={filtered} filters={filters}/>}
       {view==="apply"&&<Apply ov={ov} apps={apps} canEdit={access} reload={load}/>}
-      {view==="settings"&&access&&<section className="space-y-4 rounded-[24px] border-[3px] border-[#bcd1eb] bg-white p-4 sm:p-6">
-        <h2 className="border-b-[3px] border-[#e5b753] pb-3 text-2xl font-black text-[#0e3974]">ตั้งค่าสถาบันและบัญชี</h2>
-        {selected.role==="manager"&&<LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/>}
-        <StaffUsername role={selected.role} academyName={selected.name}/>
-        <ChangeInstitutionPassword/>
-        {selected.role==="manager"&&<p className="rounded-xl border border-[#efcf79] bg-[#fff7e5] p-3 text-sm">เพิ่มและอนุมัติครูได้ในเมนู “ครูในสถาบัน”</p>}
+      {view==="settings"&&<section className="space-y-4 rounded-[22px] border-[3px] border-[#b7d0ee] bg-white p-4 sm:p-6">
+        <h2 className="border-b-[3px] border-[#d5a42c] pb-3 text-xl font-semibold text-[#103e83] sm:text-2xl">ตั้งค่าสถาบันและบัญชี</h2>
+        {!access?<div role="status" className="space-y-3 rounded-xl border-2 border-[#d9aa3e] bg-[#fff8e6] p-4 text-base text-[#624710]">
+          <p className="text-lg font-semibold">บัญชีนี้ยังรออนุมัติสิทธิ์สถาบัน</p>
+          <p>ขณะนี้สามารถดูข้อมูลและติดตามการแข่งขันได้ แต่ยังเปลี่ยนโลโก้หรือแก้ไขข้อมูลสถาบันไม่ได้</p>
+          <p>ให้ผู้จัดการสถาบันที่มีสิทธิ์แล้วเข้าบัญชีของตนเอง ไปที่เมนู “เจ้าของและครู” แล้วอนุมัติคำขอของบัญชีนี้</p>
+          <button type="button" onClick={()=>go("teachers")} className="inst-settings-link">ดูหน้าเจ้าของและครู</button>
+        </div>:<>
+          {selected.role==="manager"?<LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/>:
+           <div className="rounded-xl border-2 border-[#c4d5ec] bg-[#f4f8ff] p-4">
+             <p className="font-semibold">โลโก้และข้อมูลสถาบัน</p>
+             <p className="mt-2 text-base">เฉพาะเจ้าของหรือผู้จัดการสถาบันเท่านั้นที่แก้ไขโลโก้ได้ หากต้องการเปลี่ยน ให้ติดต่อผู้จัดการที่มีสิทธิ์</p>
+           </div>}
+          <StaffUsername role={selected.role} academyName={selected.name}/>
+          <ChangeInstitutionPassword/>
+          {selected.role==="manager"&&<p className="rounded-xl border-2 border-[#d9aa3e] bg-[#fff7e5] p-3 text-base">เพิ่มและอนุมัติครูได้ในเมนู “เจ้าของและครู”</p>}
+        </>}
       </section>}
     </div>}
     </div>
