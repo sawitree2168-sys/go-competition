@@ -6,6 +6,7 @@ import { staffDb } from "@/app/organizer/_lib/staff";
 import PhotoEditor from "@/components/PhotoEditor";
 import AthleteProfileHelp from "@/components/AthleteProfileHelp";
 import MyKyuLevel from "./MyKyuLevel";
+import MyAcademies from "./MyAcademies";
 
 type Mine = { athlete_id: string; go_id: string; full_name: string; rank: string | null; photo: string | null };
 
@@ -50,6 +51,7 @@ export default function MyPhoto() {
           onSaved={(url) => setMe({ ...me, photo: url })} />
       </section>
       <MyKyuLevel />
+      <MyAcademies />
       <p className="text-sm text-[var(--gt-muted)]">รูปหลักจะปรากฏในโปรไฟล์และทำเนียบนักกีฬา หากต้องการใช้รูปที่เก็บไว้ ให้กด “ตั้งเป็นรูปหลัก” ที่รูปนั้น · <Link href="/account/photo/guide" className="font-semibold text-[var(--gt-brand)] underline">ดูวิธีเปลี่ยนรูปทีละขั้น</Link></p>
     </div>
   );

@@ -3,10 +3,10 @@
 -- 1. gt_private.history_athlete_person_v1(): links a site athlete (gt_athletes) to a history person (gt_history_people)
 --    by the same GO ID, otherwise by an exact full name that belongs to exactly one history person AND exactly one
 --    site athlete (identity rule 3: "ชื่อไทยเต็มตรงกับคนเดียว"). Read-only: no athlete or GO ID is changed or merged.
--- 2. gt_private.history_latest_institution_v1(): the institution written on each history person's latest result
+-- 2. gt_private.history_institutions_v1(): every institution written next to a history person's results
 --    (only results sheets that carry an institution column — history_event_results_v1).
--- 3. academy_students(): adds athletes whose latest history institution is this academy, but only when they have no
---    confirmed entry on this site (a live entry decides the institution, as before).
+-- 3. academy_students(): adds athletes who were entered under this academy in the history. One student may belong to
+--    several institutions (rule from ครูเล็ก 24 พ.ย. 2569: students study with several teachers).
 -- 4. gt_private.academy_history_v1(): history-only students (a GO ID but no site athlete yet, shown read-only) and one
 --    record per student per history division (games / wins / losses / draws with the same rules as gt_history_stats_v1,
 --    place from history_standings_v1). Ids are prefixed "h:" so the page can tell them from live competitions.
@@ -31,20 +31,19 @@ language sql stable security definer set search_path = public, gt_private, pg_te
   where (select count(*) from best b2 where b2.pid = b.pid) = 1
 $$;
 
-create or replace function gt_private.history_latest_institution_v1()
-returns table (person_id text, institution text, event_date date)
+create or replace function gt_private.history_institutions_v1()
+returns table (person_id text, institution text)
 language sql stable security definer set search_path = public, gt_private, pg_temp as $$
+  -- every institution a history person was entered under (a student may study at several places)
   with hpn as (
     select lower(regexp_replace(btrim(full_name), '\s+', ' ', 'g')) nn, min(id) pid, count(*) c
     from gt_history_people group by 1
   ),
   er as (
-    select distinct on (nn) nn, btrim(institution) institution, event_date
-    from (select lower(regexp_replace(btrim(full_name), '\s+', ' ', 'g')) nn, institution, event_date
-          from gt_private.history_event_results_v1 where nullif(btrim(institution), '') is not null) r
-    order by nn, event_date desc nulls last
+    select distinct lower(regexp_replace(btrim(full_name), '\s+', ' ', 'g')) nn, btrim(institution) institution
+    from gt_private.history_event_results_v1 where nullif(btrim(institution), '') is not null
   )
-  select hpn.pid, er.institution, er.event_date from er join hpn on hpn.nn = er.nn and hpn.c = 1
+  select distinct hpn.pid, er.institution from er join hpn on hpn.nn = er.nn and hpn.c = 1
 $$;
 
 create or replace function gt_private.academy_students(p_academy uuid)
@@ -71,14 +70,12 @@ language sql stable security definer set search_path = public, gt_private, pg_te
    and exists(select 1 from public.gt_academy_staff s
               where s.academy_id=p_academy and s.user_id=l.teacher_user_id and s.status='active')
  union
- -- latest institution in the central history, only for athletes with no confirmed entry on this site
+ -- institutions written next to the athlete's results in the central history
  select x.athlete_id
- from gt_private.history_latest_institution_v1() h
+ from gt_private.history_institutions_v1() h
  join gt_private.history_athlete_person_v1() x on x.person_id=h.person_id
  join ac on ac.workspace_type='academy'
  where gt_private.norm_inst(h.institution)=ac.n
-   and not exists(select 1 from public.gt_registrations r join public.gt_tournaments t on t.id=r.tournament_id and t.published
-                  where r.athlete_id=x.athlete_id and r.registration_status='confirmed')
 $$;
 
 create or replace function gt_private.academy_history_v1(p_academy uuid)
@@ -89,8 +86,8 @@ returns jsonb language sql stable security definer set search_path = public, gt_
     select s.athlete_id::text sid, x.person_id from gt_private.academy_students(p_academy) s join xw x on x.athlete_id = s.athlete_id
   ),
   hist_only as (
-    select 'h:' || p.go_id sid, p.id person_id, p.go_id, p.full_name, r.source_rank
-    from gt_private.history_latest_institution_v1() h
+    select distinct 'h:' || p.go_id sid, p.id person_id, p.go_id, p.full_name, r.source_rank
+    from gt_private.history_institutions_v1() h
     join ac on ac.workspace_type = 'academy' and gt_private.norm_inst(h.institution) = ac.n
     join gt_history_people p on p.id = h.person_id and p.go_id is not null
     left join gt_private.history_identity_registry_v1 r on r.go_id = p.go_id
@@ -119,7 +116,7 @@ returns jsonb language sql stable security definer set search_path = public, gt_
       left join gt_private.history_standings_v1 st on st.person_id = g.person_id and st.event_id = g.event_id
                                                    and st.division is not distinct from g.division), '[]'::jsonb));
 $$;
-revoke all on function gt_private.history_athlete_person_v1(), gt_private.history_latest_institution_v1(),
+revoke all on function gt_private.history_athlete_person_v1(), gt_private.history_institutions_v1(),
   gt_private.academy_history_v1(uuid) from public, anon, authenticated;
 
 create or replace function public.gt_academy_overview_v1(p_academy uuid)
