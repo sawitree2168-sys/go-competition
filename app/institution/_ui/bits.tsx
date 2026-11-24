@@ -44,7 +44,7 @@ export const MENU: { id: Exclude<View, "home">; title: string; sub: string; tone
   { id: "tracking", title: "ผลการแข่งขัน", sub: "รอบ โต๊ะ และคู่แข่ง" },
   { id: "apply", title: "สมัครแข่งขัน", sub: "สมัครแบบกลุ่มและตรวจสถานะ" },
   { id: "awards", title: "ผลงาน", sub: "เหรียญและอันดับของนักเรียน" },
-  { id: "stats", title: "สถิติพัฒนาการ", sub: "ชนะ–แพ้และการเติบโต" },
+  { id: "stats", title: "อันดับ / พัฒนาการ", sub: "อันดับ กราฟการเติบโต ประวัติรายคน" },
   { id: "reports", title: "รายงาน", sub: "สรุปผลงานรายบุคคล" },
   { id: "settings", title: "ตั้งค่าสถาบัน", sub: "โลโก้ บัญชี และรหัสผ่าน" },
 ];

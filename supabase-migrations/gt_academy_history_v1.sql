@@ -205,3 +205,48 @@ begin
       from last l join grp g on g.athlete_id = l.athlete_id and g.division_id = l.division_id
       join gt_tournaments t on t.id = l.tournament_id join gt_divisions d on d.id = l.division_id), '[]'::jsonb));
 end $$;
+
+-- 6. Every game of one student (live competitions on this site + the central history) with the opponent and result,
+--    for the student panel on the institution page. p_student = site athlete id, or "h:<GO ID>" for history-only.
+create or replace function public.gt_academy_student_games_v1(p_academy uuid, p_student text)
+returns jsonb language plpgsql stable security definer set search_path = public, gt_private, pg_temp as $$
+declare v_athlete uuid; v_person text; v_ok boolean;
+begin
+  if gt_private.academy_role(p_academy) is null then return jsonb_build_object('ok', false, 'error', 'NO_ACCESS'); end if;
+  if p_student like 'h:%' then
+    select p.id into v_person from gt_history_people p where p.go_id = substring(p_student from 3);
+    v_ok := exists (select 1 from jsonb_array_elements(gt_private.academy_history_v1(p_academy)->'students') s where s->>'id' = p_student);
+  else
+    begin v_athlete := p_student::uuid; exception when others then return jsonb_build_object('ok', false, 'error', 'BAD_ID'); end;
+    v_ok := exists (select 1 from gt_private.academy_students(p_academy) s where s.athlete_id = v_athlete);
+    select x.person_id into v_person from gt_private.history_athlete_person_v1() x where x.athlete_id = v_athlete;
+  end if;
+  if not coalesce(v_ok, false) then return jsonb_build_object('ok', false, 'error', 'NOT_STUDENT'); end if;
+  return jsonb_build_object('ok', true, 'games', coalesce((select jsonb_agg(g order by g.sort_date desc nulls last, g.title, g.division, g.round_no desc) from (
+    -- live games
+    select t.event_date sort_date, t.event_date date, t.title, d.name division, m.round_number round_no, 'รอบ ' || m.round_number round_label,
+           o.full_name opponent, o.id::text opponent_id, null::text opponent_go_id,
+           case when m.state <> 'verified' then 'pending' when m.result_code = 'draw' then 'draw'
+                when m.winner_athlete_id = v_athlete then 'win' else 'loss' end outcome, 'live' source
+    from gt_matches m join gt_tournaments t on t.id = m.tournament_id and t.published join gt_divisions d on d.id = m.division_id
+    left join gt_athletes o on o.id = case when m.black_athlete_id = v_athlete then m.white_athlete_id else m.black_athlete_id end
+    where v_athlete is not null and v_athlete in (m.black_athlete_id, m.white_athlete_id) and m.state <> 'void'
+    union all
+    select t.event_date, t.event_date, t.title, d.name, b.round_number, 'รอบ ' || b.round_number, null, null, null, 'bye', 'live'
+    from gt_byes b join gt_tournaments t on t.id = b.tournament_id and t.published join gt_divisions d on d.id = b.division_id
+    where v_athlete is not null and b.athlete_id = v_athlete
+    union all
+    -- central history
+    select e.event_date, e.event_date, e.title, coalesce(nullif(h.division, ''), 'ไม่ระบุรุ่น'),
+           nullif(left(regexp_replace(coalesce(h.round_label, ''), '\D', '', 'g'), 6), '')::int, h.round_label,
+           op.full_name, null, op.go_id,
+           case when h.kind = 'bye' then 'bye' when h.result = 'draw' then 'draw'
+                when h.winner = v_person then 'win' when h.winner is null then 'not_played' else 'loss' end
+           || case when h.kind = 'walkover' then '_walkover' else '' end, 'history'
+    from gt_history_matches h join gt_history_events e on e.id = h.event_id
+    left join gt_history_people op on op.id = case when h.player_a = v_person then h.player_b else h.player_a end
+    where v_person is not null and v_person in (h.player_a, h.player_b) and h.kind <> 'not_played'
+  ) g), '[]'::jsonb));
+end $$;
+revoke all on function public.gt_academy_student_games_v1(uuid, text) from public, anon;
+grant execute on function public.gt_academy_student_games_v1(uuid, text) to authenticated;
