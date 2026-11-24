@@ -44,6 +44,16 @@
 }
 .gt-inst .inst-hero::after {content:"";position:absolute;inset:auto 0 0;height:4px;background:linear-gradient(90deg,#d9a236,#fff1a8,#d79e28);z-index:-1}
 .gt-inst .inst-hero-logo { filter:drop-shadow(0 3px 6px #00245377); }
+.gt-inst .inst-hero-action {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  min-height:97px;padding:12px 6px;border:2px solid #d8a841;border-radius:15px;
+  background:linear-gradient(160deg,#fff,#eef6ff);color:#0b397c;font-size:12px;
+  font-weight:600;line-height:1.35;text-align:center;
+  box-shadow:0 5px 12px rgba(3,31,85,.2);transition:transform .16s,border-color .16s,background .16s;
+}
+.gt-inst .inst-hero-action:hover{transform:translateY(-3px);border-color:#ffe5a2;background:#fff5dc}
+.gt-inst .inst-hero-action:active{transform:scale(.97)}
+
 .gt-inst .inst-access-pill {
   display:inline-flex;align-items:center;gap:6px;min-height:29px;
   padding:3px 12px;border:1px solid #f4cb6d;border-radius:999px;
