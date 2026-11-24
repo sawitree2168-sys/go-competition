@@ -1,33 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="340" viewBox="0 0 1500 340" role="img" aria-label="GO TOURNAMENT blue gold Go board decorative banner">
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="340" viewBox="0 0 1500 340" role="img" aria-label="ลายกระดานหมากล้อม ภูเขา และดอกซากุระ โทนน้ำเงินทอง">
 <defs>
- <linearGradient id="bg" x2="1" y2="0"><stop stop-color="#082e77"/><stop offset=".55" stop-color="#0866c5"/><stop offset="1" stop-color="#138beb"/></linearGradient>
- <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#ffe9a5"/><stop offset=".5" stop-color="#e9b44d"/><stop offset="1" stop-color="#b97e1c"/></linearGradient>
- <radialGradient id="black" cx=".3" cy=".22" r=".9"><stop stop-color="#5c7187"/><stop offset=".5" stop-color="#18263b"/><stop offset="1" stop-color="#030714"/></radialGradient>
- <radialGradient id="white" cx=".28" cy=".22" r=".9"><stop stop-color="#ffffff"/><stop offset=".65" stop-color="#e6ebf4"/><stop offset="1" stop-color="#8c9ab2"/></radialGradient>
- <pattern id="lines" width="44" height="44" patternUnits="userSpaceOnUse"><path d="M44 0H0V44" stroke="#efbd70" stroke-width="1.2" opacity=".78" fill="none"/></pattern>
- <g id="sakura"><path d="M0 0C-12-15-27-1-9 8C-26 17-10 32 0 15C9 33 27 18 10 8C29-3 13-17 0 0Z" fill="#ffe3ed" stroke="#e59fbc" stroke-width="1.4"/><circle cx="0" cy="8" r="3.2" fill="#f2b952"/></g>
+<linearGradient id="sky" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#0b3f8a"/><stop offset=".64" stop-color="#155fae"/><stop offset="1" stop-color="#2876bf"/></linearGradient>
+<linearGradient id="gold"><stop stop-color="#f1ce73"/><stop offset=".55" stop-color="#b98420"/><stop offset="1" stop-color="#f2d589"/></linearGradient>
+<linearGradient id="wood" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#f7d498"/><stop offset="1" stop-color="#ad7436"/></linearGradient>
+<radialGradient id="black" cx=".28" cy=".2" r=".88"><stop stop-color="#647589"/><stop offset=".45" stop-color="#1d2b3b"/><stop offset="1" stop-color="#04090f"/></radialGradient>
+<radialGradient id="white" cx=".24" cy=".17" r=".8"><stop stop-color="#fff"/><stop offset=".7" stop-color="#e1e9f5"/><stop offset="1" stop-color="#91a3bc"/></radialGradient>
+<g id="flower"><path d="M0 0C-15-16-28 0-10 9C-28 19-9 34 0 16C12 34 30 17 10 8C28-2 15-17 0 0Z" fill="#ffecf2" stroke="#e3a8bf" stroke-width="1.4"/><circle cx="0" cy="8" r="3" fill="#e9be61"/></g>
+<pattern id="board" width="34" height="34" patternUnits="userSpaceOnUse"><path d="M34 0H0V34" stroke="#8c5d27" stroke-width="1.3" fill="none" opacity=".75"/></pattern>
 </defs>
-<rect width="1500" height="340" fill="url(#bg)"/>
-<path d="M620 340L900 60L1000 160L1130 0H1500V340Z" fill="#eaf3ff" opacity=".08"/>
-<path d="M700 335L900 120L1020 205L1170 42L1350 275L1500 160V340Z" fill="#b6d8ff" opacity=".12"/>
-<path d="M0 300Q370 340 730 268T1500 126" fill="none" stroke="url(#gold)" stroke-width="21" opacity=".95"/>
-<path d="M0 318Q400 342 745 283T1500 151" fill="none" stroke="#ffe8aa" stroke-width="3" opacity=".8"/>
-<g transform="translate(1090,-30) rotate(14 230 160)">
- <rect x="0" y="0" width="470" height="420" rx="18" fill="#dbab68" stroke="#fce5ae" stroke-width="8"/>
- <rect x="20" y="20" width="430" height="380" rx="8" fill="url(#lines)" stroke="#a97932" stroke-width="2"/>
- <circle cx="185" cy="130" r="27" fill="url(#white)"/><circle cx="275" cy="130" r="27" fill="url(#black)"/>
- <circle cx="230" cy="219" r="27" fill="url(#white)"/><circle cx="320" cy="219" r="27" fill="url(#black)"/>
- <circle cx="365" cy="309" r="27" fill="url(#white)"/>
+<rect width="1500" height="340" fill="url(#sky)"/>
+<path d="M410 328L710 119 830 218 978 93 1160 332Z" fill="#b4d3f2" opacity=".15"/>
+<path d="M480 340L840 154 915 214 1050 99 1270 340Z" fill="#e5f2ff" opacity=".17"/>
+<path d="M860 337L1060 194 1185 299 1340 173 1510 333Z" fill="#d1e9ff" opacity=".23"/>
+<path d="M0 322C400 350 710 298 960 250S1280 120 1500 94" stroke="url(#gold)" stroke-width="12" fill="none" opacity=".85"/>
+<path d="M0 330C400 358 720 310 975 267S1290 140 1500 117" stroke="#fff3cf" stroke-width="2" fill="none" opacity=".75"/>
+<g transform="translate(1192 89) rotate(12 145 95)">
+ <rect x="0" y="0" width="304" height="235" rx="10" fill="url(#wood)" stroke="#ffdf9b" stroke-width="6"/>
+ <rect x="18" y="18" width="268" height="199" fill="url(#board)" rx="4"/>
+ <circle cx="99" cy="74" r="19" fill="url(#black)"/><circle cx="167" cy="74" r="19" fill="url(#white)"/>
+ <circle cx="133" cy="108" r="19" fill="url(#black)"/><circle cx="201" cy="142" r="19" fill="url(#white)"/>
+ <circle cx="99" cy="177" r="19" fill="url(#white)"/><circle cx="235" cy="108" r="19" fill="url(#black)"/>
 </g>
-<path d="M1280-12Q1340 35 1500 32M1380 0Q1410 45 1450 82M1410 0Q1460 38 1470 75" stroke="#774563" stroke-width="9" fill="none" opacity=".75"/>
-<g opacity=".96">
- <use href="#sakura" transform="translate(1284 18) rotate(25) scale(1.2)"/>
- <use href="#sakura" transform="translate(1330 36) rotate(67) scale(.9)"/>
- <use href="#sakura" transform="translate(1396 42) rotate(20) scale(1.15)"/>
- <use href="#sakura" transform="translate(1438 75) rotate(42) scale(.9)"/>
- <use href="#sakura" transform="translate(1490 28) rotate(-21) scale(1.25)"/>
- <use href="#sakura" transform="translate(1468 120) rotate(11) scale(.7)"/>
- <use href="#sakura" transform="translate(1194 22) rotate(-11) scale(.65)"/>
-</g>
-<path d="M0 0H1500" stroke="#ffe6a1" stroke-width="5" opacity=".6"/>
+<path d="M1314 -15C1380 25 1430 20 1510 20M1380 5C1424 44 1450 68 1480 126M1380 5L1360 65" stroke="#67445a" stroke-width="8" fill="none"/>
+<use href="#flower" transform="translate(1327 9) scale(.9) rotate(12)"/>
+<use href="#flower" transform="translate(1408 36) scale(1.06) rotate(49)"/>
+<use href="#flower" transform="translate(1471 66) scale(.84) rotate(-19)"/>
+<use href="#flower" transform="translate(1482 12) scale(1.12) rotate(37)"/>
+<use href="#flower" transform="translate(1357 75) scale(.72) rotate(20)"/>
+<use href="#flower" transform="translate(1244 21) scale(.7) rotate(-20)"/>
+<circle cx="1435" cy="98" r="4" fill="#fce1eb" opacity=".9"/><circle cx="1351" cy="111" r="3" fill="#fce1eb"/>
 </svg>
