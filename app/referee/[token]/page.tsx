@@ -18,6 +18,11 @@ type Side = { id: string; name: string | null; institution: string | null; rank?
 type Table = {
   id: string; pool: string | null; round: number; board: number; state: string; result_code: string | null; result_margin: string | null;
   winner: string | null; note?: string | null; black: Side; white: Side;
+  decided?: { by: string; at: string; edits: number } | null;
+  timing?: {
+    clock_started_at: string | null; clock_started_by: string | null; black_late: number | null; white_late: number | null;
+    absence: { side: "black" | "white"; clock_started_at: string; marked_at: string; minutes: number; by: string | null; note: string | null }[];
+  } | null;
 };
 type Division = { id: string; name: string; pending: number; last_round: number | null };
 type Opened = { referee_name: string; expires_at: string; tournament: { title: string; event_date: string | null }; divisions: Division[] };
@@ -25,6 +30,10 @@ type Call = (fn: string, args: Record<string, unknown>) => Promise<boolean>;
 
 const ERRORS: Record<string, string> = {
   WRONG_CODE: "รหัสไม่ถูกต้อง (ใส่ผิด 8 ครั้ง ลิงก์จะถูกล็อก)",
+  NO_CLOCK: "ยังไม่ได้เริ่มจับเวลารอบนี้ กด “▶ เริ่มจับเวลา” ก่อน",
+  TOO_EARLY: "ยังไม่ครบ 15 นาทีนับจากเริ่มรอบ",
+  ALREADY_HERE: "นักกีฬาคนนี้เช็คชื่อแล้ว",
+  NAME: "กรุณาพิมพ์ชื่อและนามสกุล (เว้นวรรคระหว่างชื่อกับนามสกุล)",
   LINK_INVALID: "ลิงก์นี้ไม่ถูกต้อง กรุณาขอลิงก์ใหม่จากผู้จัด",
   LINK_EXPIRED: "ลิงก์นี้หมดอายุหรือถูกยกเลิกแล้ว กรุณาขอลิงก์ใหม่จากผู้จัด",
   LINK_LOCKED: "ลิงก์ถูกล็อกเพราะใส่รหัสผิดหลายครั้ง กรุณาขอลิงก์ใหม่จากผู้จัด",
@@ -168,6 +177,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
   const [view, setView] = useState<"cards" | "table">("cards");
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  const [offset, setOffset] = useState(0);
 
   const load = useCallback(async () => {
     if (!divisionId) return;
@@ -175,6 +185,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
     if (e) { setError(staffErrorMessage(e.message)); return; }
     if (!data?.ok) { if (data?.error?.startsWith("LINK") || data?.error === "WRONG_CODE") onExpired(ERRORS[data.error]); else setError(ERRORS[data?.error] ?? "โหลดไม่สำเร็จ"); return; }
     setError("");
+    if (data.now) setOffset(new Date(data.now).getTime() - Date.now());
     setTables(data.tables as Table[]);
   }, [token, code, divisionId, onExpired]);
 
@@ -330,6 +341,8 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
 
       <div className={mobileDetail ? "hidden lg:block" : ""}>{filters}</div>
 
+      {all.length > 0 && <RoundClocks tables={all} offset={offset} onStart={(pool, round) => call("gt_referee_start_clock_v1", { p_division: divisionId, p_pool: pool, p_round: round })} />}
+
       {error && <p role="alert" className="rounded-xl border border-[var(--gt-bad)] bg-[var(--gt-surface)] px-4 py-3 text-sm text-[var(--gt-bad)]">{error}</p>}
       {tables === null && <p className="py-10 text-center text-[var(--gt-muted)]" role="status">กำลังโหลด…</p>}
       {tables?.length === 0 && <p className="gt-card p-5 text-center">รุ่นนี้ยังไม่ประกาศคู่</p>}
@@ -354,7 +367,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
                   </label>
                   <button type="button" onClick={() => step(1)} aria-label="โต๊ะถัดไป" className="grid h-12 w-12 place-items-center rounded-xl border border-[var(--gt-line)] bg-[var(--gt-surface)] text-xl">›</button>
                 </div>
-                <Detail key={`${selected.id}:${selected.state}:${selected.result_code ?? ""}`} t={selected} call={call} onSaved={afterSave} />
+                <Detail key={`${selected.id}:${selected.state}:${selected.result_code ?? ""}`} t={selected} call={call} onSaved={afterSave} offset={offset} />
                 <button type="button" onClick={() => setMobileDetail(false)} className="mt-4 inline-flex min-h-11 items-center gap-2 font-medium text-[var(--gt-cta)] lg:hidden">← กลับรายการโต๊ะ</button>
               </>
             )}
@@ -362,7 +375,7 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
         </div>
       )}
 
-      <p className="pt-2 text-center text-xs text-[var(--gt-muted)]">มาสายเกิน 15 นาที เลือก “ชนะเพราะคู่ไม่มา” · ข้อมูลอัปเดตเองทุก 20 วินาที</p>
+      <p className="pt-2 text-center text-xs text-[var(--gt-muted)]">มาสายเกิน 15 นาที เลือก “ชนะเพราะคู่ไม่มา” · ข้อมูลอัปเดตเองทุก 10 วินาที</p>
       {toast && createPortal(
         <p role="status" className="fixed inset-x-0 bottom-5 z-50 mx-auto w-fit rounded-full bg-[#0b2a5b] px-5 py-3 text-white shadow-xl">✓ {toast}</p>, portalTarget())}
     </div>
@@ -371,7 +384,27 @@ function Console({ token, code, opened, onExpired }: { token: string; code: stri
 
 /* ---------------------------------------------------------------- detail */
 
-function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table) => void }) {
+function Detail({ t, call, onSaved, offset }: { t: Table; call: Call; onSaved: (t: Table) => void; offset: number }) {
+  const now = useNow(offset);
+  const [renaming, setRenaming] = useState<"black" | "white" | null>(null);
+  const [newName, setNewName] = useState("");
+  const [absentNote, setAbsentNote] = useState("");
+  const clockAt = t.timing?.clock_started_at ? new Date(t.timing.clock_started_at).getTime() : null;
+  const elapsed = clockAt ? Math.max(0, now - clockAt) : null;
+  const rename = async (side: "black" | "white") => {
+    setBusy(true);
+    const ok = await call("gt_referee_rename_v1", { p_athlete: t[side].id, p_name: newName });
+    setBusy(false);
+    if (ok) setRenaming(null);
+  };
+  const markAbsent = async (side: "black" | "white") => {
+    const who = t[side].name ?? "นักกีฬา";
+    if (!window.confirm(`บันทึกว่า ${who} ไม่มาเกิน 15 นาที?\nระบบจะเก็บเวลาเริ่มรอบ เวลาที่บันทึก และชื่อกรรมการเป็นหลักฐาน`)) return;
+    setBusy(true);
+    const ok = await call("gt_referee_mark_absent_v1", { p_match: t.id, p_side: side, p_note: absentNote.trim() || null });
+    setBusy(false);
+    if (ok) setAbsentNote("");
+  };
   const isDone = t.state === "verified";
   const init = formFromResult(t);
   const [editing, setEditing] = useState(!isDone);
@@ -412,7 +445,15 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
       <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[var(--gt-line)] bg-[var(--gt-surface)] p-3 sm:p-4">
         <button type="button" onClick={() => setZoom(p)} aria-label={`ขยายรูป ${p.name ?? "นักกีฬา"}`} className="shrink-0 rounded-lg focus-visible:outline-2 focus-visible:outline-[var(--gt-cta)]"><img src={p.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-14 w-14 sm:h-20 sm:w-20 border-2 border-[var(--gt-gold)] ${p.photo ? "rounded-lg object-cover" : "object-contain"}`} /></button>
         <div className="min-w-0 flex-1">
-          <p className="text-lg font-bold leading-tight text-[var(--gt-ink)] sm:text-xl">{p.name ?? "—"}</p>
+          {renaming === side ? (
+            <span className="flex flex-col gap-1.5">
+              <input value={newName} onChange={(e) => setNewName(e.target.value)} aria-label="ชื่อ นามสกุล ที่ถูกต้อง" className="min-h-11 w-full rounded-lg border-2 border-[var(--gt-cta)] bg-[var(--gt-surface)] px-2 text-base" />
+              <span className="flex gap-1.5"><button type="button" disabled={busy} onClick={() => void rename(side)} className="gt-cta-btn min-h-10 flex-1 px-2 text-sm">บันทึกชื่อ</button><button type="button" onClick={() => setRenaming(null)} className="gt-outline-btn min-h-10 px-3 text-sm">ยกเลิก</button></span>
+              <span className="text-xs text-[var(--gt-muted)]">ชื่อจะเปลี่ยนทุกหน้า ระบบเก็บชื่อเดิมและชื่อกรรมการไว้</span>
+            </span>
+          ) : (
+            <p className="text-lg font-bold leading-tight text-[var(--gt-ink)] sm:text-xl">{p.name ?? "—"} <button type="button" onClick={() => { setRenaming(side); setNewName(p.name ?? ""); }} className="ml-1 align-middle text-xs font-medium text-[var(--gt-cta)] underline">✎ แก้ชื่อ</button></p>
+          )}
           {p.rank && <p className="text-sm text-[var(--gt-cta)]">{p.rank}</p>}
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="flex items-center gap-1.5 text-sm"><Stone colour={side} className="h-4 w-4" />หมาก{side === "black" ? "ดำ" : "ขาว"}</span>
@@ -422,7 +463,20 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
                 {p.checked_in ? "✓ มาแล้ว" : "เช็คชื่อ"}
               </button>
             )}
+            {p.checked_in && t.timing?.[`${side}_late`] ? <span className="rounded-full bg-[#fff3d6] px-2 py-0.5 text-xs font-semibold text-[#7a540c]">มาสาย {t.timing[`${side}_late`]} นาที</span> : null}
           </div>
+          {!p.checked_in && !isDone && elapsed !== null && (() => {
+            const over = elapsed >= 15 * 60000;
+            return (
+              <div className={`mt-2 rounded-xl border-2 p-2 text-sm ${over ? "border-[var(--gt-bad)] bg-[#fff1f2]" : "border-[#f0cd79] bg-[#fffaf0]"}`}>
+                <p className="font-semibold">{over ? "⏰ ครบ 15 นาทีแล้ว ยังไม่มา" : `⏱ ยังไม่มา · ผ่านไป ${mmss(elapsed)} นาที`}</p>
+                {over && <>
+                  <input value={absentNote} onChange={(e) => setAbsentNote(e.target.value)} placeholder="หมายเหตุ เช่น เรียกชื่อ 3 ครั้ง (ไม่บังคับ)" aria-label="หมายเหตุการไม่มา" className="mt-1.5 min-h-10 w-full rounded-lg border border-[var(--gt-line)] bg-[var(--gt-surface)] px-2 text-sm" />
+                  <button type="button" disabled={busy} onClick={() => void markAbsent(side)} className="mt-1.5 min-h-11 w-full rounded-lg bg-[var(--gt-bad)] px-3 font-bold text-white disabled:opacity-60">บันทึกว่าไม่มา (เก็บหลักฐานเวลา)</button>
+                </>}
+              </div>
+            );
+          })()}
         </div>
       </div>
     );
@@ -458,6 +512,15 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
         {player("white")}
       </div>
 
+      {(t.decided || t.timing?.absence?.length) ? (
+        <div className="relative mt-3 space-y-1 rounded-xl bg-[var(--gt-cta-soft)] px-3 py-2 text-sm">
+          {t.decided && <p>🧑‍⚖️ ตัดสินผลโดย <b>{t.decided.by}</b> · {clock(t.decided.at)} น.{t.decided.edits > 0 ? ` · แก้ผล ${t.decided.edits} ครั้ง` : ""}</p>}
+          {t.timing?.absence?.map((a, i) => (
+            <p key={i}>📋 หลักฐาน: {a.side === "black" ? "ดำ" : "ขาว"} ไม่มา · เริ่มรอบ {clock(a.clock_started_at)} · บันทึก {clock(a.marked_at)} ({Math.floor(a.minutes)} นาที) · {a.by}{a.note ? ` · ${a.note}` : ""}</p>
+          ))}
+        </div>
+      ) : null}
+
       {isDone && !editing ? (
         <div className="mt-5 space-y-3">
           {t.note && <p className="rounded-xl bg-[var(--gt-cta-soft)] px-4 py-3 text-sm">หมายเหตุ: {t.note}</p>}
@@ -467,6 +530,7 @@ function Detail({ t, call, onSaved }: { t: Table; call: Call; onSaved: (t: Table
       ) : (
         <div className="mt-5 space-y-4">
           <ResultPicker winner={winner} method={method} disabled={busy} onChange={(w,m)=>{setWinner(w);setMethod(m);setMargin("");setErr("");}}/>
+          {(method === "forfeit" || method === "double_forfeit") && !t.timing?.absence?.length && <p className="rounded-xl border-2 border-[#f0cd79] bg-[#fffaf0] p-3 text-sm">⚠ ยังไม่มีหลักฐานเวลา แนะนำกด “▶ เริ่มจับเวลา” แล้วใช้ปุ่ม <b>“บันทึกว่าไม่มา”</b> ที่ชื่อนักกีฬาเมื่อครบ 15 นาที ระบบจะเก็บเวลาและชื่อกรรมการเป็นหลักฐาน</p>}
           {method === "normal" && (
             <label className="grid items-center gap-1.5 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
               <span className="font-medium">ชนะกี่แต้ม (ถ้ามี)</span>
@@ -558,6 +622,53 @@ function MineShortcut() {
         </button>
       ))}
       {error && <p role="alert" className="text-sm text-[var(--gt-bad)]">{error}</p>}
+    </div>
+  );
+}
+
+
+const clock = (iso: string) => new Date(iso).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bangkok" });
+const mmss = (ms: number) => { const sec = Math.floor(ms / 1000); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; };
+
+/** Ticks every second, in the server's time (offset from the board's "now"), so every referee sees the same clock. */
+function useNow(offset: number) {
+  const [now, setNow] = useState(() => Date.now() + offset);
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now() + offset), 1000);
+    return () => window.clearInterval(id);
+  }, [offset]);
+  return now;
+}
+
+/**
+ * The 15-minute clock of the current round, one per สาย. A referee presses start when the round begins; from then on
+ * every table shows how long a missing player has been away, and after 15 minutes the absence can be recorded.
+ */
+function RoundClocks({ tables, offset, onStart }: { tables: Table[]; offset: number; onStart: (pool: string | null, round: number) => Promise<boolean> }) {
+  const now = useNow(offset);
+  const [busy, setBusy] = useState(false);
+  const pools = [...new Map(tables.map((t) => [`${t.pool ?? ""}:${t.round}`, t])).values()];
+  return (
+    <div className="space-y-2">
+      {pools.map((t) => {
+        const started = t.timing?.clock_started_at ? new Date(t.timing.clock_started_at).getTime() : null;
+        const missing = tables.filter((x) => (x.pool ?? "") === (t.pool ?? "") && x.round === t.round && x.state !== "verified")
+          .reduce((n, x) => n + (x.black.checked_in ? 0 : 1) + (x.white.checked_in ? 0 : 1), 0);
+        const label = `รอบ ${t.round}${t.pool ? ` · สาย ${t.pool}` : ""}`;
+        if (!started) return (
+          <button key={label} type="button" disabled={busy} onClick={async () => { if (!window.confirm(`เริ่มจับเวลา ${label} ตอนนี้? (ใช้เป็นเวลาเริ่มแข่ง นับ 15 นาทีสำหรับคนที่ยังไม่มา)`)) return; setBusy(true); await onStart(t.pool, t.round); setBusy(false); }}
+            className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-[var(--gt-cta)] bg-[var(--gt-cta-soft)] px-4 text-lg font-bold text-[var(--gt-cta)] disabled:opacity-60">
+            ▶ เริ่มจับเวลา {label}
+          </button>
+        );
+        const ms = Math.max(0, now - started); const over = ms >= 15 * 60000;
+        return (
+          <div key={label} className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border-2 px-4 py-2.5 ${over ? "border-[var(--gt-bad)] bg-[#fff1f2]" : "border-[#4caf7a] bg-[#f1fbf5]"}`}>
+            <span><b>⏱ {label}</b> · เริ่ม {clock(t.timing!.clock_started_at!)} น.{t.timing?.clock_started_by ? ` (${t.timing.clock_started_by})` : ""}</span>
+            <span className="text-sm"><b className="gt-num text-xl">{mmss(ms)}</b> นาที{missing ? ` · ยังไม่เช็คชื่อ ${missing} คน` : ""}{over && missing ? " · ครบ 15 นาทีแล้ว" : ""}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
