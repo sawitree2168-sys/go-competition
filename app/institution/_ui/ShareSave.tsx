@@ -5,7 +5,7 @@ import { useState, type RefObject } from "react";
 const safeName = (s: string) => s.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").slice(0, 120);
 
 /** Draws the element as a PNG (export-ignore parts such as these buttons are left out). */
-async function capture(el: HTMLElement): Promise<Blob> {
+export async function capture(el: HTMLElement): Promise<Blob> {
   await document.fonts.ready;
   await Promise.all(Array.from(el.querySelectorAll("img")).map((img) => img.decode().catch(() => undefined)));
   const { toCanvas } = await import("html-to-image");

@@ -40,14 +40,14 @@ export const ICONS: Record<Exclude<View, "home">, React.ReactNode> = {
 };
 
 export const MENU: { id: Exclude<View, "home">; title: string; sub: string; tone?: string }[] = [
-  { id: "students", title: "นักกีฬา", sub: "รายชื่อและระดับฝีมือ" },
-  { id: "teachers", title: "เจ้าของและครู", sub: "เจ้าของหลายคน ครู และผลงาน" },
+  { id: "students", title: "นักเรียน", sub: "รายชื่อและระดับฝีมือ" },
   { id: "tracking", title: "ผลการแข่งขัน", sub: "รอบ โต๊ะ และคู่แข่ง" },
   { id: "live", title: "กระดานสด", sub: "ทุกคนในงานบนจอเดียว + การ์ดสรุป" },
   { id: "apply", title: "สมัครแข่งขัน", sub: "สมัครแบบกลุ่มและตรวจสถานะ" },
   { id: "awards", title: "ผลงาน", sub: "เหรียญและอันดับของนักเรียน" },
   { id: "stats", title: "อันดับ / พัฒนาการ", sub: "อันดับ กราฟการเติบโต ประวัติรายคน" },
   { id: "reports", title: "รายงาน", sub: "สรุปผลงานรายบุคคล" },
+  { id: "teachers", title: "เจ้าของและครู", sub: "เจ้าของหลายคน ครู และผลงาน" },
   { id: "settings", title: "ตั้งค่าสถาบัน", sub: "โลโก้ บัญชี และรหัสผ่าน" },
 ];
 
