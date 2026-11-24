@@ -91,9 +91,9 @@ export function BoardLogo({ className = "h-14 w-14" }: { className?: string }) {
 
 export function SectionTitle({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <h2 className="flex items-center gap-2.5 text-xl font-bold sm:text-2xl"><span aria-hidden="true" className="h-6 w-1 rounded-full bg-[var(--gt-cta)]" />{children}</h2>
-      {right && <div className="ml-auto flex flex-wrap gap-2">{right}</div>}
+    <div className="inst-subheading flex-wrap">
+      <h2 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-semibold sm:text-xl"><span aria-hidden="true" className="h-6 w-1 shrink-0 rounded-full bg-[#ffdf83]" />{children}</h2>
+      {right && <div className="flex flex-wrap gap-2 [&_select]:border-[#b8d4f5] [&_select]:bg-white [&_select]:text-[#123a72]">{right}</div>}
     </div>
   );
 }
