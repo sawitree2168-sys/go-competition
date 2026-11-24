@@ -33,7 +33,7 @@ export default function Apply({ ov, apps, canEdit, reload }: { ov: Overview; app
   const entered = useMemo(() => new Set(apps.filter((a) => a.status !== "rejected" && a.tournament_id === eventId).map((a) => a.athlete_id)), [apps, eventId]);
   const list = useMemo(() => {
     const k = q.trim().toLowerCase();
-    return ov.students.filter((s) => !k || `${s.name} ${s.nickname ?? ""}`.toLowerCase().includes(k));
+    return ov.students.filter((s) => !s.history_only && (!k || `${s.name} ${s.nickname ?? ""}`.toLowerCase().includes(k)));
   }, [ov.students, q]);
   const step = done ? 4 : !eventId ? 1 : !picked.size ? 2 : !divisionId ? 3 : 4;
   const total = (Number(div?.fee) || 0) * picked.size;
