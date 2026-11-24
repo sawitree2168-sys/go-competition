@@ -115,3 +115,96 @@
   .gt-inst .inst-hero-logo {width:80px;height:80px}
 }
 @media(prefers-reduced-motion:reduce){.gt-inst .inst-shortcut{transition:none}}
+
+/* Institution visual pattern v2: quieter royal blue, genuine gold, larger Thai typography. */
+.gt-inst {
+  --inst-blue:#1558ae; --inst-blue-strong:#11498f; --inst-ink:#153969;
+  --inst-gold:#cba137; --inst-stroke:#9ebfe6;
+  font-family:"Prompt","Kanit","Sarabun","Noto Sans Thai",sans-serif;
+  font-size:16px;
+  line-height:1.55;
+  background:linear-gradient(155deg,#fff 0%,#f3f8ff 48%,#eaf3ff 100%);
+}
+.gt-inst::before {
+  content:"";position:fixed;left:0;bottom:0;width:180px;height:370px;
+  background:url('/institution-deco.png') bottom left /contain no-repeat;
+  opacity:.6;pointer-events:none;z-index:0;
+}
+.gt-inst .inst-shell{position:relative;z-index:1}
+.gt-inst .inst-topbar{background:linear-gradient(105deg,#0e4a9b,#145cb7 65%,#0c4693)}
+.gt-inst .inst-page-title{
+  background:linear-gradient(105deg,#0c479a,#155fb6 75%,#276fb8);
+  border-color:#c79b30;
+}
+.gt-inst .inst-page-title h2{font-size:clamp(21px,2.1vw,28px)}
+.gt-inst .inst-page-title p{font-size:clamp(14px,1.2vw,17px)}
+.gt-inst .inst-page-title__icon{background:linear-gradient(145deg,#2185dc,#10468c);border-color:#f4d892}
+.gt-inst .inst-hero{
+  border-color:#c9a03b;
+  background-color:#0d4d9f;
+  background-image:linear-gradient(90deg,rgba(10,57,128,.97) 0%,rgba(13,78,162,.94) 37%,rgba(18,88,170,.66) 68%,rgba(18,84,164,.06) 100%),url('/institution-banner.svg');
+}
+.gt-inst .inst-hero h1{font-size:clamp(27px,3.2vw,43px);line-height:1.2;text-shadow:0 2px 8px #08275066}
+.gt-inst .inst-hero-action {
+  color:#153e7a;background:linear-gradient(160deg,#fff,#f2f7ff);
+  border-color:#c79b30;font-size:15px;font-weight:600;
+  box-shadow:0 4px 10px #072c7066;
+}
+.gt-inst .inst-access-pill {font-size:14px}
+.gt-inst .inst-shortcut{
+  font-size:15px;
+  color:#153969;border-color:#a9c6e8;
+  background:linear-gradient(#fff,#f6f9ff);
+}
+.gt-inst .inst-shortcut[aria-current="page"]{
+  border-color:#c99d29;
+  background:linear-gradient(#fff7e1,#f1d58e);
+  color:#173865;
+}
+.gt-inst .inst-shortcut svg{color:#1357ac}
+.gt-inst .inst-nav{
+  border-color:#a9c6e8;
+}
+.gt-inst .gt-card{
+  border-color:#a9c6e8;
+  box-shadow:0 3px 10px rgba(20,71,129,.07);
+}
+.gt-inst .gt-card th {background:#e4efff;color:#153969}
+.gt-inst .inst-subheading{
+  border-color:#c59b33;
+  background:linear-gradient(100deg,#0e4a9b,#1769c1);
+  font-size:clamp(18px,1.55vw,22px);
+}
+.gt-inst .inst-student-details,
+.gt-inst .inst-settings-link {
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:43px;width:100%;padding:8px 12px;border:2px solid #b4c9e7;
+ border-radius:12px;background:#f2f7ff;color:#144783;font-size:14px;
+ font-weight:600;text-align:center;transition:background .15s,transform .15s,border-color .15s;
+}
+.gt-inst .inst-student-details:hover,.gt-inst .inst-settings-link:hover {
+ background:#ffefc1;border-color:#c59a30;
+}
+.gt-inst .inst-student-details:active,.gt-inst .inst-settings-link:active{transform:scale(.98)}
+.gt-inst [data-athlete-photo="true"] button,
+.gt-inst button[data-athlete-photo="true"]{transition:box-shadow .15s,transform .15s}
+.gt-inst button[data-athlete-photo="true"]:hover{box-shadow:0 0 0 3px #cda233;transform:scale(1.045)}
+.gt-inst button[data-athlete-photo="true"]:active{transform:scale(.96)}
+.gt-inst button[data-athlete-photo="true"]:focus-visible{outline:3px solid #c99a27;outline-offset:4px}
+.gt-inst .gt-card :is(p,li) {line-height:1.55}
+.gt-inst .gt-card :is(input,select,button){font-size:max(14px,1em)}
+.gt-inst .inst-workspace-main .text-xs{font-size:13px}
+.gt-inst .inst-workspace-main .text-sm{font-size:15px}
+.gt-inst .inst-workspace-main .text-\[11px\]{font-size:13px}
+@media (min-width:1024px) {
+  .gt-inst .inst-nav .inst-shortcut{font-size:15px;min-height:55px}
+  .gt-inst .inst-workspace{grid-template-columns:238px minmax(0,1fr)}
+}
+@media (max-width:767px) {
+  .gt-inst::before{opacity:.18;width:85px;height:180px}
+  .gt-inst .inst-shortcut{font-size:12px;min-height:88px}
+  .gt-inst .inst-hero{
+    background-image:linear-gradient(90deg,rgba(9,56,124,.96) 0%,rgba(13,69,144,.89) 72%,rgba(14,78,157,.67) 100%),url('/institution-banner.svg');
+  }
+  .gt-inst .inst-workspace-main .text-xs{font-size:12px}
+}
