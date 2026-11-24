@@ -3,17 +3,18 @@ import { useEffect, useState } from "react";
 
 export type DisplayMode = "cards" | "table";
 
-export function useInstitutionDisplayMode(section: string): [DisplayMode, (value:DisplayMode)=>void] {
+/** `initial` = view used before the teacher picks one (default: table on computer, cards on phone). */
+export function useInstitutionDisplayMode(section: string, initial?: DisplayMode): [DisplayMode, (value:DisplayMode)=>void] {
   const [mode,setMode] = useState<DisplayMode>("cards");
   useEffect(()=>{
     try {
       const saved = window.localStorage.getItem("gt-institution-display-"+section);
       if(saved === "cards" || saved === "table") setMode(saved);
-      else setMode(window.matchMedia("(min-width: 768px)").matches ? "table" : "cards");
+      else setMode(initial ?? (window.matchMedia("(min-width: 768px)").matches ? "table" : "cards"));
     } catch {
-      setMode(window.matchMedia("(min-width: 768px)").matches ? "table" : "cards");
+      setMode(initial ?? (window.matchMedia("(min-width: 768px)").matches ? "table" : "cards"));
     }
-  },[section]);
+  },[section, initial]);
   const change = (value:DisplayMode) => {
     setMode(value);
     try { window.localStorage.setItem("gt-institution-display-"+section,value); } catch {}
