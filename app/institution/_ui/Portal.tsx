@@ -1,5 +1,6 @@
 "use client";
 
+import "./institution-theme.css";
 import { shownName } from "@/lib/easy-auth.mjs";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -44,10 +45,10 @@ export default function Portal(){
   },[]);
   useEffect(()=>{void loadMine();},[loadMine]);
   const selected=state.mine.find(a=>a.id===academyId);
-  return <div className="min-h-screen bg-[#f0f6ff] text-[#102b5b]">
-    <header className="sticky top-0 z-30 border-b-[3px] border-[#e9bd55] bg-[#082957] text-white">
+  return <div className="gt-inst">
+    <header className="inst-topbar sticky top-0 z-30 text-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-3">
-        <Link href="/" className="flex min-w-0 items-center gap-2 font-bold sm:gap-3 sm:text-xl"><BoardLogo className="h-9 w-9 shrink-0 sm:h-11 sm:w-11" /><span className="hidden sm:inline">GO TOURNAMENT</span></Link>
+        <Link href="/" className="flex min-w-0 items-center gap-2 font-bold sm:gap-3 sm:text-xl"><span className="inst-brand-mark" aria-hidden="true">Go</span><span className="text-sm tracking-wide sm:text-xl">GO TOURNAMENT</span></Link>
         <nav className="flex items-center gap-1.5 text-sm sm:gap-2">
           {state.mode==="ready"&&<a href="/institution" className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-[#e9bd55] bg-[#e9bd55] px-3 font-bold text-[#082957]"><MenuIcon name="school" className="h-5 w-5"/><span>หน้าสถาบัน</span></a>}
           <Link href="/tournaments" className="hidden rounded-lg px-3 py-2 hover:bg-white/10 sm:inline">รายการแข่งขัน</Link>
@@ -55,7 +56,7 @@ export default function Portal(){
         </nav>
       </div>
     </header>
-    <main className="mx-auto max-w-7xl px-4 py-6 sm:py-9">
+    <main className="inst-shell">
       {state.mode==="loading"&&<p role="status" className="rounded-2xl border border-[#bfd1eb] bg-white p-10 text-center">กำลังเปิดหน้าสถาบัน…</p>}
       {state.mode==="out"&&<InstituteLogin onSuccess={loadMine}/>}
       {(state.mode==="none"||joining)&&<div>
@@ -113,14 +114,15 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     </select>
   </div>;
   return <div className="space-y-5">
-    <section className="relative overflow-hidden rounded-[24px] border-[3px] border-[#e9bd55] bg-[#093878] bg-[url(/institution-banner.svg)] bg-cover bg-right px-5 py-7 text-white shadow-[0_14px_30px_rgba(8,48,104,.18)] sm:px-9">
+    <div className="inst-page-title"><span className="inst-page-title__icon" aria-hidden="true">♜</span><div className="min-w-0"><h2 className="text-lg font-bold sm:text-2xl">สถาบันของฉัน</h2><p className="text-xs text-white/90 sm:text-sm">จัดการนักกีฬา คุณครู และติดตามการแข่งขันทุกระดับฝีมือ</p></div></div>
+    <section className="inst-hero px-4 py-5 text-white sm:px-7 sm:py-7">
       <div className="relative z-10 flex flex-wrap items-center gap-5">
-        <LogoDisplay branding={branding} name={selected.name} className="h-24 w-24 sm:h-32 sm:w-32"/>
+        <div className="inst-hero-logo"><LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/></div>
         <div className="min-w-0 flex-1">
         <p className="text-xs font-bold tracking-[.18em] text-[#f9d67d]">GO TOURNAMENT · {workspaceType==="independent_coach"?"ครูอิสระ":"สถาบัน"}</p>
-        <h1 className="mt-2 text-3xl font-bold sm:text-5xl">{ov?.academy.name??selected.name}</h1>
+        <h1 className="mt-2 break-words text-2xl font-bold sm:text-4xl">{ov?.academy.name??selected.name}</h1>
         <p className="mt-2 text-base text-white/90">{workspaceType==="independent_coach"?"พื้นที่ส่วนตัวสำหรับติดตามนักเรียนที่สอน แม้จะลงแข่งขันในนามโรงเรียนอื่น":"ระบบติดตามนักกีฬาและการแข่งขันของสถาบัน"}</p>
-        <p className="mt-3 inline-flex rounded-full border border-[#f5d784] bg-[#f5d784] px-3 py-1 text-xs font-bold text-[#12335c]">{selected.status==="active"?"บัญชีสถาบันเปิดใช้งาน":"รออนุมัติสิทธิ์"}</p>
+        <p className="inst-access-pill mt-3" data-active={selected.status==="active"}>{selected.status==="active"?"✓ บัญชีสถาบันเปิดใช้งาน":"รออนุมัติสิทธิ์"}</p>
       </div></div>
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 right-3 h-48 w-48 rounded-full border-[20px] border-[#f0bd58]/20 sm:h-72 sm:w-72"/>
     </section>
@@ -129,7 +131,9 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       <label className="mr-3 text-sm font-semibold" htmlFor="academy-select">สถาบันของฉัน</label>
       <select id="academy-select" className={selectCls} value={academyId} onChange={e=>location.assign(`/institution?academy=${encodeURIComponent(e.target.value)}`)}>{mine.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
     </div>}
-    <nav aria-label="เมนูสถาบัน" className={`${view==="home"?"grid":"hidden sm:grid"} grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-5`}>
+    <div className="inst-workspace">
+    <aside aria-label="เครื่องมือสถาบัน">
+    <nav aria-label="เมนูสถาบัน" className={`inst-nav inst-shortcut-grid ${view==="home"?"grid":"hidden sm:grid"}`}>
       <button type="button" onClick={()=>go("home")} aria-current={view==="home"?"page":undefined} className={navClass(view==="home")}>
         <span className="text-2xl" aria-hidden="true">⌂</span><span>ภาพรวม</span>
       </button>
@@ -137,6 +141,8 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
         <span className="h-7 w-7 text-[#bd8c27]">{ICONS[m.id]}</span><span>{m.title}</span>
       </button>)}
     </nav>
+    </aside>
+    <div className="inst-workspace-main space-y-5">
     {view!=="home"&&<div className="flex items-center gap-2 text-sm"><button type="button" onClick={()=>go("home")} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-[#bcd1eb] bg-white px-3 font-bold text-[#0b4f9e]">← ภาพรวมสถาบัน</button><span className="text-[#5b6f88]">› {MENU.find(m=>m.id===view)?.title??""}</span></div>}
     {ov?.access==="pending"&&<p role="status" className="rounded-xl border-2 border-[#e6c16c] bg-[#fff8e8] p-4 text-sm">รับคำขอเข้าร่วมสถาบันแล้ว · รอผู้ดูแลอนุมัติสิทธิ์ก่อนจึงจะเพิ่มนักกีฬาและสมัครแข่งขันได้</p>}
     {!ov?<div className="rounded-xl border border-[#bfd1eb] bg-white p-8 text-center" role={error?"alert":"status"}>{error||"กำลังโหลดข้อมูลสถาบัน…"}</div>:<div className="space-y-5">
@@ -158,9 +164,9 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
         {selected.role==="manager"&&<p className="rounded-xl border border-[#efcf79] bg-[#fff7e5] p-3 text-sm">เพิ่มและอนุมัติครูได้ในเมนู “ครูในสถาบัน”</p>}
       </section>}
     </div>}
+    </div>
+    </div>
     <footer className="border-t border-[#c8d7ec] py-6 text-center text-xs text-[#49617d]">GO TOURNAMENT · ข้อมูลการแข่งขันมาจากระบบจริง</footer>
   </div>;
 }
-function navClass(active:boolean){
- return `flex min-h-[95px] flex-col items-center justify-center gap-1.5 rounded-[18px] border-[3px] px-2 py-3 text-center text-[13px] font-black shadow-[0_4px_10px_rgba(9,48,100,.08)] transition active:scale-[.98] sm:text-sm ${active?"border-[#e9bd55] bg-[#0b55b5] text-white shadow-md":"border-[#b8cde8] bg-white text-[#123969] hover:border-[#e0b44e] hover:bg-[#fffaf0]"}`;
-}
+function navClass(_active:boolean){ return "inst-shortcut"; }
