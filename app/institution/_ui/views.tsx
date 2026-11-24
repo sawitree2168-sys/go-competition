@@ -67,9 +67,9 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {([{id:"students",label:"นักกีฬา",detail:"จัดการรายชื่อและติดตามผล"},{id:"tracking",label:"ผลการแข่งขัน",detail:"รอบ โต๊ะ และผลล่าสุด"},{id:"stats",label:"อันดับ / พัฒนาการ",detail:"อันดับ กราฟการเติบโต ประวัติรายคน"},{id:"reports",label:"รายงาน",detail:"สรุปผลงานรายบุคคล"}] as const).map((item)=>
-          <button key={item.id} type="button" onClick={()=>go(item.id)} className="group rounded-[20px] border-[3px] border-[#e7b950] bg-[linear-gradient(145deg,#0767d5,#168deb)] p-4 text-left text-white shadow-[0_7px_14px_rgba(8,44,98,.17)] transition hover:-translate-y-0.5 hover:border-[#f9d779]">
-            <span className="flex items-center justify-between"><span className="h-9 w-9 text-[#ffdc83]">{ICONS[item.id==="reports"?"reports":item.id]}</span><span className="grid h-9 w-9 place-items-center rounded-full bg-[#edbb55] font-black text-[#0e3470]">›</span></span>
-            <strong className="mt-3 block text-lg">{item.label}</strong><span className="block text-xs text-white/80">{item.detail}</span>
+          <button key={item.id} type="button" onClick={()=>go(item.id)} className="group rounded-[19px] border-2 border-[#cba038] bg-[linear-gradient(145deg,#fff,#f2f7ff)] p-4 text-left text-[#153e78] shadow-[0_4px_11px_rgba(8,44,98,.09)] transition hover:-translate-y-0.5 hover:border-[#a87d1e] hover:bg-[#fff9e9] active:scale-[.98]">
+            <span className="flex items-center justify-between"><span className="h-9 w-9 text-[#1357a7]">{ICONS[item.id==="reports"?"reports":item.id]}</span><span className="grid h-9 w-9 place-items-center rounded-full border border-[#ba8a21] bg-[#d9ae49] font-semibold text-[#183b69]">›</span></span>
+            <strong className="mt-3 block text-lg">{item.label}</strong><span className="block text-sm text-[#536d8b]">{item.detail}</span>
           </button>
         )}
       </div>
