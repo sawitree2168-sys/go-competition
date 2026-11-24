@@ -23,6 +23,19 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
   const live = track.slice(0, 4);
   const who = byId(ov);
   const due = amountDue(apps);
+  const rankCounts = ov.students.reduce((acc, student) => {
+    const value = (student.rank ?? "").toLowerCase().trim();
+    if (/ดั้ง|dan|\\d\\s*d(?:an)?\\b|\\b\\d+d\\b/.test(value)) acc.dan++;
+    else if (/คิว|kyu|\\d\\s*k\\b/.test(value)) acc.kyu++;
+    else acc.other++;
+    return acc;
+  }, {dan:0,kyu:0,other:0});
+  const rankTotal = ov.students.length;
+  const ranking = [
+    {label:"ระดับดั้ง (Dan)",value:rankCounts.dan,colour:"#167de0"},
+    {label:"ระดับคิว (Kyu)",value:rankCounts.kyu,colour:"#eab53d"},
+    {label:"ยังไม่ระบุ / อื่น ๆ",value:rankCounts.other,colour:"#93b5dd"},
+  ];
   return (
     <div className="relative z-10 space-y-5">
       <SectionTitle right={filters}>ภาพรวมสถาบัน</SectionTitle>
@@ -36,9 +49,25 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
         </div>
       </div>
 
+      <section className="gt-card overflow-hidden p-3 sm:p-5" aria-label="นักกีฬาแยกตามระดับฝีมือ">
+        <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="flex items-center gap-2 text-lg font-bold"><span aria-hidden="true">◉</span> นักกีฬาทุกระดับฝีมือ</h3>
+          <span className="rounded-full border border-[#e9bb50] bg-[#fff6db] px-3 py-1 text-sm font-semibold text-[#795009]">{rankTotal} คน</span>
+        </header>
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
+          <div className="h-5 overflow-hidden rounded-full border border-[#c6d9ef] bg-[#edf4fd]" role="img" aria-label={ranking.map(r=>`${r.label} ${r.value} คน`).join(" · ")}>
+            <div className="flex h-full">{ranking.map(r=><div key={r.label} style={{width:`${rankTotal ? r.value/rankTotal*100 : 0}%`,backgroundColor:r.colour}} />)}</div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {ranking.map(r=><div key={r.label} className="flex items-center gap-2 text-sm"><span className="h-3 w-3 shrink-0 rounded-full" style={{backgroundColor:r.colour}}/><span className="min-w-0 flex-1">{r.label}</span><b>{r.value}</b></div>)}
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-[#527097]">นับจากนักกีฬาที่ปรากฏในหน้าสถาบันปัจจุบัน ไม่ใช่จำนวนสมาชิกที่ยืนยันตัวตนทั้งหมด</p>
+      </section>
+
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {([{id:"students",label:"นักกีฬา",detail:"จัดการรายชื่อและติดตามผล"},{id:"tracking",label:"ผลการแข่งขัน",detail:"รอบ โต๊ะ และผลล่าสุด"},{id:"stats",label:"อันดับ / พัฒนาการ",detail:"อันดับ กราฟการเติบโต ประวัติรายคน"},{id:"reports",label:"รายงาน",detail:"สรุปผลงานรายบุคคล"}] as const).map((item)=>
-          <button key={item.id} type="button" onClick={()=>go(item.id)} className="group rounded-[20px] border-[3px] border-[#e7b950] bg-[linear-gradient(145deg,#0a3e89,#08306c)] p-4 text-left text-white shadow-[0_7px_14px_rgba(8,44,98,.17)] transition hover:-translate-y-0.5 hover:border-[#f9d779]">
+          <button key={item.id} type="button" onClick={()=>go(item.id)} className="group rounded-[20px] border-[3px] border-[#e7b950] bg-[linear-gradient(145deg,#0767d5,#168deb)] p-4 text-left text-white shadow-[0_7px_14px_rgba(8,44,98,.17)] transition hover:-translate-y-0.5 hover:border-[#f9d779]">
             <span className="flex items-center justify-between"><span className="h-9 w-9 text-[#ffdc83]">{ICONS[item.id==="reports"?"reports":item.id]}</span><span className="grid h-9 w-9 place-items-center rounded-full bg-[#edbb55] font-black text-[#0e3470]">›</span></span>
             <strong className="mt-3 block text-lg">{item.label}</strong><span className="block text-xs text-white/80">{item.detail}</span>
           </button>
