@@ -23,7 +23,7 @@ async function capture(el: HTMLElement): Promise<Blob> {
  * "แชร์" + "บันทึกรูป" for a card on the institution page. Share sends the picture when the phone allows it
  * (LINE, Facebook…), otherwise the text and link; save downloads the picture.
  */
-export default function ShareSave({ target, filename, text, url }: { target: RefObject<HTMLElement | null>; filename: string; text: string; url?: string }) {
+export default function ShareSave({ target, filename, text, url, shareLabel = "แชร์ผล" }: { target: RefObject<HTMLElement | null>; filename: string; text: string; url?: string; shareLabel?: string }) {
   const [busy, setBusy] = useState<"" | "share" | "save">("");
   const [note, setNote] = useState("");
 
@@ -62,7 +62,7 @@ export default function ShareSave({ target, filename, text, url }: { target: Ref
     <div data-export-ignore="true" className="space-y-1">
       <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={() => void share()} disabled={!!busy} className="gt-cta-btn flex min-h-12 items-center justify-center gap-1.5 px-3 disabled:opacity-60">
-          {busy === "share" ? "กำลังเตรียม…" : <>แชร์ผล <span aria-hidden="true">↗</span></>}
+          {busy === "share" ? "กำลังเตรียม…" : <>{shareLabel} <span aria-hidden="true">↗</span></>}
         </button>
         <button type="button" onClick={() => void save()} disabled={!!busy} className="gt-outline-btn flex min-h-12 items-center justify-center gap-1.5 px-3 disabled:opacity-60">
           {busy === "save" ? "กำลังสร้างรูป…" : <>บันทึกรูป <span aria-hidden="true">↓</span></>}

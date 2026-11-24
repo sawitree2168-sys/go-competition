@@ -25,7 +25,13 @@ export default function Apply({ ov, apps, canEdit, reload }: { ov: Overview; app
   const [done, setDone] = useState<Done | null>(null);
 
   useEffect(() => {
-    staffDb()!.rpc("gt_open_events_v1").then(({ data }) => setEvents((data ?? []) as OpenEvent[]));
+    staffDb()!.rpc("gt_open_events_v1").then(({ data }) => {
+      const list = (data ?? []) as OpenEvent[];
+      setEvents(list);
+      // Opened from "งานที่เปิดรับสมัคร" on the overview: start with that event chosen.
+      const wanted = new URLSearchParams(window.location.search).get("event");
+      if (wanted && list.some((e) => e.id === wanted)) setEventId(wanted);
+    });
   }, []);
 
   const ev = events?.find((e) => e.id === eventId) ?? null;
