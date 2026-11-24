@@ -75,13 +75,15 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   const [workspaceType,setWorkspaceType]=useState<"academy"|"independent_coach">("academy");
   const [branding,setBranding]=useState<Branding|null>(null);
   const [theme,setTheme]=useState<InstituteTheme>(DEFAULT_THEME);
+  const [canCustomize,setCanCustomize]=useState(false);
   const [view,setView]=useState<View>("home");
   const [year,setYear]=useState<number|null>(new Date().getFullYear()+543);
   const [event,setEvent]=useState("");
   const load=useCallback(async()=>{
     const db=staffDb();
     if(!db)return;
-    const [o,a,w,b,th]=await Promise.all([db.rpc("gt_academy_overview_v1",{p_academy:academyId}),db.rpc("gt_academy_applications_v1",{p_academy:academyId}),db.rpc("gt_workspace_kind_v1",{p_academy:academyId}),db.rpc("gt_academy_branding_v1",{p_academy:academyId}),db.rpc("gt_academy_theme_v1",{p_academy:academyId})]);
+    const [o,a,w,b,th,customize]=await Promise.all([db.rpc("gt_academy_overview_v1",{p_academy:academyId}),db.rpc("gt_academy_applications_v1",{p_academy:academyId}),db.rpc("gt_workspace_kind_v1",{p_academy:academyId}),db.rpc("gt_academy_branding_v1",{p_academy:academyId}),db.rpc("gt_academy_theme_v1",{p_academy:academyId}),db.rpc("gt_academy_can_customize_v1",{p_academy:academyId})]);
+    setCanCustomize(customize.data===true);
     if(th.data?.ok)setTheme({color:th.data.color??DEFAULT_THEME.color,section:th.data.section??DEFAULT_THEME.section,hero:th.data.hero??DEFAULT_THEME.hero,background:th.data.background??DEFAULT_THEME.background,section_path:th.data.section_path??null,hero_path:th.data.hero_path??null,background_path:th.data.background_path??null});
     if(b.data?.ok)setBranding({logo_path:b.data.logo_path??null,shape:b.data.shape==="square"?"square":"circle",zoom:b.data.zoom??100,x:b.data.x??50,y:b.data.y??50});
     setWorkspaceType(w.data==="independent_coach"?"independent_coach":"academy");
@@ -184,10 +186,10 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
           <p>ให้ผู้จัดการสถาบันที่มีสิทธิ์แล้วเข้าบัญชีของตนเอง ไปที่เมนู “เจ้าของและครู” แล้วอนุมัติคำขอของบัญชีนี้</p>
           <button type="button" onClick={()=>go("teachers")} className="inst-settings-link">ดูหน้าเจ้าของและครู</button>
         </div>:<>
-          {selected.role==="manager"?<><ThemeEditor academyId={academyId} theme={theme} onSaved={setTheme}/><LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/></>:
+          {selected.role==="manager"||canCustomize?<><ThemeEditor academyId={academyId} theme={theme} onSaved={setTheme}/><LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/></>:
            <div className="rounded-xl border-2 border-[#c4d5ec] bg-[#f4f8ff] p-4">
              <p className="font-semibold">โลโก้และข้อมูลสถาบัน</p>
-             <p className="mt-2 text-base">เฉพาะเจ้าของหรือผู้จัดการสถาบันเท่านั้นที่แก้ไขโลโก้ได้ หากต้องการเปลี่ยน ให้ติดต่อผู้จัดการที่มีสิทธิ์</p>
+             <p className="mt-2 text-base">เฉพาะผู้จัดการหรือบัญชีที่ได้รับสิทธิ์ปรับแต่งสถาบันเท่านั้นที่แก้ไขธีมและโลโก้ได้ หากต้องการเปลี่ยน ให้ติดต่อผู้จัดการสถาบัน</p>
            </div>}
           <StaffUsername role={selected.role} academyName={selected.name}/>
           <ChangeInstitutionPassword/>
