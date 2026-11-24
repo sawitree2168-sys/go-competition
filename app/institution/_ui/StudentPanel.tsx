@@ -20,6 +20,37 @@ const OUT: Record<string, { label: string; tone: "win" | "loss" | "draw" | "wait
   win_walkover: { label: "ชนะผ่าน", tone: "win" }, loss_walkover: { label: "แพ้ผ่าน", tone: "loss" },
 };
 
+/**
+ * Which student panel is open, kept in the address (?student=…) so the phone's back button closes the panel
+ * instead of leaving the institution page, and a shared link opens the same student.
+ */
+export function useOpenStudent(): [string | null, (id: string | null) => void] {
+  const [id, setId] = useState<string | null>(null);
+  const pushed = useRef(false);
+  useEffect(() => {
+    const read = () => new URLSearchParams(window.location.search).get("student");
+    queueMicrotask(() => setId(read()));
+    const onPop = () => { pushed.current = false; setId(read()); };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  const set = (next: string | null) => {
+    const url = new URL(window.location.href);
+    if (next) {
+      url.searchParams.set("student", next);
+      window.history.pushState(null, "", url); pushed.current = true;
+    } else if (pushed.current) {
+      window.history.back(); return;
+    } else {
+      url.searchParams.delete("student");
+      window.history.replaceState(null, "", url);
+    }
+    setId(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  return [id, set];
+}
+
 /** Win rate in each competition, oldest → newest. Gold dots = placed 1st–3rd. Tap a dot for the details. */
 export function GrowthChart({ points }: { points: Point[] }) {
   const [active, setActive] = useState<number | null>(null);
@@ -75,8 +106,8 @@ export function GrowthChart({ points }: { points: Point[] }) {
 }
 
 /** One student: totals, growth chart, every game (who they played and the result), share / save picture. */
-export default function StudentPanel({ academyId, academyName, student, records, rank, onClose }:
-  { academyId: string; academyName: string; student: Student; records: Rec[]; rank: number | null; onClose: () => void }) {
+export default function StudentPanel({ academyId, academyName, student, records, rank, onClose, backLabel = "← กลับไปอันดับ" }:
+  { academyId: string; academyName: string; student: Student; records: Rec[]; rank: number | null; onClose: () => void; backLabel?: string }) {
   const card = useRef<HTMLDivElement>(null);
   const [games, setGames] = useState<Game[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -112,7 +143,7 @@ export default function StudentPanel({ academyId, academyName, student, records,
   return (
     <section className="gt-card space-y-4 border-2 border-[var(--gt-cta)] p-4 sm:p-6" aria-labelledby="student-panel-h">
       <div className="flex justify-between gap-2" data-export-ignore="true">
-        <button type="button" onClick={onClose} className="gt-outline-btn min-h-11 px-4 text-sm">← กลับไปอันดับ</button>
+        <button type="button" onClick={onClose} className="gt-outline-btn min-h-11 px-4 text-sm">{backLabel}</button>
         <Link href={profile} className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--gt-cta)] underline underline-offset-4">โปรไฟล์นักกีฬา →</Link>
       </div>
       <div ref={card} className="-m-2 space-y-4 rounded-xl bg-white p-2">

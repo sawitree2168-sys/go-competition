@@ -37,10 +37,10 @@ const MOCK_STANDINGS: Standing[] = MOCK_PEOPLE.map((p, i) => ({
 const fmt = (n: number) => Number.isInteger(n) ? String(n) : n.toFixed(1);
 
 function ExampleTag() { return <span className="cd-example-tag">ตัวอย่างสำหรับเรียนรู้</span>; }
-function Player({ person, colour }: { person?: Person; colour?: "black" | "white" }) {
+function Player({ person, colour, id }: { person?: Person; colour?: "black" | "white"; id?: string | null }) {
   return <div className="cd-player"><span className="cd-avatar-wrap"><AthletePhotoViewer src={person?.photo} name={person?.name ?? "นักกีฬา"} />
     {colour && <span className={`cd-stone ${colour}`} aria-label={colour === "black" ? "หมากดำ" : "หมากขาว"} />}</span>
-    <span><strong>{person?.name ?? "รอรายชื่อจากผู้จัด"}</strong><small>{person?.institution || "ไม่ระบุสถาบัน"}{person?.rank ? ` · ${person.rank}` : ""}</small></span></div>;
+    <span><strong data-athlete-id={id ?? undefined}>{person?.name ?? "รอรายชื่อจากผู้จัด"}</strong><small>{person?.institution || "ไม่ระบุสถาบัน"}{person?.rank ? ` · ${person.rank}` : ""}</small></span></div>;
 }
 function PanelTitle({ title, demo, children }: { title: string; demo?: boolean; children?: React.ReactNode }) {
   return <div className="cd-panel-heading"><h2><span className="cd-heading-stones" aria-hidden="true">●○</span>{title}</h2>{demo && <ExampleTag />}{children}</div>;
@@ -123,7 +123,7 @@ function StandingsTable({ row, mode, compact = false, search = "", pool = "*" }:
   const rows = compact ? source.filter(s => (s.pos ?? 99) <= 8) : source;
   return <>{demo ? <p className="cd-teach">ตัวอย่างวิธีอ่านอันดับและคะแนน ข้อมูลจริงจะแทนที่เมื่อประกาศคู่แข่งขัน</p> : !recorded && <p className="cd-message">ประกาศคู่แข่งขันแล้ว · ยังไม่มีผลยืนยัน จึงยังไม่จัดอันดับ</p>}
     <div className="cd-table-scroll"><table className={`cd-rank-table ${compact ? "cd-rank-compact" : "cd-rank-full"}`}><colgroup><col className="cd-col-place" /><col className="cd-col-player" /><col className="cd-col-number" span={compact ? 1 : 5} /></colgroup><thead><tr><th scope="col">#</th><th scope="col">นักกีฬา / สถาบัน</th><th scope="col">คะแนน</th>{!compact && <><th scope="col">ชนะ</th><th scope="col">แพ้</th><th scope="col">SOS</th><th scope="col">SOSOS</th></>}</tr></thead><tbody>
-      {rows.map((s, i) => <tr key={`${s.pool_label}-${s.athlete_id ?? i}`}><td><span className={`cd-place p${demo || recorded ? s.pos : 0}`}>{demo || recorded ? s.pos : "–"}</span></td><td><Player person={{ name: s.display_name ?? "นักกีฬา", institution: s.institution ?? "", rank: s.current_rank, photo: people.get(s.athlete_id ?? "")?.photo }} />{s.pool_label && <small className="cd-pool-note">สาย {s.pool_label}</small>}</td><td><strong>{fmt(s.score)}</strong></td>{!compact && <><td className="cd-wins">{s.wins}</td><td className="cd-losses">{s.losses}</td><td>{s.sos}</td><td>{s.sosos}</td></>}</tr>)}
+      {rows.map((s, i) => <tr key={`${s.pool_label}-${s.athlete_id ?? i}`}><td><span className={`cd-place p${demo || recorded ? s.pos : 0}`}>{demo || recorded ? s.pos : "–"}</span></td><td><Player person={{ name: s.display_name ?? "นักกีฬา", institution: s.institution ?? "", rank: s.current_rank, photo: people.get(s.athlete_id ?? "")?.photo }}  id={s.athlete_id}/>{s.pool_label && <small className="cd-pool-note">สาย {s.pool_label}</small>}</td><td><strong>{fmt(s.score)}</strong></td>{!compact && <><td className="cd-wins">{s.wins}</td><td className="cd-losses">{s.losses}</td><td>{s.sos}</td><td>{s.sosos}</td></>}</tr>)}
     </tbody></table></div>{!rows.length && <p className="cd-message">{search ? "ไม่พบรายชื่อที่ค้นหา" : "รอข้อมูลอันดับจากการแข่งขัน"}</p>}</>;
 }
 
@@ -136,20 +136,20 @@ function MatchTable({ row, mode, round, pool, search, compact }: { row: Dashboar
     byes: row.byes.filter(b => b.round_number === round && (pool === "*" || (b.pool_label ?? "") === pool)),
   };
   const demoRound = round === "latest" ? 1 : round;
-  const matches: { key: string; board: number | null; round: number; pool: string | null; black?: Person; white?: Person; status: string; done: boolean }[] = demo
+  const matches: { key: string; board: number | null; round: number; pool: string | null; black?: Person; white?: Person; blackId?: string; whiteId?: string; status: string; done: boolean }[] = demo
     ? Array.from({ length: 6 }, (_, i) => ({ key: `example-${i}`, board: i + 1, round: demoRound, pool: null,
       black: MOCK_PEOPLE[(i * 2 + demoRound - 1) % 8], white: MOCK_PEOPLE[(i * 2 + demoRound) % 8],
       status: i === 2 ? "ตัวอย่าง: รอผล" : i === 3 ? "ตัวอย่าง: ดำชนะ" : "ตัวอย่าง: รอเริ่ม", done: i === 3 }))
     : chosen.matches.map((m: Match) => ({ key: m.id, board: m.board_number, round: m.round_number, pool: m.pool_label ?? null,
-      black: people.get(m.black_athlete_id), white: people.get(m.white_athlete_id), status: resultLabel(m) || "รอผลการแข่งขัน", done: m.state === "verified" }));
+      black: people.get(m.black_athlete_id), white: people.get(m.white_athlete_id), blackId: m.black_athlete_id, whiteId: m.white_athlete_id, status: resultLabel(m) || "รอผลการแข่งขัน", done: m.state === "verified" }));
   const filtered = matches.filter(m => `${m.black?.name ?? ""} ${m.white?.name ?? ""} ${m.black?.institution ?? ""} ${m.white?.institution ?? ""} ${m.board ?? ""}`.toLowerCase().includes(search.toLowerCase()));
   const shown = compact ? filtered.slice(0, 6) : filtered;
   const byes = chosen.byes.filter((b: Bye) => `${people.get(b.athlete_id)?.name ?? ""} ${people.get(b.athlete_id)?.institution ?? ""}`.toLowerCase().includes(search.toLowerCase()));
   return <>{demo && <p className="cd-teach">ลองเลือกรอบ ค้นหาชื่อ และอ่านหมายเลขโต๊ะ · ทั้งหมดเป็นข้อมูลตัวอย่าง เมื่อมีคู่จริงตัวอย่างจะหายไปอัตโนมัติ</p>}
     <div className="cd-table-scroll"><table className="cd-match-table"><thead><tr><th scope="col">โต๊ะ / รอบ</th><th scope="col">ผู้เล่นฝ่ายดำ ●</th><th scope="col">ผู้เล่นฝ่ายขาว ○</th><th scope="col">สถานะ</th></tr></thead><tbody>
-      {shown.map(m => <tr key={m.key}><td className="cd-board"><strong>โต๊ะ {m.board ?? "–"}</strong><small>รอบ {m.round}{m.pool ? ` · สาย ${m.pool}` : ""}</small></td><td><Player person={m.black} colour="black" /></td><td><Player person={m.white} colour="white" /></td><td className="cd-match-status"><span className={`cd-pill ${m.done ? "done" : "waiting"}`}>{m.status}</span></td></tr>)}
+      {shown.map(m => <tr key={m.key}><td className="cd-board"><strong>โต๊ะ {m.board ?? "–"}</strong><small>รอบ {m.round}{m.pool ? ` · สาย ${m.pool}` : ""}</small></td><td><Player person={m.black} colour="black" id={m.blackId} /></td><td><Player person={m.white} colour="white" id={m.whiteId} /></td><td className="cd-match-status"><span className={`cd-pill ${m.done ? "done" : "waiting"}`}>{m.status}</span></td></tr>)}
     </tbody></table></div>
-    {!demo && byes.map((b: Bye) => <div className="cd-bye" key={`${b.pool_label}-${b.round_number}-${b.athlete_id}`}><Player person={people.get(b.athlete_id)} /><span className="cd-pill done">ได้บาย · รอบ {b.round_number}{b.pool_label ? ` · สาย ${b.pool_label}` : ""}</span></div>)}
+    {!demo && byes.map((b: Bye) => <div className="cd-bye" key={`${b.pool_label}-${b.round_number}-${b.athlete_id}`}><Player person={people.get(b.athlete_id)} id={b.athlete_id} /><span className="cd-pill done">ได้บาย · รอบ {b.round_number}{b.pool_label ? ` · สาย ${b.pool_label}` : ""}</span></div>)}
     {!shown.length && !byes.length && <p className="cd-message">{search ? "ไม่พบคู่แข่งขันที่ค้นหา" : "ยังไม่มีคู่แข่งขันในรอบหรือสายที่เลือก"}</p>}
     {compact && filtered.length > 6 && <p className="cd-subtle cd-padding">แสดง 6 โต๊ะจาก {filtered.length} โต๊ะ · เลือกเมนูจับคู่เพื่อดูทั้งหมด</p>}
   </>;

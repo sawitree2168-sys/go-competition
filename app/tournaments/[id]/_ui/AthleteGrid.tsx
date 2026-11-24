@@ -92,7 +92,7 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
               </div>
               <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2.5 py-3 text-center sm:px-3">
                 {a.id
-                  ? <Link href={`/athletes/${a.id}`} className="block min-h-10 break-words text-sm font-semibold leading-snug hover:underline sm:text-lg">{a.name}</Link>
+                  ? <Link href={`/athletes/${a.id}`} className="block min-h-10 break-words text-sm font-semibold leading-snug hover:underline sm:text-lg" data-athlete-id={a.id}>{a.name}</Link>
                   : <p className="min-h-10 break-words text-sm font-semibold leading-snug sm:text-lg">{a.name}</p>}
                 <p className="gt-athlete-institution flex min-h-7 items-start gap-1 break-words text-xs text-[var(--gt-muted)] sm:text-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true"><path d="M3 21V8l9-5 9 5v13M7 21v-8h10v8M9 9h.01M12 9h.01M15 9h.01" /></svg><span className="min-w-0">{a.institution || "ไม่ระบุสถาบัน"}</span></p>
                 <p className="flex flex-wrap items-center justify-center gap-1.5">
@@ -121,7 +121,7 @@ export default function AthleteGrid({ athletes, historicalResults, matches, byes
                   <span className="gt-num text-center text-xs text-[var(--gt-muted)]">{(current - 1) * PAGE + i + 1}</span>
                   <img src={a.photo || DEFAULT_AVATAR} alt="" loading="lazy" onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }} className="h-12 w-12 rounded-lg bg-[var(--gt-surface-2)] object-contain" />
                   <div className="min-w-0">
-                    {a.id ? <Link href={"/athletes/" + a.id} className="block break-words text-sm font-semibold hover:underline">{a.name}</Link> : <span className="block break-words text-sm font-semibold">{a.name}</span>}
+                    {a.id ? <Link href={"/athletes/" + a.id} className="block break-words text-sm font-semibold hover:underline" data-athlete-id={a.id}>{a.name}</Link> : <span className="block break-words text-sm font-semibold">{a.name}</span>}
                     <p className="mt-1 break-words text-xs text-[var(--gt-muted)] lg:hidden">{a.institution || "—"}</p>
                     <div className="mt-1 flex flex-wrap gap-2 lg:hidden">
                       {k && <span className="text-xs font-semibold text-[var(--gt-brand)]">{k.replace(/d$/, " Dan").replace(/k$/, " Kyu")}</span>}

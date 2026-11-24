@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import MobileNav from "@/components/MobileNav";
+import InstitutionReturn from "@/components/InstitutionReturn";
 // Prompt (Google Fonts, OFL-1.1) served from this site via @fontsource: Thai + Latin, 400 / 500 / 600.
 import "@fontsource/prompt/400.css";
 import "@fontsource/prompt/500.css";
@@ -21,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}<MobileNav /></body>
+      <body className="min-h-full flex flex-col">{children}<InstitutionReturn /><MobileNav /></body>
     </html>
   );
 }

@@ -14,6 +14,8 @@ import ChangeInstitutionPassword from "./ChangeInstitutionPassword";
 import InstituteLogin from "./InstituteLogin";
 import { AcademyStaff } from "./AcademyPeople";
 import LogoEditor,{LogoDisplay,type Branding} from "./LogoEditor";
+import MenuIcon from "@/components/MenuIcon";
+import { INSTITUTION_RETURN_KEY } from "@/components/InstitutionReturn";
 
 type Mine = { id: string; name: string; role: "manager" | "teacher"; status: "active" | "pending" };
 type State = { mode:"loading" | "out" | "none" | "ready"; mine:Mine[]; email:string; admin:boolean };
@@ -41,12 +43,13 @@ export default function Portal(){
   useEffect(()=>{void loadMine();},[loadMine]);
   const selected=state.mine.find(a=>a.id===academyId);
   return <div className="min-h-screen bg-[#f0f6ff] text-[#102b5b]">
-    <header className="border-b-[3px] border-[#e9bd55] bg-[#082957] text-white">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
-        <Link href="/" className="flex items-center gap-3 font-bold sm:text-xl"><BoardLogo className="h-11 w-11" /><span>GO TOURNAMENT</span></Link>
-        <nav className="flex items-center gap-2 text-sm">
-          <Link href="/tournaments" className="rounded-lg px-3 py-2 hover:bg-white/10">รายการแข่งขัน</Link>
-          {state.mode!=="out"&&state.mode!=="loading"&&<button type="button" onClick={async()=>{await staffDb()?.auth.signOut();location.assign("/");}} className="rounded-lg border border-[#e9bd55] px-3 py-2">ออกจากระบบ</button>}
+    <header className="sticky top-0 z-30 border-b-[3px] border-[#e9bd55] bg-[#082957] text-white">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-3">
+        <Link href="/" className="flex min-w-0 items-center gap-2 font-bold sm:gap-3 sm:text-xl"><BoardLogo className="h-9 w-9 shrink-0 sm:h-11 sm:w-11" /><span className="hidden sm:inline">GO TOURNAMENT</span></Link>
+        <nav className="flex items-center gap-1.5 text-sm sm:gap-2">
+          {state.mode==="ready"&&<a href="/institution" className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-[#e9bd55] bg-[#e9bd55] px-3 font-bold text-[#082957]"><MenuIcon name="school" className="h-5 w-5"/><span>หน้าสถาบัน</span></a>}
+          <Link href="/tournaments" className="hidden rounded-lg px-3 py-2 hover:bg-white/10 sm:inline">รายการแข่งขัน</Link>
+          {state.mode!=="out"&&state.mode!=="loading"&&<button type="button" onClick={async()=>{try{localStorage.removeItem(INSTITUTION_RETURN_KEY);}catch{}await staffDb()?.auth.signOut();location.assign("/");}} className="min-h-11 rounded-lg border border-white/40 px-3">ออกจากระบบ</button>}
         </nav>
       </div>
     </header>
@@ -83,6 +86,8 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   useEffect(()=>{setView(initialView());const onPop=()=>setView(initialView());addEventListener("popstate",onPop);return()=>removeEventListener("popstate",onPop);},[]);
   useEffect(()=>{if(view!=="tracking")return;const id=setInterval(()=>{void load();},30000);return()=>clearInterval(id);},[view,load]);
   const go=(next:View)=>{setView(next);history.pushState(null,"",next==="home"?"/institution":`/institution?v=${next}`);window.scrollTo({top:0,behavior:"smooth"});};
+  // Remember where to come back to (shown as "กลับหน้าสถาบัน" on the profile and other pages).
+  useEffect(()=>{try{localStorage.setItem(INSTITUTION_RETURN_KEY,JSON.stringify({href:`${location.pathname}${location.search}`,name:selected.name}));}catch{}},[view,selected.name]);
   const records=useMemo(()=>ov?.records??[],[ov]);
   const years=useMemo(()=>yearsOf(records),[records]);
   const events=useMemo(()=>eventsOf(records,year),[records,year]);
@@ -122,7 +127,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       <label className="mr-3 text-sm font-semibold" htmlFor="academy-select">สถาบันของฉัน</label>
       <select id="academy-select" className={selectCls} value={academyId} onChange={e=>location.assign(`/institution?academy=${encodeURIComponent(e.target.value)}`)}>{mine.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
     </div>}
-    <nav aria-label="เมนูสถาบัน" className="grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-9">
+    <nav aria-label="เมนูสถาบัน" className={`${view==="home"?"grid":"hidden sm:grid"} grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-9`}>
       <button type="button" onClick={()=>go("home")} aria-current={view==="home"?"page":undefined} className={navClass(view==="home")}>
         <span className="text-2xl" aria-hidden="true">⌂</span><span>ภาพรวม</span>
       </button>
@@ -130,6 +135,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
         <span className="h-7 w-7 text-[#bd8c27]">{ICONS[m.id]}</span><span>{m.title}</span>
       </button>)}
     </nav>
+    {view!=="home"&&<div className="flex items-center gap-2 text-sm"><button type="button" onClick={()=>go("home")} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-[#bcd1eb] bg-white px-3 font-bold text-[#0b4f9e]">← ภาพรวมสถาบัน</button><span className="text-[#5b6f88]">› {MENU.find(m=>m.id===view)?.title??""}</span></div>}
     {ov?.access==="pending"&&<p role="status" className="rounded-xl border-2 border-[#e6c16c] bg-[#fff8e8] p-4 text-sm">รับคำขอเข้าร่วมสถาบันแล้ว · รอผู้ดูแลอนุมัติสิทธิ์ก่อนจึงจะเพิ่มนักกีฬาและสมัครแข่งขันได้</p>}
     {!ov?<div className="rounded-xl border border-[#bfd1eb] bg-white p-8 text-center" role={error?"alert":"status"}>{error||"กำลังโหลดข้อมูลสถาบัน…"}</div>:<div className="space-y-5">
       {view==="home"&&<Home ov={ov} records={filtered} track={tracking} apps={apps} filters={filters} go={go}/>}

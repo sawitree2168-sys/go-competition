@@ -121,7 +121,7 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
                   <div className="flex min-w-[12rem] items-center gap-2.5">
                     <Face r={r} size={large ? "h-12 w-12" : "h-10 w-10"} />
                     <span className="min-w-0 flex-1">
-                      <span className={`block truncate font-bold ${large ? "text-lg" : ""}`}>{r.display_name ?? "—"}</span>
+                      <span className={`block truncate font-bold ${large ? "text-lg" : ""}`} data-athlete-id={r.athlete_id ?? undefined}>{r.display_name ?? "—"}</span>
                       {r.institution && <span className={`block truncate text-[var(--gt-muted)] ${large ? "text-sm" : "text-xs"}`}>{r.institution}</span>}
                     </span>
                     <RankChip r={r} />
@@ -148,7 +148,7 @@ export default function CrossTable({ title, rows, matches, byes, rounds = 5, lar
             <Medal no={r.no} withdrawn={r.withdrawn} />
             <Face r={r} size="h-11 w-11" />
             <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-1.5"><span className="truncate font-bold">{r.display_name ?? "—"}</span><RankChip r={r} /></span>
+              <span className="flex items-center gap-1.5"><span className="truncate font-bold" data-athlete-id={r.athlete_id ?? undefined}>{r.display_name ?? "—"}</span><RankChip r={r} /></span>
               {r.institution && <span className="block truncate text-xs text-[var(--gt-muted)]">{r.institution}</span>}
             </span>
             <span className="border-l border-[var(--gt-line)] pl-3 text-center">

@@ -65,7 +65,7 @@ function Side({ s, colour, showPhotos, onOpen }: { s: SeatInfo; colour: "black" 
       <div className="min-w-0">
         <p className="flex items-center justify-center gap-2 md:justify-start">
           <span className="hidden md:inline-flex"><ColourChip colour={colour} /></span>
-          <span className="break-words text-[17px] font-bold leading-tight md:text-xl">{s.name}{s.won && <WonTag />}</span>
+          <span className="break-words text-[17px] font-bold leading-tight md:text-xl"><span data-athlete-id={s.id}>{s.name}</span>{s.won && <WonTag />}</span>
         </p>
         {s.institution && <p className="mt-0.5 truncate text-sm text-[var(--gt-muted)]"><span className="hidden md:inline">สถาบัน </span>{s.institution}</p>}
         <p className="mt-1.5 flex flex-wrap items-center justify-center gap-2 text-sm md:justify-start">
@@ -229,7 +229,7 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
           return (
             <li key={b.athlete_id} className="flex items-center gap-3 rounded-2xl border-2 border-dashed border-[var(--gt-line)] bg-[var(--gt-surface)] px-4 py-3">
               <img src={p?.photo || DEFAULT_AVATAR} alt="" onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_AVATAR)) e.currentTarget.src = DEFAULT_AVATAR; }} className={`h-14 w-14 shrink-0 ${p?.photo ? "rounded-lg object-cover" : "object-contain"}`} />
-              <span className="min-w-0 flex-1"><span className="block font-semibold">{p?.name ?? "ผู้เข้าแข่งขัน"}</span><span className="block text-sm text-[var(--gt-muted)]">{p?.institution}</span></span>
+              <span className="min-w-0 flex-1"><span className="block font-semibold" data-athlete-id={b.athlete_id}>{p?.name ?? "ผู้เข้าแข่งขัน"}</span><span className="block text-sm text-[var(--gt-muted)]">{p?.institution}</span></span>
               <span className="shrink-0 rounded-full bg-[var(--gt-win-bg)] px-3 py-1 text-sm font-semibold text-[var(--gt-win-ink)]">บาย +1 คะแนน</span>
             </li>
           );
@@ -240,8 +240,8 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
           <thead className="bg-[var(--gt-cta-soft)]"><tr><th className="p-3">โต๊ะ</th><th className="p-3">ดำ</th><th className="p-3">ขาว</th><th className="p-3">ผลการแข่งขัน</th></tr></thead>
           <tbody>{tables.map(m => {const b = seat(m.black_athlete_id,m), w = seat(m.white_athlete_id,m);return <tr key={m.id} className="border-t border-[var(--gt-line)]">
             <td className="p-3 font-bold">{m.board_number ?? "—"}</td>
-            <td className="p-3"><div className="flex items-center gap-2">{showPhotos && <Photo s={b} onOpen={setZoomed} className="h-12 w-12" />}<span>{b.name}<small className="block text-[var(--gt-muted)]">{b.rank ?? ""}</small></span></div></td>
-            <td className="p-3"><div className="flex items-center gap-2">{showPhotos && <Photo s={w} onOpen={setZoomed} className="h-12 w-12" />}<span>{w.name}<small className="block text-[var(--gt-muted)]">{w.rank ?? ""}</small></span></div></td>
+            <td className="p-3"><div className="flex items-center gap-2">{showPhotos && <Photo s={b} onOpen={setZoomed} className="h-12 w-12" />}<span><span data-athlete-id={b.id}>{b.name}</span><small className="block text-[var(--gt-muted)]">{b.rank ?? ""}</small></span></div></td>
+            <td className="p-3"><div className="flex items-center gap-2">{showPhotos && <Photo s={w} onOpen={setZoomed} className="h-12 w-12" />}<span><span data-athlete-id={w.id}>{w.name}</span><small className="block text-[var(--gt-muted)]">{w.rank ?? ""}</small></span></div></td>
             <td className="p-3 font-semibold">{m.state === "verified" ? resultLabel(m) || "บันทึกผลแล้ว" : "รอผล"}{staff && round === latest && <details className="mt-2"><summary className="cursor-pointer text-[var(--gt-cta)]">ลงผล / แก้ไขผล</summary><StaffResult m={m} divisionId={divisionId}/></details>}</td>
           </tr>})}</tbody>
         </table>

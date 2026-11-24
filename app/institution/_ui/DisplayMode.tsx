@@ -8,17 +8,15 @@ export function useInstitutionDisplayMode(section: string): [DisplayMode, (value
   useEffect(()=>{
     try {
       const saved = window.localStorage.getItem("gt-institution-display-"+section);
-      if (window.matchMedia("(max-width: 767px)").matches) setMode("cards");
-      else if(saved === "cards" || saved === "table") setMode(saved);
+      if(saved === "cards" || saved === "table") setMode(saved);
       else setMode(window.matchMedia("(min-width: 768px)").matches ? "table" : "cards");
     } catch {
       setMode(window.matchMedia("(min-width: 768px)").matches ? "table" : "cards");
     }
   },[section]);
   const change = (value:DisplayMode) => {
-    const actual = typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? "cards" : value;
-    setMode(actual);
-    try { window.localStorage.setItem("gt-institution-display-"+section,actual); } catch {}
+    setMode(value);
+    try { window.localStorage.setItem("gt-institution-display-"+section,value); } catch {}
   };
   return [mode,change];
 }
