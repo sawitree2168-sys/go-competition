@@ -72,6 +72,7 @@ function PoolRounds({ pool, data, reload, eventId, focus }: { pool: string; data
     { name: nameOf(r), institution: schoolOf(r), rank: r.gt_athletes?.current_rank ?? null, photo: r.gt_athletes?.avatar_url ?? null }])), [everyone]);
   const shown = openRound ?? state.lastRound;
   const action = useAction();
+  const log = useMatchLog(data.division.id, data.matches);
 
   const withdraw = async (athleteId: string, value: boolean) => {
     const ok = await action.run(() => staffDb()!.rpc("gt_staff_set_withdrawn_v1", { p_division: data.division.id, p_athlete: athleteId, p_withdrawn: value }));
@@ -102,8 +103,13 @@ function PoolRounds({ pool, data, reload, eventId, focus }: { pool: string; data
   const pairingOpen = state.nextRound === 1 || pairingFor === resultsKey;
   const lastRoundGames = matches.filter((m) => m.round_number === state.lastRound && m.state !== "void").length;
 
+  const renames = log.renames.filter((r) => byId.has(r.athlete_id));
   return (
     <div className="space-y-4">
+      {renames.length > 0 && <details className="gt-card p-3 text-sm">
+        <summary className="cursor-pointer font-semibold">✎ ชื่อที่กรรมการแก้ ({renames.length})</summary>
+        <ul className="mt-2 space-y-1">{renames.map((r, i) => <li key={i}><s className="text-[var(--gt-muted)]">{r.old}</s> → <b>{r.new}</b> · {r.by} · {hhmm(r.at)} น.</li>)}</ul>
+      </details>}
       <div className="gt-card flex flex-wrap items-center gap-x-4 gap-y-1 p-4 text-sm">
         <span>ผู้เล่น <strong className="gt-num">{regs.length}</strong> คน{withdrawn.length > 0 && <span className="text-[var(--gt-muted)]"> (ตัดชื่อแล้ว {withdrawn.length})</span>}</span>
         <span>ออกคู่แล้ว <strong className="gt-num">{state.lastRound}</strong> / {totalRounds} รอบ</span>
@@ -158,7 +164,7 @@ function PoolRounds({ pool, data, reload, eventId, focus }: { pool: string; data
           )}
           {!latest && <p className="text-sm text-[var(--gt-muted)]">รอบเก่า: ดูได้อย่างเดียว (แก้ผลได้เฉพาะรอบล่าสุดก่อนออกคู่รอบถัดไป)</p>}
           <ul className={`space-y-2 ${showPhotos ? "" : "gt-hide-photos"}`}>
-            {roundMatches.map((m) => <TableCard key={m.id} m={m} byId={byId} score={scoreBefore} editable={latest} reload={reload} />)}
+            {roundMatches.map((m) => <TableCard key={m.id} m={m} byId={byId} score={scoreBefore} editable={latest} reload={reload} log={log.matches[m.id]} />)}
             {roundBye && (
               <li className="gt-card flex items-center gap-3 px-4 py-3 text-sm">
                 <span className="w-14 shrink-0 font-semibold text-[var(--gt-muted)]">บาย</span>
@@ -204,7 +210,27 @@ function Player({ r, colour, score }: { r?: Reg; colour: "black" | "white"; scor
   );
 }
 
-function TableCard({ m, byId, score, editable, reload }: { m: Match; byId: Map<string, Reg>; score: Map<string, number>; editable: boolean; reload: () => Promise<void> }) {
+type MatchLog = {
+  decided: { by: string; at: string; edits: number } | null;
+  timing: { clock_started_at: string | null; black_late: number | null; white_late: number | null;
+            absence: { side: "black" | "white"; clock_started_at: string; marked_at: string; minutes: number; by: string | null; note: string | null }[] } | null;
+};
+type Rename = { athlete_id: string; old: string; new: string; by: string | null; at: string };
+const hhmm = (iso: string) => new Date(iso).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bangkok" });
+
+/** Who decided each table, the round clock, late arrivals and absence evidence (gt_staff_match_log_v1). */
+function useMatchLog(divisionId: string, matches: Match[]) {
+  const [log, setLog] = useState<{ matches: Record<string, MatchLog>; renames: Rename[] }>({ matches: {}, renames: [] });
+  const sig = matches.map((m) => `${m.id}:${m.state}:${m.result_code ?? ""}:${m.black_checkin_at ?? ""}:${m.white_checkin_at ?? ""}`).join("|");
+  useEffect(() => {
+    let live = true;
+    staffDb()?.rpc("gt_staff_match_log_v1", { p_division: divisionId }).then(({ data }) => { if (live && data?.ok) setLog({ matches: data.matches ?? {}, renames: data.renames ?? [] }); });
+    return () => { live = false; };
+  }, [divisionId, sig]);
+  return log;
+}
+
+function TableCard({ m, byId, score, editable, reload, log }: { m: Match; byId: Map<string, Reg>; score: Map<string, number>; editable: boolean; reload: () => Promise<void>; log?: MatchLog }) {
   const action = useAction();
   const [editing, setEditing] = useState(false);
   const done = m.state === "verified";
@@ -240,8 +266,13 @@ function TableCard({ m, byId, score, editable, reload }: { m: Match; byId: Map<s
   return (
     <>
       <MatchCard id={`gt-match-${m.id}`} board={m.board_number} status={done ? resultLabel(m) : "รอผล"} statusTone={done ? "done" : "wait"} highlight={!done}
-        black={seat(m.black_athlete_id)} white={seat(m.white_athlete_id)} blackExtra={checkButton("black")} whiteExtra={checkButton("white")}
-        actions={actions && <>{actions}<ErrorNote text={action.error} /></>} />
+        black={seat(m.black_athlete_id)} white={seat(m.white_athlete_id)} blackExtra={<>{checkButton("black")}{log?.timing?.black_late ? <span className="text-xs font-semibold text-[#7a540c]">มาสาย {log.timing.black_late} นาที</span> : null}</>}
+        whiteExtra={<>{checkButton("white")}{log?.timing?.white_late ? <span className="text-xs font-semibold text-[#7a540c]">มาสาย {log.timing.white_late} นาที</span> : null}</>}
+        actions={<>{actions}<ErrorNote text={action.error} />
+          {(log?.decided || log?.timing?.absence?.length) ? <div className="mt-1 space-y-0.5 text-xs text-[var(--gt-muted)]">
+            {log.decided && <p>🧑‍⚖️ ตัดสินผลโดย <b className="text-[var(--gt-ink)]">{log.decided.by}</b> · {hhmm(log.decided.at)} น.{log.decided.edits > 0 ? ` · แก้ผล ${log.decided.edits} ครั้ง` : ""}</p>}
+            {log.timing?.absence?.map((a, i) => <p key={i}>📋 {a.side === "black" ? "ดำ" : "ขาว"} ไม่มา · เริ่มรอบ {hhmm(a.clock_started_at)} · บันทึก {hhmm(a.marked_at)} ({Math.floor(a.minutes)} นาที) · {a.by}{a.note ? ` · ${a.note}` : ""}</p>)}
+          </div> : null}</>} />
     </>
   );
 }
