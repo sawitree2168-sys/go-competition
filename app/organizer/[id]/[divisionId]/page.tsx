@@ -7,6 +7,7 @@ import { use, useEffect, useRef, useState } from "react";
 import { divisionSound } from "@/lib/sound-events.mjs";
 import { play } from "@/lib/sounds";
 import Gate from "../../_lib/Gate";
+import TestMode from "../../_lib/TestMode";
 import { useDivision } from "../../_lib/division/useDivision";
 import PoolsPanel from "../../_lib/division/PoolsPanel";
 import RoundsPanel from "../../_lib/division/RoundsPanel";
@@ -66,6 +67,7 @@ function Console({ eventId, divisionId }: { eventId: string; divisionId: string 
           <a href={`/tournaments/${eventId}/divisions/${divisionId}?tab=pairs`} target="_blank" rel="noopener" className="text-sm text-[var(--gt-cta)] underline">ดูหน้าสาธารณะ ↗</a>
         </div>
       </div>
+      <TestMode eventId={eventId} compact />
       <div role="tablist" aria-label="ขั้นตอน" className="gt-tabs grid grid-cols-4 gap-1 rounded-2xl border-2 border-[var(--gt-gold)] bg-[var(--gt-surface)] p-1.5 shadow-sm sm:gap-2 sm:p-2">
         {TABS.map(([k, label]) => (
           <button key={k} role="tab" type="button" aria-selected={current === k} onClick={() => openTab(k)} className="min-h-12 rounded-xl px-1 text-[13px] font-semibold leading-tight sm:text-sm">{label}</button>
