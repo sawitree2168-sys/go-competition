@@ -17,6 +17,7 @@ import { AcademyStaff } from "./AcademyPeople";
 import AcademyTeam from "./AcademyTeam";
 import LiveBoard from "./LiveBoard";
 import LogoEditor,{LogoDisplay,type Branding} from "./LogoEditor";
+import ThemeEditor,{DEFAULT_THEME,institutionAssetUrl,type InstituteTheme} from "./ThemeEditor";
 import MenuIcon from "@/components/MenuIcon";
 import { INSTITUTION_RETURN_KEY } from "@/components/InstitutionReturn";
 
@@ -73,13 +74,15 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   const [error,setError]=useState("");
   const [workspaceType,setWorkspaceType]=useState<"academy"|"independent_coach">("academy");
   const [branding,setBranding]=useState<Branding|null>(null);
+  const [theme,setTheme]=useState<InstituteTheme>(DEFAULT_THEME);
   const [view,setView]=useState<View>("home");
   const [year,setYear]=useState<number|null>(new Date().getFullYear()+543);
   const [event,setEvent]=useState("");
   const load=useCallback(async()=>{
     const db=staffDb();
     if(!db)return;
-    const [o,a,w,b]=await Promise.all([db.rpc("gt_academy_overview_v1",{p_academy:academyId}),db.rpc("gt_academy_applications_v1",{p_academy:academyId}),db.rpc("gt_workspace_kind_v1",{p_academy:academyId}),db.rpc("gt_academy_branding_v1",{p_academy:academyId})]);
+    const [o,a,w,b,th]=await Promise.all([db.rpc("gt_academy_overview_v1",{p_academy:academyId}),db.rpc("gt_academy_applications_v1",{p_academy:academyId}),db.rpc("gt_workspace_kind_v1",{p_academy:academyId}),db.rpc("gt_academy_branding_v1",{p_academy:academyId}),db.rpc("gt_academy_theme_v1",{p_academy:academyId})]);
+    if(th.data?.ok)setTheme({color:th.data.color??DEFAULT_THEME.color,section:th.data.section??DEFAULT_THEME.section,hero:th.data.hero??DEFAULT_THEME.hero,background:th.data.background??DEFAULT_THEME.background,section_path:th.data.section_path??null,hero_path:th.data.hero_path??null,background_path:th.data.background_path??null});
     if(b.data?.ok)setBranding({logo_path:b.data.logo_path??null,shape:b.data.shape==="square"?"square":"circle",zoom:b.data.zoom??100,x:b.data.x??50,y:b.data.y??50});
     setWorkspaceType(w.data==="independent_coach"?"independent_coach":"academy");
     if(o.error||!o.data?.ok){setError("ยังไม่สามารถเปิดข้อมูลสถาบันได้ กรุณาตรวจสอบสิทธิ์บัญชี");return;}
@@ -113,9 +116,12 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       <option value="">ทุกรายการ</option>{events.map(e=><option key={e.id} value={e.id}>{e.title}</option>)}
     </select>
   </div>;
-  return <div className="space-y-5">
-    <div className="inst-page-title"><span className="inst-page-title__icon" aria-hidden="true"><MenuIcon name="school" className="h-7 w-7" /></span><div className="min-w-0"><h2 className="text-lg font-bold sm:text-2xl">สถาบันของฉัน</h2><p className="text-xs text-white/90 sm:text-sm">จัดการนักกีฬา คุณครู และติดตามการแข่งขันทุกระดับฝีมือ</p></div></div>
-    <section className="inst-hero px-4 py-5 text-white sm:px-7 sm:py-7">
+  const sectionImage=institutionAssetUrl(theme.section_path);
+  const heroImage=institutionAssetUrl(theme.hero_path);
+  const backgroundImage=institutionAssetUrl(theme.background_path);
+  return <div className="space-y-5 inst-themed" data-institution-color={theme.color} data-section-style={theme.section} data-hero-style={theme.hero} data-background-style={theme.background} style={backgroundImage?{"--inst-custom-background":`url("${backgroundImage}")`} as React.CSSProperties:undefined}>
+    <div className="inst-page-title" style={sectionImage?{backgroundImage:`linear-gradient(90deg,rgba(12,53,113,.8),rgba(12,57,116,.15)), url("${sectionImage}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}><span className="inst-page-title__icon" aria-hidden="true"><MenuIcon name="school" className="h-7 w-7" /></span><div className="min-w-0"><h2 className="text-lg font-bold sm:text-2xl">สถาบันของฉัน</h2><p className="text-xs text-white/90 sm:text-sm">จัดการนักกีฬา คุณครู และติดตามการแข่งขันทุกระดับฝีมือ</p></div></div>
+    <section className="inst-hero px-4 py-5 text-white sm:px-7 sm:py-7" style={heroImage?{backgroundImage:`linear-gradient(90deg,rgba(7,42,94,.92),rgba(8,64,133,.35)),url("${heroImage}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}>
       <div className="relative z-10 flex flex-wrap items-center gap-5">
         <div className="inst-hero-logo relative">
           <LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/>
@@ -178,7 +184,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
           <p>ให้ผู้จัดการสถาบันที่มีสิทธิ์แล้วเข้าบัญชีของตนเอง ไปที่เมนู “เจ้าของและครู” แล้วอนุมัติคำขอของบัญชีนี้</p>
           <button type="button" onClick={()=>go("teachers")} className="inst-settings-link">ดูหน้าเจ้าของและครู</button>
         </div>:<>
-          {selected.role==="manager"?<LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/>:
+          {selected.role==="manager"?<><ThemeEditor academyId={academyId} theme={theme} onSaved={setTheme}/><LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/></>:
            <div className="rounded-xl border-2 border-[#c4d5ec] bg-[#f4f8ff] p-4">
              <p className="font-semibold">โลโก้และข้อมูลสถาบัน</p>
              <p className="mt-2 text-base">เฉพาะเจ้าของหรือผู้จัดการสถาบันเท่านั้นที่แก้ไขโลโก้ได้ หากต้องการเปลี่ยน ให้ติดต่อผู้จัดการที่มีสิทธิ์</p>
