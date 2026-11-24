@@ -117,7 +117,10 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     <div className="inst-page-title"><span className="inst-page-title__icon" aria-hidden="true"><MenuIcon name="school" className="h-7 w-7" /></span><div className="min-w-0"><h2 className="text-lg font-bold sm:text-2xl">สถาบันของฉัน</h2><p className="text-xs text-white/90 sm:text-sm">จัดการนักกีฬา คุณครู และติดตามการแข่งขันทุกระดับฝีมือ</p></div></div>
     <section className="inst-hero px-4 py-5 text-white sm:px-7 sm:py-7">
       <div className="relative z-10 flex flex-wrap items-center gap-5">
-        <div className="inst-hero-logo"><LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/></div>
+        <div className="inst-hero-logo relative">
+          <LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/>
+          <button type="button" onClick={()=>go("settings")} title="เปิดการตั้งค่าโลโก้สถาบัน" aria-label="เปิดหน้าตั้งค่าโลโก้สถาบัน" className="inst-edit-logo" >✎</button>
+        </div>
         <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold tracking-[.04em] text-[#ffdb77]">GO TOURNAMENT · {workspaceType==="independent_coach"?"ครูอิสระ":"สถาบัน"}</p>
         <h1 className="mt-2 break-words text-2xl font-bold sm:text-4xl">{ov?.academy.name??selected.name}</h1>
