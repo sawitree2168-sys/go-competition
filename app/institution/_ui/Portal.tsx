@@ -126,10 +126,10 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       </div>
       <div className="relative z-10 hidden w-[470px] shrink-0 grid-cols-4 gap-2 xl:grid">
         {([
-          {id:"students" as View,label:"นักกีฬา"},
-          {id:"live" as View,label:"ติดตามสด"},
-          {id:"apply" as View,label:"สมัครแข่งขัน"},
-          {id:"settings" as View,label:"โลโก้ / ตั้งค่า"},
+          {id:"students" as Exclude<View, "home">,label:"นักกีฬา"},
+          {id:"live" as Exclude<View, "home">,label:"ติดตามสด"},
+          {id:"apply" as Exclude<View, "home">,label:"สมัครแข่งขัน"},
+          {id:"settings" as Exclude<View, "home">,label:"โลโก้ / ตั้งค่า"},
         ]).map(action=><button key={action.id} type="button" onClick={()=>go(action.id)} className="inst-hero-action">
           <span className="h-8 w-8 text-[#0969d9]">{ICONS[action.id]}</span><span>{action.label}</span>
         </button>)}
