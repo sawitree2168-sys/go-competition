@@ -25,8 +25,8 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
   const due = amountDue(apps);
   const rankCounts = ov.students.reduce((acc, student) => {
     const value = (student.rank ?? "").toLowerCase().trim();
-    if (/ดั้ง|dan|\\d\\s*d(?:an)?\\b|\\b\\d+d\\b/.test(value)) acc.dan++;
-    else if (/คิว|kyu|\\d\\s*k\\b/.test(value)) acc.kyu++;
+    if (/ดั้ง|dan|\d\s*d(?:an)?\b|\b\d+d\b/.test(value)) acc.dan++;
+    else if (/คิว|kyu|\d\s*k\b/.test(value)) acc.kyu++;
     else acc.other++;
     return acc;
   }, {dan:0,kyu:0,other:0});
