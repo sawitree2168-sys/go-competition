@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
-import { placeLabel, studentGrowth, totals } from "@/lib/institution-portal.mjs";
+import { moveUpHint, placeLabel, studentGrowth, totals } from "@/lib/institution-portal.mjs";
 import { Avatar, Chip, Empty, type Rec, type Student } from "./bits";
 import ShareSave from "./ShareSave";
 
@@ -130,6 +130,21 @@ export default function StudentPanel({ academyId, academyName, student, records,
     return () => { live = false; };
   }, [academyId, student.id]);
 
+  const hint = useMemo(() => moveUpHint(records, student.id), [records, student.id]);
+  // Rivals: opponents met most often, with this student's record against each.
+  const rivals = useMemo(() => {
+    const m = new Map<string, { name: string; id: string | null; go: string | null; n: number; w: number; l: number; d: number }>();
+    for (const g of games ?? []) {
+      const res = g.outcome.replace("_walkover", "");
+      if (!g.opponent || !["win", "loss", "draw"].includes(res)) continue;
+      const k = g.opponent_id ?? g.opponent_go_id ?? g.opponent;
+      const r = m.get(k) ?? { name: g.opponent, id: g.opponent_id, go: g.opponent_go_id, n: 0, w: 0, l: 0, d: 0 };
+      r.n++; if (res === "win") r.w++; else if (res === "loss") r.l++; else r.d++;
+      m.set(k, r);
+    }
+    return [...m.values()].filter((r) => r.n >= 2).sort((a, b) => b.n - a.n || b.l - a.l).slice(0, 5);
+  }, [games]);
+
   const byEvent = useMemo(() => {
     const m = new Map<string, { title: string; date: string | null; division: string; items: Game[] }>();
     for (const g of games ?? []) {
@@ -160,8 +175,21 @@ export default function StudentPanel({ academyId, academyName, student, records,
             <div key={String(label)} className="rounded-xl bg-[var(--gt-surface-2)] p-2"><b className={`gt-num block text-xl sm:text-2xl ${cls}`}>{v}</b><span className="text-xs text-[var(--gt-muted)]">{label}</span></div>
           ))}
         </div>
+        {hint && <p className="rounded-xl border-2 border-[#4caf7a] bg-[#f1fbf5] p-3 text-sm">⬆ <b>ควรพิจารณาขยับรุ่น</b> · {hint.reason} (รุ่น {hint.division}) <span className="block text-xs text-[var(--gt-muted)]">คำแนะนำจากผลแข่งรุ่นคิวเท่านั้น ครูเป็นผู้ตัดสินใจ · ระดับดั้งเปลี่ยนเมื่อสอบผ่านตามสมาคม</span></p>}
         {best && <p className="rounded-xl border border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] p-3 text-sm">🏆 ผลงานดีที่สุด: <b>{placeLabel(best.pos)}</b> · {best.title} · {best.division}</p>}
         <GrowthChart points={points} />
+        {rivals.length > 0 && <div className="space-y-2">
+          <h4 className="font-bold">คู่ปรับ · เจอกันบ่อยที่สุด</h4>
+          <ul className="divide-y divide-[#d8e6f7] overflow-hidden rounded-xl border-2 border-[#bed2ed]">
+            {rivals.map((r) => (
+              <li key={r.id ?? r.go ?? r.name} className="flex items-center gap-2 px-3 py-2 text-sm">
+                <span className="min-w-0 flex-1 break-words">{r.id ? <Link href={`/athletes/${r.id}`} className="hover:underline">{r.name}</Link> : r.go ? <Link href={`/athletes/history/${encodeURIComponent(r.go)}`} className="hover:underline">{r.name}</Link> : r.name}</span>
+                <span className="shrink-0 text-xs text-[var(--gt-muted)]">เจอ {r.n} ครั้ง</span>
+                <span className="shrink-0 font-semibold"><span className="text-[var(--gt-win-ink)]">ชนะ {r.w}</span> · <span className="text-[var(--gt-loss-ink)]">แพ้ {r.l}</span>{r.d ? ` · เสมอ ${r.d}` : ""}</span>
+              </li>
+            ))}
+          </ul>
+        </div>}
         <div className="space-y-2">
           <h4 className="font-bold">ประวัติการแข่งขัน · เจอกับใครมาบ้าง</h4>
           {games === null ? <p role="status" className="text-sm text-[var(--gt-muted)]">กำลังโหลดประวัติ…</p>
@@ -190,7 +218,7 @@ export default function StudentPanel({ academyId, academyName, student, records,
         <p className="text-center text-xs text-[var(--gt-muted)]">GO TOURNAMENT · ผลจากรายการบนเว็บและทำเนียบดั้งสมาคม / 1go</p>
       </div>
       <ShareSave target={card} filename={`${student.name} ${academyName}`}
-        text={`${student.name} (${academyName}) · ${t.events} รายการ ชนะ ${t.wins} แพ้ ${t.losses}${rate == null ? "" : ` · อัตราชนะ ${rate}%`}`} url={profile} />
+        text={`รายงานผลการแข่งขันของ ${student.name} (${academyName})\n${t.events} รายการ ชนะ ${t.wins} แพ้ ${t.losses}${rate == null ? "" : ` · อัตราชนะ ${rate}%`}${best ? `\nผลงานดีที่สุด: ${placeLabel(best.pos)} ${best.title}` : ""}\nดูกราฟพัฒนาการและประวัติทุกเกมได้ที่ลิงก์นี้`} url={profile} shareLabel="ส่งให้ผู้ปกครอง" />
     </section>
   );
 }

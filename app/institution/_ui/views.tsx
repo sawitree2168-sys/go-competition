@@ -6,9 +6,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
 import { RANK_OPTIONS } from "@/lib/competition-day.mjs";
-import { OUTCOME, achievements, amountDue, baht, portalError, rankStats, studentReport, studentStats, totals } from "@/lib/institution-portal.mjs";
+import { OUTCOME, achievements, amountDue, baht, moveUpHint, portalError, rankStats, studentReport, studentStats, totals } from "@/lib/institution-portal.mjs";
 import ShareSave from "./ShareSave";
 import StudentPanel, { useOpenStudent } from "./StudentPanel";
+import OpenEvents from "./OpenEvents";
 import { Avatar, Chip, Empty, ICONS, SectionTitle, StudentName, inputCls, selectCls, type Application, type Overview, type Rec, type Student, type Track, type TrackRound, type View } from "./bits";
 
 type F = { filters: React.ReactNode };
@@ -57,6 +58,14 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
           <button type="button" onClick={() => go("reports")} className="font-semibold text-[var(--gt-cta)] underline underline-offset-4">ดูรายงานทั้งหมด →</button>
         </footer>
       </section>
+
+      <a href={`/institutions/${ov.academy.id}`} className="gt-card flex items-center gap-3 border-2 border-[#e9bd55] p-4 hover:bg-[#fffaf0]">
+        <span className="text-3xl" aria-hidden="true">🏫</span>
+        <span className="min-w-0 flex-1"><b className="block">หน้าสถาบันสาธารณะ</b><span className="text-sm text-[var(--gt-muted)]">โลโก้ เหรียญรางวัล และผลงานล่าสุด · ส่งให้ผู้ปกครองใหม่ดูได้</span></span>
+        <span className="font-black text-[var(--gt-cta)]" aria-hidden="true">›</span>
+      </a>
+
+      <OpenEvents ov={ov} apps={apps} onApply={(id) => { go("apply"); window.history.replaceState(null, "", `/institution?v=apply&event=${encodeURIComponent(id)}`); }} />
 
       <div className="grid gap-5 xl:grid-cols-2">
         <section className="gt-card overflow-hidden" aria-labelledby="trk-h">
@@ -225,7 +234,7 @@ export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov:
           {list.map((s) => { const r = stats.get(s.id); return (
             <li key={s.id}>
               <button type="button" onClick={() => setOpen(s.id)} className="gt-card flex h-full w-full flex-col items-center gap-2 border-2 border-[#bcd1e9] p-3 text-center transition hover:border-[var(--gt-cta)] active:scale-[.98]">
-                <Avatar src={s.photo} className="h-20 w-20 sm:h-24 sm:w-24" />
+                <span className="relative"><Avatar src={s.photo} className="h-20 w-20 sm:h-24 sm:w-24" />{moveUpHint(ov.records, s.id) && <span title="ควรพิจารณาขยับรุ่น" className="absolute -right-2 -top-1 rounded-full border-2 border-white bg-[#16a34a] px-1.5 text-[11px] font-bold text-white">⬆ รุ่น</span>}</span>
                 <span className="w-full">
                   <strong className="block break-words text-[15px] leading-snug">{s.name}</strong>
                   <span className="block truncate text-xs text-[var(--gt-muted)]">{[s.nickname && `“${s.nickname}”`, s.rank, s.history_only && "จากประวัติ"].filter(Boolean).join(" · ") || "\u00a0"}</span>

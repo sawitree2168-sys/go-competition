@@ -14,13 +14,14 @@ import ChangeInstitutionPassword from "./ChangeInstitutionPassword";
 import InstituteLogin from "./InstituteLogin";
 import { AcademyStaff } from "./AcademyPeople";
 import AcademyTeam from "./AcademyTeam";
+import LiveBoard from "./LiveBoard";
 import LogoEditor,{LogoDisplay,type Branding} from "./LogoEditor";
 import MenuIcon from "@/components/MenuIcon";
 import { INSTITUTION_RETURN_KEY } from "@/components/InstitutionReturn";
 
 type Mine = { id: string; name: string; role: "manager" | "teacher"; status: "active" | "pending" };
 type State = { mode:"loading" | "out" | "none" | "ready"; mine:Mine[]; email:string; admin:boolean };
-const VIEWS:View[] = ["home","tracking","students","teachers","awards","stats","reports","apply","settings"];
+const VIEWS:View[] = ["home","tracking","live","students","teachers","awards","stats","reports","apply","settings"];
 const initialView=():View=>{
   if(typeof window==="undefined") return "home";
   const value=new URLSearchParams(location.search).get("v") as View;
@@ -85,7 +86,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   },[academyId]);
   useEffect(()=>{void load();},[load]);
   useEffect(()=>{setView(initialView());const onPop=()=>setView(initialView());addEventListener("popstate",onPop);return()=>removeEventListener("popstate",onPop);},[]);
-  useEffect(()=>{if(view!=="tracking")return;const id=setInterval(()=>{void load();},30000);return()=>clearInterval(id);},[view,load]);
+  useEffect(()=>{if(view!=="tracking"&&view!=="live")return;const id=setInterval(()=>{void load();},30000);return()=>clearInterval(id);},[view,load]);
   const go=(next:View)=>{setView(next);history.pushState(null,"",next==="home"?"/institution":`/institution?v=${next}`);window.scrollTo({top:0,behavior:"smooth"});};
   // Remember where to come back to (shown as "กลับหน้าสถาบัน" on the profile and other pages).
   useEffect(()=>{try{localStorage.setItem(INSTITUTION_RETURN_KEY,JSON.stringify({href:`${location.pathname}${location.search}`,name:selected.name}));}catch{}},[view,selected.name]);
@@ -128,7 +129,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       <label className="mr-3 text-sm font-semibold" htmlFor="academy-select">สถาบันของฉัน</label>
       <select id="academy-select" className={selectCls} value={academyId} onChange={e=>location.assign(`/institution?academy=${encodeURIComponent(e.target.value)}`)}>{mine.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
     </div>}
-    <nav aria-label="เมนูสถาบัน" className={`${view==="home"?"grid":"hidden sm:grid"} grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-9`}>
+    <nav aria-label="เมนูสถาบัน" className={`${view==="home"?"grid":"hidden sm:grid"} grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-5`}>
       <button type="button" onClick={()=>go("home")} aria-current={view==="home"?"page":undefined} className={navClass(view==="home")}>
         <span className="text-2xl" aria-hidden="true">⌂</span><span>ภาพรวม</span>
       </button>
@@ -141,6 +142,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     {!ov?<div className="rounded-xl border border-[#bfd1eb] bg-white p-8 text-center" role={error?"alert":"status"}>{error||"กำลังโหลดข้อมูลสถาบัน…"}</div>:<div className="space-y-5">
       {view==="home"&&<Home ov={ov} records={filtered} track={tracking} apps={apps} filters={filters} go={go}/>}
       {view==="tracking"&&<Tracking ov={ov} track={tracking} filters={filters}/>}
+      {view==="live"&&<LiveBoard ov={ov}/>}
       {view==="teachers"&&<AcademyTeam academyId={academyId}/>}
       {view==="teachers"&&<AcademyStaff academyId={academyId} students={ov.students.filter(a=>!a.history_only).map(a=>({id:a.id,name:a.name}))}/>}
       {view==="students"&&<Students ov={ov} canEdit={access} reload={load} workspaceType={workspaceType}/>}

@@ -24,7 +24,7 @@ export type Application = {
   id: string; name: string; rank: string; athlete_id: string | null; tournament_id: string; title: string; date: string | null;
   division: string; fee: number | string | null; status: "pending" | "approved" | "rejected"; payment: string | null; created_at: string; reference: string;
 };
-export type View = "home" | "students" | "teachers" | "tracking" | "awards" | "stats" | "reports" | "apply" | "settings";
+export type View = "home" | "students" | "teachers" | "tracking" | "live" | "awards" | "stats" | "reports" | "apply" | "settings";
 
 const P = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 export const ICONS: Record<Exclude<View, "home">, React.ReactNode> = {
@@ -33,6 +33,7 @@ export const ICONS: Record<Exclude<View, "home">, React.ReactNode> = {
   students: <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><circle cx="12" cy="7.5" r="3.4" /><circle cx="5.2" cy="9" r="2.5" /><circle cx="18.8" cy="9" r="2.5" /><path d="M5.5 20c0-3.9 2.9-6.6 6.5-6.6s6.5 2.7 6.5 6.6Z" /><path d="M.8 19.2c0-2.8 1.8-4.8 4.3-4.8 1 0 1.8.3 2.5.8-1.4 1.2-2.2 2.6-2.4 4Zm22.4 0c0-2.8-1.8-4.8-4.3-4.8-1 0-1.8.3-2.5.8 1.4 1.2 2.2 2.6 2.4 4Z" /></svg>,
   tracking: <svg viewBox="0 0 24 24" aria-hidden="true" {...P}><rect x="3" y="4.5" width="18" height="16.5" rx="2.5" /><path d="M3 9.5h18M8 2.5v4M16 2.5v4" /><path d="M7 13h.01M12 13h.01M17 13h.01M7 17h.01M12 17h.01M17 17h.01" strokeWidth="2.6" /></svg>,
   awards: <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f5b52e" d="M7 3h10v5.5a5 5 0 0 1-10 0Z" /><path fill="none" stroke="#f5b52e" strokeWidth="2" d="M7 5H3.5v1.5A3.5 3.5 0 0 0 7 10m10-5h3.5v1.5A3.5 3.5 0 0 1 17 10" /><path fill="#e09a12" d="M10.5 13h3v3.5h-3z" /><path fill="#f5b52e" d="M7.5 17h9l1 4h-11z" /></svg>,
+  live: <svg viewBox="0 0 24 24" aria-hidden="true" {...P}><rect x="2.5" y="4" width="19" height="13" rx="2" /><path d="M8 21h8M12 17v4" /><circle cx="7" cy="10.5" r="1.6" fill="currentColor" /><path d="M10.5 9h7M10.5 12h5" /></svg>,
   stats: <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="3" y="13" width="4.2" height="8" rx="1" /><rect x="9.9" y="8" width="4.2" height="13" rx="1" /><rect x="16.8" y="3" width="4.2" height="18" rx="1" /></svg>,
   reports: <svg viewBox="0 0 24 24" aria-hidden="true" {...P}><path d="M6 2.5h8l5 5V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V4a1.5 1.5 0 0 1 1-1.5Z" /><path d="M14 2.5V8h5M8.5 12.5h7M8.5 16h7" /></svg>,
   apply: <svg viewBox="0 0 24 24" aria-hidden="true" {...P}><rect x="3" y="3" width="18" height="18" rx="3" /><path d="m7.5 12.5 3 3 6-7" strokeWidth="2.4" /></svg>,
@@ -42,6 +43,7 @@ export const MENU: { id: Exclude<View, "home">; title: string; sub: string; tone
   { id: "students", title: "นักกีฬา", sub: "รายชื่อและระดับฝีมือ" },
   { id: "teachers", title: "เจ้าของและครู", sub: "เจ้าของหลายคน ครู และผลงาน" },
   { id: "tracking", title: "ผลการแข่งขัน", sub: "รอบ โต๊ะ และคู่แข่ง" },
+  { id: "live", title: "กระดานสด", sub: "ทุกคนในงานบนจอเดียว + การ์ดสรุป" },
   { id: "apply", title: "สมัครแข่งขัน", sub: "สมัครแบบกลุ่มและตรวจสถานะ" },
   { id: "awards", title: "ผลงาน", sub: "เหรียญและอันดับของนักเรียน" },
   { id: "stats", title: "อันดับ / พัฒนาการ", sub: "อันดับ กราฟการเติบโต ประวัติรายคน" },
