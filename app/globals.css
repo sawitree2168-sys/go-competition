@@ -73,3 +73,10 @@ b, strong { font-weight: 600; }   /* browsers default these to 700 */
   .gt-global-mobile-nav { display: none !important; }
   body { padding-bottom: 0; }
 }
+
+/* Teachers: way back to the institution page from any other page (components/InstitutionReturn.tsx) */
+.gt-institution-return { position: fixed; z-index: 45; left: 50%; transform: translateX(-50%); bottom: 20px; max-width: calc(100vw - 24px); display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 18px; border-radius: 999px; border: 2px solid #e9bd55; background: #082957; color: #fff; font-size: 15px; font-weight: 700; box-shadow: 0 8px 20px rgba(8, 41, 87, .28); }
+.gt-institution-return:hover { background: #0b3a7a; }
+.gt-institution-return:focus-visible { outline: 3px solid #f5d784; outline-offset: 2px; }
+@media (max-width: 767px) { .gt-institution-return { bottom: calc(var(--gt-mobile-nav-height) + 10px); font-size: 14px; } }
+@media print { .gt-institution-return { display: none; } }

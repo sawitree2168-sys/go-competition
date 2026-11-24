@@ -8,7 +8,7 @@ import { staffDb } from "@/app/organizer/_lib/staff";
 import { RANK_OPTIONS } from "@/lib/competition-day.mjs";
 import { OUTCOME, achievements, amountDue, baht, portalError, rankStats, studentReport, studentStats, totals } from "@/lib/institution-portal.mjs";
 import ShareSave from "./ShareSave";
-import StudentPanel from "./StudentPanel";
+import StudentPanel, { useOpenStudent } from "./StudentPanel";
 import { Avatar, Chip, Empty, ICONS, SectionTitle, StudentName, inputCls, selectCls, type Application, type Overview, type Rec, type Student, type Track, type TrackRound, type View } from "./bits";
 
 type F = { filters: React.ReactNode };
@@ -180,26 +180,67 @@ function TrackTable({ rows, who, compact = false }: { rows: Track[]; who: Map<st
 export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov: Overview; canEdit: boolean; reload: () => Promise<void>; workspaceType?:"academy"|"independent_coach" }) {
   const [mode,setMode] = useInstitutionDisplayMode("students");
   const [q, setQ] = useState("");
-  const [open, setOpen] = useState<string | null>(null);
+  const [sort, setSort] = useState<"name" | "rate" | "games">("name");
+  const [open, setOpen] = useOpenStudent();
+  const stats = useMemo(() => new Map(studentStats(ov.records, ov.students).map((r) => [r.student.id, r])), [ov.records, ov.students]);
   const list = useMemo(() => {
     const k = q.trim().toLowerCase();
-    return ov.students.filter((s) => !k || `${s.name} ${s.nickname ?? ""} ${s.go_id ?? ""}`.toLowerCase().includes(k));
-  }, [ov.students, q]);
+    const found = ov.students.filter((s) => !k || `${s.name} ${s.nickname ?? ""} ${s.go_id ?? ""}`.toLowerCase().includes(k));
+    const st = (id: string) => stats.get(id);
+    return sort === "name" ? found
+      : found.slice().sort((a, b) => sort === "rate"
+        ? (st(b.id)?.rate ?? -1) - (st(a.id)?.rate ?? -1) || (st(b.id)?.games ?? 0) - (st(a.id)?.games ?? 0)
+        : (st(b.id)?.games ?? 0) - (st(a.id)?.games ?? 0) || (st(b.id)?.rate ?? -1) - (st(a.id)?.rate ?? -1));
+  }, [ov.students, q, sort, stats]);
   const chosen = ov.students.find((s) => s.id === open);
-  if (chosen) return <StudentPanel academyId={ov.academy.id} academyName={ov.academy.name} student={chosen} records={ov.records} rank={null} onClose={() => setOpen(null)} />;
-  const pick = (id: string) => { setOpen(id); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  if (chosen) return <StudentPanel academyId={ov.academy.id} academyName={ov.academy.name} student={chosen} records={ov.records} rank={null} onClose={() => setOpen(null)} backLabel="← กลับไปรายชื่อนักเรียน" />;
   return (
     <div className="space-y-4">
       <SectionTitle>นักเรียน <span className="text-base font-normal text-[var(--gt-muted)]">{ov.students.length} คน</span></SectionTitle>
-      <div className="flex flex-wrap items-center gap-3"><div className="min-w-[12rem] flex-1"><input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="ค้นหาชื่อ ชื่อเล่น หรือรหัสนักกีฬา" aria-label="ค้นหานักเรียน" className={inputCls} /></div><DisplayModeToggle mode={mode} onChange={setMode}/></div>
-      {list.length ? mode === "table" ? <div className="overflow-x-auto rounded-xl border-2 border-[#bcd1e9] bg-white"><table className="w-full table-fixed text-left text-xs sm:text-sm"><thead className="bg-[#e8f2ff] text-[#123a76]"><tr><th className="px-4 py-3">นักกีฬา</th><th className="px-4 py-3">ชื่อเล่น</th><th className="px-4 py-3">รหัส GO</th><th className="px-4 py-3">ระดับฝีมือ</th></tr></thead><tbody className="divide-y divide-[#d9e6f6]">{list.map(s=><tr key={s.id} className="hover:bg-[#f2f7ff]"><td className="px-4 py-3"><button type="button" onClick={()=>pick(s.id)} className="w-full text-left hover:underline"><StudentRow s={s} sub={s.history_only?"จากประวัติแข่งขัน":undefined}/></button></td><td className="px-4 py-3">{s.nickname??"—"}</td><td className="px-4 py-3">{s.go_id??"—"}</td><td className="px-4 py-3">{s.rank??"—"}</td></tr>)}</tbody></table></div> : (
-        <ul className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-          {list.map((s) => (
-            <li key={s.id} className="gt-card flex items-center gap-3 p-3">
-              <button type="button" onClick={() => pick(s.id)} className="min-w-0 flex-1 text-left hover:underline"><StudentRow s={s} sub={[s.nickname && `“${s.nickname}”`, s.go_id, s.history_only && "จากประวัติแข่งขัน"].filter(Boolean).join(" · ") || undefined} /></button>
-              <span className="shrink-0 rounded-lg bg-[var(--gt-cta-soft)] px-2.5 py-1 text-sm font-semibold text-[var(--gt-cta)]">{s.rank ?? "—"}</span>
-            </li>
-          ))}
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="min-w-[12rem] flex-1"><input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="ค้นหาชื่อ ชื่อเล่น หรือรหัสนักกีฬา" aria-label="ค้นหานักเรียน" className={inputCls} /></div>
+        <select aria-label="เรียงรายชื่อ" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className={selectCls}>
+          <option value="name">เรียงตามชื่อ</option><option value="rate">อัตราชนะสูงสุด</option><option value="games">แข่งมากที่สุด</option>
+        </select>
+        <DisplayModeToggle mode={mode} onChange={setMode}/>
+      </div>
+      <p className="text-sm text-[var(--gt-muted)]">แตะนักเรียนเพื่อดูกราฟการเติบโตและประวัติการแข่งขัน</p>
+      {list.length ? mode === "table" ? (
+        <div className="overflow-hidden rounded-xl border-2 border-[#bcd1e9] bg-white">
+          <table className="w-full table-fixed text-left text-xs sm:text-sm">
+            <colgroup><col /><col className="hidden w-24 sm:table-column" /><col className="w-11 sm:w-16" /><col className="w-14 sm:w-20" /><col className="w-12 sm:w-16" /></colgroup>
+            <thead className="bg-[#e8f2ff] text-[#123a76]"><tr><th className="px-2 py-3 sm:px-4">นักเรียน</th><th className="hidden px-2 py-3 sm:table-cell">ระดับ</th><th className="px-1 py-3 text-center">รายการ</th><th className="px-1 py-3 text-center">ชนะ–แพ้</th><th className="px-1 py-3 text-center">%ชนะ</th></tr></thead>
+            <tbody className="divide-y divide-[#d9e6f6]">{list.map((s) => { const r = stats.get(s.id); return (
+              <tr key={s.id} onClick={() => setOpen(s.id)} className="cursor-pointer hover:bg-[#f2f7ff]">
+                <td className="px-2 py-2.5 sm:px-4"><button type="button" onClick={(e) => { e.stopPropagation(); setOpen(s.id); }} className="w-full text-left"><StudentRow s={s} sub={[s.rank, s.history_only && "จากประวัติ"].filter(Boolean).join(" · ") || undefined} /></button></td>
+                <td className="hidden px-2 sm:table-cell">{s.rank ?? "—"}</td>
+                <td className="gt-num px-1 text-center">{r?.events ?? 0}</td>
+                <td className="gt-num px-1 text-center"><span className="text-[var(--gt-win-ink)]">{r?.wins ?? 0}</span>–<span className="text-[var(--gt-loss-ink)]">{r?.losses ?? 0}</span></td>
+                <td className="gt-num px-1 text-center font-semibold">{r?.rate == null ? "—" : `${r.rate}%`}</td>
+              </tr>); })}</tbody>
+          </table>
+        </div>
+      ) : (
+        <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+          {list.map((s) => { const r = stats.get(s.id); return (
+            <li key={s.id}>
+              <button type="button" onClick={() => setOpen(s.id)} className="gt-card flex h-full w-full flex-col items-center gap-2 border-2 border-[#bcd1e9] p-3 text-center transition hover:border-[var(--gt-cta)] active:scale-[.98]">
+                <Avatar src={s.photo} className="h-20 w-20 sm:h-24 sm:w-24" />
+                <span className="w-full">
+                  <strong className="block break-words text-[15px] leading-snug">{s.name}</strong>
+                  <span className="block truncate text-xs text-[var(--gt-muted)]">{[s.nickname && `“${s.nickname}”`, s.rank, s.history_only && "จากประวัติ"].filter(Boolean).join(" · ") || "\u00a0"}</span>
+                </span>
+                <span className="mt-auto grid w-full grid-cols-3 gap-1 text-center">
+                  <span className="rounded-lg bg-[#edf5ff] py-1.5"><b className="gt-num block text-base leading-tight">{r?.events ?? 0}</b><span className="text-[11px]">รายการ</span></span>
+                  <span className="rounded-lg bg-[#e6f7ec] py-1.5"><b className="gt-num block text-base leading-tight text-[#176738]">{r?.wins ?? 0}</b><span className="text-[11px]">ชนะ</span></span>
+                  <span className="rounded-lg bg-[#fff0f1] py-1.5"><b className="gt-num block text-base leading-tight text-[#a42841]">{r?.losses ?? 0}</b><span className="text-[11px]">แพ้</span></span>
+                </span>
+                <span className="w-full">
+                  <span className="flex justify-between text-xs"><span className="text-[var(--gt-muted)]">อัตราชนะ</span><b>{r?.rate == null ? "—" : `${r.rate}%`}</b></span>
+                  <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-[#e8edf6]"><span className="block h-full rounded-full bg-[#1770d5]" style={{ width: `${r?.rate ?? 0}%` }} /></span>
+                </span>
+              </button>
+            </li>); })}
         </ul>
       ) : <Empty>{q ? "ไม่พบนักเรียนที่ค้นหา" : "ยังไม่มีนักเรียน — เพิ่มนักเรียนใหม่ได้ด้านล่าง หรือรายชื่อจะขึ้นเองเมื่อนักเรียนลงแข่งในนามสถาบันนี้"}</Empty>}
       {canEdit&&<LinkStudents academyId={ov.academy.id} reload={reload} workspaceType={workspaceType}/>}
@@ -399,7 +440,7 @@ export function Awards({ ov, records, filters }: { ov: Overview; records: Rec[] 
 
 export function Stats({ ov, records, filters }: { ov: Overview; records: Rec[] } & F) {
   const [mode,setMode] = useInstitutionDisplayMode("stats");
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = useOpenStudent();
   const board = useRef<HTMLDivElement>(null);
   const rows = rankStats(studentStats(records, ov.students));
   const t = totals(records, ov.students);
@@ -407,7 +448,7 @@ export function Stats({ ov, records, filters }: { ov: Overview; records: Rec[] }
   const chosen = rows.find((r) => r.student.id === open);
   if (chosen) return <StudentPanel academyId={ov.academy.id} academyName={ov.academy.name} student={chosen.student} records={ov.records} rank={chosen.rank} onClose={() => setOpen(null)} />;
   const medal = (n: number | null) => (n === 1 ? "🥇" : n === 2 ? "🥈" : n === 3 ? "🥉" : n ? String(n) : "–");
-  const pick = (id: string) => { setOpen(id); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const pick = (id: string) => setOpen(id);
   const top = rows.filter((r) => r.rank).slice(0, 3).map((r) => `${r.rank}. ${r.student.name} ${r.rate}%`).join("\n");
   return (
     <div className="space-y-4">
