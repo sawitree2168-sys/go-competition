@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&family=Sarabun:wght@400;500;600&display=swap");
 /* GO TOURNAMENT institution design system — shared by all institution sections.
    Scoped intentionally so public tournament, referee and athlete screens keep their own styles. */
 .gt-inst {
@@ -208,3 +209,12 @@
   }
   .gt-inst .inst-workspace-main .text-xs{font-size:12px}
 }
+
+/* Prompt is bundled locally; Kanit for Thai headings and Sarabun for long instructions. */
+.gt-inst .inst-page-title h2,
+.gt-inst .inst-hero h1,
+.gt-inst .inst-subheading h2,
+.gt-inst .inst-shortcut span:last-child {font-family:"Kanit","Prompt",sans-serif}
+.gt-inst .gt-card p:not(.gt-num),
+.gt-inst .inst-settings-link,
+.gt-inst .inst-student-details {font-family:"Sarabun","Prompt",sans-serif}
