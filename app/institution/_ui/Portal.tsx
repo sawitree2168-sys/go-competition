@@ -114,7 +114,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     </select>
   </div>;
   return <div className="space-y-5">
-    <div className="inst-page-title"><span className="inst-page-title__icon" aria-hidden="true">♜</span><div className="min-w-0"><h2 className="text-lg font-bold sm:text-2xl">สถาบันของฉัน</h2><p className="text-xs text-white/90 sm:text-sm">จัดการนักกีฬา คุณครู และติดตามการแข่งขันทุกระดับฝีมือ</p></div></div>
+    <div className="inst-page-title"><span className="inst-page-title__icon" aria-hidden="true"><MenuIcon name="school" className="h-7 w-7" /></span><div className="min-w-0"><h2 className="text-lg font-bold sm:text-2xl">สถาบันของฉัน</h2><p className="text-xs text-white/90 sm:text-sm">จัดการนักกีฬา คุณครู และติดตามการแข่งขันทุกระดับฝีมือ</p></div></div>
     <section className="inst-hero px-4 py-5 text-white sm:px-7 sm:py-7">
       <div className="relative z-10 flex flex-wrap items-center gap-5">
         <div className="inst-hero-logo"><LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/></div>
