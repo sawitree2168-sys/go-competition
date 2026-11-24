@@ -280,3 +280,26 @@
 .gt-inst .inst-theme-thumbnail--background.inst-theme-thumbnail--blue{background:linear-gradient(#fff,#d5e6fa)}
 .gt-inst .inst-theme-editor input[type="file"]{font-size:14px}
 @media(max-width:767px){.gt-inst .inst-theme-thumbnail{height:64px}.gt-inst .inst-themed::before,.gt-inst .inst-themed::after{inset:-5px -3px -48px}}
+
+/* Institution blue title bars must always use legible white text, including nested labels/counts. */
+.gt-inst .inst-subheading,
+.gt-inst .inst-subheading h2,
+.gt-inst .inst-subheading h2 *,
+.gt-inst .inst-subheading > span {
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff;
+}
+.gt-inst .inst-subheading select,
+.gt-inst .inst-subheading option,
+.gt-inst .inst-subheading button,
+.gt-inst .inst-subheading select *,
+.gt-inst .inst-subheading button * {
+  color:#123b72 !important;
+  -webkit-text-fill-color:#123b72;
+}
+.gt-inst .inst-subheading h2 span:not(:first-child) {
+  font-size:16px;
+  font-weight:600;
+  opacity:1;
+}
+.gt-inst .inst-subheading {background:linear-gradient(100deg,#114c98,#1769bd);border:2px solid #c69b35}
