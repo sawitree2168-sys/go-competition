@@ -30,6 +30,7 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
     else acc.other++;
     return acc;
   }, {dan:0,kyu:0,other:0});
+  const recentApps = [...apps].sort((a,b)=>String(b.created_at??"").localeCompare(String(a.created_at??""))).slice(0,4);
   const rankTotal = ov.students.length;
   const ranking = [
     {label:"ระดับดั้ง (Dan)",value:rankCounts.dan,colour:"#167de0"},
@@ -49,6 +50,7 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
         </div>
       </div>
 
+      <div className="grid gap-4 xl:grid-cols-2">
       <section className="gt-card overflow-hidden p-3 sm:p-5" aria-label="นักกีฬาแยกตามระดับฝีมือ">
         <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h3 className="flex items-center gap-2 text-lg font-bold"><span aria-hidden="true">◉</span> นักกีฬาทุกระดับฝีมือ</h3>
@@ -62,8 +64,23 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
             {ranking.map(r=><div key={r.label} className="flex items-center gap-2 text-sm"><span className="h-3 w-3 shrink-0 rounded-full" style={{backgroundColor:r.colour}}/><span className="min-w-0 flex-1">{r.label}</span><b>{r.value}</b></div>)}
           </div>
         </div>
-        <p className="mt-3 text-xs text-[#527097]">นับจากนักกีฬาที่ปรากฏในหน้าสถาบันปัจจุบัน ไม่ใช่จำนวนสมาชิกที่ยืนยันตัวตนทั้งหมด</p>
+        <p className="mt-3 text-sm text-[#527097]">นับจากนักกีฬาที่ปรากฏในหน้าสถาบันปัจจุบัน ไม่ใช่จำนวนสมาชิกที่ยืนยันตัวตนทั้งหมด</p>
       </section>
+      <section className="gt-card overflow-hidden p-3 sm:p-5" aria-label="กิจกรรมการสมัครล่าสุด">
+        <header className="mb-3 flex items-center justify-between gap-2">
+          <h3 className="text-lg font-semibold text-[#124784]">กิจกรรมสมัครแข่งขันล่าสุด</h3>
+          <button type="button" onClick={()=>go("apply")} className="rounded-xl border-2 border-[#c79c35] bg-[#fff7dd] px-3 py-2 text-sm font-semibold text-[#6b4b16] hover:bg-[#ffedb6]">ดูทั้งหมด</button>
+        </header>
+        {recentApps.length ?
+          <ul className="divide-y divide-[#dbe7f6]">{recentApps.map(a=><li key={a.id} className="flex flex-wrap items-center gap-2 py-3 text-sm">
+            <span className="min-w-0 flex-1"><strong className="block text-base">{a.name}</strong><span className="block text-[#506a8b]">{a.title} · {a.division}</span></span>
+            <span className={`rounded-full border px-3 py-1 text-sm font-semibold ${a.status==="approved"?"border-[#8bc9a2] bg-[#e6f7ed] text-[#135b35]":a.status==="rejected"?"border-[#e7aab1] bg-[#fff1f2] text-[#9c2137]":"border-[#d9b65b] bg-[#fff6dc] text-[#74520c]"}`}>{a.status==="approved"?"อนุมัติแล้ว":a.status==="rejected"?"ไม่ผ่าน":"รอตรวจสอบ"}</span>
+          </li>)}</ul>:
+          <p className="rounded-xl border border-[#c9d9ee] bg-[#f5f9ff] p-5 text-center text-base text-[#59708a]">ยังไม่มีคำขอสมัครแข่งขันจากสถาบันนี้</p>
+        }
+        <p className="mt-3 text-sm text-[#536c89]">แสดงใบสมัครจริงในระบบ ไม่ใช่ข้อมูลตัวอย่างหรือการแจ้งเตือนจำลอง</p>
+      </section>
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {([{id:"students",label:"นักกีฬา",detail:"จัดการรายชื่อและติดตามผล"},{id:"tracking",label:"ผลการแข่งขัน",detail:"รอบ โต๊ะ และผลล่าสุด"},{id:"stats",label:"อันดับ / พัฒนาการ",detail:"อันดับ กราฟการเติบโต ประวัติรายคน"},{id:"reports",label:"รายงาน",detail:"สรุปผลงานรายบุคคล"}] as const).map((item)=>
