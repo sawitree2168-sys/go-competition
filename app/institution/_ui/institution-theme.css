@@ -218,3 +218,13 @@
 .gt-inst .gt-card p:not(.gt-num),
 .gt-inst .inst-settings-link,
 .gt-inst .inst-student-details {font-family:"Sarabun","Prompt",sans-serif}
+
+.gt-inst .inst-edit-logo{
+  position:absolute;right:-9px;bottom:-6px;display:grid;place-items:center;
+  width:39px;height:39px;border:2px solid #fff3c7;border-radius:50%;
+  background:linear-gradient(145deg,#f0c05f,#c59427);color:#15335c;
+  font-size:24px;font-weight:600;box-shadow:0 3px 8px #04245877;
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+.gt-inst .inst-edit-logo:hover{transform:scale(1.09);box-shadow:0 0 0 3px #fff4c7}
+.gt-inst .inst-edit-logo:active{transform:scale(.94)}
