@@ -242,7 +242,7 @@ export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov:
         </select>
         <DisplayModeToggle mode={mode} onChange={setMode}/>
       </div>
-      <p className="text-sm text-[var(--gt-muted)]">แตะนักเรียนเพื่อดูกราฟการเติบโตและประวัติการแข่งขัน</p>
+      <p className="text-base text-[#456387]">กดรูปนักกีฬา 1 ครั้งเพื่อขยายภาพ · กดชื่อหรือ “ดูประวัติ” เพื่อดูผลการแข่งขัน</p>
       {list.length ? mode === "table" ? (
         <div className="overflow-hidden rounded-xl border-2 border-[#bcd1e9] bg-white">
           <table className="w-full table-fixed text-left text-xs sm:text-sm">
@@ -250,7 +250,7 @@ export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov:
             <thead className="bg-[#e8f2ff] text-[#123a76]"><tr><th className="px-2 py-3 sm:px-4">นักเรียน</th><th className="hidden px-2 py-3 sm:table-cell">ระดับ</th><th className="px-1 py-3 text-center">รายการ</th><th className="px-1 py-3 text-center">ชนะ–แพ้</th><th className="px-1 py-3 text-center">%ชนะ</th></tr></thead>
             <tbody className="divide-y divide-[#d9e6f6]">{list.map((s) => { const r = stats.get(s.id); return (
               <tr key={s.id} onClick={() => setOpen(s.id)} className="cursor-pointer hover:bg-[#f2f7ff]">
-                <td className="px-2 py-2.5 sm:px-4"><button type="button" onClick={(e) => { e.stopPropagation(); setOpen(s.id); }} className="w-full text-left"><StudentRow s={s} sub={[s.rank, s.history_only && "จากประวัติ"].filter(Boolean).join(" · ") || undefined} /></button></td>
+                <td className="px-2 py-2.5 sm:px-4"><div className="flex items-center gap-2"><Avatar src={s.photo} name={s.name} zoom className="h-11 w-11" /><button type="button" onClick={(e) => { e.stopPropagation(); setOpen(s.id); }} className="min-w-0 flex-1 text-left font-semibold text-[#123e7d] hover:underline">{s.name}<span className="block text-sm font-normal text-[#5b6c82]">{s.rank??"ยังไม่ระบุระดับ"}</span></button></div></td>
                 <td className="hidden px-2 sm:table-cell">{s.rank ?? "—"}</td>
                 <td className="gt-num px-1 text-center">{r?.events ?? 0}</td>
                 <td className="gt-num px-1 text-center"><span className="text-[var(--gt-win-ink)]">{r?.wins ?? 0}</span>–<span className="text-[var(--gt-loss-ink)]">{r?.losses ?? 0}</span></td>
@@ -262,10 +262,10 @@ export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov:
         <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
           {list.map((s) => { const r = stats.get(s.id); return (
             <li key={s.id}>
-              <button type="button" onClick={() => setOpen(s.id)} className="gt-card flex h-full w-full flex-col items-center gap-2 border-2 border-[#bcd1e9] p-3 text-center transition hover:border-[var(--gt-cta)] active:scale-[.98]">
-                <span className="relative"><Avatar src={s.photo} className="h-20 w-20 sm:h-24 sm:w-24" />{moveUpHint(ov.records, s.id) && <span title="ควรพิจารณาขยับรุ่น" className="absolute -right-2 -top-1 rounded-full border-2 border-white bg-[#16a34a] px-1.5 text-[11px] font-bold text-white">⬆ รุ่น</span>}</span>
+              <article className="gt-card flex h-full w-full flex-col items-center gap-3 border-2 border-[#bcd1e9] p-3 text-center transition hover:border-[#c59b34]">
+                <span className="relative"><Avatar src={s.photo} name={s.name} zoom className="h-20 w-20 sm:h-24 sm:w-24" />{moveUpHint(ov.records, s.id) && <span title="ควรพิจารณาขยับรุ่น" className="absolute -right-2 -top-1 rounded-full border-2 border-white bg-[#16a34a] px-1.5 text-[11px] font-bold text-white">⬆ รุ่น</span>}</span>
                 <span className="w-full">
-                  <strong className="block break-words text-[15px] leading-snug">{s.name}</strong>
+                  <button type="button" onClick={() => setOpen(s.id)} className="block w-full rounded-md text-center text-base font-semibold leading-snug text-[#123e7d] underline-offset-2 hover:underline">{s.name}</button>
                   <span className="block truncate text-xs text-[var(--gt-muted)]">{[s.nickname && `“${s.nickname}”`, s.rank, s.history_only && "จากประวัติ"].filter(Boolean).join(" · ") || "\u00a0"}</span>
                 </span>
                 <span className="mt-auto grid w-full grid-cols-3 gap-1 text-center">
@@ -277,7 +277,8 @@ export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov:
                   <span className="flex justify-between text-xs"><span className="text-[var(--gt-muted)]">อัตราชนะ</span><b>{r?.rate == null ? "—" : `${r.rate}%`}</b></span>
                   <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-[#e8edf6]"><span className="block h-full rounded-full bg-[#1770d5]" style={{ width: `${r?.rate ?? 0}%` }} /></span>
                 </span>
-              </button>
+                <button type="button" onClick={() => setOpen(s.id)} className="inst-student-details">ดูประวัติการแข่งขันและผลงาน</button>
+              </article>
             </li>); })}
         </ul>
       ) : <Empty>{q ? "ไม่พบนักเรียนที่ค้นหา" : "ยังไม่มีนักเรียน — เพิ่มนักเรียนใหม่ได้ด้านล่าง หรือรายชื่อจะขึ้นเองเมื่อนักเรียนลงแข่งในนามสถาบันนี้"}</Empty>}
