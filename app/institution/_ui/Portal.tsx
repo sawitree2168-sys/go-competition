@@ -90,10 +90,10 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   const tracking=useMemo(()=>{
     if(!ov)return [];
     // A confirmed registration must be visible before pairing, without inventing a board or result.
-    const paired=new Set(ov.tracking.map(t=>`${t.athlete_id}:${t.tournament_id}:${t.division}`));
-    const awaiting=ov.records.filter(r=>!paired.has(`${r.athlete_id}:${r.tournament_id}:${r.division}`))
+    const paired=new Set(ov.tracking.map(t=>`${t.athlete_id}:${t.division_id}`));
+    const awaiting=ov.records.filter(r=>!paired.has(`${r.athlete_id}:${r.division_id}`))
       .map(r=>({athlete_id:r.athlete_id,tournament_id:r.tournament_id,title:r.title,date:r.date,
-        division:r.division,round:0,board:null,outcome:"pending" as const}));
+        division_id:r.division_id,division:r.division,round:0,board:null,outcome:"pending" as const}));
     return [...ov.tracking,...awaiting].filter(t=>(!year||Number(String(t.date??"").slice(0,4))+543===year)&&(!event||t.tournament_id===event));
   },[ov,year,event]);
   const access=ov?.access==="active"||ov?.access==="admin";
@@ -122,7 +122,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       <label className="mr-3 text-sm font-semibold" htmlFor="academy-select">สถาบันของฉัน</label>
       <select id="academy-select" className={selectCls} value={academyId} onChange={e=>location.assign(`/institution?academy=${encodeURIComponent(e.target.value)}`)}>{mine.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
     </div>}
-    <nav aria-label="เมนูสถาบัน" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    <nav aria-label="เมนูสถาบัน" className="grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-9">
       <button type="button" onClick={()=>go("home")} aria-current={view==="home"?"page":undefined} className={navClass(view==="home")}>
         <span className="text-2xl" aria-hidden="true">⌂</span><span>ภาพรวม</span>
       </button>

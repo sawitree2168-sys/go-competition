@@ -7,7 +7,12 @@ export type Rec = {
   athlete_id: string; tournament_id: string; title: string; date: string | null; division_id: string; division: string;
   games: number; wins: number; losses: number; draws: number; pos: number | null; field: number | null;
 };
-export type Track = { athlete_id: string; tournament_id: string; title: string; date: string | null; division: string; round: number; board: number | null; outcome: "pending" | "win" | "loss" | "draw" };
+export type Outcome = "pending" | "win" | "loss" | "draw" | "bye";
+export type TrackRound = { round: number; board: number | null; opponent: string | null; opponent_id: string | null; colour: "black" | "white" | null; outcome: Outcome };
+export type Track = {
+  athlete_id: string; tournament_id: string; title: string; date: string | null; division_id: string; division: string;
+  round: number; board: number | null; outcome: Outcome; opponent?: string | null; points?: number | null; rounds?: TrackRound[];
+};
 export type Overview = {
   academy: { id: string; name: string }; access: "admin" | "active" | "pending"; role: "manager" | "teacher" | null;
   students: Student[]; records: Rec[]; tracking: Track[];
@@ -35,7 +40,9 @@ export const MENU: { id: Exclude<View, "home">; title: string; sub: string; tone
   { id: "teachers", title: "ครูในสถาบัน", sub: "ผู้ดูแลและผู้สอน" },
   { id: "tracking", title: "ผลการแข่งขัน", sub: "รอบ โต๊ะ และคู่แข่ง" },
   { id: "apply", title: "สมัครแข่งขัน", sub: "สมัครแบบกลุ่มและตรวจสถานะ" },
+  { id: "awards", title: "ผลงาน", sub: "เหรียญและอันดับของนักเรียน" },
   { id: "stats", title: "สถิติพัฒนาการ", sub: "ชนะ–แพ้และการเติบโต" },
+  { id: "reports", title: "รายงาน", sub: "สรุปผลงานรายบุคคล" },
   { id: "settings", title: "ตั้งค่าสถาบัน", sub: "โลโก้ บัญชี และรหัสผ่าน" },
 ];
 
