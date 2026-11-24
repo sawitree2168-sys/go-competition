@@ -51,8 +51,8 @@ export const MENU: { id: Exclude<View, "home">; title: string; sub: string; tone
   { id: "settings", title: "ตั้งค่าสถาบัน", sub: "โลโก้ บัญชี และรหัสผ่าน" },
 ];
 
-export function Avatar({ src, className = "h-10 w-10" }: { src: string | null; className?: string }) {
-  return <AthleteAvatar src={src} name="นักกีฬา" className={`${className} ${src ? "border-2 border-white shadow-sm" : ""}`} />;
+export function Avatar({ src, className = "h-10 w-10", name = "นักกีฬา", zoom = false }: { src: string | null; className?: string; name?: string; zoom?: boolean }) {
+  return <AthleteAvatar src={src} name={name} zoom={zoom} variant="portrait" className={`${className} ${src ? "border-2 border-white shadow-sm" : ""}`} />;
 }
 
 export function StudentName({ s, sub, small = false }: { s: Student; sub?: React.ReactNode; small?: boolean }) {
