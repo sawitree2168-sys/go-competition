@@ -123,7 +123,18 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
         <h1 className="mt-2 break-words text-2xl font-bold sm:text-4xl">{ov?.academy.name??selected.name}</h1>
         <p className="mt-2 text-base text-white/90">{workspaceType==="independent_coach"?"พื้นที่ส่วนตัวสำหรับติดตามนักเรียนที่สอน แม้จะลงแข่งขันในนามโรงเรียนอื่น":"ระบบติดตามนักกีฬาและการแข่งขันของสถาบัน"}</p>
         <p className="inst-access-pill mt-3" data-active={selected.status==="active"}>{selected.status==="active"?"✓ บัญชีสถาบันเปิดใช้งาน":"รออนุมัติสิทธิ์"}</p>
-      </div></div>
+      </div>
+      <div className="relative z-10 hidden w-[470px] shrink-0 grid-cols-4 gap-2 xl:grid">
+        {([
+          {id:"students" as View,label:"นักกีฬา"},
+          {id:"live" as View,label:"ติดตามสด"},
+          {id:"apply" as View,label:"สมัครแข่งขัน"},
+          {id:"settings" as View,label:"โลโก้ / ตั้งค่า"},
+        ]).map(action=><button key={action.id} type="button" onClick={()=>go(action.id)} className="inst-hero-action">
+          <span className="h-8 w-8 text-[#0969d9]">{ICONS[action.id]}</span><span>{action.label}</span>
+        </button>)}
+      </div>
+      </div>
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 right-3 h-48 w-48 rounded-full border-[20px] border-[#f0bd58]/20 sm:h-72 sm:w-72"/>
     </section>
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-[#bdd2eb] bg-white p-3"><span className="text-sm font-semibold text-[#164476]">{workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันและครูสามารถใช้คนละบัญชีได้"}</span><button type="button" onClick={onJoin} className="min-h-11 rounded-xl border-2 border-[#e4b64f] bg-[#fff7df] px-4 text-sm font-black text-[#76510b]">+ เพิ่มสถาบัน / เปิดพื้นที่ครูอิสระ</button></div>
