@@ -51,7 +51,7 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
         </header>
         {report.length ? <ReportTable rows={report} /> : <div className="px-4 pb-4 sm:px-6"><Empty>ยังไม่มีผลการแข่งขันในช่วงที่เลือก</Empty></div>}
         <footer className="flex items-center justify-between gap-3 px-4 py-3 text-sm sm:px-6">
-          <span className="text-[var(--gt-muted)]">ⓘ ผลจากรายการที่เผยแพร่แล้ว</span>
+          <span className="text-[var(--gt-muted)]">ⓘ ผลจากรายการที่เผยแพร่แล้ว รวมผลย้อนหลังจากทำเนียบดั้งสมาคมและ 1go</span>
           <button type="button" onClick={() => go("reports")} className="font-semibold text-[var(--gt-cta)] underline underline-offset-4">ดูรายงานทั้งหมด →</button>
         </footer>
       </section>
@@ -186,11 +186,11 @@ export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov:
     <div className="space-y-4">
       <SectionTitle>นักเรียน <span className="text-base font-normal text-[var(--gt-muted)]">{ov.students.length} คน</span></SectionTitle>
       <div className="flex flex-wrap items-center gap-3"><div className="min-w-[12rem] flex-1"><input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="ค้นหาชื่อ ชื่อเล่น หรือรหัสนักกีฬา" aria-label="ค้นหานักเรียน" className={inputCls} /></div><DisplayModeToggle mode={mode} onChange={setMode}/></div>
-      {list.length ? mode === "table" ? <div className="overflow-x-auto rounded-xl border-2 border-[#bcd1e9] bg-white"><table className="w-full table-fixed text-left text-xs sm:text-sm"><thead className="bg-[#e8f2ff] text-[#123a76]"><tr><th className="px-4 py-3">นักกีฬา</th><th className="px-4 py-3">ชื่อเล่น</th><th className="px-4 py-3">รหัส GO</th><th className="px-4 py-3">ระดับฝีมือ</th></tr></thead><tbody className="divide-y divide-[#d9e6f6]">{list.map(s=><tr key={s.id} className="hover:bg-[#f2f7ff]"><td className="px-4 py-3"><StudentName s={s}/></td><td className="px-4 py-3">{s.nickname??"—"}</td><td className="px-4 py-3">{s.go_id??"—"}</td><td className="px-4 py-3">{s.rank??"—"}</td></tr>)}</tbody></table></div> : (
+      {list.length ? mode === "table" ? <div className="overflow-x-auto rounded-xl border-2 border-[#bcd1e9] bg-white"><table className="w-full table-fixed text-left text-xs sm:text-sm"><thead className="bg-[#e8f2ff] text-[#123a76]"><tr><th className="px-4 py-3">นักกีฬา</th><th className="px-4 py-3">ชื่อเล่น</th><th className="px-4 py-3">รหัส GO</th><th className="px-4 py-3">ระดับฝีมือ</th></tr></thead><tbody className="divide-y divide-[#d9e6f6]">{list.map(s=><tr key={s.id} className="hover:bg-[#f2f7ff]"><td className="px-4 py-3"><StudentName s={s} sub={s.history_only?"จากประวัติแข่งขัน":undefined}/></td><td className="px-4 py-3">{s.nickname??"—"}</td><td className="px-4 py-3">{s.go_id??"—"}</td><td className="px-4 py-3">{s.rank??"—"}</td></tr>)}</tbody></table></div> : (
         <ul className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((s) => (
             <li key={s.id} className="gt-card flex items-center gap-3 p-3">
-              <div className="min-w-0 flex-1"><StudentName s={s} sub={[s.nickname && `“${s.nickname}”`, s.go_id].filter(Boolean).join(" · ") || undefined} /></div>
+              <div className="min-w-0 flex-1"><StudentName s={s} sub={[s.nickname && `“${s.nickname}”`, s.go_id, s.history_only && "จากประวัติแข่งขัน"].filter(Boolean).join(" · ") || undefined} /></div>
               <span className="shrink-0 rounded-lg bg-[var(--gt-cta-soft)] px-2.5 py-1 text-sm font-semibold text-[var(--gt-cta)]">{s.rank ?? "—"}</span>
             </li>
           ))}

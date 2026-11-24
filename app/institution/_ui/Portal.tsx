@@ -91,7 +91,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     if(!ov)return [];
     // A confirmed registration must be visible before pairing, without inventing a board or result.
     const paired=new Set(ov.tracking.map(t=>`${t.athlete_id}:${t.division_id}`));
-    const awaiting=ov.records.filter(r=>!paired.has(`${r.athlete_id}:${r.division_id}`))
+    const awaiting=ov.records.filter(r=>r.source!=="history"&&!paired.has(`${r.athlete_id}:${r.division_id}`))
       .map(r=>({athlete_id:r.athlete_id,tournament_id:r.tournament_id,title:r.title,date:r.date,
         division_id:r.division_id,division:r.division,round:0,board:null,outcome:"pending" as const}));
     return [...ov.tracking,...awaiting].filter(t=>(!year||Number(String(t.date??"").slice(0,4))+543===year)&&(!event||t.tournament_id===event));
@@ -134,7 +134,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     {!ov?<div className="rounded-xl border border-[#bfd1eb] bg-white p-8 text-center" role={error?"alert":"status"}>{error||"กำลังโหลดข้อมูลสถาบัน…"}</div>:<div className="space-y-5">
       {view==="home"&&<Home ov={ov} records={filtered} track={tracking} apps={apps} filters={filters} go={go}/>}
       {view==="tracking"&&<Tracking ov={ov} track={tracking} filters={filters}/>}
-      {view==="teachers"&&<AcademyStaff academyId={academyId} students={ov.students.map(a=>({id:a.id,name:a.name}))}/>}
+      {view==="teachers"&&<AcademyStaff academyId={academyId} students={ov.students.filter(a=>!a.history_only).map(a=>({id:a.id,name:a.name}))}/>}
       {view==="students"&&<Students ov={ov} canEdit={access} reload={load} workspaceType={workspaceType}/>}
       {view==="awards"&&<Awards ov={ov} records={filtered} filters={filters}/>}
       {view==="stats"&&<Stats ov={ov} records={filtered} filters={filters}/>}

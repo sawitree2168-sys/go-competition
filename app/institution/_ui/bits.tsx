@@ -2,10 +2,13 @@
 import Link from "next/link";
 import AthleteAvatar from "@/components/AthleteAvatar";
 
-export type Student = { id: string; name: string; nickname: string | null; rank: string | null; photo: string | null; go_id: string | null; added: boolean };
+/** history_only = known only from the central history (ทำเนียบดั้งสมาคม / 1go), no site athlete yet: read-only, id is "h:<GO ID>". */
+export type Student = { id: string; name: string; nickname: string | null; rank: string | null; photo: string | null; go_id: string | null; added: boolean; history_only?: boolean };
 export type Rec = {
   athlete_id: string; tournament_id: string; title: string; date: string | null; division_id: string; division: string;
   games: number; wins: number; losses: number; draws: number; pos: number | null; field: number | null;
+  /** "history" = past result from the central history; tournament_id / division_id start with "h:". */
+  source?: "history";
 };
 export type Outcome = "pending" | "win" | "loss" | "draw" | "bye";
 export type TrackRound = { round: number; board: number | null; opponent: string | null; opponent_id: string | null; colour: "black" | "white" | null; outcome: Outcome };
@@ -52,7 +55,7 @@ export function Avatar({ src, className = "h-10 w-10" }: { src: string | null; c
 
 export function StudentName({ s, sub, small = false }: { s: Student; sub?: React.ReactNode; small?: boolean }) {
   return (
-    <Link href={`/athletes/${s.id}`} className={`flex min-w-0 items-center hover:underline ${small ? "gap-2" : "gap-3"}`}>
+    <Link href={s.history_only && s.go_id ? `/athletes/history/${encodeURIComponent(s.go_id)}` : `/athletes/${s.id}`} className={`flex min-w-0 items-center hover:underline ${small ? "gap-2" : "gap-3"}`}>
       <Avatar src={s.photo} className={small ? "h-8 w-8" : "h-10 w-10"} />
       <span className="min-w-0">
         <span className={`block font-semibold ${small ? "leading-snug" : "truncate"}`}>{s.name}</span>
