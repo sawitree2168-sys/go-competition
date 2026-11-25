@@ -17,7 +17,7 @@ import { AcademyStaff } from "./AcademyPeople";
 import AcademyTeam from "./AcademyTeam";
 import LiveBoard from "./LiveBoard";
 import LogoEditor,{LogoDisplay,type Branding} from "./LogoEditor";
-import ThemeEditor,{DEFAULT_THEME,institutionAssetUrl,type InstituteTheme} from "./ThemeEditor";
+import ThemeEditor,{DEFAULT_THEME,resolveTheme,themeFromRpc,type InstituteTheme,type ThemePreview} from "./ThemeEditor";
 import MenuIcon from "@/components/MenuIcon";
 import { INSTITUTION_RETURN_KEY } from "@/components/InstitutionReturn";
 
@@ -75,6 +75,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   const [workspaceType,setWorkspaceType]=useState<"academy"|"independent_coach">("academy");
   const [branding,setBranding]=useState<Branding|null>(null);
   const [theme,setTheme]=useState<InstituteTheme>(DEFAULT_THEME);
+  const [preview,setPreview]=useState<ThemePreview|null>(null);
   const [canCustomize,setCanCustomize]=useState(false);
   const [view,setView]=useState<View>("home");
   const [year,setYear]=useState<number|null>(new Date().getFullYear()+543);
@@ -84,7 +85,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
     if(!db)return;
     const [o,a,w,b,th,customize]=await Promise.all([db.rpc("gt_academy_overview_v1",{p_academy:academyId}),db.rpc("gt_academy_applications_v1",{p_academy:academyId}),db.rpc("gt_workspace_kind_v1",{p_academy:academyId}),db.rpc("gt_academy_branding_v1",{p_academy:academyId}),db.rpc("gt_academy_theme_v1",{p_academy:academyId}),db.rpc("gt_academy_can_customize_v1",{p_academy:academyId})]);
     setCanCustomize(customize.data===true);
-    if(th.data?.ok)setTheme({color:th.data.color??DEFAULT_THEME.color,section:th.data.section??DEFAULT_THEME.section,hero:th.data.hero??DEFAULT_THEME.hero,background:th.data.background??DEFAULT_THEME.background,section_path:th.data.section_path??null,hero_path:th.data.hero_path??null,background_path:th.data.background_path??null});
+    if(th.data?.ok)setTheme(themeFromRpc(th.data));
     if(b.data?.ok)setBranding({logo_path:b.data.logo_path??null,shape:b.data.shape==="square"?"square":"circle",zoom:b.data.zoom??100,x:b.data.x??50,y:b.data.y??50});
     setWorkspaceType(w.data==="independent_coach"?"independent_coach":"academy");
     if(o.error||!o.data?.ok){setError("ยังไม่สามารถเปิดข้อมูลสถาบันได้ กรุณาตรวจสอบสิทธิ์บัญชี");return;}
@@ -118,11 +119,19 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       <option value="">ทุกรายการ</option>{events.map(e=><option key={e.id} value={e.id}>{e.title}</option>)}
     </select>
   </div>;
-  const sectionImage=institutionAssetUrl(theme.section_path);
-  const heroImage=institutionAssetUrl(theme.hero_path);
-  const backgroundImage=institutionAssetUrl(theme.background_path);
-  return <div className="space-y-5 inst-themed" data-institution-color={theme.color} data-section-style={theme.section} data-hero-style={theme.hero} data-background-style={theme.background} style={backgroundImage?{"--inst-custom-background":`url("${backgroundImage}")`} as React.CSSProperties:undefined}>
-    <div className="inst-page-title" style={sectionImage?{backgroundImage:`linear-gradient(90deg,rgba(12,53,113,.8),rgba(12,57,116,.15)), url("${sectionImage}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}><span className="inst-page-title__icon" aria-hidden="true"><MenuIcon name="school" className="h-7 w-7" /></span><div className="min-w-0"><h2 className="text-lg font-bold sm:text-2xl">สถาบันของฉัน</h2><p className="text-xs text-white/90 sm:text-sm">จัดการนักกีฬา คุณครู และติดตามการแข่งขันทุกระดับฝีมือ</p></div></div>
+  const shown:ThemePreview=preview??theme;
+  const look=resolveTheme(shown);
+  const sectionImage=look.section.src,heroImage=look.hero.src,backgroundImage=look.background.src;
+  return <div className="space-y-5 inst-themed" data-institution-color={shown.color} data-section-style={shown.section} data-hero-style={shown.hero} data-background-style={shown.background} data-bg-image={backgroundImage?"true":undefined}>
+    {backgroundImage&&<div className="inst-page-bg" aria-hidden="true" style={{backgroundImage:`url("${backgroundImage}")`}}/>}
+    {preview&&<p role="status" className="inst-preview-flag">👁 กำลังดูตัวอย่างธีม · ยังไม่ได้บันทึก — กด “บันทึกธีมสถาบัน” ที่แถบล่างจอ</p>}
+    {sectionImage&&look.section.full?<h2 className="inst-banner-img"><img src={sectionImage} alt="สถาบันของฉัน — จัดการนักกีฬา คุณครู และติดตามการแข่งขัน"/></h2>:
+    <div className="inst-page-title" style={sectionImage?{backgroundImage:`linear-gradient(90deg,rgba(12,53,113,.8),rgba(12,57,116,.15)), url("${sectionImage}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}><span className="inst-page-title__icon" aria-hidden="true"><MenuIcon name="school" className="h-7 w-7" /></span><div className="min-w-0"><h2 className="text-lg font-bold sm:text-2xl">สถาบันของฉัน</h2><p className="text-xs text-white/90 sm:text-sm">จัดการนักกีฬา คุณครู และติดตามการแข่งขันทุกระดับฝีมือ</p></div></div>}
+    {heroImage&&look.hero.full?<section className="inst-banner-img inst-banner-img--hero">
+      <h1 className="sr-only">{ov?.academy.name??selected.name}</h1>
+      <img src={heroImage} alt={`แบนเนอร์ ${ov?.academy.name??selected.name}`}/>
+      {selected.status!=="active"&&<p className="inst-access-pill mt-2" data-active="false">รออนุมัติสิทธิ์</p>}
+    </section>:
     <section className="inst-hero px-4 py-5 text-white sm:px-7 sm:py-7" style={heroImage?{backgroundImage:`linear-gradient(90deg,rgba(7,42,94,.92),rgba(8,64,133,.35)),url("${heroImage}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}>
       <div className="relative z-10 flex flex-wrap items-center gap-5">
         <div className="inst-hero-logo relative">
@@ -147,7 +156,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       </div>
       </div>
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 right-3 h-48 w-48 rounded-full border-[20px] border-[#f0bd58]/20 sm:h-72 sm:w-72"/>
-    </section>
+    </section>}
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-[#bdd2eb] bg-white p-3"><span className="text-sm font-semibold text-[#164476]">{workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันและครูสามารถใช้คนละบัญชีได้"}</span><button type="button" onClick={onJoin} className="min-h-11 rounded-xl border-2 border-[#e4b64f] bg-[#fff7df] px-4 text-sm font-black text-[#76510b]">+ เพิ่มสถาบัน / เปิดพื้นที่ครูอิสระ</button></div>
     {mine.length>1&&<div className="rounded-xl border border-[#bdcfe8] bg-white p-3">
       <label className="mr-3 text-sm font-semibold" htmlFor="academy-select">สถาบันของฉัน</label>
@@ -186,7 +195,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
           <p>ให้ผู้จัดการสถาบันที่มีสิทธิ์แล้วเข้าบัญชีของตนเอง ไปที่เมนู “เจ้าของและครู” แล้วอนุมัติคำขอของบัญชีนี้</p>
           <button type="button" onClick={()=>go("teachers")} className="inst-settings-link">ดูหน้าเจ้าของและครู</button>
         </div>:<>
-          {selected.role==="manager"||canCustomize?<><ThemeEditor academyId={academyId} theme={theme} onSaved={setTheme}/><LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/></>:
+          {selected.role==="manager"||canCustomize?<><ThemeEditor academyId={academyId} academyName={ov.academy.name??selected.name} theme={theme} onSaved={t=>{setPreview(null);setTheme(t);}} onPreview={setPreview}/><LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/></>:
            <div className="rounded-xl border-2 border-[#c4d5ec] bg-[#f4f8ff] p-4">
              <p className="font-semibold">โลโก้และข้อมูลสถาบัน</p>
              <p className="mt-2 text-base">เฉพาะผู้จัดการหรือบัญชีที่ได้รับสิทธิ์ปรับแต่งสถาบันเท่านั้นที่แก้ไขธีมและโลโก้ได้ หากต้องการเปลี่ยน ให้ติดต่อผู้จัดการสถาบัน</p>
