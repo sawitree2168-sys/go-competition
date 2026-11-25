@@ -127,7 +127,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
       <div className="relative z-10 flex flex-wrap items-center gap-5">
         <div className="inst-hero-logo relative">
           <LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/>
-          <button type="button" onClick={()=>go("settings")} title="เปิดการตั้งค่าโลโก้สถาบัน" aria-label="เปิดหน้าตั้งค่าโลโก้สถาบัน" className="inst-edit-logo" >✎</button>
+          <button type="button" onClick={()=>{go("settings");setTimeout(()=>document.getElementById("logo-editor")?.scrollIntoView({behavior:"smooth"}),350);}} title="เปลี่ยนโลโก้สถาบัน" aria-label="เปิดหน้าตั้งค่าโลโก้สถาบัน" className="inst-edit-logo" >✎</button>
         </div>
         <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold tracking-[.04em] text-[#ffdb77]">GO TOURNAMENT · {workspaceType==="independent_coach"?"ครูอิสระ":"สถาบัน"}</p>
@@ -186,7 +186,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
           <p>ให้ผู้จัดการสถาบันที่มีสิทธิ์แล้วเข้าบัญชีของตนเอง ไปที่เมนู “เจ้าของและครู” แล้วอนุมัติคำขอของบัญชีนี้</p>
           <button type="button" onClick={()=>go("teachers")} className="inst-settings-link">ดูหน้าเจ้าของและครู</button>
         </div>:<>
-          {selected.role==="manager"||canCustomize?<><ThemeEditor academyId={academyId} theme={theme} onSaved={setTheme}/><LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/></>:
+          {selected.role==="manager"||canCustomize?<><div id="logo-editor" className="scroll-mt-24"><LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/></div><ThemeEditor academyId={academyId} theme={theme} onSaved={setTheme}/></>:
            <div className="rounded-xl border-2 border-[#c4d5ec] bg-[#f4f8ff] p-4">
              <p className="font-semibold">โลโก้และข้อมูลสถาบัน</p>
              <p className="mt-2 text-base">เฉพาะผู้จัดการหรือบัญชีที่ได้รับสิทธิ์ปรับแต่งสถาบันเท่านั้นที่แก้ไขธีมและโลโก้ได้ หากต้องการเปลี่ยน ให้ติดต่อผู้จัดการสถาบัน</p>
