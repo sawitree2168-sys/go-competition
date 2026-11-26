@@ -13,7 +13,7 @@ export default function PairingsPlaceholder({eventTitle,institution,divisionName
  const [mode,setMode]=useState<"cards"|"table">("cards");
  const count=Math.max(1,rounds);
  const selected=Math.min(round,count);
- const side=(colour:"black"|"white")=><div className={styles.side}><span data-athlete-photo="true"><AthleteAvatar name="รอประกาศนักกีฬา" src={null} variant="portrait" className={styles.avatar}/></span><span><b>{colour==="black"?"● ฝ่ายดำ":"○ ฝ่ายขาว"}</b><strong>—</strong><small>รอประกาศคู่แข่งขัน</small></span></div>;
+ const side=(colour:"black"|"white")=><div className={styles.side}><span className={styles.photoSlot} data-athlete-photo="true"><AthleteAvatar name="รอประกาศนักกีฬา" src={null} variant="portrait" className={styles.avatar}/></span><span><b>{colour==="black"?"● ฝ่ายดำ":"○ ฝ่ายขาว"}</b><strong>—</strong><small>รอประกาศคู่แข่งขัน</small></span></div>;
  return <section className={styles.placeholder} aria-label="โครงสร้างติดตามคู่แข่งขันในสังกัด">
    <h2>จับคู่และผลการแข่งขัน · {divisionName}</h2>
    <p className={styles.notice}>รอข้อมูลจับคู่สาธารณะ · โครงสร้างด้านล่างยังไม่มีหมายเลขโต๊ะ คู่แข่ง หรือผลการแข่งขัน</p>
