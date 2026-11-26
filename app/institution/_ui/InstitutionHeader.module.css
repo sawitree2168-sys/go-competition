@@ -1,5 +1,5 @@
 .header{display:grid;gap:12px;font-family:"Prompt",sans-serif;min-width:0}
-.banner{display:flex;align-items:center;gap:16px;min-height:112px;padding:18px 24px;border:2px solid #dbac38;border-radius:18px;color:#fff;background:#0862c9 linear-gradient(90deg,rgba(5,64,154,.25),transparent),url('/institution-dashboard-banner.webp') center right/100% 100% no-repeat;box-shadow:0 3px 9px #0b4d9920}
+.banner{display:flex;align-items:center;gap:16px;min-height:112px;padding:18px 24px;border:2px solid #dbac38;border-radius:18px;color:#fff;background:#0862c9 linear-gradient(90deg,rgba(5,64,154,.25),transparent),url('/institution-dashboard-banner.webp') center right/cover no-repeat;box-shadow:0 3px 9px #0b4d9920}
 .banner h2{margin:0;font-family:inherit;font-size:clamp(24px,2.7vw,38px);font-weight:700;line-height:1.25;color:white}
 .banner p{margin:5px 0 0;font-size:15px;color:#fff}
 .emblem{display:grid;place-items:center;flex:none;width:62px;height:68px;border:2px solid #ffdb77;border-radius:17px;background:linear-gradient(135deg,#2eaeff,#084da6);box-shadow:inset 0 0 0 4px #ffffff22}
