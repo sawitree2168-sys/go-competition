@@ -30,13 +30,14 @@ function Who({ p, colour, extra, won }: { p?: ReportPerson; colour?: "black" | "
  * One round as a table: every board (no paging), byes at the end. `pairings` shows points before the round,
  * `results` shows the result and marks the winner. Big enough to read on a phone in full screen.
  */
-export function RoundTable({ kind, round, pool, matches, byes, people }: {
-  kind: Kind; round: number; pool?: string | null; matches: ReportMatch[]; byes: ReportBye[]; people: Record<string, ReportPerson>;
+export function RoundTable({ kind, round, pool, matches, byes, people, visibleAthleteIds }: {
+  kind: Kind; round: number; pool?: string | null; matches: ReportMatch[]; byes: ReportBye[]; people: Record<string, ReportPerson>; visibleAthleteIds?: string[];
 }) {
   const inPool = (x: { pool_label?: string | null }) => pool == null || pool === "*" || (x.pool_label ?? "") === pool;
-  const rows = matches.filter((m) => m.round_number === round && m.state !== "void" && inPool(m))
+  const visibleIds = visibleAthleteIds ? new Set(visibleAthleteIds) : null;
+  const rows = matches.filter((m) => (!visibleIds || visibleIds.has(m.black_athlete_id) || visibleIds.has(m.white_athlete_id)) && m.round_number === round && m.state !== "void" && inPool(m))
     .sort((a, b) => (a.pool_label ?? "").localeCompare(b.pool_label ?? "") || (a.board_number ?? 0) - (b.board_number ?? 0));
-  const roundByes = byes.filter((b) => b.round_number === round && inPool(b));
+  const roundByes = byes.filter((b) => (!visibleIds || visibleIds.has(b.athlete_id)) && b.round_number === round && inPool(b));
   const before = scoresFrom(Object.keys(people), matches.filter((m) => m.round_number < round && inPool(m)), byes.filter((b) => b.round_number < round && inPool(b))).score;
   const multi = new Set(rows.map((m) => m.pool_label ?? "")).size > 1;
   const pts = (id: string) => kind === "pairings" ? `${fmt(before.get(id) ?? 0)} คะแนน` : undefined;
@@ -70,11 +71,11 @@ export function RoundTable({ kind, round, pool, matches, byes, people }: {
  * Two buttons: "ใบจับคู่รอบ N" and "ผลการแข่งขันรอบ N". Each opens the round in full screen with
  * show/hide photos and download as PNG or PDF.
  */
-export default function RoundReportButtons({ eventTitle, divisionName, round, pool, matches, byes, people, className = "", single = false }: {
+export default function RoundReportButtons({ eventTitle, divisionName, round, pool, matches, byes, people, className = "", single = false, visibleAthleteIds }: {
   eventTitle: string; divisionName: string; round: number; pool?: string | null;
   matches: ReportMatch[]; byes: ReportBye[]; people: Record<string, ReportPerson>; className?: string;
   /** one button "เต็มจอ / ดาวน์โหลด" with ใบจับคู่ / ผล switch inside (admin pages on a phone) */
-  single?: boolean;
+  single?: boolean; visibleAthleteIds?: string[];
 }) {
   const [open, setOpen] = useState<Kind | null>(null);
   if (!round) return null;
@@ -98,7 +99,7 @@ export default function RoundReportButtons({ eventTitle, divisionName, round, po
             </div>
           )}
           <div className="cd-panel-heading"><h2><span className="cd-heading-stones" aria-hidden="true">●○</span>{divisionName}{poolText} · {title}</h2></div>
-          <RoundTable kind={open} round={round} pool={pool} matches={matches} byes={byes} people={people} />
+          <RoundTable kind={open} round={round} pool={pool} matches={matches} byes={byes} people={people} visibleAthleteIds={visibleAthleteIds} />
         </CompetitionPanel>
       )}
     </>

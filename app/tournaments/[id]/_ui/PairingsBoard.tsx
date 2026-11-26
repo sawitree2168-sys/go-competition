@@ -21,9 +21,10 @@ const PAGE = 10;
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 /** Is the signed-in user (if any) staff of this event? */
-function useCanManage(tournamentId: string) {
+function useCanManage(tournamentId: string, readOnly = false) {
   const [can, setCan] = useState(false);
   useEffect(() => {
+    if (readOnly) return;
     const db = staffDb();
     if (!db) return;
     let live = true;
@@ -33,8 +34,8 @@ function useCanManage(tournamentId: string) {
       if (live) setCan(Boolean(ok));
     });
     return () => { live = false; };
-  }, [tournamentId]);
-  return can;
+  }, [tournamentId, readOnly]);
+  return !readOnly && can;
 }
 
 type SeatInfo = { id: string; name: string; institution?: string; rank?: string | null; photo?: string | null; score: number; won: boolean; lost: boolean };
@@ -133,8 +134,8 @@ function StaffResult({ m, divisionId }: { m: Match; divisionId: string }) {
   );
 }
 
-export default function PairingsBoard({ matches, byes, people, tournamentId, divisionId, eventTitle = "GO TOURNAMENT", divisionName = "" }: {
-  matches: Match[]; byes: Bye[]; people: Record<string, Person>; tournamentId: string; divisionId: string; eventTitle?: string; divisionName?: string;
+export default function PairingsBoard({ matches, byes, people, tournamentId, divisionId, eventTitle = "GO TOURNAMENT", divisionName = "", visibleAthleteIds, readOnly = false }: {
+  matches: Match[]; byes: Bye[]; people: Record<string, Person>; tournamentId: string; divisionId: string; eventTitle?: string; divisionName?: string; visibleAthleteIds?: string[]; readOnly?: boolean;
 }) {
   const rounds = useMemo(() => [...new Set([...matches.map((m) => m.round_number), ...byes.map((b) => b.round_number)])].sort((a, b) => a - b), [matches, byes]);
   const pools = useMemo(() => [...new Set(matches.map((m) => m.pool_label ?? ""))].sort(), [matches]);
@@ -148,7 +149,8 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
   const [showPhotos, setShowPhotos] = useState(true);
   const [view, setView] = useState<"cards" | "table">("cards");
   const [zoomed, setZoomed] = useState<SeatInfo | null>(null);
-  const staff = useCanManage(tournamentId);
+  const staff = useCanManage(tournamentId, readOnly);
+  const visibleIds = visibleAthleteIds ? new Set(visibleAthleteIds) : null;
 
   const before = useMemo(
     () => scoresFrom(Object.keys(people), matches.filter((m) => m.round_number < round), byes.filter((b) => b.round_number < round)).score,
@@ -156,27 +158,28 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
   );
   const seat = (id: string, m: Match): SeatInfo => ({
     id, name: people[id]?.name ?? "ผู้เข้าแข่งขัน", institution: people[id]?.institution, rank: people[id]?.rank, photo: people[id]?.photo,
-    score: before.get(id) ?? 0, won: m.winner_athlete_id === id, lost: m.state === "verified" && Boolean(m.winner_athlete_id) && m.winner_athlete_id !== id,
+    score: before.get(id) ?? 0, won: m.state === "verified" && m.winner_athlete_id === id, lost: m.state === "verified" && Boolean(m.winner_athlete_id) && m.winner_athlete_id !== id,
   });
   const term = q.trim().toLowerCase();
   const hit = (id: string) => [people[id]?.name, people[id]?.institution].some((x) => (x ?? "").toLowerCase().includes(term));
   const all = matches
+    .filter(m => m.state !== "void" && (!visibleIds || visibleIds.has(m.black_athlete_id) || visibleIds.has(m.white_athlete_id)))
     .filter((m) => m.round_number === round && (pool === "all" || (m.pool_label ?? "") === pool))
     .filter((m) => !term || String(m.board_number) === term.replace(/^โต๊ะ\s*/, "") || hit(m.black_athlete_id) || hit(m.white_athlete_id))
     .sort((a, b) => (a.pool_label ?? "").localeCompare(b.pool_label ?? "") || (a.board_number ?? 0) - (b.board_number ?? 0));
   const pages = Math.max(1, Math.ceil(all.length / PAGE));
   const cur = Math.min(page, pages - 1);
   const tables = all.slice(cur * PAGE, cur * PAGE + PAGE);
-  const roundByes = byes.filter((b) => b.round_number === round && (pool === "all" || (b.pool_label ?? "") === pool) && (!term || hit(b.athlete_id)));
+  const roundByes = byes.filter((b) => (!visibleIds || visibleIds.has(b.athlete_id)) && b.round_number === round && (pool === "all" || (b.pool_label ?? "") === pool) && (!term || hit(b.athlete_id)));
   const roundMatches = matches.filter((m) => m.round_number === round);
   const done = roundMatches.length > 0 && roundMatches.every((m) => m.state === "verified");
   const pending = roundMatches.filter((m) => m.state !== "verified").length;
   const go = (r: number) => { setRound(r === latest ? null : r); setPage(0); };
 
   return (
-    <section className="mt-4 space-y-4" aria-labelledby="pairs-h">
+    <section className="mt-4 space-y-4" aria-labelledby={`${divisionId}-pairs-h`}>
       <div className="flex flex-wrap items-center gap-3">
-        <h2 id="pairs-h" className="mr-auto text-2xl font-bold md:text-3xl">จับคู่ &amp; ผลการแข่งขัน</h2>
+        <h2 id={`${divisionId}-pairs-h`} className="mr-auto text-2xl font-bold md:text-3xl">จับคู่ &amp; ผลการแข่งขัน</h2>
         <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold ${done ? "border-[var(--gt-line)] bg-[var(--gt-surface-2)] text-[var(--gt-muted)]" : "border-[var(--gt-ok)]/50 bg-[var(--gt-win-bg)] text-[var(--gt-win-ink)]"}`}>
           {!done && <span aria-hidden="true" className="h-2.5 w-2.5 animate-pulse rounded-full bg-[var(--gt-ok)]" />}
           {done ? `รอบที่ ${round} • จบแล้ว` : `รอบที่ ${round} • กำลังแข่งขัน${pending ? ` (รอผล ${pending})` : ""}`}
@@ -215,7 +218,7 @@ export default function PairingsBoard({ matches, byes, people, tournamentId, div
         <button type="button" aria-pressed={view === "table"} onClick={() => setView("table")} className={`min-h-11 rounded-lg border px-4 ${view === "table" ? "border-[var(--gt-gold)] bg-[var(--gt-cta)] text-white" : "border-[var(--gt-line)]"}`}>☷ ตาราง</button>
         <button type="button" aria-pressed={showPhotos} onClick={() => setShowPhotos(v => !v)} className="min-h-11 rounded-lg border border-[var(--gt-line)] px-4">{showPhotos ? "ซ่อนรูปนักกีฬา" : "แสดงรูปนักกีฬา"}</button>
       </div>
-      <RoundReportButtons eventTitle={eventTitle} divisionName={divisionName} round={round} pool={pool === "all" ? null : pool} matches={matches} byes={byes} people={people} />
+      <RoundReportButtons eventTitle={eventTitle} divisionName={divisionName} round={round} pool={pool === "all" ? null : pool} matches={matches} byes={byes} people={people} visibleAthleteIds={visibleAthleteIds} />
       <p className="-mt-2 text-xs text-[var(--gt-muted)]">มือถือมองตารางเล็กไป? กดปุ่มด้านบน 1 ครั้งเพื่อดูเต็มจอ และดาวน์โหลดเป็นรูปหรือ PDF</p>
       {staff && <p className="rounded-xl border border-[var(--gt-gold)] bg-[var(--gt-gold-soft)] px-3 py-2 text-sm text-[var(--gt-gold-ink)]">คุณเป็นผู้จัดงานนี้ — ลงผลได้จากหน้านี้ (เฉพาะรอบล่าสุด) · ผู้ชมทั่วไปจะไม่เห็นปุ่มลงผล</p>}
 
