@@ -88,7 +88,7 @@ export default function InstitutionPreview() {
      </div>}
     </div>
     {page==="tracking"&&<InstitutionFan sample ov={{academy:{id:"preview",name:institute},access:"active",role:"manager",students:athletes.map((a,i)=>({id:String(i),name:a.name,nickname:null,rank:a.rank,photo:null,go_id:null,added:true})),records:[],tracking:[]}} onBack={()=>open("home")}/>}
-    {page==="results"&&<InstitutionResults sample name={institute} students={athletes.map((a,i)=>({id:String(i),name:a.name,nickname:null,rank:a.rank,photo:null,go_id:null,added:true}))} records={athletes.map((a,i)=>({athlete_id:String(i),tournament_id:a.event,title:a.event,date:"2026-11-26",division_id:String(i),division:a.rank,games:a.games,wins:a.wins,losses:a.games-a.wins,draws:0,pos:null,field:null}))} onBack={()=>open("home")}/>}
+    {page==="results"&&<InstitutionResults sample name={institute} students={athletes.map((a,i)=>({id:String(i),name:a.name,nickname:null,rank:a.rank,photo:null,go_id:null,added:true}))} records={athletes.map((a,i)=>({athlete_id:String(i),tournament_id:a.event,title:a.event,date:"2026-11-26",division_id:String(i),division:a.rank,games:0,wins:0,losses:0,draws:0,pos:null,field:null}))} onBack={()=>open("home")}/>}
     {page==="home"&&<>
      <div className="preview-summary">
       {[["นักกีฬา","4 คน","athlete"],["คุณครู","3 คน","entrants"],["กำลังแข่งขัน","2 คน","register"],["การแข่งขัน","2 รายการ","trophy"],["รางวัล","ข้อมูลตัวอย่าง","results"]].map(([label,value,icon])=><div key={label}><MenuIcon name={icon as MenuIconName}/><span>{label}<strong>{value}</strong></span></div>)}
