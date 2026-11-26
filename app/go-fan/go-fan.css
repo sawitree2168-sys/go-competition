@@ -104,3 +104,28 @@
 .gf-overview-round .gf-outcome{font-size:13px}
 .gf-overview-wait{color:#8a5a00!important}
 .gf-overview-note{margin:0;padding:0 16px 12px;font-size:13px;color:#557198}
+
+/* Two primary entry points for the public and institution tracking views. */
+.gf-tracking-title{margin:18px 0 12px;color:#1452b8;font-size:clamp(24px,3vw,34px);font-weight:700}
+.gf-primary-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:32px}
+.gf-primary-tabs button{display:flex;align-items:center;justify-content:center;gap:16px;min-width:0;min-height:100px;padding:16px;border:3px solid #2361cd;border-radius:20px;background:#fff;color:#1550ad;font:inherit;font-size:clamp(17px,2vw,25px);font-weight:700;transition:background .15s,box-shadow .15s,transform .15s}
+.gf-primary-tabs button[aria-current]{background:linear-gradient(135deg,#1768da,#104bbb);color:#fff;border-color:#d9ad38;box-shadow:0 4px 0 #e9ca71}
+.gf-primary-tabs button>svg{width:36px;height:36px;flex-shrink:0}
+.gf-primary-tabs button span{min-width:0;overflow-wrap:anywhere}
+.gf-primary-tabs small{display:block;margin-top:5px;font-size:13px;font-weight:400}
+.gf-primary-tabs button:active,.gf-event-browser button:active{transform:translateY(2px)}
+.gf-primary-tabs button:focus-visible,.gf-event-browser button:focus-visible{outline:3px solid #d9ad38;outline-offset:4px}
+.gf-event-browser{padding:20px;border:2px solid #2361cd;border-radius:20px;background:#fff}
+.gf-event-browser label{display:block;font-weight:600;color:#1550ad;margin-bottom:8px}
+.gf-event-browser input{width:100%;min-height:48px;padding:10px 14px;border:2px solid #a7c4ec;border-radius:12px;font:inherit;color:#174478;background:#f7faff}
+.gf-event-browser ul{list-style:none;display:grid;gap:14px;padding:0;margin:20px 0 0}
+.gf-event-browser li{display:flex;align-items:center;gap:16px;padding:18px;border:2px solid #80a7e4;border-radius:16px;background:#f8fbff}
+.gf-event-browser li>svg{width:38px;height:38px;color:#ba8a1c;flex-shrink:0}
+.gf-event-browser li>div{min-width:0;flex:1}
+.gf-page .gf-event-browser h3{margin:0 0 6px;color:#1550ad;font-size:20px;overflow-wrap:anywhere}
+.gf-event-browser p{margin:0 0 5px;color:#476383}
+.gf-event-browser small{color:#476383}
+.gf-event-browser button{min-height:48px;padding:10px 18px;border:2px solid #d9ad38;border-radius:12px;background:#1558c6;color:#fff;font:inherit;font-weight:600}
+.gf-event-browser button:disabled{opacity:.6;cursor:wait}
+.gf-container>[hidden]{display:none!important}
+@media(max-width:600px){.gf-primary-tabs{gap:10px;margin-bottom:32px}.gf-primary-tabs button{flex-direction:column;gap:8px;padding:12px 8px;min-height:124px;border-radius:16px;font-size:17px;line-height:1.5}.gf-primary-tabs button>svg{width:28px;height:28px}.gf-primary-tabs small{font-size:11px}.gf-event-browser{padding:12px}.gf-event-browser li{flex-wrap:wrap;padding:12px;gap:10px}.gf-event-browser li>svg{width:28px;height:28px}.gf-page .gf-event-browser h3{font-size:17px}.gf-event-browser button{width:100%}.gf-event-browser p{font-size:13px}}
