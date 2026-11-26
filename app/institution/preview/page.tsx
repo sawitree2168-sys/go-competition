@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import InstitutionFan from "../_ui/InstitutionFan";
 import InstitutionResults from "../_ui/InstitutionResults";
 import InstitutionNameSettings from "../_ui/InstitutionNameSettings";
 import OverviewRoster from "../_ui/OverviewRoster";
@@ -37,9 +38,9 @@ export default function InstitutionPreview() {
  const [institute,setInstitute]=useState("GO MASTER");
  const [mobileMenu,setMobileMenu]=useState(false);
  const open=(id:PageKey)=>{setPage(id);setMobileMenu(false);};
- const isPeople=page==="students"||page==="teachers"||page==="tracking"||page==="stats";
+ const isPeople=page==="students"||page==="teachers"||page==="stats";
  const title=menu.find(m=>m.id===page)?.label??"ภาพรวม";
- return <div className={`institution-preview min-h-screen bg-[#f0f6ff] text-[#092d60] ${page==="results"?"preview-results-full":""}`}>
+ return <div className={`institution-preview min-h-screen bg-[#f0f6ff] text-[#092d60] ${page==="results"||page==="tracking"?"preview-results-full":""}`}>
   <header className="border-b-[3px] border-[#e9b94d] bg-[#09295c] text-white">
    <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
     <Link href="/" className="text-lg font-black sm:text-xl">⚫⚪ GO TOURNAMENT</Link>
@@ -86,6 +87,7 @@ export default function InstitutionPreview() {
        <button type="button" aria-pressed={mode==="cards"} onClick={()=>setMode("cards")} className={`rounded-lg px-3 py-2 ${mode==="cards"?"bg-[#0c62ca] text-white":""}`}>▦ การ์ด</button>
      </div>}
     </div>
+    {page==="tracking"&&<InstitutionFan sample ov={{academy:{id:"preview",name:institute},access:"active",role:"manager",students:athletes.map((a,i)=>({id:String(i),name:a.name,nickname:null,rank:a.rank,photo:null,go_id:null,added:true})),records:[],tracking:[]}} onBack={()=>open("home")}/>}
     {page==="results"&&<InstitutionResults sample name={institute} students={athletes.map((a,i)=>({id:String(i),name:a.name,nickname:null,rank:a.rank,photo:null,go_id:null,added:true}))} records={athletes.map((a,i)=>({athlete_id:String(i),tournament_id:a.event,title:a.event,date:"2026-11-26",division_id:String(i),division:a.rank,games:a.games,wins:a.wins,losses:a.games-a.wins,draws:0,pos:null,field:null}))} onBack={()=>open("home")}/>}
     {page==="home"&&<>
      <div className="preview-summary">

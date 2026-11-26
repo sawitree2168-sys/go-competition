@@ -328,3 +328,8 @@
 .gt-inst .inst-results-full .inst-workspace{display:block}
 .gt-inst .inst-results-full .inst-workspace>aside{display:none}
 .gt-inst .inst-results-full .inst-themed::before{display:none}
+.inst-fan-page{padding:12px;min-height:100vh;background:#f3f8ff}
+.inst-fan-page .gf-container{max-width:none}
+.inst-fan-page .gf-hero{margin-top:10px}
+.gf-institution-tools{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px;border:2px solid #d5ad42;border-radius:15px;background:white;color:#123f82;margin-bottom:14px}
+.gf-institution-tools button{min-height:44px;padding:9px 14px;border:1px solid #d3a535;border-radius:11px;background:#ffe6a1;color:#123f82;font-weight:600}

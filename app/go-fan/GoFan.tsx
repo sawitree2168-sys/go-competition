@@ -10,6 +10,8 @@ import { divisionLabel, thaiDate } from "@/lib/division-display";
 import { fanOutcome, readFanFollows } from "@/lib/go-fan.mjs";
 import { divisionProgress } from "@/lib/competition-dashboard.mjs";
 import { roundsOf } from "@/lib/competition-day.mjs";
+import {scopeFanData,type InstitutionFanScope} from "@/lib/institution-fan";
+import {fanName} from "@/lib/go-fan.mjs";
 import type { FanData, FanPerson } from "@/lib/go-fan-data";
 
 type Follow = { key:string; eventId:string; name:string; institution:string; divisionName:string; photo:string|null; notify:boolean };
@@ -25,10 +27,12 @@ const tabs:{id:Tab;label:string;short:string;icon:MenuIconName}[]=[
 function Bell() { return <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a2 2 0 0 1 2 2v.3A6 6 0 0 1 18 10v5l2 3H4l2-3v-5a6 6 0 0 1 4-5.7V4a2 2 0 0 1 2-2ZM9 20h6a3 3 0 0 1-6 0Z"/></svg>; }
 function ShareIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="5" cy="12" r="3"/><circle cx="18" cy="5" r="3"/><circle cx="18" cy="19" r="3"/><path d="m7.5 10.5 8-4M7.5 13.5l8 4"/></svg>; }
 function Portrait({person}:{person:{name:string;photo?:string|null}}) { return <AthletePhotoViewer src={person.photo} name={person.name} />; }
-function Instructions() { return <section className="gf-instructions"><h2>ⓘ วิธีใช้งาน GO FAN</h2><ol><li>ค้นหาชื่อนักกีฬา</li><li>กด “ติดตาม” (★)</li><li>ดูผลจับคู่และผลแข่งขันอัตโนมัติ</li><li>บันทึกผลเป็นรูป PNG / PDF</li></ol><p>ไม่ต้องล็อกอิน · รายชื่อเก็บในเครื่องนี้<br />แจ้งอัปเดตเมื่อเปิดหน้านี้อยู่</p></section>; }
+function Instructions({institution=false}:{institution?:boolean}) { return <section className="gf-instructions"><h2>ⓘ วิธีใช้งาน GO FAN</h2><ol><li>ค้นหาชื่อนักกีฬา</li><li>กด “ติดตาม” (★)</li><li>ดูผลจับคู่และผลแข่งขันอัตโนมัติ</li><li>บันทึกผลเป็นรูป PNG / PDF</li></ol><p>{institution?"เฉพาะนักกีฬาในสังกัด · รายชื่อเก็บในเครื่องนี้":"ไม่ต้องล็อกอิน · รายชื่อเก็บในเครื่องนี้"}<br />แจ้งอัปเดตเมื่อเปิดหน้านี้อยู่</p></section>; }
 
-export default function GoFan({initial}:{initial:FanData}) {
-  const [data,setData]=useState(initial);
+export default function GoFan({initial,scope}:{initial:FanData;scope?:InstitutionFanScope}) {
+  const storageKey=scope?`${STORAGE}:institution:${scope.id}`:STORAGE;
+  const allowedFollow=(f:Follow)=>!scope||scope.students.some(s=>fanName(s.name)===fanName(f.name));
+  const [data,setData]=useState(()=>scopeFanData(initial,scope));
   const [follows,setFollows]=useState<Follow[]>([]);
   const [ready,setReady]=useState(false);
   const [selectedKey,setSelectedKey]=useState("");
@@ -48,17 +52,17 @@ export default function GoFan({initial}:{initial:FanData}) {
   const followsRef=useRef(follows);
   useEffect(()=>{followsRef.current=follows;},[follows]);
   useEffect(()=>{
-    try { setFollows(readFanFollows(localStorage.getItem(STORAGE))); }
+    try { const saved=localStorage.getItem(storageKey);setFollows(saved===null&&scope?data.participants.slice(0,100).map(p=>({key:p.key,eventId:initial.event?.id??"",name:p.name,institution:p.institution,divisionName:p.divisionName,photo:p.photo??null,notify:true})):readFanFollows(saved).filter(allowedFollow)); }
     catch { setNotice("เครื่องนี้ไม่อนุญาตให้บันทึกการติดตาม รายชื่อจะอยู่จนกว่าจะปิดหน้านี้"); }
     setSelectedKey(new URLSearchParams(window.location.search).get("athlete") ?? "");
     const initialSearch=new URLSearchParams(window.location.search).get("search");if(initialSearch){setQuery(initialSearch);setSearch(initialSearch);}
     setReady(true);
-    const sync=(e:StorageEvent)=>{if(e.key===STORAGE)setFollows(readFanFollows(e.newValue));};
+    const sync=(e:StorageEvent)=>{if(e.key===storageKey)setFollows(readFanFollows(e.newValue).filter(allowedFollow));};
     window.addEventListener("storage",sync);return()=>window.removeEventListener("storage",sync);
   },[]);
   useEffect(()=>{
     if(!ready)return;
-    try {localStorage.setItem(STORAGE,JSON.stringify(follows));}
+    try {localStorage.setItem(storageKey,JSON.stringify(follows));}
     catch {setNotice("บันทึกลงเครื่องไม่ได้ รายชื่อจะอยู่เฉพาะระหว่างเปิดหน้านี้");}
   },[follows,ready]);
 
@@ -68,7 +72,7 @@ export default function GoFan({initial}:{initial:FanData}) {
     currentEvent.current=id;setLoading(true);setError("");liveSignature.current=null;
     try {const response=await fetch(`/api/go-fan?event=${encodeURIComponent(id)}`,{cache:"no-store"});const fresh=await response.json() as FanData;
       if(!response.ok || fresh.error)throw new Error(fresh.error);
-      if(currentEvent.current===id){setData(fresh);setSelectedKey(selection);setDivisionFilter("");setDetail(null);}
+      if(currentEvent.current===id){setData(scopeFanData(fresh,scope));setSelectedKey(selection);setDivisionFilter("");setDetail(null);}
     } catch {if(currentEvent.current===id){currentEvent.current=data.event?.id ?? "";setError("เปลี่ยนรายการไม่สำเร็จ กรุณาลองใหม่");}}
     finally {setLoading(false);}
   }
@@ -84,7 +88,7 @@ export default function GoFan({initial}:{initial:FanData}) {
         const ids=new Set(fresh.participants.filter(p=>tracked.has(p.key)).map(p=>p.athleteId));
         const signature=JSON.stringify(fresh.divisions.map(d=>({id:d.division.id,matches:d.matches.filter(m=>ids.has(m.black_athlete_id)||ids.has(m.white_athlete_id)),byes:d.byes.filter(b=>ids.has(b.athlete_id))})));
         if(liveSignature.current!==null && liveSignature.current!==signature && tracked.size)setNotice("มีการอัปเดตคู่แข่งขันหรือผลของนักกีฬาที่ติดตามแล้ว");
-        liveSignature.current=signature;setData(fresh);setError("");
+        liveSignature.current=signature;setData(scopeFanData(fresh,scope));setError("");
       }catch{if(!stopped && currentEvent.current===eventId)setError("เชื่อมต่อขัดข้อง กำลังลองใหม่ · แสดงข้อมูลล่าสุดที่โหลดได้");}
       finally{busy=false;}
     };
@@ -106,7 +110,7 @@ export default function GoFan({initial}:{initial:FanData}) {
   const standing=division?.standings.find(s=>s.athlete_id===selected?.athleteId);
   const complete=division ? divisionProgress(division.matches,division.byes,roundsOf(division.division)).complete : false;
   const filtered=data.participants.filter(p=>(!divisionFilter||p.divisionId===divisionFilter) && `${p.name} ${p.institution} ${p.divisionName}`.toLowerCase().includes(search.toLowerCase()));
-  const showSearch=!!search || !!divisionFilter;
+  const showSearch=!!scope || !!search || !!divisionFilter;
   const view=tab==="follow" ? subtab : tab==="summary" ? "summary" : tab;
   function toggleFollow(p:FanPerson) {
     if(follows.some(f=>f.key===p.key)){setFollows(prev=>prev.filter(f=>f.key!==p.key));setNotice(`เลิกติดตาม ${p.name} แล้ว`);}
@@ -134,22 +138,23 @@ export default function GoFan({initial}:{initial:FanData}) {
   });
   const otherEventFollows=follows.length-currentFollows.length;
   const caption=view==="pairings"?"ผลจับคู่ (Pairing)":view==="ranking"?"ตารางอันดับ":view==="summary"?"สรุปผลการแข่งขัน":"ผลการแข่งขันของนักกีฬา";
-  return <div className="gf-page competition-page cd-dashboard"><SiteBar current="/go-fan" />
-    <header className="gf-hero"><svg className="gf-desktop-hero-art" viewBox="0 47 1672 153" aria-hidden="true" focusable="false"><image href="/go-fan/approved-desktop.webp" width="1672" height="941" /></svg><div><h1><span>GO</span> FAN <svg className="gf-megaphone" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m8 18 23-9 7 26-25-1Z"/><path d="m15 34 4 11 7-2-4-9M31 9c-1-6 1-7 3-5l10 30c1 4-3 5-6 1M5 20l-3 1 3 11 7 2M39 9l5-4M42 17l6-1"/></svg></h1><p>ติดตามผลการแข่งขันนักกีฬาที่คุณสนใจ</p><ul><li>ค้นหาชื่อ</li><li>กดติดตาม</li><li>ดูผลจับคู่</li><li>ผลการแข่งขัน</li><li>บันทึกรูปได้</li></ul></div></header>
+  return <div className="gf-page competition-page cd-dashboard">{!scope&&<SiteBar current="/go-fan" />}
+    <header className="gf-hero"><svg className="gf-desktop-hero-art" viewBox="0 47 1672 153" aria-hidden="true" focusable="false"><image href="/go-fan/approved-desktop.webp" width="1672" height="941" /></svg><div><h1><span>GO</span> FAN <svg className="gf-megaphone" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m8 18 23-9 7 26-25-1Z"/><path d="m15 34 4 11 7-2-4-9M31 9c-1-6 1-7 3-5l10 30c1 4-3 5-6 1M5 20l-3 1 3 11 7 2M39 9l5-4M42 17l6-1"/></svg></h1><p>{scope?`ติดตามผลการแข่งขันนักกีฬาในสังกัด ${scope.name}`:"ติดตามผลการแข่งขันนักกีฬาที่คุณสนใจ"}</p><ul><li>ค้นหาชื่อ</li><li>กดติดตาม</li><li>ดูผลจับคู่</li><li>ผลการแข่งขัน</li><li>บันทึกรูปได้</li></ul></div></header>
     <main className="gf-container">
+      {scope&&<div className="gf-institution-tools"><strong>นักกีฬาในสังกัดที่ลงรายการนี้ {data.participants.length} คน</strong><button type="button" onClick={()=>{setFollows(prev=>{const keys=new Set(prev.map(f=>f.key));return [...prev,...data.participants.filter(p=>!keys.has(p.key)).map(p=>({key:p.key,eventId,name:p.name,institution:p.institution,divisionName:p.divisionName,photo:p.photo??null,notify:true}))].slice(0,100);});setNotice("ติดตามนักกีฬาในสังกัดรายการนี้แล้ว · บันทึกไว้ในเครื่องนี้");}}>★ ติดตามทั้งสถาบันในรายการนี้</button></div>}
       <div className="gf-search-row"><form onSubmit={e=>{e.preventDefault();setSearch(query.trim());}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></svg><label className="sr-only" htmlFor="gf-search">ค้นหาชื่อนักกีฬา สถาบัน หรือรุ่นแข่งขัน</label><input id="gf-search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ค้นหาชื่อนักกีฬา / สถาบัน / รุ่นแข่งขัน" /><button type="submit">ค้นหา</button></form><button className="gf-follow-count" type="button" onClick={()=>{setTab("follow");document.getElementById("gf-follow-list")?.scrollIntoView({behavior:"smooth",block:"center"});}}>★ นักกีฬาที่ติดตาม ({follows.length})</button></div>
       <div className="gf-filter-disclosure" data-open={filtersOpen}><button className="gf-filter-toggle" type="button" aria-expanded={filtersOpen} onClick={()=>setFiltersOpen(v=>!v)}>ตัวกรองรายการ / รุ่นแข่งขัน</button><div className="gf-event-picker"><label>รายการแข่งขัน <select value={eventId} onChange={e=>void changeEvent(e.target.value)} disabled={loading}>{data.events.map(e=><option key={e.id} value={e.id}>{e.title}</option>)}</select></label><label>รุ่นแข่งขัน <select value={divisionFilter} onChange={e=>setDivisionFilter(e.target.value)} disabled={loading}><option value="">ทุกรุ่น</option>{data.divisions.map(d=><option key={d.division.id} value={d.division.id}>{divisionLabel(d.division.name)}</option>)}</select></label><span>{loading?"กำลังโหลด…":`ตรวจอัปเดตทุก 15 วินาที · ${new Date(data.checkedAt).toLocaleTimeString("th-TH",{timeZone:"Asia/Bangkok",hour:"2-digit",minute:"2-digit"})}`}</span></div></div>
       <section className="gf-event-banner"><MenuIcon name="trophy" /><h2>{data.event?.title ?? "รอประกาศรายการแข่งขัน"}</h2><div><p>▦ {thaiDate(data.event?.event_date ?? null) ?? "รอประกาศวันแข่งขัน"}</p><p>● {data.event?.venue || (/zeer/i.test(data.event?.title ?? "")?"เซียร์ รังสิต":"รอประกาศสถานที่")}</p></div></section>
       <nav className="gf-tabs" aria-label="เมนู GO FAN">{tabs.map(t=><button type="button" key={t.id} aria-current={tab===t.id?"page":undefined} onClick={()=>{setTab(t.id);setDetail(null);}}><MenuIcon name={t.icon} /><span className="gf-desktop-label">{t.label}</span><span className="gf-mobile-label">{t.short}</span></button>)}</nav>
       {error && <p className="gf-error" role="alert">{error}</p>}
       <p className="gf-notice" role="status" aria-live="polite">{notice}</p>
-      {showSearch && <section className="gf-search-results"><div><h2>ผลการค้นหา ({filtered.length} คน)</h2><button type="button" onClick={()=>{setSearch("");setQuery("");setDivisionFilter("");}}>ล้างการค้นหา</button></div><ul>{filtered.map(p=><li key={p.key}><Portrait person={p} /><button className="gf-person-choice" type="button" onClick={()=>{setSelectedKey(p.key);setTab("follow");}}><strong data-athlete-id={p.athleteId??undefined}>{p.name}</strong><small>{p.institution} · {divisionLabel(p.divisionName)}</small></button><button type="button" className="gf-star" aria-pressed={follows.some(f=>f.key===p.key)} aria-label={`${follows.some(f=>f.key===p.key)?"เลิกติดตาม":"ติดตาม"} ${p.name}`} onClick={()=>toggleFollow(p)}>★</button></li>)}</ul>{!filtered.length && <p className="gf-empty">ไม่พบรายชื่อ ลองค้นหาชื่อจริง หรือเลือกทุกรุ่น</p>}</section>}
+      {showSearch && <section className="gf-search-results"><div><h2>{scope?"นักกีฬาในสังกัด":"ผลการค้นหา"} ({filtered.length} คน)</h2><button type="button" onClick={()=>{setSearch("");setQuery("");setDivisionFilter("");}}>ล้างการค้นหา</button></div><ul>{filtered.map(p=><li key={p.key}><Portrait person={p} /><button className="gf-person-choice" type="button" onClick={()=>{setSelectedKey(p.key);setTab("follow");}}><strong data-athlete-id={p.athleteId??undefined}>{p.name}</strong><small>{p.institution} · {divisionLabel(p.divisionName)}</small></button><button type="button" className="gf-star" aria-pressed={follows.some(f=>f.key===p.key)} aria-label={`${follows.some(f=>f.key===p.key)?"เลิกติดตาม":"ติดตาม"} ${p.name}`} onClick={()=>toggleFollow(p)}>★</button></li>)}</ul>{!filtered.length && <p className="gf-empty">ไม่พบรายชื่อ ลองค้นหาชื่อจริง หรือเลือกทุกรุ่น</p>}</section>}
       <div className="gf-layout"><aside className="gf-sidebar">
         <section className="gf-follow-panel" id="gf-follow-list"><h2><span>★ นักกีฬาที่ติดตาม ({follows.length})</span><button type="button" onClick={()=>setManage(v=>!v)}>{manage?"เสร็จ":"✎ จัดการ"}</button></h2>
           {!currentFollows.length && <p className="gf-empty">ยังไม่ได้ติดตามนักกีฬาในรายการนี้<br />ค้นหาชื่อแล้วกด ★ เพื่อเริ่มติดตาม</p>}
           <ul>{follows.map(f=>{const p=data.participants.find(p=>p.key===f.key) ?? f;return <li key={f.key} className={selected?.key===f.key?"selected":""}><Portrait person={p} /><button type="button" className="gf-person-choice" onClick={()=>{if(f.eventId!==eventId)void changeEvent(f.eventId,f.key);else setSelectedKey(f.key);setTab("follow");}}><strong data-athlete-id={"athleteId" in p ? p.athleteId ?? undefined : undefined}>{p.name}</strong><small>{p.institution || "ไม่ระบุสถาบัน"}</small><small>{divisionLabel(p.divisionName)}</small></button>{manage?<button type="button" aria-label={`เลิกติดตาม ${f.name}`} onClick={()=>setFollows(prev=>prev.filter(x=>x.key!==f.key))}>ลบ</button>:<button type="button" className="gf-bell" aria-pressed={f.notify} aria-label={`${f.notify?"ปิด":"เปิด"}แจ้งอัปเดตบนหน้านี้ ${f.name}`} onClick={()=>toggleNotice(f.key)}><Bell /></button>}{selected && selected.key===f.key && !manage && <div className="gf-follow-mobile-actions"><button className="gf-follow-button active" type="button" onClick={()=>toggleFollow(selected)}>★ กำลังติดตาม</button><button className="gf-bell" type="button" aria-pressed={f.notify} aria-label="แจ้งอัปเดตบนหน้านี้" onClick={()=>toggleNotice(f.key)}><Bell/></button><button type="button" aria-label="แชร์ผลของนักกีฬาที่ติดตาม" onClick={()=>void share(selected)}><ShareIcon/></button></div>}</li>;})}</ul>
           {!follows.length && !showSearch && <div className="gf-suggestions"><h3>เลือกนักกีฬาจากรายชื่อจริง</h3>{data.participants.slice(0,3).map(p=><div key={p.key}><Portrait person={p} /><button className="gf-person-choice" type="button" onClick={()=>setSelectedKey(p.key)}><strong data-athlete-id={p.athleteId??undefined}>{p.name}</strong><small>{divisionLabel(p.divisionName)}</small></button><button className="gf-star" type="button" aria-label={`ติดตาม ${p.name}`} onClick={()=>toggleFollow(p)}>☆</button></div>)}</div>}
-        </section><Instructions />
+        </section><Instructions institution={!!scope} />
       </aside>
       <div className="gf-main">
         {tab==="follow"&&overview.length>0&&<section className="gf-overview" aria-label="นักกีฬาที่ติดตามทั้งหมด">
@@ -179,7 +184,7 @@ export default function GoFan({initial}:{initial:FanData}) {
         <button className="gf-summary-link" type="button" onClick={()=>setTab("summary")}>▦ สรุปผลการแข่งขัน</button>
         <button className="gf-share-wide" type="button" onClick={()=>void share(selected)}>แชร์ผลการแข่งขัน <span aria-hidden="true">↗</span></button>
         <p className="gf-live-note">อัปเดตคู่แข่งขันและผลที่ยืนยันแล้วอัตโนมัติเมื่อเปิดหน้านี้ · {thaiDate(data.event?.event_date??null)}</p>
-      </>:<div className="gf-empty-state"><h2>ยังไม่มีรายชื่อผู้เข้าแข่งขันที่เผยแพร่</h2><p>เลือกรายการแข่งขันอื่น หรือติดตามประกาศจากผู้จัด</p><Link href="/tournaments">ดูรายการแข่งขัน</Link></div>}</div></div>
-    </main><footer className="gf-footer"><img className="gf-footer-board" src="/event-hero-board.webp" alt=""/><div><strong>GO TOURNAMENT</strong><p>ติดตามนักกีฬาที่คุณสนใจ · ไม่ต้องล็อกอิน</p><Link href="/tournaments">รายการแข่งขันทั้งหมด →</Link></div></footer>
+      </>:<div className="gf-empty-state"><h2>{scope?"ยังไม่มีนักกีฬาในสังกัดลงรายการนี้":"ยังไม่มีรายชื่อผู้เข้าแข่งขันที่เผยแพร่"}</h2><p>เลือกรายการแข่งขันอื่น หรือติดตามประกาศจากผู้จัด</p><Link href="/tournaments">ดูรายการแข่งขัน</Link></div>}</div></div>
+    </main>{!scope&&<footer className="gf-footer"><img className="gf-footer-board" src="/event-hero-board.webp" alt=""/><div><strong>GO TOURNAMENT</strong><p>ติดตามนักกีฬาที่คุณสนใจ · ไม่ต้องล็อกอิน</p><Link href="/tournaments">รายการแข่งขันทั้งหมด →</Link></div></footer>}
   </div>;
 }

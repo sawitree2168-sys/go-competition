@@ -1,6 +1,7 @@
 "use client";
 
 import "./institution-theme.css";
+import InstitutionFan from "./InstitutionFan";
 import InstitutionNameSettings from "./InstitutionNameSettings";
 import InstitutionResults from "./InstitutionResults";
 import InstitutionHeader from "./InstitutionHeader";
@@ -10,7 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { staffDb } from "@/app/organizer/_lib/staff";
 import { ROLE_LABEL, eventsOf, filterRecords, yearsOf } from "@/lib/institution-portal.mjs";
 import { BoardLogo, ICONS, MENU, selectCls, type Application, type Overview, type View } from "./bits";
-import { Home, Students, Tracking, Awards, Stats, Reports } from "./views";
+import { Home, Students, Awards, Stats, Reports } from "./views";
 import Apply from "./Apply";
 import Join from "./Join";
 import StaffUsername from "./StaffUsername";
@@ -130,7 +131,7 @@ function InstituteWorkspace({academyId,mine,selected,onJoin,onRenamed}:{academyI
   const sectionImage=institutionAssetUrl(theme.section_path);
   const heroImage=institutionAssetUrl(theme.hero_path);
   const backgroundImage=institutionAssetUrl(theme.background_path);
-  return <div className={`space-y-5 inst-themed ${view==="results"?"inst-results-full":""}`} data-institution-color={theme.color} data-section-style={theme.section} data-hero-style={theme.hero} data-background-style={theme.background} style={backgroundImage?{"--inst-custom-background":`url("${backgroundImage}")`} as React.CSSProperties:undefined}>
+  return <div className={`space-y-5 inst-themed ${view==="results"||view==="tracking"?"inst-results-full":""}`} data-institution-color={theme.color} data-section-style={theme.section} data-hero-style={theme.hero} data-background-style={theme.background} style={backgroundImage?{"--inst-custom-background":`url("${backgroundImage}")`} as React.CSSProperties:undefined}>
     <InstitutionHeader onEditName={access&&(selected.role==="manager"||canCustomize||ov?.access==="admin")?()=>go("settings"):undefined} name={ov?.academy.name??selected.name} status={selected.status==="active"?"✓ เปิดใช้งาน":"รออนุมัติสิทธิ์"} description={workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันหมากล้อม · ระบบติดตามนักกีฬาและการแข่งขัน"} bannerImage={sectionImage} coverImage={heroImage}
       logo={<div className="relative"><LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/><button type="button" onClick={()=>go("settings")} aria-label="แก้ไขโลโก้สถาบัน" className="inst-edit-logo">✎</button></div>}
       actions={[
@@ -156,12 +157,12 @@ function InstituteWorkspace({academyId,mine,selected,onJoin,onRenamed}:{academyI
     </nav>
     </aside>
     <div className="inst-workspace-main space-y-5">
-    {view!=="home"&&view!=="results"&&<div className="flex items-center gap-2 text-sm"><button type="button" onClick={()=>go("home")} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-[#bcd1eb] bg-white px-3 font-bold text-[#0b4f9e]">← ภาพรวมสถาบัน</button><span className="text-[#5b6f88]">› {MENU.find(m=>m.id===view)?.title??""}</span></div>}
+    {view!=="home"&&view!=="results"&&view!=="tracking"&&<div className="flex items-center gap-2 text-sm"><button type="button" onClick={()=>go("home")} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-[#bcd1eb] bg-white px-3 font-bold text-[#0b4f9e]">← ภาพรวมสถาบัน</button><span className="text-[#5b6f88]">› {MENU.find(m=>m.id===view)?.title??""}</span></div>}
     {ov?.access==="pending"&&<p role="status" className="rounded-xl border-2 border-[#d6a331] bg-[#fff7df] p-4 text-base font-medium text-[#704d10]">รับคำขอเข้าร่วมสถาบันแล้ว · รอผู้จัดการ GO MASTER อนุมัติสิทธิ์ก่อนจึงจะเพิ่มนักกีฬา สมัครแข่งขัน หรือแก้ไขโลโก้ได้ กรุณาให้ผู้จัดการที่มีสิทธิ์เปิดเมนู “เจ้าของและครู” เพื่อตรวจคำขอ</p>}
     {!ov?<div className="rounded-xl border border-[#bfd1eb] bg-white p-8 text-center" role={error?"alert":"status"}>{error||"กำลังโหลดข้อมูลสถาบัน…"}</div>:<div className="space-y-5">
       {view==="results"&&<InstitutionResults name={ov.academy.name} students={ov.students} records={ov.records} onBack={()=>go("home")}/>}
       {view==="home"&&<Home ov={ov} records={filtered} track={tracking} apps={apps} filters={filters} go={go}/>}
-      {view==="tracking"&&<Tracking ov={ov} track={tracking} filters={filters}/>}
+      {view==="tracking"&&<InstitutionFan ov={ov} onBack={()=>go("home")}/>}
       {view==="live"&&<LiveBoard ov={ov}/>}
       {view==="teachers"&&<AcademyTeam academyId={academyId}/>}
       {view==="teachers"&&<AcademyStaff academyId={academyId} students={ov.students.filter(a=>!a.history_only).map(a=>({id:a.id,name:a.name}))}/>}
