@@ -29,7 +29,7 @@ function ShareIcon() { return <svg viewBox="0 0 24 24" fill="none" stroke="curre
 function Portrait({person}:{person:{name:string;photo?:string|null}}) { return <AthletePhotoViewer src={person.photo} name={person.name} />; }
 function Instructions({institution=false}:{institution?:boolean}) { return <section className="gf-instructions"><h2>ⓘ วิธีใช้งาน GO FAN</h2><ol><li>ค้นหาชื่อนักกีฬา</li><li>กด “ติดตาม” (★)</li><li>ดูผลจับคู่และผลแข่งขันอัตโนมัติ</li><li>บันทึกผลเป็นรูป PNG / PDF</li></ol><p>{institution?"เฉพาะนักกีฬาในสังกัด · รายชื่อเก็บในเครื่องนี้":"ไม่ต้องล็อกอิน · รายชื่อเก็บในเครื่องนี้"}<br />แจ้งอัปเดตเมื่อเปิดหน้านี้อยู่</p></section>; }
 
-export default function GoFan({initial,scope}:{initial:FanData;scope?:InstitutionFanScope}) {
+export default function GoFan({initial,scope,embedded=false}:{initial:FanData;scope?:InstitutionFanScope;embedded?:boolean}) {
   const storageKey=scope?`${STORAGE}:institution:${scope.id}`:STORAGE;
   const allowedFollow=(f:Follow)=>!scope||scope.students.some(s=>fanName(s.name)===fanName(f.name));
   const [data,setData]=useState(()=>scopeFanData(initial,scope));
@@ -43,7 +43,7 @@ export default function GoFan({initial,scope}:{initial:FanData;scope?:Institutio
   const [query,setQuery]=useState("");
   const [search,setSearch]=useState("");
   const [divisionFilter,setDivisionFilter]=useState("");
-  const [filtersOpen,setFiltersOpen]=useState(false);
+  const [filtersOpen,setFiltersOpen]=useState(embedded);
   const [browsePeople,setBrowsePeople]=useState(false);
   const [manage,setManage]=useState(false);
   const [loading,setLoading]=useState(false);
@@ -143,14 +143,14 @@ export default function GoFan({initial,scope}:{initial:FanData;scope?:Institutio
   });
   const otherEventFollows=follows.length-currentFollows.length;
   const caption=view==="pairings"?"ผลจับคู่ (Pairing)":view==="ranking"?"ตารางอันดับ":view==="summary"?"สรุปผลการแข่งขัน":"ผลการแข่งขันของนักกีฬา";
-  return <div className="gf-page competition-page cd-dashboard">{!scope&&<SiteBar current="/go-fan" />}
-    <header className="gf-hero"><svg className="gf-desktop-hero-art" viewBox="0 47 1672 153" aria-hidden="true" focusable="false"><image href="/go-fan/approved-desktop.webp" width="1672" height="941" /></svg><div><h1><span>GO</span> FAN <svg className="gf-megaphone" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m8 18 23-9 7 26-25-1Z"/><path d="m15 34 4 11 7-2-4-9M31 9c-1-6 1-7 3-5l10 30c1 4-3 5-6 1M5 20l-3 1 3 11 7 2M39 9l5-4M42 17l6-1"/></svg></h1><p>{scope?`ติดตามผลการแข่งขันนักกีฬาในสังกัด ${scope.name}`:"ติดตามผลการแข่งขันนักกีฬาที่คุณสนใจ"}</p><ul><li>ค้นหาชื่อ</li><li>กดติดตาม</li><li>ดูผลจับคู่</li><li>ผลการแข่งขัน</li><li>บันทึกรูปได้</li></ul></div></header>
+  return <div className="gf-page competition-page cd-dashboard">{!scope&&!embedded&&<SiteBar current="/go-fan" />}
+    {!embedded&&<header className="gf-hero"><svg className="gf-desktop-hero-art" viewBox="0 47 1672 153" aria-hidden="true" focusable="false"><image href="/go-fan/approved-desktop.webp" width="1672" height="941" /></svg><div><h1><span>GO</span> FAN <svg className="gf-megaphone" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="m8 18 23-9 7 26-25-1Z"/><path d="m15 34 4 11 7-2-4-9M31 9c-1-6 1-7 3-5l10 30c1 4-3 5-6 1M5 20l-3 1 3 11 7 2M39 9l5-4M42 17l6-1"/></svg></h1><p>{scope?`ติดตามผลการแข่งขันนักกีฬาในสังกัด ${scope.name}`:"ติดตามผลการแข่งขันนักกีฬาที่คุณสนใจ"}</p><ul><li>ค้นหาชื่อ</li><li>กดติดตาม</li><li>ดูผลจับคู่</li><li>ผลการแข่งขัน</li><li>บันทึกรูปได้</li></ul></div></header>}
     <main className="gf-container">
-      <h2 className="gf-tracking-title">ติดตามการแข่งขัน</h2>
-      <nav className="gf-primary-tabs" aria-label="หน้าติดตามการแข่งขัน">
+      {!embedded&&<h2 className="gf-tracking-title">ติดตามการแข่งขัน</h2>}
+      {!embedded&&<nav className="gf-primary-tabs" aria-label="หน้าติดตามการแข่งขัน">
         <button type="button" aria-current={section==="following"?"page":undefined} onClick={()=>setSection("following")}><MenuIcon name="entrants"/><span>การแข่งขันที่กำลังติดตาม<small>นักกีฬาที่เลือกไว้ · {ready?follows.length:0} คน</small></span></button>
         <button type="button" aria-current={section==="all"?"page":undefined} onClick={()=>setSection("all")}><MenuIcon name="trophy"/><span>การแข่งขันทั้งหมด<small>เลือกรายการเพื่อค้นหาและติดตามนักกีฬา</small></span></button>
-      </nav>
+      </nav>}
       {error && <p className="gf-error" role="alert">{error}</p>}
       {section==="all"&&<section className="gf-event-browser" aria-label="การแข่งขันทั้งหมด">
         <label htmlFor="gf-event-search">ค้นหารายการแข่งขัน</label>
