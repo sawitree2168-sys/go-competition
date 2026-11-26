@@ -9,11 +9,11 @@
 .institution-preview .preview-workspace{grid-template-columns:220px minmax(0,1fr)}
 .institution-preview .preview-workspace>aside{position:sticky;top:16px;padding:12px;border:1px solid #b5cfee;border-radius:16px;background:white}
 .institution-preview .preview-workspace>aside h2{font-size:16px;margin-bottom:12px}
-.institution-preview .preview-workspace nav{display:flex;flex-direction:column;gap:6px}
-.institution-preview .preview-workspace nav button{min-height:49px;flex-direction:row;justify-content:flex-start;gap:10px;border:1px solid transparent;border-radius:10px;box-shadow:none;padding:10px 12px}
-.institution-preview .preview-workspace nav button[aria-current=page]{background:linear-gradient(100deg,#ffeeb0,#ffda76);border-color:#d7ac3d;color:#10356d}
+.institution-preview .preview-workspace>aside nav{display:flex;flex-direction:column;gap:6px}
+.institution-preview .preview-workspace>aside nav button{min-height:49px;flex-direction:row;justify-content:flex-start;gap:10px;border:1px solid transparent;border-radius:10px;box-shadow:none;padding:10px 12px}
+.institution-preview .preview-workspace>aside nav button[aria-current=page]{background:linear-gradient(100deg,#ffeeb0,#ffda76);border-color:#d7ac3d;color:#10356d}
 }
-@media(max-width:600px){.institution-preview .preview-logo{width:78px;height:78px;font-size:16px}.institution-preview>header>div{flex-wrap:wrap}.institution-preview .preview-workspace nav button{min-height:72px;border-width:1.5px;font-size:12px}.institution-preview .preview-content{padding:12px}.institution-preview .preview-content>div>h2{font-size:20px}}
+@media(max-width:600px){.institution-preview .preview-logo{width:78px;height:78px;font-size:16px}.institution-preview>header>div{flex-wrap:wrap}.institution-preview .preview-workspace>aside nav button{min-height:72px;border-width:1.5px;font-size:12px}.institution-preview .preview-content{padding:12px}.institution-preview .preview-content>div>h2{font-size:20px}}
 .institution-preview .preview-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
 .institution-preview .preview-summary>div{display:flex;align-items:center;gap:9px;padding:13px 10px;border:1.5px solid #d6ac3e;border-radius:14px;background:linear-gradient(#fff,#f5f9ff);font-size:12px}
 .institution-preview .preview-summary svg{width:29px;height:29px;flex:none;color:#0865d4}
