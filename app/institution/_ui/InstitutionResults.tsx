@@ -31,6 +31,8 @@ export default function InstitutionResults({name,students,records,onBack,sample=
  },[rows,records,students,byId,publicData,event,year,division,query]);
  const download=async(kind:"png"|"pdf")=>{if(busy||!content.current)return;setBusy(kind);setNote("");try{
   const source=content.current;const clone=source.cloneNode(true) as HTMLDivElement;
+  // Export copies sit outside the viewport: lazy images must load before capture waits for decode.
+  clone.querySelectorAll<HTMLImageElement>("img").forEach(img=>{img.loading="eager";});
   clone.style.width=`${Math.max(source.clientWidth,...Array.from(source.querySelectorAll("table")).map(t=>t.scrollWidth+80))}px`;
   const host=document.createElement("div");host.style.position="fixed";host.style.left="-100000px";host.style.top="0";host.appendChild(clone);
   clone.querySelectorAll<HTMLElement>("[data-wall-scroll]").forEach(el=>{el.style.overflow="visible";});
