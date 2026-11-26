@@ -53,7 +53,7 @@ export default function InstitutionPreview() {
       <button type="button" aria-pressed={role==="independent"} onClick={()=>{setRole("independent");if(page==="settings")setPage("home");}} className={`rounded-md px-3 py-2 ${role==="independent"?"bg-[#0d61c4] text-white":"text-[#184577]"}`}>ครูอิสระ</button>
     </div>
    </div>
-   <InstitutionHeader name={institute||"ชื่อสถาบัน"} status="ตัวอย่าง · เจ้าของสถาบัน" description="สถาบันหมากล้อม · ระบบติดตามนักกีฬาและการแข่งขัน"
+   <InstitutionHeader onRename={role==="owner"?async name=>{setInstitute(name);}:undefined} name={institute||"ชื่อสถาบัน"} status="ตัวอย่าง · เจ้าของสถาบัน" description="สถาบันหมากล้อม · ระบบติดตามนักกีฬาและการแข่งขัน"
     logo={<button type="button" aria-label="แก้ไขโลโก้สถาบัน" onClick={()=>open("settings")} className={`preview-logo ${shape==="circle"?"rounded-full":"rounded-xl"}`}>
       {logoFile?<img src={logoFile} alt="ตัวอย่างโลโก้สถาบัน" style={{transform:`scale(${logoScale/100})`}} className="h-full w-full object-cover"/>:<span>GO<br/>MASTER</span>}
     </button>}

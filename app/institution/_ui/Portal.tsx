@@ -64,12 +64,12 @@ export default function Portal(){
       {(state.mode==="none"||joining)&&<div>
         <Join admin={state.admin} onCancel={joining?()=>setJoining(false):undefined} onJoined={async id=>{setJoining(false);setAcademyId(id);await loadMine();}}/>
       </div>}
-      {state.mode==="ready"&&!joining&&selected&&<InstituteWorkspace academyId={academyId} mine={state.mine} selected={selected} onJoin={()=>setJoining(true)} />}
+      {state.mode==="ready"&&!joining&&selected&&<InstituteWorkspace academyId={academyId} mine={state.mine} selected={selected} onJoin={()=>setJoining(true)} onRenamed={name=>setState(s=>({...s,mine:s.mine.map(m=>m.id===academyId?{...m,name}:m)}))} />}
     </main>
   </div>;
 }
 
-function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;mine:Mine[];selected:Mine;onJoin:()=>void}){
+function InstituteWorkspace({academyId,mine,selected,onJoin,onRenamed}:{academyId:string;mine:Mine[];selected:Mine;onJoin:()=>void;onRenamed:(name:string)=>void}){
   const [ov,setOv]=useState<Overview|null>(null);
   const [apps,setApps]=useState<Application[]>([]);
   const [error,setError]=useState("");
@@ -123,7 +123,12 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   const heroImage=institutionAssetUrl(theme.hero_path);
   const backgroundImage=institutionAssetUrl(theme.background_path);
   return <div className="space-y-5 inst-themed" data-institution-color={theme.color} data-section-style={theme.section} data-hero-style={theme.hero} data-background-style={theme.background} style={backgroundImage?{"--inst-custom-background":`url("${backgroundImage}")`} as React.CSSProperties:undefined}>
-    <InstitutionHeader name={ov?.academy.name??selected.name} status={selected.status==="active"?"✓ เปิดใช้งาน":"รออนุมัติสิทธิ์"} description={workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันหมากล้อม · ระบบติดตามนักกีฬาและการแข่งขัน"} bannerImage={sectionImage} coverImage={heroImage}
+    <InstitutionHeader onRename={access&&(selected.role==="manager"||canCustomize||ov?.access==="admin")?async name=>{
+      const db=staffDb();if(!db)throw new Error("ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่");
+      const {data,error:saveError}=await db.rpc("gt_academy_rename_v1",{p_academy:academyId,p_name:name,p_expected_name:ov?.academy.name??selected.name});
+      if(saveError||!data?.ok){const message=saveError?.message??data?.error??"";throw new Error(message.includes("NAME_TAKEN")?"ชื่อนี้มีสถาบันอื่นใช้แล้ว กรุณาใช้ชื่ออื่น":message.includes("NAME_CHANGED")?"ชื่อถูกเปลี่ยนจากหน้าต่างอื่น กรุณารีเฟรชแล้วลองใหม่":message.includes("NOT_ALLOWED")?"บัญชีนี้ไม่มีสิทธิ์แก้ไขชื่อสถาบัน":message.includes("BAD_NAME")?"กรุณาระบุชื่อสถาบัน 2–160 ตัวอักษร":"บันทึกไม่สำเร็จ กรุณาลองใหม่");}
+      const saved=String(data.name);setOv(current=>current?{...current,academy:{...current.academy,name:saved}}:current);onRenamed(saved);
+     }:undefined} name={ov?.academy.name??selected.name} status={selected.status==="active"?"✓ เปิดใช้งาน":"รออนุมัติสิทธิ์"} description={workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันหมากล้อม · ระบบติดตามนักกีฬาและการแข่งขัน"} bannerImage={sectionImage} coverImage={heroImage}
       logo={<div className="relative"><LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/><button type="button" onClick={()=>go("settings")} aria-label="แก้ไขโลโก้สถาบัน" className="inst-edit-logo">✎</button></div>}
       actions={[
        {label:"จัดการนักกีฬา (สมาชิก)",icon:<MenuIcon name="entrants"/>,onClick:()=>go("students")},
