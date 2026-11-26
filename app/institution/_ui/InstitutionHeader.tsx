@@ -5,7 +5,7 @@ import MenuIcon from "@/components/MenuIcon";
 import styles from "./InstitutionHeader.module.css";
 
 type Action = { label: string; icon: ReactNode; onClick: () => void };
-export default function InstitutionHeader({name,logo,status,description,actions,bannerImage,coverImage,onRename}:{name:string;logo:ReactNode;status:string;description:string;actions:Action[];bannerImage?:string|null;coverImage?:string|null;onRename?:(name:string)=>Promise<void>}) {
+export default function InstitutionHeader({name,logo,status,description,actions,bannerImage,coverImage,onRename,onEditName}:{name:string;logo:ReactNode;status:string;description:string;actions:Action[];bannerImage?:string|null;coverImage?:string|null;onRename?:(name:string)=>Promise<void>;onEditName?:()=>void}) {
  const [editing,setEditing]=useState(false);
  const [draft,setDraft]=useState(name);
  const [busy,setBusy]=useState(false);
@@ -31,7 +31,7 @@ export default function InstitutionHeader({name,logo,status,description,actions,
   <section className={styles.identity} style={coverImage?{backgroundImage:`linear-gradient(90deg,rgba(255,255,255,.97),rgba(255,255,255,.86)),url("${coverImage}")`}:undefined}>
    <div className={styles.profile}>
     <div className={styles.logo}>{logo}</div>
-    <div className={styles.details}><div className={styles.nameRow}><h1>{name}</h1>{onRename&&!editing&&<button type="button" className={styles.editName} onClick={begin} aria-label="แก้ไขชื่อสถาบัน" title="แก้ไขชื่อสถาบัน"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L21 7a2.1 2.1 0 0 0-4-4L5 15z"/></svg></button>}</div>
+    <div className={styles.details}><div className={styles.nameRow}><h1>{name}</h1>{(onRename||onEditName)&&!editing&&<button type="button" className={styles.editName} onClick={onEditName??begin} aria-label="แก้ไขชื่อสถาบัน" title="แก้ไขชื่อสถาบัน"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L21 7a2.1 2.1 0 0 0-4-4L5 15z"/></svg></button>}</div>
      {editing&&<form onSubmit={save} className={styles.nameForm} aria-busy={busy}>
       <label htmlFor={inputId}>ชื่อสถาบัน</label><input id={inputId} value={draft} onChange={e=>setDraft(e.target.value)} minLength={2} maxLength={160} required autoFocus disabled={busy} aria-invalid={Boolean(error)} aria-describedby={error?`${inputId}-error`:undefined}/>
       <div><button type="submit" disabled={busy}>{busy?"กำลังบันทึก…":"บันทึกชื่อ"}</button><button type="button" disabled={busy} onClick={()=>{setEditing(false);setError("");}}>ยกเลิก</button></div>

@@ -5,7 +5,7 @@ import { useState, type RefObject } from "react";
 const safeName = (s: string) => s.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").slice(0, 120);
 
 /** Draws the element as a PNG (export-ignore parts such as these buttons are left out). */
-async function capture(el: HTMLElement): Promise<Blob> {
+export async function capture(el: HTMLElement): Promise<Blob> {
   await document.fonts.ready;
   await Promise.all(Array.from(el.querySelectorAll("img")).map((img) => img.decode().catch(() => undefined)));
   const { toCanvas } = await import("html-to-image");
@@ -13,7 +13,7 @@ async function capture(el: HTMLElement): Promise<Blob> {
   const height = el.scrollHeight;
   const canvas = await toCanvas(el, {
     width, height, backgroundColor: "#ffffff", pixelRatio: Math.min(2, 12000 / Math.max(width, height)),
-    style: { height: `${height}px`, maxHeight: "none", overflow: "visible" },
+    style: { width: `${width}px`, maxWidth: "none", height: `${height}px`, maxHeight: "none", overflow: "visible" },
     filter: (node) => !(node instanceof HTMLElement && node.dataset.exportIgnore === "true"),
   });
   return new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("PNG failed"))), "image/png"));

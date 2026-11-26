@@ -320,3 +320,11 @@
 .gt-inst .inst-overview-columns{display:grid;gap:16px;align-items:start}
 .gt-inst .inst-workspace-main .gt-card>header p{color:#e4efff}
 @media(min-width:1280px){.gt-inst .inst-overview-columns{grid-template-columns:minmax(0,1.65fr) minmax(0,1fr)}}
+
+/* Competition results occupy their own full-width page, with no dashboard chrome. */
+.gt-inst:has(.inst-results-full)>.inst-topbar{display:none}
+.gt-inst:has(.inst-results-full)>.inst-shell{max-width:none;padding:0}
+.gt-inst .inst-results-full>:not(.inst-workspace){display:none}
+.gt-inst .inst-results-full .inst-workspace{display:block}
+.gt-inst .inst-results-full .inst-workspace>aside{display:none}
+.gt-inst .inst-results-full .inst-themed::before{display:none}

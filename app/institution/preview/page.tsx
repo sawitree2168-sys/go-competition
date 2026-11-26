@@ -1,21 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import InstitutionResults from "../_ui/InstitutionResults";
+import InstitutionNameSettings from "../_ui/InstitutionNameSettings";
 import OverviewRoster from "../_ui/OverviewRoster";
 import InstitutionHeader from "../_ui/InstitutionHeader";
 import MenuIcon, {type MenuIconName} from "@/components/MenuIcon";
 import "./preview.css";
 import {useState} from "react";
 
-type PageKey="home"|"students"|"teachers"|"tracking"|"stats"|"settings";
+type PageKey="home"|"results"|"students"|"teachers"|"tracking"|"stats"|"settings";
 type Mode="cards"|"table";
 const menu:{id:PageKey;label:string;icon:MenuIconName}[]=[
  {id:"home",label:"ภาพรวม",icon:"home"},
  {id:"students",label:"นักกีฬา",icon:"athlete"},
  {id:"teachers",label:"ครูในสถาบัน",icon:"entrants"},
- {id:"tracking",label:"ผลการแข่งขัน",icon:"trophy"},
+ {id:"tracking",label:"ติดตามการแข่งขัน",icon:"fan"},
+ {id:"results",label:"ผลการแข่งขัน",icon:"trophy"},
  {id:"stats",label:"สถิติพัฒนาการ",icon:"stats"},
- {id:"settings",label:"ตั้งค่าสถาบัน",icon:"school"},
+ {id:"settings",label:"ข้อมูลสถาบัน / โลโก้",icon:"school"},
 ];
 const athletes=[
  {name:"นักกีฬาตัวอย่าง A",rank:"3 คิว",event:"ZEER GO KYU WAR 2026",wins:3,games:4,status:"กำลังแข่งขัน"},
@@ -36,7 +39,7 @@ export default function InstitutionPreview() {
  const open=(id:PageKey)=>{setPage(id);setMobileMenu(false);};
  const isPeople=page==="students"||page==="teachers"||page==="tracking"||page==="stats";
  const title=menu.find(m=>m.id===page)?.label??"ภาพรวม";
- return <div className="institution-preview min-h-screen bg-[#f0f6ff] text-[#092d60]">
+ return <div className={`institution-preview min-h-screen bg-[#f0f6ff] text-[#092d60] ${page==="results"?"preview-results-full":""}`}>
   <header className="border-b-[3px] border-[#e9b94d] bg-[#09295c] text-white">
    <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
     <Link href="/" className="text-lg font-black sm:text-xl">⚫⚪ GO TOURNAMENT</Link>
@@ -53,16 +56,16 @@ export default function InstitutionPreview() {
       <button type="button" aria-pressed={role==="independent"} onClick={()=>{setRole("independent");if(page==="settings")setPage("home");}} className={`rounded-md px-3 py-2 ${role==="independent"?"bg-[#0d61c4] text-white":"text-[#184577]"}`}>ครูอิสระ</button>
     </div>
    </div>
-   <InstitutionHeader onRename={role==="owner"?async name=>{setInstitute(name);}:undefined} name={institute||"ชื่อสถาบัน"} status="ตัวอย่าง · เจ้าของสถาบัน" description="สถาบันหมากล้อม · ระบบติดตามนักกีฬาและการแข่งขัน"
+   <InstitutionHeader onEditName={role==="owner"?()=>open("settings"):undefined} name={institute||"ชื่อสถาบัน"} status="ตัวอย่าง · เจ้าของสถาบัน" description="สถาบันหมากล้อม · ระบบติดตามนักกีฬาและการแข่งขัน"
     logo={<button type="button" aria-label="แก้ไขโลโก้สถาบัน" onClick={()=>open("settings")} className={`preview-logo ${shape==="circle"?"rounded-full":"rounded-xl"}`}>
       {logoFile?<img src={logoFile} alt="ตัวอย่างโลโก้สถาบัน" style={{transform:`scale(${logoScale/100})`}} className="h-full w-full object-cover"/>:<span>GO<br/>MASTER</span>}
     </button>}
     actions={[
       {label:"จัดการนักกีฬา (สมาชิก)",icon:<MenuIcon name="entrants"/>,onClick:()=>open("students")},
-      {label:"ผลการแข่งขัน",icon:<MenuIcon name="trophy"/>,onClick:()=>open("tracking")},
+      {label:"ติดตามการแข่งขันนักเรียน",icon:<MenuIcon name="fan"/>,onClick:()=>open("tracking")},
+      {label:"ผลการแข่งขัน",icon:<MenuIcon name="trophy"/>,onClick:()=>open("results")},
       ...(role==="owner"?[
-       {label:"แก้ไขข้อมูลสถาบัน",icon:<MenuIcon name="school"/>,onClick:()=>open("settings")},
-       {label:"อัปโหลดโลโก้ / รูปภาพ",icon:<MenuIcon name="gallery"/>,onClick:()=>open("settings")},
+       {label:"ข้อมูลสถาบัน / โลโก้",icon:<MenuIcon name="school"/>,onClick:()=>open("settings")},
       ]:[]),
     ]}/>
    <div className="preview-workspace">
@@ -83,6 +86,7 @@ export default function InstitutionPreview() {
        <button type="button" aria-pressed={mode==="cards"} onClick={()=>setMode("cards")} className={`rounded-lg px-3 py-2 ${mode==="cards"?"bg-[#0c62ca] text-white":""}`}>▦ การ์ด</button>
      </div>}
     </div>
+    {page==="results"&&<InstitutionResults sample name={institute} students={athletes.map((a,i)=>({id:String(i),name:a.name,nickname:null,rank:a.rank,photo:null,go_id:null,added:true}))} records={athletes.map((a,i)=>({athlete_id:String(i),tournament_id:a.event,title:a.event,date:"2026-11-26",division_id:String(i),division:a.rank,games:a.games,wins:a.wins,losses:a.games-a.wins,draws:0,pos:null,field:null}))} onBack={()=>open("home")}/>}
     {page==="home"&&<>
      <div className="preview-summary">
       {[["นักกีฬา","4 คน","athlete"],["คุณครู","3 คน","entrants"],["กำลังแข่งขัน","2 คน","register"],["การแข่งขัน","2 รายการ","trophy"],["รางวัล","ข้อมูลตัวอย่าง","results"]].map(([label,value,icon])=><div key={label}><MenuIcon name={icon as MenuIconName}/><span>{label}<strong>{value}</strong></span></div>)}
@@ -91,6 +95,7 @@ export default function InstitutionPreview() {
      <section className="preview-activity"><h3>กิจกรรมล่าสุด</h3><p>ตัวอย่างหน้าตาเมื่อมีการเพิ่มนักกีฬา สมัครแข่งขัน หรือปรับข้อมูลสถาบัน</p><ul><li>เพิ่มนักกีฬาตัวอย่าง A เข้าสังกัด</li><li>เพิ่มครูตัวอย่าง B เข้าสถาบัน</li><li>ปรับปรุงข้อมูลสถาบัน</li></ul></section>
     </>}
     {page==="settings"&&<div className="space-y-4">
+      <InstitutionNameSettings name={institute} onSave={async name=>{setInstitute(name);}}/>
       <p className="text-sm text-[#587296]">ลองอัปโหลดโลโก้และเลือกรูปแบบได้บนหน้าตรวจงานนี้ รูปจะยังไม่ถูกบันทึกลงฐานข้อมูล</p>
       <label className="block rounded-xl border-2 border-dashed border-[#93b5de] bg-[#f6faff] p-5 text-center font-bold text-[#1556a1]">เลือกรูปโลโก้ (PNG, JPEG, WEBP)<input type="file" accept="image/png,image/jpeg,image/webp" className="mt-3 block w-full text-sm" onChange={e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>5*1024*1024){alert("ไฟล์ต้องไม่เกิน 5 MB");return;}if(logoFile)URL.revokeObjectURL(logoFile);setLogoFile(URL.createObjectURL(f));}}/></label>
       <div className="flex flex-wrap gap-2">{(["circle","square"] as const).map(sh=><button type="button" key={sh} aria-pressed={shape===sh} onClick={()=>setShape(sh)} className={`rounded-lg border-2 px-4 py-2 font-bold ${shape===sh?"border-[#e9b54b] bg-[#0b61c0] text-white":"border-[#bdd0e8]"}`}>{sh==="circle"?"◯ วงกลม":"▢ สี่เหลี่ยม"}</button>)}</div>

@@ -24,10 +24,11 @@ export type Application = {
   id: string; name: string; rank: string; athlete_id: string | null; tournament_id: string; title: string; date: string | null;
   division: string; fee: number | string | null; status: "pending" | "approved" | "rejected"; payment: string | null; created_at: string; reference: string;
 };
-export type View = "home" | "students" | "teachers" | "tracking" | "live" | "awards" | "stats" | "reports" | "apply" | "settings";
+export type View = "home" | "results" | "students" | "teachers" | "tracking" | "live" | "awards" | "stats" | "reports" | "apply" | "settings";
 
 const P = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
 export const ICONS: Record<Exclude<View, "home">, React.ReactNode> = {
+  results: <svg viewBox="0 0 24 24" aria-hidden="true" {...P}><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg>,
   teachers: <svg viewBox="0 0 24 24" aria-hidden="true" {...P}><circle cx="12" cy="6" r="3"/><path d="M5 21v-4a7 7 0 0 1 14 0v4M8 13h8"/></svg>,
   settings: <svg viewBox="0 0 24 24" aria-hidden="true" {...P}><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12m9.9 9.9 2.12 2.12M4.93 19.07l2.12-2.12m9.9-9.9 2.12-2.12"/></svg>,
   students: <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><circle cx="12" cy="7.5" r="3.4" /><circle cx="5.2" cy="9" r="2.5" /><circle cx="18.8" cy="9" r="2.5" /><path d="M5.5 20c0-3.9 2.9-6.6 6.5-6.6s6.5 2.7 6.5 6.6Z" /><path d="M.8 19.2c0-2.8 1.8-4.8 4.3-4.8 1 0 1.8.3 2.5.8-1.4 1.2-2.2 2.6-2.4 4Zm22.4 0c0-2.8-1.8-4.8-4.3-4.8-1 0-1.8.3-2.5.8 1.4 1.2 2.2 2.6 2.4 4Z" /></svg>,
@@ -42,7 +43,8 @@ export const ICONS: Record<Exclude<View, "home">, React.ReactNode> = {
 export const MENU: { id: Exclude<View, "home">; title: string; sub: string; tone?: string }[] = [
   { id: "students", title: "นักกีฬา", sub: "รายชื่อและระดับฝีมือ" },
   { id: "teachers", title: "เจ้าของและครู", sub: "เจ้าของหลายคน ครู และผลงาน" },
-  { id: "tracking", title: "ผลการแข่งขัน", sub: "รอบ โต๊ะ และคู่แข่ง" },
+  { id: "tracking", title: "ติดตามการแข่งขัน", sub: "นักเรียน รอบ โต๊ะ และคู่แข่ง" },
+  { id: "results", title: "ผลการแข่งขัน", sub: "เต็มหน้า · ดาวน์โหลด PNG / PDF" },
   { id: "live", title: "กระดานสด", sub: "ทุกคนในงานบนจอเดียว + การ์ดสรุป" },
   { id: "apply", title: "สมัครแข่งขัน", sub: "สมัครแบบกลุ่มและตรวจสถานะ" },
   { id: "awards", title: "ผลงาน", sub: "เหรียญและอันดับของนักเรียน" },

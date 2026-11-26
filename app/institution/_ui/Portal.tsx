@@ -1,6 +1,8 @@
 "use client";
 
 import "./institution-theme.css";
+import InstitutionNameSettings from "./InstitutionNameSettings";
+import InstitutionResults from "./InstitutionResults";
 import InstitutionHeader from "./InstitutionHeader";
 import { shownName } from "@/lib/easy-auth.mjs";
 import Link from "next/link";
@@ -24,7 +26,7 @@ import { INSTITUTION_RETURN_KEY } from "@/components/InstitutionReturn";
 
 type Mine = { id: string; name: string; role: "manager" | "teacher"; status: "active" | "pending" };
 type State = { mode:"loading" | "out" | "none" | "ready"; mine:Mine[]; email:string; admin:boolean };
-const VIEWS:View[] = ["home","tracking","live","students","teachers","awards","stats","reports","apply","settings"];
+const VIEWS:View[] = ["home","results","tracking","live","students","teachers","awards","stats","reports","apply","settings"];
 const initialView=():View=>{
   if(typeof window==="undefined") return "home";
   const value=new URLSearchParams(location.search).get("v") as View;
@@ -119,22 +121,23 @@ function InstituteWorkspace({academyId,mine,selected,onJoin,onRenamed}:{academyI
       <option value="">ทุกรายการ</option>{events.map(e=><option key={e.id} value={e.id}>{e.title}</option>)}
     </select>
   </div>;
-  const sectionImage=institutionAssetUrl(theme.section_path);
-  const heroImage=institutionAssetUrl(theme.hero_path);
-  const backgroundImage=institutionAssetUrl(theme.background_path);
-  return <div className="space-y-5 inst-themed" data-institution-color={theme.color} data-section-style={theme.section} data-hero-style={theme.hero} data-background-style={theme.background} style={backgroundImage?{"--inst-custom-background":`url("${backgroundImage}")`} as React.CSSProperties:undefined}>
-    <InstitutionHeader onRename={access&&(selected.role==="manager"||canCustomize||ov?.access==="admin")?async name=>{
+  const renameInstitution=async(name:string)=>{
       const db=staffDb();if(!db)throw new Error("ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่");
       const {data,error:saveError}=await db.rpc("gt_academy_rename_v1",{p_academy:academyId,p_name:name,p_expected_name:ov?.academy.name??selected.name});
       if(saveError||!data?.ok){const message=saveError?.message??data?.error??"";throw new Error(message.includes("NAME_TAKEN")?"ชื่อนี้มีสถาบันอื่นใช้แล้ว กรุณาใช้ชื่ออื่น":message.includes("NAME_CHANGED")?"ชื่อถูกเปลี่ยนจากหน้าต่างอื่น กรุณารีเฟรชแล้วลองใหม่":message.includes("NOT_ALLOWED")?"บัญชีนี้ไม่มีสิทธิ์แก้ไขชื่อสถาบัน":message.includes("BAD_NAME")?"กรุณาระบุชื่อสถาบัน 2–160 ตัวอักษร":"บันทึกไม่สำเร็จ กรุณาลองใหม่");}
       const saved=String(data.name);setOv(current=>current?{...current,academy:{...current.academy,name:saved}}:current);onRenamed(saved);
-     }:undefined} name={ov?.academy.name??selected.name} status={selected.status==="active"?"✓ เปิดใช้งาน":"รออนุมัติสิทธิ์"} description={workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันหมากล้อม · ระบบติดตามนักกีฬาและการแข่งขัน"} bannerImage={sectionImage} coverImage={heroImage}
+  };
+  const sectionImage=institutionAssetUrl(theme.section_path);
+  const heroImage=institutionAssetUrl(theme.hero_path);
+  const backgroundImage=institutionAssetUrl(theme.background_path);
+  return <div className={`space-y-5 inst-themed ${view==="results"?"inst-results-full":""}`} data-institution-color={theme.color} data-section-style={theme.section} data-hero-style={theme.hero} data-background-style={theme.background} style={backgroundImage?{"--inst-custom-background":`url("${backgroundImage}")`} as React.CSSProperties:undefined}>
+    <InstitutionHeader onEditName={access&&(selected.role==="manager"||canCustomize||ov?.access==="admin")?()=>go("settings"):undefined} name={ov?.academy.name??selected.name} status={selected.status==="active"?"✓ เปิดใช้งาน":"รออนุมัติสิทธิ์"} description={workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันหมากล้อม · ระบบติดตามนักกีฬาและการแข่งขัน"} bannerImage={sectionImage} coverImage={heroImage}
       logo={<div className="relative"><LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/><button type="button" onClick={()=>go("settings")} aria-label="แก้ไขโลโก้สถาบัน" className="inst-edit-logo">✎</button></div>}
       actions={[
        {label:"จัดการนักกีฬา (สมาชิก)",icon:<MenuIcon name="entrants"/>,onClick:()=>go("students")},
-       {label:"สมัครแข่งขัน",icon:<MenuIcon name="register"/>,onClick:()=>go("apply")},
-       {label:"แก้ไขข้อมูลสถาบัน",icon:<MenuIcon name="school"/>,onClick:()=>go("settings")},
-       {label:"อัปโหลดโลโก้ / รูปภาพ",icon:<MenuIcon name="gallery"/>,onClick:()=>go("settings")},
+       {label:"ติดตามการแข่งขันนักเรียน",icon:<MenuIcon name="fan"/>,onClick:()=>go("tracking")},
+       {label:"ผลการแข่งขัน",icon:<MenuIcon name="trophy"/>,onClick:()=>go("results")},
+       {label:"ข้อมูลสถาบัน / โลโก้",icon:<MenuIcon name="school"/>,onClick:()=>go("settings")},
       ]}/>
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-[#bdd2eb] bg-white p-3"><span className="text-sm font-semibold text-[#164476]">{workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันและครูสามารถใช้คนละบัญชีได้"}</span><button type="button" onClick={onJoin} className="min-h-11 rounded-xl border-2 border-[#e4b64f] bg-[#fff7df] px-4 text-sm font-black text-[#76510b]">+ เพิ่มสถาบัน / เปิดพื้นที่ครูอิสระ</button></div>
     {mine.length>1&&<div className="rounded-xl border border-[#bdcfe8] bg-white p-3">
@@ -153,9 +156,10 @@ function InstituteWorkspace({academyId,mine,selected,onJoin,onRenamed}:{academyI
     </nav>
     </aside>
     <div className="inst-workspace-main space-y-5">
-    {view!=="home"&&<div className="flex items-center gap-2 text-sm"><button type="button" onClick={()=>go("home")} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-[#bcd1eb] bg-white px-3 font-bold text-[#0b4f9e]">← ภาพรวมสถาบัน</button><span className="text-[#5b6f88]">› {MENU.find(m=>m.id===view)?.title??""}</span></div>}
+    {view!=="home"&&view!=="results"&&<div className="flex items-center gap-2 text-sm"><button type="button" onClick={()=>go("home")} className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border-2 border-[#bcd1eb] bg-white px-3 font-bold text-[#0b4f9e]">← ภาพรวมสถาบัน</button><span className="text-[#5b6f88]">› {MENU.find(m=>m.id===view)?.title??""}</span></div>}
     {ov?.access==="pending"&&<p role="status" className="rounded-xl border-2 border-[#d6a331] bg-[#fff7df] p-4 text-base font-medium text-[#704d10]">รับคำขอเข้าร่วมสถาบันแล้ว · รอผู้จัดการ GO MASTER อนุมัติสิทธิ์ก่อนจึงจะเพิ่มนักกีฬา สมัครแข่งขัน หรือแก้ไขโลโก้ได้ กรุณาให้ผู้จัดการที่มีสิทธิ์เปิดเมนู “เจ้าของและครู” เพื่อตรวจคำขอ</p>}
     {!ov?<div className="rounded-xl border border-[#bfd1eb] bg-white p-8 text-center" role={error?"alert":"status"}>{error||"กำลังโหลดข้อมูลสถาบัน…"}</div>:<div className="space-y-5">
+      {view==="results"&&<InstitutionResults name={ov.academy.name} students={ov.students} records={ov.records} onBack={()=>go("home")}/>}
       {view==="home"&&<Home ov={ov} records={filtered} track={tracking} apps={apps} filters={filters} go={go}/>}
       {view==="tracking"&&<Tracking ov={ov} track={tracking} filters={filters}/>}
       {view==="live"&&<LiveBoard ov={ov}/>}
@@ -167,14 +171,14 @@ function InstituteWorkspace({academyId,mine,selected,onJoin,onRenamed}:{academyI
       {view==="reports"&&<Reports ov={ov} records={filtered} filters={filters}/>}
       {view==="apply"&&<Apply ov={ov} apps={apps} canEdit={access} reload={load}/>}
       {view==="settings"&&<section className="space-y-4 rounded-[22px] border-[3px] border-[#b7d0ee] bg-white p-4 sm:p-6">
-        <h2 className="border-b-[3px] border-[#d5a42c] pb-3 text-xl font-semibold text-[#103e83] sm:text-2xl">ตั้งค่าสถาบันและบัญชี</h2>
+        <h2 className="border-b-[3px] border-[#d5a42c] pb-3 text-xl font-semibold text-[#103e83] sm:text-2xl">ข้อมูลสถาบันและโลโก้</h2>
         {!access?<div role="status" className="space-y-3 rounded-xl border-2 border-[#d9aa3e] bg-[#fff8e6] p-4 text-base text-[#624710]">
           <p className="text-lg font-semibold">บัญชีนี้ยังรออนุมัติสิทธิ์สถาบัน</p>
           <p>ขณะนี้สามารถดูข้อมูลและติดตามการแข่งขันได้ แต่ยังเปลี่ยนโลโก้หรือแก้ไขข้อมูลสถาบันไม่ได้</p>
           <p>ให้ผู้จัดการสถาบันที่มีสิทธิ์แล้วเข้าบัญชีของตนเอง ไปที่เมนู “เจ้าของและครู” แล้วอนุมัติคำขอของบัญชีนี้</p>
           <button type="button" onClick={()=>go("teachers")} className="inst-settings-link">ดูหน้าเจ้าของและครู</button>
         </div>:<>
-          {selected.role==="manager"||canCustomize?<><ThemeEditor academyId={academyId} theme={theme} onSaved={setTheme}/><LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/></>:
+          {selected.role==="manager"||canCustomize||ov?.access==="admin"?<><InstitutionNameSettings key={academyId} name={ov.academy.name} onSave={renameInstitution}/><LogoEditor academyId={academyId} branding={branding} onSaved={setBranding}/><ThemeEditor academyId={academyId} theme={theme} onSaved={setTheme}/></>:
            <div className="rounded-xl border-2 border-[#c4d5ec] bg-[#f4f8ff] p-4">
              <p className="font-semibold">โลโก้และข้อมูลสถาบัน</p>
              <p className="mt-2 text-base">เฉพาะผู้จัดการหรือบัญชีที่ได้รับสิทธิ์ปรับแต่งสถาบันเท่านั้นที่แก้ไขธีมและโลโก้ได้ หากต้องการเปลี่ยน ให้ติดต่อผู้จัดการสถาบัน</p>
