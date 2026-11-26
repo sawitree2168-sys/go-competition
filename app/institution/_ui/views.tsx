@@ -1,5 +1,6 @@
 "use client";
 
+import OverviewRoster from "./OverviewRoster";
 import {LinkStudents} from "./AcademyPeople";
 import { DisplayModeToggle, useInstitutionDisplayMode } from "./DisplayMode";
 import Link from "next/link";
@@ -19,6 +20,7 @@ const byId = (ov: Overview) => new Map(ov.students.map((s) => [s.id, s]));
 
 export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; records: Rec[]; track: Track[]; apps: Application[]; go: (v: View) => void } & F) {
   const t = totals(records, ov.students);
+  const [openStudent,setOpenStudent] = useOpenStudent();
   const report = studentReport(records, ov.students).filter((r) => r.latest).slice(0, 3);
   const live = track.slice(0, 4);
   const who = byId(ov);
@@ -37,35 +39,20 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
     {label:"ระดับคิว (Kyu)",value:rankCounts.kyu,colour:"#eab53d"},
     {label:"ยังไม่ระบุ / อื่น ๆ",value:rankCounts.other,colour:"#93b5dd"},
   ];
+  const chosenStudent=ov.students.find(s=>s.id===openStudent);
+  if(chosenStudent) return <StudentPanel academyId={ov.academy.id} academyName={ov.academy.name} student={chosenStudent} records={ov.records} rank={null} onClose={()=>setOpenStudent(null)}/>;
   return (
     <div className="relative z-10 space-y-5">
       <SectionTitle right={filters}>ภาพรวมสถาบัน</SectionTitle>
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
-        <Tile icon={<span className="h-7 w-7 text-[var(--gt-cta)] sm:h-8 sm:w-8">{ICONS.students}</span>} n={t.students} unit="นักเรียน" />
-        <Tile icon={<span className="h-7 w-7 sm:h-8 sm:w-8">{ICONS.awards}</span>} n={t.events} unit="รายการ" />
-        <Tile icon={<span className="h-7 w-7 text-[var(--gt-cta)] sm:h-8 sm:w-8">{ICONS.tracking}</span>} n={t.games} unit="เกม" />
-        <div className="gt-card flex items-center justify-center gap-1.5 p-2 sm:gap-2 sm:p-3">
-          <span className="flex min-h-11 items-center gap-1 whitespace-nowrap rounded-xl bg-[var(--gt-win-bg)] px-2 text-[15px] font-semibold text-[var(--gt-win-ink)] sm:px-3">✓ ชนะ <b className="gt-num text-lg sm:text-xl">{t.wins}</b></span>
-          <span className="flex min-h-11 items-center gap-1 whitespace-nowrap rounded-xl bg-[var(--gt-loss-bg)] px-2 text-[15px] font-semibold text-[var(--gt-loss-ink)] sm:px-3">✕ แพ้ <b className="gt-num text-lg sm:text-xl">{t.losses}</b></span>
-        </div>
+      <div className="inst-summary-grid">
+        <Tile icon={ICONS.students} n={t.students} unit="นักกีฬา" />
+        <Tile icon={ICONS.live} n={new Set(track.filter(x=>x.outcome==="pending").map(x=>x.athlete_id)).size} unit="รอผลแข่งขัน" />
+        <Tile icon={ICONS.tracking} n={t.events} unit="รายการแข่งขัน" />
+        <Tile icon={ICONS.stats} n={t.wins} unit="เกมที่ชนะ" />
+        <Tile icon={ICONS.reports} n={t.losses} unit="เกมที่แพ้" />
       </div>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-      <section className="gt-card overflow-hidden p-3 sm:p-5" aria-label="นักกีฬาแยกตามระดับฝีมือ">
-        <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="flex items-center gap-2 text-lg font-bold"><span aria-hidden="true">◉</span> นักกีฬาทุกระดับฝีมือ</h3>
-          <span className="rounded-full border border-[#e9bb50] bg-[#fff6db] px-3 py-1 text-sm font-semibold text-[#795009]">{rankTotal} คน</span>
-        </header>
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
-          <div className="h-5 overflow-hidden rounded-full border border-[#c6d9ef] bg-[#edf4fd]" role="img" aria-label={ranking.map(r=>`${r.label} ${r.value} คน`).join(" · ")}>
-            <div className="flex h-full">{ranking.map(r=><div key={r.label} style={{width:`${rankTotal ? r.value/rankTotal*100 : 0}%`,backgroundColor:r.colour}} />)}</div>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {ranking.map(r=><div key={r.label} className="flex items-center gap-2 text-sm"><span className="h-3 w-3 shrink-0 rounded-full" style={{backgroundColor:r.colour}}/><span className="min-w-0 flex-1">{r.label}</span><b>{r.value}</b></div>)}
-          </div>
-        </div>
-        <p className="mt-3 text-sm text-[#527097]">นับจากนักกีฬาที่ปรากฏในหน้าสถาบันปัจจุบัน ไม่ใช่จำนวนสมาชิกที่ยืนยันตัวตนทั้งหมด</p>
-      </section>
+      <div className="inst-overview-columns">
+      <OverviewRoster students={ov.students} onSelect={s=>setOpenStudent(s.id)} onViewAll={()=>go("students")}/>
       <section className="gt-card overflow-hidden p-3 sm:p-5" aria-label="กิจกรรมการสมัครล่าสุด">
         <header className="mb-3 flex items-center justify-between gap-2">
           <h3 className="text-lg font-semibold text-[#124784]">กิจกรรมสมัครแข่งขันล่าสุด</h3>
@@ -82,14 +69,26 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
       </section>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {([{id:"students",label:"นักกีฬา",detail:"จัดการรายชื่อและติดตามผล"},{id:"tracking",label:"ผลการแข่งขัน",detail:"รอบ โต๊ะ และผลล่าสุด"},{id:"stats",label:"อันดับ / พัฒนาการ",detail:"อันดับ กราฟการเติบโต ประวัติรายคน"},{id:"reports",label:"รายงาน",detail:"สรุปผลงานรายบุคคล"}] as const).map((item)=>
-          <button key={item.id} type="button" onClick={()=>go(item.id)} className="group rounded-[19px] border-2 border-[#cba038] bg-[linear-gradient(145deg,#fff,#f2f7ff)] p-4 text-left text-[#153e78] shadow-[0_4px_11px_rgba(8,44,98,.09)] transition hover:-translate-y-0.5 hover:border-[#a87d1e] hover:bg-[#fff9e9] active:scale-[.98]">
-            <span className="flex items-center justify-between"><span className="h-9 w-9 text-[#1357a7]">{ICONS[item.id==="reports"?"reports":item.id]}</span><span className="grid h-9 w-9 place-items-center rounded-full border border-[#ba8a21] bg-[#d9ae49] font-semibold text-[#183b69]">›</span></span>
-            <strong className="mt-3 block text-lg">{item.label}</strong><span className="block text-sm text-[#536d8b]">{item.detail}</span>
-          </button>
-        )}
+
+      <div className="grid gap-4">
+      <section className="gt-card overflow-hidden p-3 sm:p-5" aria-label="นักกีฬาแยกตามระดับฝีมือ">
+        <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="flex items-center gap-2 text-lg font-bold"><span aria-hidden="true">◉</span> นักกีฬาทุกระดับฝีมือ</h3>
+          <span className="rounded-full border border-[#e9bb50] bg-[#fff6db] px-3 py-1 text-sm font-semibold text-[#795009]">{rankTotal} คน</span>
+        </header>
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
+          <div className="h-5 overflow-hidden rounded-full border border-[#c6d9ef] bg-[#edf4fd]" role="img" aria-label={ranking.map(r=>`${r.label} ${r.value} คน`).join(" · ")}>
+            <div className="flex h-full">{ranking.map(r=><div key={r.label} style={{width:`${rankTotal ? r.value/rankTotal*100 : 0}%`,backgroundColor:r.colour}} />)}</div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {ranking.map(r=><div key={r.label} className="flex items-center gap-2 text-sm"><span className="h-3 w-3 shrink-0 rounded-full" style={{backgroundColor:r.colour}}/><span className="min-w-0 flex-1">{r.label}</span><b>{r.value}</b></div>)}
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-[#527097]">นับจากนักกีฬาที่ปรากฏในหน้าสถาบันปัจจุบัน ไม่ใช่จำนวนสมาชิกที่ยืนยันตัวตนทั้งหมด</p>
+      </section>
+
       </div>
+
       <section className="gt-card overflow-hidden border-[3px] border-[#bed1eb]" aria-labelledby="rep-h">
         <header className="flex items-start gap-3 px-4 pb-3 pt-4 sm:px-6">
           <span className="h-9 w-9 shrink-0 text-[var(--gt-cta)] sm:h-11 sm:w-11">{ICONS.awards}</span>
@@ -146,8 +145,8 @@ export function Home({ ov, records, track, apps, filters, go }: { ov: Overview; 
 
 function Tile({ icon, n, unit }: { icon: React.ReactNode; n: number; unit: string }) {
   return (
-    <div className="gt-card flex min-h-[4.25rem] items-center justify-center gap-3 p-3 sm:min-h-20">
-      {icon}<span className="gt-num text-2xl font-bold sm:text-4xl">{n}</span><span className="text-[15px] sm:text-lg">{unit}</span>
+    <div className="inst-summary-card">
+      <span className="inst-summary-icon">{icon}</span><div><span className="inst-summary-label">{unit}</span><strong>{n}</strong></div>
     </div>
   );
 }
@@ -276,7 +275,7 @@ export function Students({ ov, canEdit, reload, workspaceType="academy" }: { ov:
           </table>
         </div>
       ) : (
-        <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+        <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
           {list.map((s) => { const r = stats.get(s.id); return (
             <li key={s.id}>
               <article className="gt-card flex h-full w-full flex-col items-center gap-3 border-2 border-[#bcd1e9] p-3 text-center transition hover:border-[#c59b34]">

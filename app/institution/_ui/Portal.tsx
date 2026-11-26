@@ -1,6 +1,7 @@
 "use client";
 
 import "./institution-theme.css";
+import InstitutionHeader from "./InstitutionHeader";
 import { shownName } from "@/lib/easy-auth.mjs";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -122,32 +123,14 @@ function InstituteWorkspace({academyId,mine,selected,onJoin}:{academyId:string;m
   const heroImage=institutionAssetUrl(theme.hero_path);
   const backgroundImage=institutionAssetUrl(theme.background_path);
   return <div className="space-y-5 inst-themed" data-institution-color={theme.color} data-section-style={theme.section} data-hero-style={theme.hero} data-background-style={theme.background} style={backgroundImage?{"--inst-custom-background":`url("${backgroundImage}")`} as React.CSSProperties:undefined}>
-    <div className="inst-page-title" style={sectionImage?{backgroundImage:`linear-gradient(90deg,rgba(12,53,113,.8),rgba(12,57,116,.15)), url("${sectionImage}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}><span className="inst-page-title__icon" aria-hidden="true"><MenuIcon name="school" className="h-7 w-7" /></span><div className="min-w-0"><h2 className="text-lg font-bold sm:text-2xl">สถาบันของฉัน</h2><p className="text-xs text-white/90 sm:text-sm">จัดการนักกีฬา คุณครู และติดตามการแข่งขันทุกระดับฝีมือ</p></div></div>
-    <section className="inst-hero px-4 py-5 text-white sm:px-7 sm:py-7" style={heroImage?{backgroundImage:`linear-gradient(90deg,rgba(7,42,94,.92),rgba(8,64,133,.35)),url("${heroImage}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}>
-      <div className="relative z-10 flex flex-wrap items-center gap-5">
-        <div className="inst-hero-logo relative">
-          <LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/>
-          <button type="button" onClick={()=>go("settings")} title="เปิดการตั้งค่าโลโก้สถาบัน" aria-label="เปิดหน้าตั้งค่าโลโก้สถาบัน" className="inst-edit-logo" >✎</button>
-        </div>
-        <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold tracking-[.04em] text-[#ffdb77]">GO TOURNAMENT · {workspaceType==="independent_coach"?"ครูอิสระ":"สถาบัน"}</p>
-        <h1 className="mt-2 break-words text-2xl font-bold sm:text-4xl">{ov?.academy.name??selected.name}</h1>
-        <p className="mt-2 text-base font-medium text-white sm:text-lg">{workspaceType==="independent_coach"?"พื้นที่ส่วนตัวสำหรับติดตามนักเรียนที่สอน แม้จะลงแข่งขันในนามโรงเรียนอื่น":"ระบบติดตามนักกีฬาและการแข่งขันของสถาบัน"}</p>
-        <p className="inst-access-pill mt-3" data-active={selected.status==="active"}>{selected.status==="active"?"✓ บัญชีสถาบันเปิดใช้งาน":"รออนุมัติสิทธิ์"}</p>
-      </div>
-      <div className="relative z-10 hidden w-[470px] shrink-0 grid-cols-4 gap-2 xl:grid">
-        {([
-          {id:"students" as Exclude<View, "home">,label:"นักกีฬา"},
-          {id:"live" as Exclude<View, "home">,label:"ติดตามสด"},
-          {id:"apply" as Exclude<View, "home">,label:"สมัครแข่งขัน"},
-          {id:"settings" as Exclude<View, "home">,label:"โลโก้ / ตั้งค่า"},
-        ]).map(action=><button key={action.id} type="button" onClick={()=>go(action.id)} className="inst-hero-action">
-          <span className="h-8 w-8 text-[#0969d9]">{ICONS[action.id]}</span><span>{action.label}</span>
-        </button>)}
-      </div>
-      </div>
-      <div aria-hidden="true" className="pointer-events-none absolute -bottom-16 right-3 h-48 w-48 rounded-full border-[20px] border-[#f0bd58]/20 sm:h-72 sm:w-72"/>
-    </section>
+    <InstitutionHeader name={ov?.academy.name??selected.name} status={selected.status==="active"?"✓ เปิดใช้งาน":"รออนุมัติสิทธิ์"} description={workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันหมากล้อม · ระบบติดตามนักกีฬาและการแข่งขัน"} bannerImage={sectionImage} coverImage={heroImage}
+      logo={<div className="relative"><LogoDisplay branding={branding} name={selected.name} className="h-20 w-20 sm:h-28 sm:w-28"/><button type="button" onClick={()=>go("settings")} aria-label="แก้ไขโลโก้สถาบัน" className="inst-edit-logo">✎</button></div>}
+      actions={[
+       {label:"จัดการนักกีฬา (สมาชิก)",icon:<MenuIcon name="entrants"/>,onClick:()=>go("students")},
+       {label:"สมัครแข่งขัน",icon:<MenuIcon name="register"/>,onClick:()=>go("apply")},
+       {label:"แก้ไขข้อมูลสถาบัน",icon:<MenuIcon name="school"/>,onClick:()=>go("settings")},
+       {label:"อัปโหลดโลโก้ / รูปภาพ",icon:<MenuIcon name="gallery"/>,onClick:()=>go("settings")},
+      ]}/>
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-[#bdd2eb] bg-white p-3"><span className="text-sm font-semibold text-[#164476]">{workspaceType==="independent_coach"?"พื้นที่ติดตามนักเรียนของครูอิสระ":"สถาบันและครูสามารถใช้คนละบัญชีได้"}</span><button type="button" onClick={onJoin} className="min-h-11 rounded-xl border-2 border-[#e4b64f] bg-[#fff7df] px-4 text-sm font-black text-[#76510b]">+ เพิ่มสถาบัน / เปิดพื้นที่ครูอิสระ</button></div>
     {mine.length>1&&<div className="rounded-xl border border-[#bdcfe8] bg-white p-3">
       <label className="mr-3 text-sm font-semibold" htmlFor="academy-select">สถาบันของฉัน</label>

@@ -1,0 +1,19 @@
+.header{display:grid;gap:12px;font-family:"Prompt",sans-serif;min-width:0}
+.banner{display:flex;align-items:center;gap:16px;min-height:112px;padding:18px 24px;border:2px solid #dbac38;border-radius:18px;color:#fff;background:#0862c9 linear-gradient(90deg,rgba(5,64,154,.25),transparent),url('/institution-dashboard-banner.webp') center right/100% 100% no-repeat;box-shadow:0 3px 9px #0b4d9920}
+.banner h2{margin:0;font-family:inherit;font-size:clamp(24px,2.7vw,38px);font-weight:700;line-height:1.25;color:white}
+.banner p{margin:5px 0 0;font-size:15px;color:#fff}
+.emblem{display:grid;place-items:center;flex:none;width:62px;height:68px;border:2px solid #ffdb77;border-radius:17px;background:linear-gradient(135deg,#2eaeff,#084da6);box-shadow:inset 0 0 0 4px #ffffff22}
+.emblem svg{width:40px;height:40px}
+.identity{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px;border:1px solid #adcaf0;border-bottom:3px solid #d8ad42;border-radius:18px;background:linear-gradient(135deg,#fff 60%,#edf5ff);background-size:cover;box-shadow:0 4px 10px #0b4d9918;color:#103368}
+.profile{display:flex;align-items:center;gap:18px;min-width:0;flex:1}
+.logo{position:relative;flex:none}
+.details{min-width:0}.details h1{margin:0 0 7px;font-family:inherit;font-size:clamp(23px,2.4vw,34px);font-weight:700;line-height:1.25;overflow-wrap:anywhere;color:#103368;text-shadow:none}
+.details p{margin:8px 0 0;font-size:13px;line-height:1.6;color:#355477}
+.status{display:inline-flex;padding:3px 11px;border:1px solid #9dcbb0;border-radius:99px;background:#edf9f0;font-size:12px;font-weight:600;color:#22683b}
+.actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;width:min(52%,540px);flex:none}
+.actions button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;min-height:105px;padding:12px 6px;border:1.5px solid #89b5ee;border-bottom-width:3px;border-radius:15px;background:linear-gradient(#fff,#edf5ff);color:#123d81;font-family:inherit;font-size:13px;font-weight:600;line-height:1.4;cursor:pointer;transition:transform .15s,background .15s}
+.actions button svg{width:31px;height:31px;color:#0863d5}.actions button.primary{border-color:#dbad3b;background:linear-gradient(#fff5cf,#ffdf82)}
+.actions button:hover{background:#fff1be;border-color:#d5a331;transform:translateY(-2px)}.actions button:active{transform:scale(.97)}.actions button:focus-visible{outline:3px solid #d9a22c;outline-offset:3px}
+@media(max-width:1100px){.identity{flex-wrap:wrap}.actions{width:100%}.actions button{min-height:88px}}
+@media(max-width:600px){.header{gap:9px}.banner{min-height:96px;padding:14px 12px;gap:10px;border-radius:14px;background-position:65% center}.banner h2{font-size:25px}.banner p{font-size:11px;max-width:240px}.emblem{width:44px;height:52px;border-radius:12px}.emblem svg{width:30px;height:30px}.identity{padding:12px;gap:14px;border-radius:14px}.profile{gap:12px}.details h1{font-size:24px}.details p{font-size:11px}.actions{gap:6px}.actions button{min-height:91px;padding:9px 3px;font-size:10px;border-radius:12px;overflow-wrap:anywhere}.actions button svg{width:27px;height:27px}.status{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.actions button{transition:none}}
