@@ -129,3 +129,39 @@
 .gf-event-browser button:disabled{opacity:.6;cursor:wait}
 .gf-container>[hidden]{display:none!important}
 @media(max-width:600px){.gf-primary-tabs{gap:10px;margin-bottom:32px}.gf-primary-tabs button{flex-direction:column;gap:8px;padding:12px 8px;min-height:124px;border-radius:16px;font-size:17px;line-height:1.5}.gf-primary-tabs button>svg{width:28px;height:28px}.gf-primary-tabs small{font-size:11px}.gf-event-browser{padding:12px}.gf-event-browser li{flex-wrap:wrap;padding:12px;gap:10px}.gf-event-browser li>svg{width:28px;height:28px}.gf-page .gf-event-browser h3{font-size:17px}.gf-event-browser button{width:100%}.gf-event-browser p{font-size:13px}}
+
+/* Latest GO FAN artwork includes title and tagline on every screen. */
+.gf-page .gf-hero {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 2172 / 724;
+  padding: 0;
+  background: url('/go-fan/approved-fan-banner.webp') center / cover no-repeat #eff7ff;
+  border: 0;
+  border-bottom: 3px solid #eed069;
+  overflow: hidden;
+}
+.gf-page .gf-hero .gf-desktop-hero-art { display: none; }
+.gf-page .gf-hero > div {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  max-width: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (min-width: 1024px) {
+  .gf-page .gf-hero {
+    width: calc(min(100%, 1720px) - 64px);
+    height: clamp(300px, 28vw, 384px);
+    aspect-ratio: auto;
+    margin: 16px auto 0;
+    border-radius: 14px;
+  }
+}
