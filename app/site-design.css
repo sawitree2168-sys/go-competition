@@ -126,7 +126,7 @@ body{background:#f2f8ff;color:#082557}b,strong{font-weight:700}
   width: 100%;
   min-height: 0;
   aspect-ratio: 2048 / 684;
-  background: url('/banners/results-banner.webp') center 25% / cover no-repeat #eff7ff !important;
+  background: url('/banners/results-approved.webp') center center / cover no-repeat #eff7ff !important;
   color: #0642ad;
 }
 .site-public:has(.gt-sitebar a[href="/results"][aria-current="page"]) > .site-hero > div { padding: clamp(14px, 4vw, 64px); }
@@ -192,3 +192,7 @@ body{background:#f2f8ff;color:#082557}b,strong{font-weight:700}
 @media (max-width: 767px) {
   .site-public:has(.gt-sitebar a[href="/head-to-head"][aria-current="page"]) > .site-hero p { margin-top: 5px; }
 }
+
+/* The approved results artwork includes its own title and subtitle.
+   Keep the original page heading available to screen readers without overlaying it. */
+.site-public:has(.gt-sitebar a[href="/results"][aria-current="page"]) > .site-hero > div { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
