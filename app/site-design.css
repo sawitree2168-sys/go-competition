@@ -120,3 +120,39 @@ body{background:#f2f8ff;color:#082557}b,strong{font-weight:700}
 .gt-result-picker:disabled{opacity:.6}
 .gt-rp-summary{margin:0;font-size:13px;color:#536b8b;text-align:center}
 .gt-rp-summary strong{color:#0b2a5c}
+
+/* Results banner: same responsive frame as the homepage. */
+.site-public:has(.gt-sitebar a[href="/results"][aria-current="page"]) > .site-hero {
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 2048 / 684;
+  background: url('/banners/results-banner.webp') center 25% / cover no-repeat #eff7ff !important;
+  color: #0642ad;
+}
+.site-public:has(.gt-sitebar a[href="/results"][aria-current="page"]) > .site-hero > div { padding: clamp(14px, 4vw, 64px); }
+.site-public:has(.gt-sitebar a[href="/results"][aria-current="page"]) > .site-hero h1 {
+  max-width: 57%;
+  color: #0642ad;
+  text-shadow: none;
+  font-size: clamp(23px, 3.4vw, 58px);
+  line-height: 1.35;
+}
+.site-public:has(.gt-sitebar a[href="/results"][aria-current="page"]) > .site-hero p {
+  max-width: 52%;
+  color: #194477;
+  font-size: clamp(10px, 1.25vw, 20px);
+  line-height: 1.6;
+  margin-top: 10px;
+}
+@media (min-width: 1024px) {
+  .site-public:has(.gt-sitebar a[href="/results"][aria-current="page"]) > .site-hero {
+    width: calc(min(100%, 1720px) - 64px);
+    height: clamp(300px, 28vw, 384px);
+    aspect-ratio: auto;
+    margin: 16px auto 0;
+    border-radius: 14px;
+  }
+}
+@media (max-width: 767px) {
+  .site-public:has(.gt-sitebar a[href="/results"][aria-current="page"]) > .site-hero p { margin-top: 5px; }
+}
