@@ -197,3 +197,54 @@
     object-position: center 25%;
   }
 }
+
+/* Competition directory: companion artwork, same frame as the homepage. */
+.gt-directory:not(.gt-directory-home) .gt-directory-hero {
+  width: 100%;
+  aspect-ratio: 2048 / 684;
+  border-radius: 0;
+}
+.gt-directory:not(.gt-directory-home) .gt-directory-art {
+  background: url('/banners/tournaments-banner.webp') center 25% / cover no-repeat;
+  z-index: 0;
+}
+.gt-directory:not(.gt-directory-home) .gt-directory-art img { visibility: hidden; }
+.gt-directory:not(.gt-directory-home) .gt-directory-hero::after { display: none; }
+.gt-directory:not(.gt-directory-home) .gt-directory-hero-inner {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  min-height: 0 !important;
+  padding: clamp(14px, 4vw, 64px) !important;
+}
+.gt-directory:not(.gt-directory-home) .gt-directory-hero h1 {
+  max-width: 60%;
+  color: #0642ad;
+  font-size: clamp(23px, 3.4vw, 58px) !important;
+  line-height: 1.35;
+}
+.gt-directory:not(.gt-directory-home) .gt-directory-hero p {
+  max-width: 55%;
+  color: #194477 !important;
+  font-size: clamp(10px, 1.25vw, 20px) !important;
+  line-height: 1.6;
+  margin-top: 10px;
+}
+.gt-directory:not(.gt-directory-home) .gt-directory-gold {
+  background: #c99a2e;
+  margin-top: clamp(8px, 1.5vw, 20px);
+}
+@media (min-width: 1024px) {
+  .gt-directory:not(.gt-directory-home) .gt-directory-hero {
+    width: calc(min(100%, 1720px) - 64px);
+    max-width: none;
+    height: clamp(300px, 28vw, 384px);
+    aspect-ratio: auto;
+    margin: 16px auto 0;
+    border-radius: 14px;
+  }
+}
+@media (max-width: 767px) {
+  .gt-directory:not(.gt-directory-home) .gt-directory-hero p { margin-top: 5px; }
+  .gt-directory:not(.gt-directory-home) .gt-directory-gold { display: none; }
+}
