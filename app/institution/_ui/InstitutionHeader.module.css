@@ -19,3 +19,27 @@
 @media(prefers-reduced-motion:reduce){.actions button{transition:none}}
 
 .nameRow{display:flex;align-items:center;gap:8px;min-width:0}.nameRow h1{margin:0;min-width:0}.editName{display:grid;place-items:center;flex:none;width:44px;height:44px;border:1px solid #abc7ec;border-radius:10px;background:#f0f6ff;color:#1256ac;cursor:pointer}.editName svg{width:22px;height:22px}.editName:hover{background:#ffe6a2;border-color:#cea53b}.nameForm{display:grid;gap:8px;margin:12px 0;max-width:440px;font-size:14px}.nameForm label{font-weight:600}.nameForm input{width:100%;min-width:0;min-height:44px;padding:10px;border:1.5px solid #8aafe0;border-radius:10px;background:white;color:#123b78;font:inherit;font-size:16px}.nameForm>div{display:flex;flex-wrap:wrap;gap:8px}.nameForm button{min-height:44px;padding:9px 15px;border:1px solid #a5c3e8;border-radius:10px;background:white;color:#17457b;font:inherit;font-weight:600;cursor:pointer}.nameForm button[type=submit]{background:#0b60c6;color:white;border-color:#0b60c6}.nameForm button:disabled{opacity:.6;cursor:wait}.nameForm p[role=alert]{color:#ad243d}.saved{color:#226b3e!important}.editName:focus-visible,.nameForm :is(input,button):focus-visible{outline:3px solid #d8a735;outline-offset:3px}
+
+/* Approved institution banner: artwork carries the visible heading. */
+.banner {
+  position: relative;
+  display: block;
+  min-height: 0;
+  padding: 0;
+  aspect-ratio: 2172 / 724;
+  background: url('/banners/institutions-approved.webp') center / cover no-repeat #eff7ff !important;
+}
+.banner > .emblem { display: none; }
+.banner > div {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (min-width: 1024px) {
+  .banner { height: clamp(300px, 28vw, 384px); aspect-ratio: auto; }
+}
