@@ -156,3 +156,39 @@ body{background:#f2f8ff;color:#082557}b,strong{font-weight:700}
 @media (max-width: 767px) {
   .site-public:has(.gt-sitebar a[href="/results"][aria-current="page"]) > .site-hero p { margin-top: 5px; }
 }
+
+/* Head-to-head artwork, sized consistently with the homepage banner. */
+.site-public:has(.gt-sitebar a[href="/head-to-head"][aria-current="page"]) > .site-hero {
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 2048 / 684;
+  background: url('/banners/head-to-head-banner.webp') center 65% / cover no-repeat #eff7ff !important;
+  color: #0642ad;
+}
+.site-public:has(.gt-sitebar a[href="/head-to-head"][aria-current="page"]) > .site-hero > div { padding: clamp(14px, 4vw, 64px); }
+.site-public:has(.gt-sitebar a[href="/head-to-head"][aria-current="page"]) > .site-hero h1 {
+  max-width: 55%;
+  color: #0642ad;
+  text-shadow: none;
+  font-size: clamp(23px, 3.4vw, 58px);
+  line-height: 1.35;
+}
+.site-public:has(.gt-sitebar a[href="/head-to-head"][aria-current="page"]) > .site-hero p {
+  max-width: 50%;
+  color: #194477;
+  font-size: clamp(10px, 1.25vw, 20px);
+  line-height: 1.6;
+  margin-top: 10px;
+}
+@media (min-width: 1024px) {
+  .site-public:has(.gt-sitebar a[href="/head-to-head"][aria-current="page"]) > .site-hero {
+    width: calc(min(100%, 1720px) - 64px);
+    height: clamp(300px, 28vw, 384px);
+    aspect-ratio: auto;
+    margin: 16px auto 0;
+    border-radius: 14px;
+  }
+}
+@media (max-width: 767px) {
+  .site-public:has(.gt-sitebar a[href="/head-to-head"][aria-current="page"]) > .site-hero p { margin-top: 5px; }
+}
