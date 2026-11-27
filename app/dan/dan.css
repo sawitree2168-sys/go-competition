@@ -687,3 +687,30 @@
   .dan-card-picture { padding: 3px; }
   .dan-card-body { padding: 4px; }
 }
+
+/* Approved registry artwork includes all banner lettering. */
+.dan-page-content .presentation-banner {
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  aspect-ratio: 2164 / 727;
+  background: url('/banners/dan-approved.webp') center / cover no-repeat #eff7ff;
+}
+.dan-page-content .presentation-banner picture,
+.dan-page-content .presentation-banner::after { display: none; }
+.dan-page-content .presentation-banner > div {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (min-width: 1024px) {
+  .dan-page-content .presentation-banner {
+    height: clamp(300px, 28vw, 384px);
+    aspect-ratio: auto;
+  }
+}
