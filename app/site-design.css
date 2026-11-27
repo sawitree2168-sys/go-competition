@@ -196,3 +196,30 @@ body{background:#f2f8ff;color:#082557}b,strong{font-weight:700}
 /* The approved results artwork includes its own title and subtitle.
    Keep the original page heading available to screen readers without overlaying it. */
 .site-public:has(.gt-sitebar a[href="/results"][aria-current="page"]) > .site-hero > div { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Approved athletes banner includes its headline; match the homepage frame. */
+.site-public:has(.gt-sitebar a[href="/athletes"][aria-current="page"]) > .site-hero {
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 2048 / 684;
+  background: url('/banners/athletes-approved.webp') center center / cover no-repeat #eff7ff !important;
+}
+.site-public:has(.gt-sitebar a[href="/athletes"][aria-current="page"]) > .site-hero > div {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (min-width: 1024px) {
+  .site-public:has(.gt-sitebar a[href="/athletes"][aria-current="page"]) > .site-hero {
+    width: calc(min(100%, 1720px) - 64px);
+    height: clamp(300px, 28vw, 384px);
+    aspect-ratio: auto;
+    margin: 16px auto 0;
+    border-radius: 14px;
+  }
+}
