@@ -180,3 +180,13 @@
     font-size: clamp(0.5625rem, 2.35vw, 0.875rem);
   }
 }
+
+/* Keep the complete homepage banner compact on desktop. */
+@media (min-width: 1024px) {
+  .gt-directory-home .gt-directory-hero-home {
+    width: calc(100% - 48px);
+    max-width: 1152px;
+    margin: 16px auto 0;
+    border-radius: 14px;
+  }
+}
